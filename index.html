@@ -37,18 +37,6 @@
               border-radius:999px; padding:5px 11px; }
   .facts b { color:var(--tx); font-weight:650; }
 
-  details.shared { margin-top:18px; background:rgba(255,255,255,.72); border:1px solid var(--line);
-                   border-radius:12px; }
-  details.shared summary { cursor:pointer; list-style:none; padding:12px 16px; font-size:13px; font-weight:600;
-                           color:var(--muted); display:flex; align-items:center; gap:8px; border-radius:12px; }
-  details.shared summary::-webkit-details-marker { display:none; }
-  details.shared summary::before { content:""; width:7px; height:7px; border-right:2px solid currentColor;
-                                   border-bottom:2px solid currentColor; transform:rotate(-45deg);
-                                   transition:transform .2s; margin-right:2px; }
-  details.shared[open] summary::before { transform:rotate(45deg); }
-  details.shared summary:hover { color:var(--tx); }
-  details.shared .shared-text { padding:0 16px 16px; font-size:13px; color:#4a4234; line-height:1.65; white-space:pre-wrap; }
-
   .toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:24px 0 8px;
              position:sticky; top:0; z-index:10; padding:14px 0;
              background:linear-gradient(180deg, rgba(247,245,240,.97) 65%, rgba(247,245,240,0));
@@ -109,7 +97,6 @@
   .prompt-label { font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--acc3);
                   margin-bottom:10px; font-weight:600; }
   .prompt-text { font-size:13.5px; color:#463e30; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; }
-  .prompt-note { margin-top:10px; font-size:12.5px; color:var(--muted); font-style:italic; }
   .file-name { margin-top:12px; font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size:11px;
                color:var(--dim); display:flex; flex-wrap:wrap; gap:6px 14px; }
   .file-name a { color:var(--acc-ink); text-decoration:none; border-bottom:1px solid rgba(194,65,12,.3); }
@@ -152,20 +139,6 @@
       <li>desktop &amp; phone layouts</li>
       <li>works offline</li>
     </ul>
-    <details class="shared">
-      <summary>Shared requirements given with every prompt</summary>
-      <div class="shared-text">SHARED REQUIREMENTS (apply to every page in this 100-page collection):
-1. One standalone HTML5 file. All CSS inline in &lt;style&gt;, all JavaScript inline in &lt;script&gt;. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
-2. Valid HTML5: &lt;!DOCTYPE html&gt;, &lt;html lang=&quot;en&quot;&gt;, &lt;meta charset=&quot;utf-8&quot;&gt;, a viewport meta tag, a meaningful &lt;title&gt; and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, &lt;button type=&quot;button&quot;&gt; for actions.
-3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
-4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
-5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
-6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
-7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
-8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
-9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
-10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.</div>
-    </details>
   </header>
 
   <div class="toolbar">
@@ -194,7 +167,6 @@
   <div class="prompt-panel" id="pp001">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design a premium landing page for &quot;Stillwater&quot;, a fictional breathing and meditation app, in refined glassmorphism. Background: deep midnight (#070b1f) with three slow-drifting aurora ribbons rendered on a canvas (layered, sine-deformed gradient bands in teal #2de2c4, violet #7b5cff and rose #ff6fa8, additive blending, very soft) over a faint twinkling star field. Foreground: frosted-glass panels (backdrop-filter blur + saturate, 1px inner highlight border, subtle grain) — a hero with a large, airy, light-weight sans headline; a centred &quot;breathing orb&quot; that expands and contracts on a 4-7-8 rhythm with a caption that cross-fades Inhale / Hold / Exhale; a row of three feature cards; a testimonial strip; and a pricing section whose monthly/yearly toggle animates a sliding glass pill. Delight: cards tilt in 3D toward the pointer with a moving specular glare; the aurora bends gently toward the cursor. Interaction: hover/tilt cards; click the orb to start/stop a guided one-minute session with a progress ring; pricing toggle. Mobile: cards stack, the orb stays hero-centred.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="001-aurora-glass.html" target="_blank" rel="noopener">001-aurora-glass.html</a><a href="001-aurora-glass.txt" target="_blank" rel="noopener">001-aurora-glass.txt</a></div>
   </div>
 </article>
@@ -214,7 +186,6 @@
   <div class="prompt-panel" id="pp002">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create an immersive cyberpunk street at night titled &quot;NEON RAIN — District 9 Night Market&quot; (fictional). A full-viewport canvas scene with four parallax layers of skyline silhouettes (#05010f → #1a0433) and randomly lit windows; holographic vertical signs with katakana-like glyphs drawn in canvas that flicker with believable neon failure (brief dropouts, buzz); a wet street reflecting the signs (mirrored, blurred, rippled); dense diagonal rain with splash particles on the ground. Palette: hot magenta #ff2a6d, cyan #05d9e8 and acid-yellow #f9f002 accents on ink black. Overlay a thin HUD: time, temperature, &quot;SIGNAL&quot; bars and a scrolling ticker of fictional news in monospace. Typography: condensed uppercase sans with chromatic-aberration text-shadow. Interaction: the pointer moves the parallax camera; a click triggers a lightning flash that briefly lights the whole skyline plus a thunder rumble (Web Audio noise, after a gesture, with a mute toggle); a toggle switches rain intensity. Must stay fluid at 60fps using pooled particles.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="002-neon-rain.html" target="_blank" rel="noopener">002-neon-rain.html</a><a href="002-neon-rain.txt" target="_blank" rel="noopener">002-neon-rain.txt</a></div>
   </div>
 </article>
@@ -234,7 +205,6 @@
   <div class="prompt-panel" id="pp003">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;RASTER — Swiss Poster Machine&quot;, an homage to the International Typographic Style. The page is a single poster on an off-white (#f2efe8) sheet set on a strict 12-column modular grid (revealable with the G key or a toggle that shows hairline cyan grid lines). Palette strictly signal red #e30613, black #111 and white. A heavy grotesque sans stack (&quot;Helvetica Neue&quot;, Helvetica, Arial, &quot;Nimbus Sans&quot;, sans-serif) used with extreme scale contrast: a giant numeral or word, small flush-left body text, rotated captions. Geometric elements (circles, bars, quarter-arcs) occupy grid cells. Every click (or Space) recomposes the poster from a new seed — elements slide and rotate to new cells with crisp eased FLIP-style transitions, never overlapping text illegibly. Show the seed as an edition mark (&quot;No. 0417&quot;). A small control strip: previous/next composition, grid toggle, invert (black ground). It must look like a museum-quality, Müller-Brockmann-inspired print at any viewport, reflowing the grid for portrait phones.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="003-swiss-poster-machine.html" target="_blank" rel="noopener">003-swiss-poster-machine.html</a><a href="003-swiss-poster-machine.txt" target="_blank" rel="noopener">003-swiss-poster-machine.txt</a></div>
   </div>
 </article>
@@ -254,7 +224,6 @@
   <div class="prompt-panel" id="pp004">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;The Clockmaker&#x27;s Orrery&quot;, an interactive mechanical model of the solar system in the style of an 18th-century brass instrument. Parchment background (#efe3c6 with a subtle radial vignette and paper fibres from layered gradients), deep ink lines (#2b1d0e), and brass/gold metallic gradients (#b8860b → #f3d27a → #7a5410) for arms, rings and gears. Centre: a glowing sun; eight planets on brass arms orbiting at correct relative orbital periods (Mercury 0.241 y … Neptune 164.8 y) with log-compressed distances; an engraved zodiac ring with degree ticks around the edge; interlocking gears in a corner that rotate in sync with simulated time. Typography: engraved-looking serif small caps (&quot;Iowan Old Style&quot;, &quot;Palatino Linotype&quot;, Palatino, &quot;P052&quot;, Georgia, serif) with generous letter-spacing. UI: a brass-styled readout of the simulated date, a speed dial (pause, 1 day/s, 1 month/s, 1 year/s), and click-a-planet to open an ornate cartouche with its name, period and a short engraved description. Delight: optional tiny ticking sound (Web Audio, after a gesture) and hover glints on the brass. SVG for the instrument, requestAnimationFrame for motion.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="004-brass-orrery.html" target="_blank" rel="noopener">004-brass-orrery.html</a><a href="004-brass-orrery.txt" target="_blank" rel="noopener">004-brass-orrery.txt</a></div>
   </div>
 </article>
@@ -274,7 +243,6 @@
   <div class="prompt-panel" id="pp005">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Make &quot;Sumi — Ink in Water&quot;, a meditative fluid simulation. A full-screen canvas showing warm washi paper (#f4efe6 with procedurally generated fibre noise). Clicking or tapping drops ink that blooms, curls and diffuses like sumi ink in water — implement a small grid-based stable-fluids solver (advection, diffusion, pressure projection) at reduced resolution with smooth upscaling, or an equivalent dye-advection approach; dragging the pointer stirs the water. Default ink is deep sumi black-indigo (#1b1f2a); a minimal vertical toolbar on the right, set in a quiet serif, switches to indigo (#2c3e75), vermillion (#d23c26) or pale gold (#b89b5e). A red hanko seal in the corner (SVG, carved-looking characters approximated with geometric strokes) signs the piece; a &quot;Still the water&quot; button slowly fades the ink away. Typography: an elegant vertical title using writing-mode: vertical-rl. Delight: an occasional falling ink droplet when idle; ink leaves faint tidelines at its edges. Must run smoothly on laptops and lower its resolution on mobile.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="005-sumi-ink-in-water.html" target="_blank" rel="noopener">005-sumi-ink-in-water.html</a><a href="005-sumi-ink-in-water.txt" target="_blank" rel="noopener">005-sumi-ink-in-water.txt</a></div>
   </div>
 </article>
@@ -294,7 +262,6 @@
   <div class="prompt-panel" id="pp006">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;LOUD HOUSE RECORDS — Issue 07&quot;, a neo-brutalist web zine for a fictional independent record label. Raw, confident and loud: flat saturated colours (cobalt #1d3cff, electric yellow #ffe600, black #000, off-white #f7f5f0, one hit of hot pink #ff3ea5), 3–4px black borders everywhere, hard offset shadows (8px 8px 0 #000) with no blur, oversized uppercase grotesk headlines, monospace metadata, and a deliberately collaged layout on a visible grid. Sections: a massive masthead with a marquee strip of release names; a &quot;NEW RELEASES&quot; grid of album cards whose covers are generated geometric CSS/SVG art, unique per card; a tracklist table; a tour-dates list with rotated SOLD OUT stamps; and a sign-up box. Interaction: cards physically &quot;press down&quot; on hover/click (shadow collapses, element translates); a sticker you can drag anywhere; a &quot;SHUFFLE COVERS&quot; button that re-rolls the cover art; and a &quot;preview&quot; button that plays a short synthesized drum loop (Web Audio, after a gesture). Must remain highly legible and responsive.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="006-brutalist-zine.html" target="_blank" rel="noopener">006-brutalist-zine.html</a><a href="006-brutalist-zine.txt" target="_blank" rel="noopener">006-brutalist-zine.txt</a></div>
   </div>
 </article>
@@ -314,7 +281,6 @@
   <div class="prompt-panel" id="pp007">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;SOFT MACHINE&quot;, a playable neumorphic synthesizer. Everything is sculpted from one soft clay surface (#e4e8ee) with paired light/dark shadows (#ffffff / #b8bec7), raised and pressed states, and a single accent — warm coral #ff6b5a — for active LEDs and the waveform. Layout: a device centred on the page with an OLED-like inset screen showing a live oscilloscope (AnalyserNode drawn on canvas); four rotary knobs (cutoff, resonance, attack, release) dragged vertically; a waveform selector (sine/triangle/saw/square) as neumorphic segmented buttons; a 16-step sequencer row of soft pads; and a two-octave keyboard of soft keys. Typography: a rounded sans stack (&quot;SF Pro Rounded&quot;, Nunito, &quot;Varela Round&quot;, &quot;Segoe UI&quot;, system-ui, sans-serif) with small-caps labels in muted slate. Interaction: click/touch keys or use computer keys A–K to play (Web Audio oscillator → filter → envelope); knobs update the sound in real time with smooth value tooltips; the sequencer plays/stops with adjustable tempo. Audio starts only after the first gesture. Responsive: the device scales down and the keyboard becomes compact on phones without page overflow.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="007-neumorphic-synth.html" target="_blank" rel="noopener">007-neumorphic-synth.html</a><a href="007-neumorphic-synth.txt" target="_blank" rel="noopener">007-neumorphic-synth.txt</a></div>
   </div>
 </article>
@@ -334,7 +300,6 @@
   <div class="prompt-panel" id="pp008">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design a long-read editorial feature: &quot;The Last Keepers — Life at the Edge of the Light&quot;, a fictional magazine story about lighthouse keepers. Write original, evocative literary prose (~900 words), impressionistic rather than presenting invented facts as real history. Typography-led: a classic book serif (&quot;Iowan Old Style&quot;, &quot;Palatino Linotype&quot;, Palatino, &quot;P052&quot;, Georgia, serif) for body text at a comfortable measure, a large Didone-feeling headline, an ornamental drop cap, small-caps bylines, pull quotes that break the column, and marginal notes on wide screens. Palette: cream paper #f6f1e7, ink navy #14213d, signal red #c0392b, fog grey. Hero: a full-bleed SVG illustration of a lighthouse on rocks at dusk with a rotating light beam that sweeps across the headline and a gently animated sea. Scroll storytelling: sections fade and rise in; a reading-progress bar styled as a lighthouse beam; a section where the background shifts from dusk to night as you scroll; and an illustrated &quot;anatomy of a lens&quot; figure (Fresnel lens rings) that assembles on scroll. Footnotes pop up on click. Must read beautifully on phones.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="008-lighthouse-longform.html" target="_blank" rel="noopener">008-lighthouse-longform.html</a><a href="008-lighthouse-longform.txt" target="_blank" rel="noopener">008-lighthouse-longform.txt</a></div>
   </div>
 </article>
@@ -354,7 +319,6 @@
   <div class="prompt-panel" id="pp009">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Asterism — Draw Your Own Sky&quot;, an interactive star chart where you invent constellations. A deep indigo night gradient (#060818 → #141a3d) with a procedurally placed star field (varying magnitude, subtle colour temperature from blue-white to amber, twinkle), a faint Milky Way band made of clustered noise particles, and fine gold line work (#e8c872) in the style of antique celestial atlases. Click one star and then another to draw gold connecting lines; when you close a shape (or press &quot;Name it&quot;), the constellation receives a generated mythic name (combined from curated word lists, e.g. &quot;The Weeping Heron&quot;) and an engraved label with a faint illustrated halo appears. A side panel (glass, collapsible on mobile) lists your constellations; hovering highlights them. Also: a slowly rotating sky (drag to rotate), a toggle for a coordinate grid of curved RA/Dec-style lines, &quot;Clear sky&quot; and &quot;Save as PNG&quot;. Constellations persist in localStorage. Typography: elegant serif capitals with wide tracking and italic Latin-flavoured subtitles.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="009-constellation-mapper.html" target="_blank" rel="noopener">009-constellation-mapper.html</a><a href="009-constellation-mapper.txt" target="_blank" rel="noopener">009-constellation-mapper.txt</a></div>
   </div>
 </article>
@@ -374,7 +338,6 @@
   <div class="prompt-panel" id="pp010">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;MERCURY&quot;, a hero page for a fictional generative-audio studio whose centrepiece is a liquid chrome blob. On near-black (#050506), render a metaball cluster (canvas or SVG gooey filter) shaded as polished liquid metal — environment-map-like banding in silvers (#e8ecf1, #9aa3ad) and deep blacks with a thin iridescent rim (cyan → magenta → gold). The blobs orbit, merge and split organically; the cursor acts as a magnet, pulling a droplet that stretches and then snaps back with viscous easing. A giant wordmark &quot;MERCURY&quot; in a wide, heavy sans with a chrome gradient fill and a slow specular sweep; the blob passes behind and in front of letters (layering). Minimal navigation, a one-line manifesto, three glass &quot;capability&quot; chips, and a CTA button whose hover makes a small droplet drip from it. Interaction: pointer magnetism, click to split a droplet off, scrolling gently shrinks the blob into the corner. Tasteful, luxurious, silky 60fps; reduced motion shows a static sculpted frame.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="010-liquid-mercury.html" target="_blank" rel="noopener">010-liquid-mercury.html</a><a href="010-liquid-mercury.txt" target="_blank" rel="noopener">010-liquid-mercury.txt</a></div>
   </div>
 </article>
@@ -394,7 +357,6 @@
   <div class="prompt-panel" id="pp011">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Herbarium Imaginarium&quot;, a Victorian botanical specimen cabinet of procedurally grown plants that do not exist. Aged paper (#efe6d2 with foxing spots and fibre texture from layered radial gradients), sepia ink (#4a3622), faded botanical greens (#6b7f4e, #9aa77a) and madder-red accents for seeds and berries. Each specimen card shows a plant grown by an L-system/recursive branching algorithm and drawn in SVG with ink-like stroke variation, leaves, buds and occasional flowers; a paper tape strip &quot;holding&quot; the stem; a handwritten-feeling label in an italic serif with an invented Latin binomial (generated from syllable lists), a collection date and a specimen number. A grid of six specimens on desktop, one or two on mobile. Interaction: &quot;Collect a new specimen&quot; grows a plant stroke by stroke (animated stroke-dashoffset); clicking a card opens it large in a lightbox with a magnifying-loupe hover; a &quot;Press&quot; button toggles a flattened pressed-flower look (desaturated, slightly translucent). Typography: &quot;Iowan Old Style&quot;, Palatino, &quot;P052&quot;, Georgia, serif, with italic labels and ornamental rules.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="011-victorian-herbarium.html" target="_blank" rel="noopener">011-victorian-herbarium.html</a><a href="011-victorian-herbarium.txt" target="_blank" rel="noopener">011-victorian-herbarium.txt</a></div>
   </div>
 </article>
@@ -414,7 +376,6 @@
   <div class="prompt-panel" id="pp012">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Nimbus&quot;, an elegant weather dashboard for the fictional coastal city of Port Aurelia (clearly fictional sample data). The hero is an animated sky that changes with the selected condition: clear day (drifting sun glare, soft clouds), rain (parallax raindrops, darker gradient), snow (flakes with sway), thunderstorm (lightning flashes) and clear night (stars, moon). The palette adapts per condition but stays sophisticated (e.g. day #7cc4f5 → #e8f6ff, night #0b1026 → #2b2f63). Foreground glass cards: current temperature as a huge thin numeral, feels-like, humidity and UV; an animated wind compass; a sunrise/sunset arc with the sun&#x27;s current position; a 24-hour temperature line chart (SVG smooth curve with gradient fill and hover tooltip); and a 7-day forecast strip with custom SVG weather icons that animate on hover. Interaction: clicking a forecast day switches the whole scene and its data with a smooth cross-fade; a °C/°F toggle. Typography: a clean sans with tabular numerals.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="012-nimbus-weather.html" target="_blank" rel="noopener">012-nimbus-weather.html</a><a href="012-nimbus-weather.txt" target="_blank" rel="noopener">012-nimbus-weather.txt</a></div>
   </div>
 </article>
@@ -434,7 +395,6 @@
   <div class="prompt-panel" id="pp013">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Woolgathering&quot;, Conway&#x27;s Game of Life rendered as a living piece of knitting. Each cell is drawn on a canvas as a knit stitch (a small V-shaped pair of loops with shading); live cells are coloured yarn and dead cells are background yarn, so the evolving pattern reads as Fair Isle knitwear. Palette of cosy wools: oatmeal #e9dcc5 background, rust #b5502b, mustard #d9a441, forest #2f5d50, cream #f6efe2 — plus a colourway selector with four palettes. Add a subtle fuzz/halo on stitches and gentle drape shading across the fabric. Frame the canvas as if it hangs from knitting needles (SVG at the top) with yarn-ball illustrations. Warm rounded controls: play/pause, step, speed, randomise, clear, and preset patterns (glider, pulsar, Gosper glider gun, a snowflake motif). Draw cells with pointer or touch. Show the generation count as a knitted row counter. Typography: a friendly serif (&quot;Cooper&quot;, Georgia, &quot;URW Bookman&quot;, serif).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="013-knitted-life.html" target="_blank" rel="noopener">013-knitted-life.html</a><a href="013-knitted-life.txt" target="_blank" rel="noopener">013-knitted-life.txt</a></div>
   </div>
 </article>
@@ -454,7 +414,6 @@
   <div class="prompt-panel" id="pp014">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;MOVE — A Manifesto in Motion&quot;, a scroll-driven kinetic typography experience. Black background (#0a0a0a), off-white type (#f1f1ec) and one acid accent (#c6ff00). Seven original manifesto statements about motion, attention and design each get a full-screen scene with a distinct typographic motion driven by scroll progress: letters assembling from scattered positions; words stretching horizontally with scaleX; a line splitting in half to reveal an accent line; characters cascading like dominoes; a word rotating in 3D; a sentence typed out with a caret; and a giant word zooming until its counter becomes the next scene&#x27;s background. Use sticky sections and custom scroll-progress mapping, with CSS transforms only for performance. Typography: a heavy grotesque/condensed sans stack for display and monospace for small annotations such as scene numbers (&quot;SC. 03 / 07&quot;). A progress rail on the side. Reduced motion: statements appear statically with simple fades.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="014-kinetic-manifesto.html" target="_blank" rel="noopener">014-kinetic-manifesto.html</a><a href="014-kinetic-manifesto.txt" target="_blank" rel="noopener">014-kinetic-manifesto.txt</a></div>
   </div>
 </article>
@@ -474,7 +433,6 @@
   <div class="prompt-panel" id="pp015">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create a landing page for &quot;The Aurelian&quot;, a fictional 1928 Art Deco grand hotel. Black lacquer (#0b0b0c) and deep emerald (#0f3d33) grounds with gold (#d4af37, grading to #f5e3a1) geometric ornament — sunbursts, stepped ziggurat frames, chevrons and fan motifs, all inline SVG. Typography: tall, thin, high-contrast display capitals (stack: Didot, &quot;Bodoni 72&quot;, &quot;Bodoni MT&quot;, &quot;C059&quot;, Georgia, serif) with wide letter-spacing, plus refined small caps. Sections: a hero with an animated sunburst radiating behind the hotel name and a symmetrical Deco frame that draws itself in gold; &quot;The Suites&quot; as three arched cards with gilded hover states; a dining section with a menu styled as an engraved card; an elevator-dial floor selector that scrolls to sections while its needle rotates; and a reservation form with Deco-bordered inputs. Delight: a gold-foil shimmer sweeping across headings and fan patterns that open on scroll. Elegant and symmetrical on desktop, gracefully stacked on phones.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="015-art-deco-hotel.html" target="_blank" rel="noopener">015-art-deco-hotel.html</a><a href="015-art-deco-hotel.txt" target="_blank" rel="noopener">015-art-deco-hotel.txt</a></div>
   </div>
 </article>
@@ -494,7 +452,6 @@
   <div class="prompt-panel" id="pp016">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;PLAZA AETERNA — Mall of Tomorrow (Est. 1994)&quot;, a vaporwave dreamscape. Background: a sunset gradient (#ff71ce → #b967ff → #01cdfe) with a striped retro sun, a 3D-perspective neon grid floor scrolling toward the viewer, palm silhouettes, and a slowly rotating marble bust built from layered SVG shapes with procedurally generated marble veining. Overlay draggable Windows-95-style windows (bevelled grey #c0c0c0, navy title bars) containing: a &quot;Store Directory&quot; with pastel icons, a mock MIDI player that plays a synthesized chord progression (Web Audio, after a gesture), and a &quot;Welcome&quot; message in full-width styling (Ａ Ｅ Ｓ Ｔ Ｈ Ｅ Ｔ Ｉ Ｃ). Typography: a mixture of serif italics, pixel-feeling monospace and widely spaced letters. Interaction: drag windows by their title bars, minimise them to a taskbar with a Start button and clock, click desktop icons to open windows, and a VHS tracking glitch on hover. Responsive: windows become stacked cards on phones.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="016-vaporwave-mall.html" target="_blank" rel="noopener">016-vaporwave-mall.html</a><a href="016-vaporwave-mall.txt" target="_blank" rel="noopener">016-vaporwave-mall.txt</a></div>
   </div>
 </article>
@@ -514,7 +471,6 @@
   <div class="prompt-panel" id="pp017">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Harmonia — Pendulum Wave&quot;, a physically accurate pendulum-wave simulation as minimalist kinetic art. Charcoal background (#16171b); 18 pendulums whose lengths are chosen so they complete 51, 52, 53… oscillations in 60 seconds (the classic pendulum-wave set-up), rendered from a slightly elevated 3D perspective with fine white strings and glowing spheres in a gradient spectrum from #ffd6a5 to #9bf6ff, plus optional light trails that paint Lissajous-like ribbons. A thin brushed-metal mounting bar at the top. Beneath, an elegant monospace readout: elapsed time, cycle phase, and a timeline scrubber showing where you are in the 60-second pattern (snake, split, chaos, realignment). Controls: play/pause, speed (0.25×–4×), trails toggle, view toggle (side / top-down), and &quot;Release&quot;, which pulls every pendulum back and lets them drop. Optional soft chime whenever a pendulum crosses centre (Web Audio pentatonic, after a gesture, muted by default). Typography: thin sans plus mono.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="017-pendulum-wave.html" target="_blank" rel="noopener">017-pendulum-wave.html</a><a href="017-pendulum-wave.txt" target="_blank" rel="noopener">017-pendulum-wave.txt</a></div>
   </div>
 </article>
@@ -534,7 +490,6 @@
   <div class="prompt-panel" id="pp018">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Foxglove Hollow&quot;, a layered paper-cut forest diorama. Seven to nine stacked layers of hand-cut-looking paper (SVG paths with slightly irregular edges) — distant hills, pines, a winding river, mushrooms, ferns, a small fox and foreground grasses — each casting a soft drop shadow onto the layer behind it so the scene has real depth. Day palette: sage #9bb89b, moss #5f7f5b, deep teal #274e52, ochre #d9a45b, burnt orange #c8642d, cream sky #f3e8d2. Night palette: indigo layers, tiny glowing windows, fireflies and a paper moon. Subtle paper grain from procedural noise. Interaction: pointer movement creates parallax between layers (touch-drag on mobile); a day/night toggle recolours every layer with a staggered transition; clicking the fox makes it hop to a new spot; paper leaves drift gently. The title sits on a small paper tag hanging from a string, in a warm serif. The composition must recompute nicely for portrait screens.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="018-paper-cut-diorama.html" target="_blank" rel="noopener">018-paper-cut-diorama.html</a><a href="018-paper-cut-diorama.txt" target="_blank" rel="noopener">018-paper-cut-diorama.txt</a></div>
   </div>
 </article>
@@ -554,7 +509,6 @@
   <div class="prompt-panel" id="pp019">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;HELIOS/OS v2.3&quot;, a retro CRT terminal operating system simulation. Full-screen phosphor green (#33ff66 on #031a07) with themes for amber (#ffb000 on #1a0f00) and ice (#9fe7ff). CRT effects in CSS/canvas: scanlines, subtle screen curvature (vignette, rounded corners, inner shadow), phosphor glow/bloom text-shadow, gentle flicker and a rolling refresh bar. On load: a believable BIOS boot sequence (memory check counting up, device list) followed by a login banner. A working shell with an input line and blinking block caret supporting: help, ls, cat &lt;file&gt; (several short fictional files including a poem and a mission log), clear, date, whoami, theme &lt;green|amber|ice&gt;, matrix (glyph rain for a few seconds), weather (ASCII art), snake (a small playable ASCII snake game inside the terminal), command history with ↑/↓, and tab completion. Typography: a monospace stack. Keyboard-first, with tap-to-focus on phones so the soft keyboard appears. Optional typing sounds (Web Audio clicks, off by default).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="019-phosphor-terminal.html" target="_blank" rel="noopener">019-phosphor-terminal.html</a><a href="019-phosphor-terminal.txt" target="_blank" rel="noopener">019-phosphor-terminal.txt</a></div>
   </div>
 </article>
@@ -574,7 +528,6 @@
   <div class="prompt-panel" id="pp020">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Long Water — The World&#x27;s Great Rivers&quot;, an elegant data-art visualization comparing the ten longest rivers. Use these commonly cited approximate lengths (label them &quot;approx.&quot; and note that sources vary): Nile 6,650 km; Amazon 6,400; Yangtze 6,300; Mississippi–Missouri 6,275; Yenisei 5,539; Yellow River 5,464; Ob–Irtysh 5,410; Paraná 4,880; Congo 4,700; Amur 4,444. Each river is a flowing, meandering SVG ribbon whose length is proportional to its real length, flowing left to right with particles drifting along it like current. Palette: deep river blues and teals on pale limestone (#f3f1ec) — a sequential scale from #0b3d5c to #7fc8c2 — with thin ink labels. Typography: refined serif titles, small-caps continent labels, tabular numerals. Interaction: hover a river to highlight it and show a tooltip (length, continent, where it flows out); sort toggle (by length / by continent); unit toggle (km / miles); a &quot;race&quot; button where droplets travel every river at the same speed so the differences in length can be felt. Include an elegant legend and a short intro paragraph. Mobile: ribbons become vertical flows.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="020-rivers-of-the-world.html" target="_blank" rel="noopener">020-rivers-of-the-world.html</a><a href="020-rivers-of-the-world.txt" target="_blank" rel="noopener">020-rivers-of-the-world.txt</a></div>
   </div>
 </article>
@@ -594,7 +547,6 @@
   <div class="prompt-panel" id="pp021">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Formlehre — Bauhaus Composer&quot;, a tactile composition toy honouring Bauhaus design. A board on warm cream (#f1ead8) with a tray of primary shapes — circle, square, triangle, semicircle, quarter-circle, bar — in the Bauhaus triad red #d62d20, yellow #f4c20d and blue #1d4e9e, plus black #111. Drag shapes onto the board; they snap to a hidden 8×8 grid with a satisfying spring; rotate with the wheel or R key, scale with handles, recolour by clicking a swatch, bring to front. A &quot;Kandinsky&quot; button auto-composes a balanced composition using Kandinsky&#x27;s colour–form associations (yellow triangle, red square, blue circle) with a short explanatory caption. Typography: a geometric sans stack (Futura, &quot;Century Gothic&quot;, &quot;Avenir Next&quot;, &quot;URW Gothic&quot;, sans-serif) with lowercase-only headings in the Bayer &quot;universal&quot; spirit and large numeral section markers. The toolbar is made of coloured geometric buttons. Export the composition as PNG. Keyboard: Delete removes, arrows nudge. Works with touch.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="021-bauhaus-composer.html" target="_blank" rel="noopener">021-bauhaus-composer.html</a><a href="021-bauhaus-composer.txt" target="_blank" rel="noopener">021-bauhaus-composer.txt</a></div>
   </div>
 </article>
@@ -614,7 +566,6 @@
   <div class="prompt-panel" id="pp022">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Descent — Eleven Thousand Metres Down&quot;, a scroll-driven journey from the ocean surface to the bottom of the Mariana Trench (~10,935 m). As you scroll, the background transitions through the ocean zones — sunlight (#1e90c8), twilight (#0b3a66), midnight (#04142b), abyssal (#020812) and hadal (#000204) — while a fixed depth gauge counts metres and shows the zone name, pressure (≈ 1 additional atmosphere per 10 m) and temperature notes. Illustrated SVG/canvas creatures appear at approximately correct depths: dolphins and sunlit fish near the top, jellyfish, a sperm whale (~1,000 m and deeper), an anglerfish with a glowing lure, a vampire squid, a gulper eel, amphipods, and finally the trench floor. Deeper creatures are bioluminescent, with pulsing blue/green light; marine snow drifts through the water; light rays from the surface fade out gradually. Short, accurate captions (keep claims general and well established). Interaction: scroll; in the dark zones the pointer is a faint torch revealing nearby creatures; clicking a creature opens a caption card. It ends with an elegant &quot;Return to surface&quot; button that smooth-scrolls up.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="022-deep-sea-descent.html" target="_blank" rel="noopener">022-deep-sea-descent.html</a><a href="022-deep-sea-descent.txt" target="_blank" rel="noopener">022-deep-sea-descent.txt</a></div>
   </div>
 </article>
@@ -634,7 +585,6 @@
   <div class="prompt-panel" id="pp023">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Rosette — Symmetry Painter&quot;, a radial-symmetry drawing instrument. A black canvas (#070707) where every stroke is mirrored across N rotational segments (selectable 3–24, plus mirror on/off) around the centre, producing mandala-like jewel artwork. Brushes: glowing neon line (additive blending), ink line with velocity-based width, dotted stardust, and ribbon. Palette presets: &quot;Jewels&quot; (#ff006e #fb5607 #ffbe0b #8338ec #3a86ff), &quot;Byzantine&quot; (golds and deep blues), &quot;Porcelain&quot; (cobalt on white — switches the background to white), plus a hue-cycling rainbow mode. A faint guide shows the segment lines while drawing and fades out afterwards. UI: a floating, elegant control dock (glass on dark) with segment slider, brush picker, palette swatches, undo, clear (with a dissolve animation) and PNG download. Delight: an idle &quot;autodraw&quot; that paints slowly on its own until the user touches the canvas, and a gentle rotation mode that spins the artwork. Touch-friendly with pointer capture.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="023-symmetry-painter.html" target="_blank" rel="noopener">023-symmetry-painter.html</a><a href="023-symmetry-painter.txt" target="_blank" rel="noopener">023-symmetry-painter.txt</a></div>
   </div>
 </article>
@@ -654,7 +604,6 @@
   <div class="prompt-panel" id="pp024">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design a product page for &quot;Maison Varenne — Calibre 01&quot;, a fictional minimalist luxury watch. Palette: ivory #f5f1ea, champagne #d8c3a5, charcoal #1c1c1c and a hint of midnight blue #1b2a41 for a dial variant. The hero is a large, photoreal-feeling SVG watch built entirely from gradients: a brushed-steel case with conical highlights, a domed sapphire reflection, applied indices with tiny shadows, dauphine hands showing the REAL current local time, and a smoothly sweeping seconds hand (8 beats per second). Typography: a refined high-contrast serif for headings with wide-tracked small sans captions. Sections with generous whitespace: an exploded view of the movement whose layers separate on scroll; a dial variant selector (ivory / midnight / salmon) that recolours the watch with a smooth transition; a specification table; and a &quot;Reserve&quot; CTA. Interaction: hovering the watch tilts it slightly and moves the sapphire reflection; a &quot;Night&quot; toggle shows lume glowing on the hands and indices. Quiet, precise animation — nothing gaudy.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="024-luxury-watch.html" target="_blank" rel="noopener">024-luxury-watch.html</a><a href="024-luxury-watch.txt" target="_blank" rel="noopener">024-luxury-watch.txt</a></div>
   </div>
 </article>
@@ -674,7 +623,6 @@
   <div class="prompt-panel" id="pp025">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Pocket Metropolis&quot;, an isometric tiny-city builder toy. A canvas-rendered isometric grid (12×12 on desktop, fitted on mobile) in soft pastels: grass #a8d5a2, water #7ec8e3, roads #d6d0c4, and buildings in peach #ffb5a7, blush #fcd5ce, mint #b8e0d2 and lavender #cdb4db, with gentle ambient-occlusion shading on each block face. A bottom toolbar places houses, towers, trees, parks, roads and water; buildings pop in with a squash-and-stretch bounce. Little cars travel along connected road tiles and tiny people stroll in parks. A day/night cycle slowly shifts the lighting (sky gradient behind, windows lighting up at night, glowing streetlamps). A stats bubble shows population and happiness (parks near homes increase it). Interaction: click/tap tiles to place; right-click/long-press to bulldoze with a puff of dust; drag to pan; pinch/scroll to zoom; &quot;Random town&quot; seeds a charming city. Persist to localStorage. Typography: a rounded, friendly sans.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="025-isometric-city.html" target="_blank" rel="noopener">025-isometric-city.html</a><a href="025-isometric-city.txt" target="_blank" rel="noopener">025-isometric-city.txt</a></div>
   </div>
 </article>
@@ -694,7 +642,6 @@
   <div class="prompt-panel" id="pp026">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;PULSE — Generative Audio Visualizer&quot;. On first click, a built-in generative electronic track starts, synthesized entirely with Web Audio (kick, hi-hat from filtered noise, a bassline and an arpeggiated pad in a minor key at ~110 BPM, evolving every 8 bars). An AnalyserNode drives the centrepiece: a radial frequency bloom — 128 bars around a circle with mirrored symmetry, a pulsating core that swells on each kick, orbiting particles that accelerate with high frequencies, and a smoky trail (canvas feedback with a slight zoom/rotation each frame). Before audio starts, an idle breathing version of the visual must already look beautiful. Palette: sunset-to-violet gradient (#ff9a3c → #ff3c78 → #7b2ff7 → #16d9e3) on deep plum-black #0c0612. Typography: wide, spaced uppercase sans for the title and a small monospace readout of BPM, bar count and track section. Controls: play/pause; mode switch between &quot;Bloom&quot;, &quot;Tunnel&quot; (concentric rings rushing toward the viewer) and &quot;Horizon&quot; (mirrored waveform landscape); volume. Optional &quot;Use microphone&quot; button with a graceful fallback if permission is denied.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="026-pulse-visualizer.html" target="_blank" rel="noopener">026-pulse-visualizer.html</a><a href="026-pulse-visualizer.txt" target="_blank" rel="noopener">026-pulse-visualizer.txt</a></div>
   </div>
 </article>
@@ -714,7 +661,6 @@
   <div class="prompt-panel" id="pp027">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Senbazuru — Fold a Paper Crane&quot;, an animated, step-by-step origami crane made with CSS 3D transforms or canvas 3D projection. A square of patterned washi paper (generated seigaiha waves or asanoha pattern in indigo #264653 on cream, with a coral #e76f51 reverse side) folds through about eight key stages — square base, bird base, narrowing folds, head fold, wings — with smooth hinge rotations, correct front/back faces and soft directional shading on each facet that changes with its angle. A clean Japanese-minimal layout: off-white #f7f3ec, lots of space, the step number as a large thin numeral, a one-line instruction for each step, and a progress rail of eight dots. Interaction: next/previous buttons, arrow keys and an auto-play toggle; drag to orbit the model; a picker for three washi patterns. Finale: the finished crane flaps gently and floats above a soft shadow while a counter reads &quot;1 of 1000&quot;. Typography: an elegant serif plus tiny wide-tracked sans labels.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="027-origami-crane.html" target="_blank" rel="noopener">027-origami-crane.html</a><a href="027-origami-crane.txt" target="_blank" rel="noopener">027-origami-crane.txt</a></div>
   </div>
 </article>
@@ -734,7 +680,6 @@
   <div class="prompt-panel" id="pp028">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Elementa&quot;, an interactive periodic table of all 118 elements with a premium dark look (#0d1117). Each tile shows atomic number, symbol and name, coloured by category with a harmonious palette (alkali metals #ff6b6b, alkaline earth #ffa94d, transition metals #ffd43b, post-transition #69db7c, metalloids #38d9a9, nonmetals #4dabf7, halogens #748ffc, noble gases #da77f2, lanthanides #f783ac, actinides #e599f7) at soft opacity with glowing borders. Use standard atomic weights, rounded sensibly. The layout follows the standard 18-column table with the f-block below; on narrow phones the table pans horizontally inside its own scroll container (the page itself must not overflow). Interaction: hovering or focusing a tile fills a large detail panel with an animated Bohr-model shell diagram (electrons orbiting on shells with correct per-shell counts), category, atomic mass and state at room temperature; the category legend buttons filter and highlight; a search box jumps to an element. Keyboard navigable with arrow keys.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="028-periodic-table.html" target="_blank" rel="noopener">028-periodic-table.html</a><a href="028-periodic-table.txt" target="_blank" rel="noopener">028-periodic-table.txt</a></div>
   </div>
 </article>
@@ -754,7 +699,6 @@
   <div class="prompt-panel" id="pp029">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Carriage Return — A Typewriter for Letters&quot;, an interactive typewriter writing experience featuring a fictional machine, the &quot;Marlowe 44&quot;. A three-quarter illustrated typewriter (SVG; mint-green enamel #9fc9b6 with cream keys and chrome details) sits at the bottom, and a sheet of textured paper (#faf6ec) feeds out above it. Typing on the physical keyboard (or tapping on-screen keys) stamps characters onto the paper with realistic imperfections: slight baseline jitter, varied ink density, an occasional faint double strike, ribbon texture. The carriage visibly shifts left as you type, a bell dings near the right margin, and Enter triggers a carriage return with the lever animation and a line feed. Synthesized sounds (Web Audio clicks and bell) after the first gesture, with a mute toggle. Typography: a typewriter monospace stack (&quot;Courier Prime&quot;, &quot;American Typewriter&quot;, &quot;Courier New&quot;, &quot;Nimbus Mono PS&quot;, monospace). Extras: a red/black ribbon toggle, &quot;New sheet&quot; pulls the paper out with an animation, and &quot;Save letter&quot; downloads a PNG of the page. A warm desk background with wood-grain gradients and soft lamplight.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="029-typewriter-letters.html" target="_blank" rel="noopener">029-typewriter-letters.html</a><a href="029-typewriter-letters.txt" target="_blank" rel="noopener">029-typewriter-letters.txt</a></div>
   </div>
 </article>
@@ -774,7 +718,6 @@
   <div class="prompt-panel" id="pp030">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Orbital — N-Body Gravity Playground&quot;. A full-screen canvas of deep space (#03040a) with a subtle nebula (layered noise gradients in #1b1464 and #5f0f40) and parallax stars. Click and drag to fling a new body: the drag vector sets its velocity, shown as a dotted aiming line with a predicted trajectory that accounts for existing masses. Bodies attract with softened Newtonian gravity, leave glowing fading trails, and merge on collision (conserving momentum and mass, mixing colours) with a flash. Colour and glow reflect mass (small icy blue → large hot orange/white). Presets: &quot;Binary star&quot;, &quot;Solar system&quot;, &quot;Figure-eight three-body&quot;, &quot;Galaxy collision&quot; (hundreds of light particles around two cores). A minimal monospace HUD shows body count, total energy and simulation speed. Controls: mass selector for new bodies, pause, slow motion, trail length, clear, and &quot;follow&quot; (camera tracks the heaviest body). Scroll/pinch to zoom, right-drag or two-finger drag to pan. Use a fixed-timestep velocity-Verlet integrator.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="030-gravity-sandbox.html" target="_blank" rel="noopener">030-gravity-sandbox.html</a><a href="030-gravity-sandbox.txt" target="_blank" rel="noopener">030-gravity-sandbox.txt</a></div>
   </div>
 </article>
@@ -794,7 +737,6 @@
   <div class="prompt-panel" id="pp031">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Nijūshi Sekki — The Twenty-Four Seasons&quot;, a contemplative calendar of the traditional East Asian 24 solar terms. A large circular SVG dial divided into 24 arcs at 15° intervals of the sun&#x27;s ecliptic longitude, each filled with a traditional Japanese colour suited to that part of the year (e.g. sakura-iro #fef4f4, moegi #aacf53, ruri #1e50a2, kuchiba #e0c38c, kakishibu). The current date&#x27;s term is marked by a small sun computed from today&#x27;s date (approximate dates are fine; say so). Selecting a term shows its romanized name, kanji and English meaning (e.g. Risshun 立春 &quot;Beginning of Spring&quot;), its approximate date range, a short poetic description, and a softly animated seasonal generative motif behind the text (petals, rain, fireflies, falling leaves, snow). Typography: vertical Japanese text using writing-mode for the kanji and an elegant serif for English. Palette: washi white #f8f5ee and sumi #2b2b2b, tinted by the selected term&#x27;s colour. Interaction: click arcs, arrow keys to step through, a &quot;Today&quot; button. Responsive: the dial scales and the detail panel moves below it on phones.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="031-twenty-four-seasons.html" target="_blank" rel="noopener">031-twenty-four-seasons.html</a><a href="031-twenty-four-seasons.txt" target="_blank" rel="noopener">031-twenty-four-seasons.txt</a></div>
   </div>
 </article>
@@ -814,7 +756,6 @@
   <div class="prompt-panel" id="pp032">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;MYTHIC — Holographic Card&quot;, a premium collectible trading card with realistic holographic foil. One large card centred on a dark velvet background (#0e0b16 with a soft spotlight). The card art depicts an original creature, &quot;Lumidrake, the Prism Wyrm&quot;, composed entirely of SVG shapes: a stylised crystalline dragon silhouette over a starburst. The foil: layered conic/linear rainbow gradients with color-dodge/overlay blend modes, a procedural glitter texture, and a diagonal glare band — all driven by pointer position so the rainbow shifts and the glare slides as the card tilts in 3D (rotateX/Y with spring easing and perspective). An embossed frame, a stat block (ATK/DEF, rarity stars), italic-serif flavour text and a set number &quot;077/250&quot;. Interaction: pointer tilt (touch-drag on mobile); click to flip the card to its patterned back; a &quot;Pack opening&quot; button plays a short sequence in which a foil pack tears open and the card slides out with a flash. Foil palette: iridescent pastels over deep indigo art.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="032-holographic-card.html" target="_blank" rel="noopener">032-holographic-card.html</a><a href="032-holographic-card.txt" target="_blank" rel="noopener">032-holographic-card.txt</a></div>
   </div>
 </article>
@@ -834,7 +775,6 @@
   <div class="prompt-panel" id="pp033">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Labyrinthos&quot;, a maze game styled as an ancient stone labyrinth seen from above. Generate a new perfect maze each round (recursive backtracker or Wilson&#x27;s algorithm), rendered on canvas as carved terracotta/sandstone walls (#c4773b, #e2b07a, with highlight and shadow edges for relief) on a darker dusty floor (#6b4a2b), with subtle noise texture and a Greek-key meander border. The player is a small flickering flame that lights only a radius around it — the rest of the maze is dark (fog of war that dimly remembers visited corridors). Controls: arrow keys/WASD, swipes on touch, and an on-screen d-pad on mobile. The exit is a glowing golden thread spool. Features: the maze visibly carves itself at the start of each round; a &quot;Show Ariadne&#x27;s thread&quot; hint animates the solution path (BFS) as a red thread; a timer; three sizes; and a victory screen with a laurel illustration. Typography: an inscriptional Roman-capitals feeling serif with wide spacing.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="033-stone-labyrinth.html" target="_blank" rel="noopener">033-stone-labyrinth.html</a><a href="033-stone-labyrinth.txt" target="_blank" rel="noopener">033-stone-labyrinth.txt</a></div>
   </div>
 </article>
@@ -854,7 +794,6 @@
   <div class="prompt-panel" id="pp034">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Currents — Flow Field Studio&quot;, generative art made of thousands of particles following a Perlin/simplex noise vector field (implement the noise inline). Particles leave long, fine, semi-transparent strokes that accumulate into silky flowing textures like wind maps or marbled paper. Five curated palettes, each with its own background: &quot;Kyoto Dusk&quot; (#1a1423; #e8a87c #d45d79 #6e5773 #ea9085), &quot;Glacier&quot; (#f4f7f6; #264653 #2a9d8f #8ab17d), &quot;Ember&quot; (#0d0d0d; #ff4800 #ff7b00 #ffb700), &quot;Riso&quot; (paper #f2eee3; fluorescent pink #ff48b0 and blue #0078bf with multiply blending) and &quot;Mono Ink&quot;. A slim, elegant side panel holds noise scale, particle count, stroke length, curl/turbulence, palette, a seed field, &quot;Regenerate&quot; and &quot;Download PNG&quot;. Clicking the canvas plants an attractor/vortex that bends the field locally; the piece slowly evolves over time (the noise&#x27;s z-axis). Typography: understated monospace labels and a serif title. Must stay performant (typed arrays, batched paths).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="034-flow-field-studio.html" target="_blank" rel="noopener">034-flow-field-studio.html</a><a href="034-flow-field-studio.txt" target="_blank" rel="noopener">034-flow-field-studio.txt</a></div>
   </div>
 </article>
@@ -874,7 +813,6 @@
   <div class="prompt-panel" id="pp035">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design a landing page for &quot;Ember &amp; Oak Coffee Roasters&quot; (fictional). Warm palette: espresso #2b1a12, roasted brown #5c3a21, crema #c8a27a, oat #efe5d6, copper #b87333. Hero: a large SVG coffee cup at a three-quarter angle with animated curling steam (turbulence-displaced SVG paths) and a latte-art rosetta in the crema that redraws on hover. Sections: &quot;Our Beans&quot; — a horizontal scroll-snap carousel of origin cards (fictional estates in real coffee-growing countries such as Ethiopia, Colombia and Guatemala), each with a custom SVG illustration and altitude/process notes; an interactive tasting-notes flavour wheel (SVG donut with sub-segments — fruity, floral, sweet, nutty, spices, roasted) where hovering expands segments and selecting one shows matching beans; a &quot;Roast level&quot; slider that shifts a bean illustration from green to dark roast with crackle particles at first crack; brew-guide steps with timers; and a subscription CTA. Typography: characterful serif headings (Cooper, Rockwell, Georgia, serif) with a clean sans for body text. Tactile hover states throughout.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="035-coffee-roasters.html" target="_blank" rel="noopener">035-coffee-roasters.html</a><a href="035-coffee-roasters.txt" target="_blank" rel="noopener">035-coffee-roasters.txt</a></div>
   </div>
 </article>
@@ -894,7 +832,6 @@
   <div class="prompt-panel" id="pp036">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Meridian Metro&quot;, an animated transit map for a fictional city in the tradition of Beck and Vignelli diagrams. White ground (#fbfbf9); six coloured lines (#e4002b red, #0072ce blue, #00a651 green, #ffb81c amber, #9b26b6 purple, #00b2a9 teal) drawn as thick SVG paths with only 45° and 90° bends; interchange stations as white capsules with black outlines, regular stations as tick marks; a river as a pale blue band and a park area. Station names in a clean humanist sans with careful placement. Trains (small rounded rectangles in the line colour) run along the lines on simulated schedules, pausing at stations. Interaction: hover a line to spotlight it (others fade); hover or click a station for a card with next departures whose countdowns tick live; a route planner — pick origin and destination to highlight the shortest path (Dijkstra on the station graph) with transfer count and estimated time; zoom/pan on mobile. The line legend doubles as toggles. Include a subtle &quot;service status&quot; panel (&quot;Good service&quot;, &quot;Minor delays&quot;). It should look like a crisp printed map.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="036-transit-map.html" target="_blank" rel="noopener">036-transit-map.html</a><a href="036-transit-map.txt" target="_blank" rel="noopener">036-transit-map.txt</a></div>
   </div>
 </article>
@@ -914,7 +851,6 @@
   <div class="prompt-panel" id="pp037">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Frost Garden — Diffusion-Limited Aggregation&quot;, a crystal-growth simulation that produces delicate branching ice and coral structures. A canvas with a deep blue-black gradient (#020617 → #0b1d3a). Random walkers diffuse and stick when they touch the growing cluster; stuck particles are coloured by arrival time (pale ice #e0f7ff through cyan #67e8f9 to violet #a78bfa) with a soft glow, so the structure looks like frost lit from within. Use an efficient approach (spawn walkers near the cluster radius, grid occupancy, many steps per frame) so growth is visibly lively. Modes: &quot;Point seed&quot; (radial frost), &quot;Line seed&quot; (frost growing up from the bottom like on a window) and &quot;Snow&quot; (6-fold symmetric growth). Interaction: click to add seed points; a stickiness slider (branch density); speed; palette (Ice / Coral / Gold filigree); pause; download. A subtle particle count and elapsed time in elegant monospace. Title in thin, widely spaced capitals.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="037-frost-garden.html" target="_blank" rel="noopener">037-frost-garden.html</a><a href="037-frost-garden.txt" target="_blank" rel="noopener">037-frost-garden.txt</a></div>
   </div>
 </article>
@@ -934,7 +870,6 @@
   <div class="prompt-panel" id="pp038">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;HYPERBRICK&quot;, a polished, playable Breakout-style arcade game with a synthwave aesthetic. A canvas playfield framed by an arcade bezel; background dark purple (#12002b) with a perspective grid horizon and a glowing sun. Bricks in glowing neon rows (#ff2e97, #ff9e00, #fff200, #00f5d4, #00bbf9, #9b5de5); a sleek neon capsule paddle; a ball that leaves a motion trail. Juicy feedback: bricks shatter into particles, screen shake on impact, a combo counter with pop text, paddle squash, flashes, and synthesized sound effects (Web Audio blips whose pitch rises with the combo; mute toggle). Power-ups drop from some bricks: multi-ball, wide paddle, laser, slow-mo. Five hand-designed levels (e.g. heart, invader, spiral) plus an endless mode. Controls: mouse/touch drag and arrow keys; Space to launch/pause. Screens: a title screen with an attract-mode demo, pause, and game over with a high score saved in localStorage. Typography: bold italic sans with neon glow for the HUD. Scales to phone screens with a portrait playfield.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="038-neon-breakout.html" target="_blank" rel="noopener">038-neon-breakout.html</a><a href="038-neon-breakout.txt" target="_blank" rel="noopener">038-neon-breakout.txt</a></div>
   </div>
 </article>
@@ -954,7 +889,6 @@
   <div class="prompt-panel" id="pp039">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Galerie Nocturne&quot;, a walk-through virtual museum room in CSS 3D. A corridor with a polished marble floor (CSS gradients plus reflection), warm walls (#e9e2d6), soft ceiling spotlights casting pools of light, and eight framed paintings hung on the side walls. Each painting is an original generative artwork rendered on canvas and seeded so it is stable: a colour-field piece, a primary-colour grid, a geometric abstraction, a pointillist sunset, a flow field, an op-art piece, an ink landscape and a gold mosaic. Gilded or slim black frames with museum placards (title, fictional artist, year, medium). Navigation: arrow keys/WASD or on-screen buttons move the camera along the corridor with smooth easing; clicking a painting walks up to it and shows it frontally with a detail card; Escape steps back. A small floor-plan minimap shows your position. Typography: a museum-grade sans for placards and a classic serif for the title. On phones, fall back to a swipeable wall of the same framed works.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="039-virtual-gallery.html" target="_blank" rel="noopener">039-virtual-gallery.html</a><a href="039-virtual-gallery.txt" target="_blank" rel="noopener">039-virtual-gallery.txt</a></div>
   </div>
 </article>
@@ -974,7 +908,6 @@
   <div class="prompt-panel" id="pp040">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Nonna Lucia&#x27;s Lemon Ricotta Tart&quot;, a beautiful interactive recipe page. Mediterranean citrus palette: lemon #f7d44c, leaf green #5b8c51, terracotta #c65d3b, cream #fbf6ea, ink #2e2a24. Hero: a hand-drawn-style SVG illustration of the tart with lemons and leaves (wobbly line quality, flat colour fills, subtle paper texture), with lemon slices that rotate gently. Two columns on desktop (ingredients left, method right), one column on mobile. Features: a servings scaler (−/+) that recalculates every quantity with nice fractions (½, ¾) plus a metric/US toggle; an ingredient checklist with a satisfying strike-through animation; numbered steps that can be marked done, each with a built-in countdown timer where relevant (e.g. bake 35 min) showing ring progress and playing a gentle chime when finished (Web Audio); and a &quot;cook mode&quot; that enlarges the current step. Typography: warm serif headings (&quot;Iowan Old Style&quot;, Palatino, &quot;P052&quot;, Georgia, serif) with an italic, handwritten-flavoured style for notes such as &quot;Nonna&#x27;s tip&quot;. Include a short story intro and a print stylesheet (@media print).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="040-lemon-tart-recipe.html" target="_blank" rel="noopener">040-lemon-tart-recipe.html</a><a href="040-lemon-tart-recipe.txt" target="_blank" rel="noopener">040-lemon-tart-recipe.txt</a></div>
   </div>
 </article>
@@ -994,7 +927,6 @@
   <div class="prompt-panel" id="pp041">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Midnight Window&quot;, rain on a window pane at night. Behind the glass, a canvas shows a blurred city bokeh scene (soft glowing circles in amber #ffb347, warm white, tail-light red #ff4b4b and teal signage #3fd0c9 on deep blue-black #0a0f1f), drifting slowly. On the glass: realistic raindrops — small static beads plus larger drops that grow, then slide down in wobbly paths leaving trails and merging with others; each drop refracts the background (render the background flipped and magnified inside the drop). Condensation fogs the glass; the user can wipe it clear with pointer or finger, and the cleared area slowly fogs back. Ambient layers: occasional distant lightning and rain sound synthesized with Web Audio (filtered noise plus droplet ticks) behind a &quot;sound&quot; toggle. A small caption in a light serif: &quot;It&#x27;s 00:47. The city is still awake.&quot; using the live local time. Controls: rain intensity slider and a city/forest background toggle (forest = green bokeh). Performance-minded.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="041-rain-on-glass.html" target="_blank" rel="noopener">041-rain-on-glass.html</a><a href="041-rain-on-glass.txt" target="_blank" rel="noopener">041-rain-on-glass.txt</a></div>
   </div>
 </article>
@@ -1014,7 +946,6 @@
   <div class="prompt-panel" id="pp042">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Infinite Coastline — Mandelbrot &amp; Julia Explorer&quot;. A full-screen canvas rendering the Mandelbrot set with smooth (continuous) colouring and a choice of cyclic palettes: &quot;Aurum&quot; (black → deep blue → gold → white), &quot;Abyss&quot; (navy → cyan → white), &quot;Magma&quot; and &quot;Pastel Dream&quot;. Render progressively (low-resolution preview, then refinement in chunks scheduled with requestAnimationFrame, optionally in a Web Worker created from an inline Blob) so the UI never freezes. Interaction: click/tap to zoom in on a point (animated); right-click or a button to zoom out; drag to pan; mouse-wheel zoom; and a live mini Julia-set window that follows the cursor showing the Julia set for the hovered c — press J to make it the main view. HUD: coordinates, zoom level and iteration count (rising automatically with zoom); bookmarks of famous locations (Seahorse Valley, Elephant Valley, a triple spiral, a mini-brot). Palette-cycling animation toggle. Download PNG. A sleek dark UI with thin gold typography.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="042-fractal-explorer.html" target="_blank" rel="noopener">042-fractal-explorer.html</a><a href="042-fractal-explorer.txt" target="_blank" rel="noopener">042-fractal-explorer.txt</a></div>
   </div>
 </article>
@@ -1034,7 +965,6 @@
   <div class="prompt-panel" id="pp043">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;ATELIER NOIRE — Autumn/Winter Collection&quot; (fictional), a high-fashion editorial lookbook. Palette: bone #efe9e1, blush #e8c4b8, oxblood #5a1a1d, black #0d0d0d. Typography is the star: an ultra-high-contrast Didone display stack (Didot, &quot;Bodoni 72&quot;, &quot;Bodoni MT&quot;, &quot;C059&quot;, serif) set enormous and overlapping the imagery, mixed with tiny tracked sans labels. Since no photographs are allowed, each &quot;look&quot; is an abstract fashion illustration built from CSS/SVG — elongated silhouettes, draped fabric shapes with gradient folds, a hat brim, the geometry of a coat — elegant and minimal like fashion croquis. Layout: a horizontal-scroll gallery on desktop (the wheel drives horizontal movement) and vertical on mobile; asymmetric compositions with numbered looks (&quot;LOOK 07&quot;), material captions, and a giant word (&quot;RESTRAINT&quot;) sliding in parallax behind. Interaction: hovering a look reveals a detail-zoom fabric swatch (procedural tweed, silk sheen, herringbone); a custom cursor becomes a thin ring labelled &quot;VIEW&quot;; a progress bar. Page-load intro: a curtain wipe.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="043-fashion-lookbook.html" target="_blank" rel="noopener">043-fashion-lookbook.html</a><a href="043-fashion-lookbook.txt" target="_blank" rel="noopener">043-fashion-lookbook.txt</a></div>
   </div>
 </article>
@@ -1054,7 +984,6 @@
   <div class="prompt-panel" id="pp044">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Selene — Tide &amp; Moon Clock&quot;, a poetic instrument showing today&#x27;s moon phase and a stylised tidal cycle. Compute the current moon phase from the date (synodic month ≈ 29.53059 days from the reference new moon of 2000-01-06 18:14 UTC) and render a large, photoreal-leaning moon on canvas with a correct terminator, craters and maria from procedural noise shading, and earthshine on the dark side. Below it, a flowing sea of layered animated SVG waves (navy #0b1d3a, #13315c, #1d4e89 with silver highlights #c9d6e3) whose level rises and falls with a simplified semi-diurnal tide model (two highs and two lows per ~24h50m, clearly labelled illustrative, not for navigation). A circular 24-hour dial around the moon marks tide highs/lows and the current time. Text: phase name, illumination %, days until the next full/new moon, and the next (illustrative) high tide. Interaction: a date scrubber travels ±30 days so you can watch the moon wax and wane; hovering the sea makes it sparkle; a calm night mode dims the UI. Typography: a light, elegant serif with small caps.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="044-tide-moon-clock.html" target="_blank" rel="noopener">044-tide-moon-clock.html</a><a href="044-tide-moon-clock.txt" target="_blank" rel="noopener">044-tide-moon-clock.txt</a></div>
   </div>
 </article>
@@ -1074,7 +1003,6 @@
   <div class="prompt-panel" id="pp045">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Vitrail — Stained Glass Generator&quot;. A tall Gothic lancet window (pointed-arch SVG clipPath) filled with a Voronoi tessellation computed in JavaScript (half-plane clipping is fine), where each cell is a pane of jewel-toned glass — ruby #9b111e, sapphire #0f52ba, emerald #046307, amber #ffbf00, amethyst #9966cc — with subtle internal texture (noise, bubbles, streaks) and thick dark lead came lines (#1a1a1a with a slight highlight). Light pours through: the glass glows and coloured light patches are cast, blurred, onto a stone floor below, shifting as a &quot;sun angle&quot; slider moves. Interaction: click inside the window to add a cell (it splits smoothly); drag cell sites to watch the leading reflow; a &quot;Rose window&quot; mode switches to a circular window with radially symmetric cells; palettes (Chartres blues, Sunset, Modern pastel). The surrounding stone tracery is drawn in SVG with carved shading. Typography: a classical inscriptional serif with an illuminated initial letter drawn in SVG.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="045-stained-glass.html" target="_blank" rel="noopener">045-stained-glass.html</a><a href="045-stained-glass.txt" target="_blank" rel="noopener">045-stained-glass.txt</a></div>
   </div>
 </article>
@@ -1094,7 +1022,6 @@
   <div class="prompt-panel" id="pp046">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Tend — A Habit Garden&quot;, an elegant habit tracker in which every habit is a plant that grows with its streak. Soft sage palette: #f4f6f0 background, sage #9cb59a, deep green #2f4f3a, clay #d98e73, sun yellow #f2c14e. A header with today&#x27;s date and a greeting based on the time of day. Each habit card holds a small SVG plant whose growth stage (seed → sprout → leaves → bud → bloom) reflects the current streak, a &quot;done today&quot; button with a satisfying bloom/particle animation, the streak count, and a 12-week contribution-style heatmap in greens (hover shows the date). Add, edit and delete habits in a modal (name, an icon from a set of SVG glyphs, colour). All data persists in localStorage; on first run, prefill three example habits with generated history so the page feels alive. A stats view shows a completion-rate ring chart and best streaks. Typography: a friendly humanist sans with rounded numerals. Micro-interactions: plants sway slightly; a watering-can cursor over the done button. Fully keyboard accessible and responsive.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="046-habit-garden.html" target="_blank" rel="noopener">046-habit-garden.html</a><a href="046-habit-garden.txt" target="_blank" rel="noopener">046-habit-garden.txt</a></div>
   </div>
 </article>
@@ -1114,7 +1041,6 @@
   <div class="prompt-panel" id="pp047">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Vast — A Scroll Across the Solar System&quot;, a horizontally scrolling journey through the solar system at true relative scale: once the Sun&#x27;s width is chosen (e.g. ~600px), every distance and diameter follows from real mean values, so Earth is a few pixels across and Neptune lies an enormous scroll away. Vertical wheel/scroll maps to horizontal travel; touch swipes work; a fast-travel control jumps between planets; and a &quot;speed of light&quot; button auto-travels at light speed relative to the scale (Earth arrives after ~8 min 20 s — show a real-time counter). Pure black background (#000) with very minimal white type; planets rendered as small canvas spheres with subtle banding and atmospheric shading. While crossing the emptiness, poetic and factual messages appear in the void (&quot;Most of space is this.&quot;) and an odometer shows kilometres travelled and light-time. Typography: thin sans with generous letter-spacing. Keep all facts well established (mean distances in km, diameters).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="047-solar-system-scale.html" target="_blank" rel="noopener">047-solar-system-scale.html</a><a href="047-solar-system-scale.txt" target="_blank" rel="noopener">047-solar-system-scale.txt</a></div>
   </div>
 </article>
@@ -1134,7 +1060,6 @@
   <div class="prompt-panel" id="pp048">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Squishy — Claymorphism UI Kit&quot; (a fictional product), a playful landing page in claymorphism: puffy, soft 3D shapes made with layered inner/outer shadows and radial gradients so elements look like modelling clay. Candy-pastel palette: bubblegum #ffb3c6, butter #ffe5a5, mint #b8f2e6, periwinkle #aab7ff, peach #ffcfb0 on a cream-lilac background (#f7f1ff). Hero: a cluster of 3D clay icons (heart, cloud, star, chat bubble, toggle switch, rocket) built purely with CSS/SVG that bob and wiggle; clicking one makes it squash and stretch with elastic physics and burst into little clay confetti. Sections: a component showcase (clay buttons with pressed states, toggles, sliders, a progress bar that fills with a jelly wobble), feature cards, a pricing section with a squishy toggle, and an FAQ accordion whose panels open with bouncy height animations. Typography: a chunky rounded sans (Nunito, &quot;Varela Round&quot;, &quot;SF Pro Rounded&quot;, &quot;Segoe UI&quot;, system-ui, sans-serif) at heavy weights. Every interactive element should feel tactile.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="048-claymorphism-kit.html" target="_blank" rel="noopener">048-claymorphism-kit.html</a><a href="048-claymorphism-kit.txt" target="_blank" rel="noopener">048-claymorphism-kit.txt</a></div>
   </div>
 </article>
@@ -1154,7 +1079,6 @@
   <div class="prompt-panel" id="pp049">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Riso Lab — Halftone Print Studio&quot;, a tool that turns procedural artwork into a two- or three-colour risograph print simulation. The source image is generated in-page, chosen from: a gradient sphere, a sunset landscape, a big typographic word the user types, a geometric face made of shapes, or a doodle drawn on a small canvas. The output renders colour separations as halftone dot screens at classic angles (e.g. 15°, 45°, 75°) in fluorescent pink #ff48b0, medium blue #0078bf, yellow #ffe800 and black, printed on off-white paper (#f4efe2) with multiply blending, slight misregistration, ink-density variation and paper grain. Controls: dot size/LPI, per-ink screen angle, misregistration amount, ink colours, dot shape (circle, line, square) and PNG download. Each ink has a small &quot;drum&quot; control that toggles its layer with a satisfying roller animation. Layout: a clean studio UI in white and black with tiny monospace labels, the print displayed like a poster pinned up with tape.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="049-riso-halftone-lab.html" target="_blank" rel="noopener">049-riso-halftone-lab.html</a><a href="049-riso-halftone-lab.txt" target="_blank" rel="noopener">049-riso-halftone-lab.txt</a></div>
   </div>
 </article>
@@ -1174,7 +1098,6 @@
   <div class="prompt-panel" id="pp050">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Loading, Beautifully — a Gallery of 16 Loaders &amp; Micro-interactions&quot;. A refined grid gallery (4×4 on desktop, two columns on mobile) on warm charcoal (#141414) where each card is a small stage demonstrating an original loading animation or micro-interaction made with CSS/SVG (JS only for toggling): e.g. a morphing blob, orbiting dots with trails, a pen stroke drawing a checkmark, a liquid-fill progress, folding squares, a breathing ring, a DNA ladder, a typewriter ellipsis, a pendulum, a gradient spinner with a comet tail, a pixel wave, a page flip, an elastic heart-like burst, a day/night toggle switch morph, a download button that morphs into a progress ring and then a success tick, and a skeleton-shimmer card. Each card has a title, a &quot;replay&quot; button and a &quot;copy CSS&quot; button that copies that card&#x27;s CSS to the clipboard with a toast. Harmonised muted accents (#e07a5f, #f2cc8f, #81b29a, #3d405b, #f4f1de). Typography: a crisp sans with monospace labels.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="050-loader-atelier.html" target="_blank" rel="noopener">050-loader-atelier.html</a><a href="050-loader-atelier.txt" target="_blank" rel="noopener">050-loader-atelier.txt</a></div>
   </div>
 </article>
@@ -1194,7 +1117,6 @@
   <div class="prompt-panel" id="pp051">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Hytte — A Winter Cabin&quot;, a cosy interactive scene: the interior of a log cabin at night, illustrated in SVG/CSS with warm wood tones (#7a4a2a, #a0673c). A stone fireplace with an animated fire (layered flame shapes with flicker plus canvas embers rising); a large window onto a snowy spruce forest with falling snow at several depths and a green-violet aurora (#4dffb4 → #8a5cff) rippling in the sky; a steaming mug on the sill; a reading lamp; and a sleeping cat that breathes. Warm vs cold light: the firelight flicker subtly modulates the room&#x27;s lighting. Interaction: click the lamp to toggle it (room lighting changes); click the fireplace to add a log (the fire flares, more embers); click the window to open it (cold wind — snow blows inside briefly and the fire dims); click the cat to make its ear twitch; an optional ambient sound toggle (synthesized fire crackle and wind). A title placard in a Scandinavian-style serif. The composition adapts to portrait screens (window above, fireplace below).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="051-winter-cabin.html" target="_blank" rel="noopener">051-winter-cabin.html</a><a href="051-winter-cabin.txt" target="_blank" rel="noopener">051-winter-cabin.txt</a></div>
   </div>
 </article>
@@ -1214,7 +1136,6 @@
   <div class="prompt-panel" id="pp052">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Helix — The Double Helix Explained&quot;, an educational, beautiful interactive visualization. Centre: a rotating B-DNA double helix drawn on canvas with 3D projection — two sugar-phosphate backbones as glossy ribbons (#2ec4b6 and #e71d36 with depth shading) and base pairs as rungs coloured by nucleotide (A #ff9f1c, T #ffbf69, G #6a4c93, C #8ac926), with correct pairing (A–T, G–C), ~10.5 base pairs per turn, and depth fading for the back strands. A clean biotech palette on off-white (#f7f9fb) with a dark-mode toggle. A side panel with annotations and leader lines (major/minor groove; hydrogen bonds: 2 for A–T, 3 for G–C; 5&#x27;→3&#x27; direction), a sequence input where typing A/T/G/C rebuilds the helix live (auto-generating the complementary strand), and an &quot;Unzip&quot; button that animates replication — the strands separate and new complementary nucleotides float in. Interaction: drag to rotate, scroll to zoom, hover a base pair to highlight and label it. Typography: a modern sans with a monospace sequence display.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="052-dna-helix.html" target="_blank" rel="noopener">052-dna-helix.html</a><a href="052-dna-helix.txt" target="_blank" rel="noopener">052-dna-helix.txt</a></div>
   </div>
 </article>
@@ -1234,7 +1155,6 @@
   <div class="prompt-panel" id="pp053">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Arcana Nocturne — A Three-Card Reading&quot;. A midnight-purple ground (#140a24) with drifting star dust and a velvet tablecloth texture; gold-foil (#d4af37 → #f7e7a1) and moonlight-silver accents. A deck of the 22 Major Arcana, each face designed procedurally in SVG with an original geometric/esoteric motif (e.g. The Moon: crescents and a path between two towers; The Star: eight-pointed stars above water; The Tower: lightning-struck tower geometry), framed with an ornate gold border, a Roman numeral and the title in engraved serif capitals. The back: an intricate symmetric pattern around a central sun/eye. Interaction: &quot;Shuffle&quot; animates the deck riffling; the user fans the deck and picks three cards (Past, Present, Future), which fly to their positions and flip in 3D with a glint; each revealed card shows an evocative, original short interpretation (framed as entertainment). Cards tilt with a shimmer on hover. Optional reversed cards. Typography: serif small caps with generous letter-spacing; body text in an italic serif.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="053-tarot-reading.html" target="_blank" rel="noopener">053-tarot-reading.html</a><a href="053-tarot-reading.txt" target="_blank" rel="noopener">053-tarot-reading.txt</a></div>
   </div>
 </article>
@@ -1254,7 +1174,6 @@
   <div class="prompt-panel" id="pp054">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;ELASTIC — Letterforms on Springs&quot;, an experimental typography playground. A giant word (default &quot;BOUNCE&quot;, editable via an input) is converted into points sampled from its glyphs (draw the text on an offscreen canvas and sample filled pixels); each point is tied to its home position by a spring. Render the points as connected dots/filaments forming the letters. The pointer repels (or attracts — toggle) points with a force field; releasing lets them spring back with overshoot and jiggle. Click to explode the word into particles that reassemble. Palette: hot magenta #ff2e88 on deep ink #111018, with cyan #29e7cd on fast-moving points (velocity-coloured). Modes: dots; lines (connecting nearby neighbours); threads (points tied to home with visible springs). Sliders: stiffness, damping, force radius. UI typography in small monospace; the display lettering is generated from the heavy system sans. Responsive: sampling density adapts to screen size for performance.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="054-elastic-letters.html" target="_blank" rel="noopener">054-elastic-letters.html</a><a href="054-elastic-letters.txt" target="_blank" rel="noopener">054-elastic-letters.txt</a></div>
   </div>
 </article>
@@ -1274,7 +1193,6 @@
   <div class="prompt-panel" id="pp055">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Dune Engine — Falling Sand Sandbox&quot;, a cellular-automaton physics toy. A pixel-art canvas (each cell 3–4px) with elements: Sand (warm variations #e6c07b, #d8a95b), Water (#3d7ee0 with shimmer, flows sideways), Stone (static greys), Fire (flickers, rises, burns wood, turns water to steam), Wood (#8b5a2b), Steam (rises and condenses back into water), Oil (floats on water, highly flammable), Lava (turns sand into glass), and Plant (grows into water). Correct density-based interactions (sand sinks in water, oil floats). Desert-dusk UI palette: sand #f3e3c3, terracotta #c1440e, deep dusk blue #1f2a44. An element picker as a row of textured swatches with icons, brush-size slider, pause, clear, and &quot;Scenes&quot; (hourglass, volcano, oasis). Pointer/touch painting interpolated along the stroke. A tiny monospace readout of particle count and fps. Efficient: typed arrays, bottom-up updates with alternating direction, ImageData rendering.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="055-falling-sand.html" target="_blank" rel="noopener">055-falling-sand.html</a><a href="055-falling-sand.txt" target="_blank" rel="noopener">055-falling-sand.txt</a></div>
   </div>
 </article>
@@ -1294,7 +1212,6 @@
   <div class="prompt-panel" id="pp056">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Casa Lumen — Architectural Blueprint&quot;, an animated technical drawing of a fictional modernist house. Blueprint blue (#0b3d91 to #134a9e with a fine grid of lighter lines) with white/cyan line work (#e8f1ff, #9fd3ff). The plan draws itself on load: walls first (thick lines with hatched cuts), then doors with swing arcs, windows, stairs, furniture outlines, dimension lines with arrowheads and measurements, room labels, a north arrow, and a title block in the corner (project name, scale 1:100, sheet A-101, drawn by). Use staggered SVG stroke-dashoffset animations, like a hand drafting. Interaction: hovering a room fills it with translucent cyan and shows its area (m²) in a floating label; switch between &quot;Floor plan&quot;, &quot;Elevation&quot; (south façade) and &quot;Section&quot; views with a cross-drawing transition; a &quot;Pencil mode&quot; switch re-renders the drawing as graphite on paper (#f5f3ee paper, #333 pencil). Typography: technical lettering (monospace/architectural sans stack, uppercase).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="056-architectural-blueprint.html" target="_blank" rel="noopener">056-architectural-blueprint.html</a><a href="056-architectural-blueprint.txt" target="_blank" rel="noopener">056-architectural-blueprint.txt</a></div>
   </div>
 </article>
@@ -1314,7 +1231,6 @@
   <div class="prompt-panel" id="pp057">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Hi-Fi Walnut — Vinyl Listening Room&quot;, a luxury music player. A photoreal-leaning turntable in CSS/SVG: a walnut plinth (#5c3d2e, wood grain from layered gradients), a brushed-aluminium platter, a black record with realistic grooves (repeating radial gradients) and specular light arcs that stay fixed while the record spins, a centre label designed per album, and a tonearm that swings onto the record when playing. Music: three original &quot;albums&quot; synthesized with Web Audio — ambient generative pieces (e.g. Rhodes-like FM chords under a slow melody, with soft vinyl-crackle noise), each with a distinct mood. The UI panel: generative CSS album art, track title, animated progress, play/pause, next, a volume knob, and a pair of VU meters whose needles respond to the audio (AnalyserNode). Palette: walnut, brass #c9a227, cream #efe6d8 and a deep green felt background #1f3b2d. Typography: elegant serif album titles with small caps. Changing albums triggers a record-swap animation.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="057-vinyl-listening-room.html" target="_blank" rel="noopener">057-vinyl-listening-room.html</a><a href="057-vinyl-listening-room.txt" target="_blank" rel="noopener">057-vinyl-listening-room.txt</a></div>
   </div>
 </article>
@@ -1334,7 +1250,6 @@
   <div class="prompt-panel" id="pp058">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;RADICAL SHAPES — Milano Design Fest &#x27;86&quot; (fictional), a Memphis-Group-inspired event landing page. Palette: black #111, pink #ff90b3, turquoise #2ec4b6, yellow #ffd23f, lilac #b388eb, red #ef476f on white, with terrazzo/confetti patterns and squiggle backgrounds (SVG patterns). The composition is bold, playful and asymmetric: geometric objects (cylinders, zigzags, dotted triangles, half-moons) float and rotate slowly around the hero title. Typography: chunky geometric sans headlines, bold outlines and two-colour offset text shadows. Sections: a countdown to the fictional opening with flip digits; a lineup of fictional designers on cards with patterned headers; a schedule timeline; a venue map made of playful illustrated blocks; and ticket tiers. Interaction: shapes bounce away from the cursor; clicking the hero spawns new random Memphis shapes with a pop; cards wobble on hover; a pattern-shuffler button changes every background pattern. Keep chaos from overwhelming readability: a strong grid underneath.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="058-memphis-fest.html" target="_blank" rel="noopener">058-memphis-fest.html</a><a href="058-memphis-fest.txt" target="_blank" rel="noopener">058-memphis-fest.txt</a></div>
   </div>
 </article>
@@ -1354,7 +1269,6 @@
   <div class="prompt-panel" id="pp059">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Karesansui — A Zen Sand Garden&quot;: a top-down view of a raked gravel garden on canvas with fine sand texture (#e8e0cf with grain noise and subtle lighting), a few natural stones (procedurally shaped and shaded, with moss patches #6b7d4b) and a wooden border frame (#5b3f2a). Dragging with the rake carves parallel grooves (4–5 tines) that follow your path, with realistic light and shadow on the ridges; the ripple tool draws concentric rings around a stone on click. Tools in a minimal vertical bar: rake, ripple, place stone, smooth (softly erases grooves), and &quot;return to calm&quot; (animated smoothing). Ambient touches: a maple leaf occasionally drifts across and settles; soft shadows move slowly as if the sun were passing; an optional distant wind chime (Web Audio, after a gesture). Typography: small, elegant serif captions and a vertically set title. Touch on mobile is first-class.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="059-zen-sand-garden.html" target="_blank" rel="noopener">059-zen-sand-garden.html</a><a href="059-zen-sand-garden.txt" target="_blank" rel="noopener">059-zen-sand-garden.txt</a></div>
   </div>
 </article>
@@ -1374,7 +1288,6 @@
   <div class="prompt-panel" id="pp060">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;QUANTA Terminal&quot;, a dark, premium trading dashboard with clearly fictional tickers and simulated data (labelled &quot;Simulated market&quot;). Near-black ground (#0b0e11), panel surfaces #12161c, gains emerald #16c784, losses crimson #ea3943, gold accent #f0b90b, hairline borders. Layout: a scrolling ticker tape at the top; a main candlestick chart (canvas) with volume bars, moving averages, a crosshair with OHLC tooltip, time-range tabs and smooth panning/zooming; a live order book with depth bars that flicker as orders update; a recent-trades feed; a watchlist with sparklines; a portfolio allocation donut; and a buy/sell ticket with validation and a confirmation toast. Data evolves in real time via a random walk with volatility clustering. Typography: tabular numerals, a clean sans, monospace for prices; prices flash green/red on change. Responsive: panels reflow into tabs on mobile. Smooth and crisp at high DPI.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="060-trading-terminal.html" target="_blank" rel="noopener">060-trading-terminal.html</a><a href="060-trading-terminal.txt" target="_blank" rel="noopener">060-trading-terminal.txt</a></div>
   </div>
 </article>
@@ -1394,7 +1307,6 @@
   <div class="prompt-panel" id="pp061">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Dusk Meadow — Fireflies&quot;, a tranquil canvas scene. A meadow at dusk: a sky gradient from deep indigo (#141b41) to a very soft dusty rose at the horizon (#e8a0a0), layered silhouettes of rolling hills and a treeline in near-black greens (#0b1a12), and a foreground of hundreds of grass blades swaying in a noise-driven wind field and bending away from the pointer. About 120 fireflies wander with boids-like motion, each blinking on its own rhythm in warm yellow-green (#e8ff8a) with bloom, and slowly synchronising their flashes over time (Kuramoto-style coupling) — a quiet emergent delight. The pointer is a gentle lantern: fireflies drift toward it when it is held still and scatter when it moves fast. A crescent moon rises slowly and stars appear as the sky darkens. Minimal controls at the bottom-left that fade when idle: sync strength, wind, and sound (synthesized crickets). Title in a delicate italic serif.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="061-firefly-meadow.html" target="_blank" rel="noopener">061-firefly-meadow.html</a><a href="061-firefly-meadow.txt" target="_blank" rel="noopener">061-firefly-meadow.txt</a></div>
   </div>
 </article>
@@ -1414,7 +1326,6 @@
   <div class="prompt-panel" id="pp062">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;GROOVY — Lava Lamp&quot;, a 1970s lava lamp rendered with real metaball physics. A classic lamp silhouette (chrome/gold base and cap drawn in SVG with metallic gradients) centred on warm retro wallpaper (repeating SVG pattern of orange/brown circles, #f4a259, #bc4b51, #5b8e7d on #f4e1c1). Inside the glass, wax blobs heated at the bottom rise, cool and sink, merging and splitting (metaball field computed on a low-resolution grid with smooth thresholded edges, glossy highlights and inner glow). Colour combinations: &quot;Classic&quot; (red wax in yellow liquid), &quot;Purple Haze&quot; (magenta in blue), &quot;Lime&quot; (green in violet) and &quot;Ocean&quot;. Interaction: click the lamp&#x27;s switch to turn it on/off (the light fades, the wax slows and settles); a temperature knob; a colour-combo switch; the pointer heats the glass locally. The whole room&#x27;s glow is tinted by the lamp colour. Typography: a groovy rounded bold display with an outline shadow.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="062-lava-lamp.html" target="_blank" rel="noopener">062-lava-lamp.html</a><a href="062-lava-lamp.txt" target="_blank" rel="noopener">062-lava-lamp.txt</a></div>
   </div>
 </article>
@@ -1434,7 +1345,6 @@
   <div class="prompt-panel" id="pp063">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Skyward — A Brief History of Flight&quot;, an interactive horizontal timeline. Sky palette: dawn blue #bde0fe, cerulean #3a86ff, cloud white, sunset accent #ff8fab, ink #1d3557. A long drag-scrollable (and wheel/keyboard) timeline from 1783 to 1969 with well-established milestones: 1783 first crewed hot-air balloon flight (Montgolfier brothers&#x27; balloon); 1853 Cayley&#x27;s crewed glider; 1891 Lilienthal&#x27;s gliders; 1903 the Wright Flyer at Kitty Hawk (12 seconds, 120 feet); 1909 Blériot crosses the English Channel; 1919 Alcock and Brown make the first non-stop transatlantic flight; 1927 Lindbergh&#x27;s solo transatlantic flight; 1932 Amelia Earhart&#x27;s solo transatlantic flight; 1939 first jet-powered flight (Heinkel He 178); 1947 Chuck Yeager breaks the sound barrier in the Bell X-1; 1957 Sputnik 1; 1961 Yuri Gagarin orbits Earth; 1969 Apollo 11 lands on the Moon. Each milestone has an elegant SVG line illustration of the craft, its date and a short caption. Parallax clouds at several depths; a small paper plane travels along the timeline. Clicking a milestone expands its card. A progress altimeter shows the year. Typography: an aviation-inspired sans with serif captions.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="063-history-of-flight.html" target="_blank" rel="noopener">063-history-of-flight.html</a><a href="063-history-of-flight.txt" target="_blank" rel="noopener">063-history-of-flight.txt</a></div>
   </div>
 </article>
@@ -1454,7 +1364,6 @@
   <div class="prompt-panel" id="pp064">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Fridge Verse — Magnetic Poetry&quot;, a tactile word-magnet toy. A large enamel fridge door (subtle vertical gradient #eef0f2 with faint metallic noise and a chrome handle at the side) holding about 120 word magnets: small white tiles (#fffdf7) with a slight drop shadow and a serif word, each rotated slightly at random, a few coloured (pale pink, mint, butter) for flair. Choose a vocabulary (nouns, verbs, adjectives, suffixes -s, -ing, -ed) that makes poetic combinations likely. Dragging a magnet gives a pleasing lift (shadow grows, slight rotation) and a snap back onto the door; magnets may overlap. Features: a &quot;Shake&quot; button that scatters magnets with physics; theme packs (Love, Ocean, Space, Kitchen); a poem detector that reads tiles arranged in lines left to right and shows the current poem in a small card you can copy; a few decorative fridge items (a drawn polaroid picture, a fruit magnet). Persist positions in localStorage. Typography: classic serif tiles with a rounded sans for the UI.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="064-magnetic-poetry.html" target="_blank" rel="noopener">064-magnetic-poetry.html</a><a href="064-magnetic-poetry.txt" target="_blank" rel="noopener">064-magnetic-poetry.txt</a></div>
   </div>
 </article>
@@ -1474,7 +1383,6 @@
   <div class="prompt-panel" id="pp065">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Patchwork — A Generative Quilt&quot;. Every visit (and every click on &quot;Stitch a new quilt&quot;) generates a unique quilt made from traditional blocks — Log Cabin, Flying Geese, Half-Square Triangles, Nine Patch, Pinwheel, Churn Dash, Ohio Star — laid out on a grid with sashing and borders. Fabrics are procedural SVG patterns: gingham, calico florals (tiny flower motifs), polka dots, stripes and chambray, in warm cottage palettes (e.g. barn red #9e2a2b, mustard #e09f3e, denim #335c67, cream #fff3b0, sage #9fb8ad). Visible dashed stitching, slight puffy shading on each patch (quilted look via inner shadows) and a wavy binding edge. Interaction: hovering a block lifts it slightly and shows its pattern name; clicking cycles its pattern; a palette chooser (Farmhouse, Indigo, Sunset, Scandinavian); a &quot;drape&quot; toggle shows the quilt hanging on a line, waving gently in the wind. Download PNG. Typography: a warm serif with an embroidery-like dashed underline.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="065-generative-quilt.html" target="_blank" rel="noopener">065-generative-quilt.html</a><a href="065-generative-quilt.txt" target="_blank" rel="noopener">065-generative-quilt.txt</a></div>
   </div>
 </article>
@@ -1494,7 +1402,6 @@
   <div class="prompt-panel" id="pp066">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Planet Forge — Procedural World Generator&quot;. A canvas renders a rotating sphere with per-pixel shading (ray–sphere intersection or a pre-baked equirectangular texture sampled by rotation): terrain from fractal noise mapped to biomes (deep ocean, shallows, beaches, forests, deserts, mountains, ice caps by latitude), an animated cloud layer, an atmospheric rim glow, a day/night terminator with city lights on the night side, and optional rings casting a shadow. A cosmic black background with a faint nebula and stars. A sci-fi control panel (thin lines, cyan #4cc9f0 accents, glass panels) with sliders for sea level, temperature, cloud cover, terrain roughness, ring toggle, moon count, rotation speed and seed, plus presets (Earthlike, Desert world, Ocean world, Lava world, Ice world, banded Gas giant). Each planet receives a catalogue designation (e.g. &quot;KX-4471 b&quot;) and playful stats. Interaction: drag to rotate, &quot;Randomize&quot;, PNG download. Keep rendering efficient (render at lower resolution and upscale smoothly).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="066-planet-forge.html" target="_blank" rel="noopener">066-planet-forge.html</a><a href="066-planet-forge.txt" target="_blank" rel="noopener">066-planet-forge.txt</a></div>
   </div>
 </article>
@@ -1514,7 +1421,6 @@
   <div class="prompt-panel" id="pp067">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;ASCII TIDES&quot;, an animated ocean scene made entirely of monospace characters rendered into a &lt;pre&gt; or a canvas character grid. Characters map to wave height and foam (e.g. &quot; .,:;~=≈*#@&quot;). Layers: a sky with slowly drifting ASCII clouds and a sun or moon made of characters, a horizon, rolling swells (sum of sines plus noise), foam crests, and a small character-built boat bobbing on the surface. Palette: amber phosphor #ffb000 on #140c00 by default, switchable to &quot;Seafoam&quot; (#7fffd4 on #001414) and &quot;Paper&quot; (ink #222 on #f2ecdc). Pointer/touch disturbances create ripples that propagate across the water (2D wave equation on the grid). A time-of-day slider changes the sky (stars at night). Typography: a monospace stack with tight line-height; the grid adapts to the viewport to keep characters crisp. A tiny caption in the corner inside an ASCII box-drawing frame. Smooth at 30–60fps with efficient string building.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="067-ascii-tides.html" target="_blank" rel="noopener">067-ascii-tides.html</a><a href="067-ascii-tides.txt" target="_blank" rel="noopener">067-ascii-tides.txt</a></div>
   </div>
 </article>
@@ -1547,7 +1453,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp068">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design a bento-grid portfolio for &quot;Mira Okafor — Product Designer&quot; (fictional). Neutral palette: #f5f5f7 page, #ffffff tiles, #1d1d1f text, one vivid lime accent #c3f53c and a deep indigo feature tile #1b1f3b. A responsive bento grid of 10–12 tiles of varied sizes with 24px radii and delicate shadows: an intro tile with name and role; a local-time tile with a live analog clock; a &quot;Now playing&quot; tile with an animated equalizer; a project tile containing a mini animated UI mockup (a CSS-drawn phone screen scrolling); a stats tile with counting numbers; a location tile with a stylised abstract SVG map and a pulsing pin; a tools tile with floating chips; a testimonial tile; a &quot;Currently reading&quot; tile with a CSS book; a contact tile with a magnetic button; and a dark tile with a generative gradient mesh. Interaction: tiles lift and reveal extra detail on hover; a cursor spotlight glides across tile surfaces; clicking a project tile expands it into a full-screen case-study overlay with a smooth shared-element transition. Typography: a system sans with tight tracking.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="068-bento-portfolio.html" target="_blank" rel="noopener">068-bento-portfolio.html</a><a href="068-bento-portfolio.txt" target="_blank" rel="noopener">068-bento-portfolio.txt</a></div>
   </div>
 </article>
@@ -1567,7 +1472,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp069">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Apiary — The Honeycomb&quot;, an interactive hexagonal-grid artwork. The screen fills with hexagonal cells (canvas or SVG) in honey tones — amber #f6a821, gold #ffc93c, deep honey #c77d0a, wax #fff1c1 — with dark comb gaps (#2a1a05). Cells have a subtle inner bevel and translucency: some are filled with glowing honey (animated fill level with a meniscus shine), others are empty wax, a few are capped. Hovering sends a spreading ripple of brightness through neighbouring cells (delayed by hex distance). A handful of bees (small creatures with blurred beating wings) fly figure-eight &quot;waggle dance&quot; paths and visit cells, filling them over time. Interaction: click a cell to fill it with honey (drip animation); drag across cells to paint; a &quot;Harvest&quot; button drains the cells with a flowing animation into a jar counter; the grid regenerates on resize. A side panel explains the waggle dance in two short, accurate sentences. Typography: a warm serif title with small-caps labels.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="069-honeycomb-apiary.html" target="_blank" rel="noopener">069-honeycomb-apiary.html</a><a href="069-honeycomb-apiary.txt" target="_blank" rel="noopener">069-honeycomb-apiary.txt</a></div>
   </div>
 </article>
@@ -1587,7 +1491,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp070">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Grandmaster&#x27;s Study&quot;, an elegant, playable two-player chess board (local hot-seat). A luxurious board of maple (#e8d0aa) and walnut (#8a5a3b) squares with subtle wood-grain gradients, a lacquered frame with brass corner fittings, and file/rank coordinates engraved in serif. Pieces drawn in SVG as original Staunton-inspired silhouettes — ivory (#f7f0e1, warm shading) and ebony (#1e1b18, soft highlights). Full legal chess rules: legal move generation with check detection, castling, en passant, promotion (with a chooser), and checkmate/stalemate detection. UX: click or drag pieces; legal moves shown as subtle dots/rings; last move highlighted; check shown as a red glow on the king; a move list in algebraic notation in a side panel styled like a score sheet; a captured-pieces tray; undo; flip board; new game. Smooth gliding piece animations and a soft synthesized &quot;clack&quot; on each move (toggle). Responsive: the board fits the width on phones with the panel below. Typography: a classic serif.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="070-chess-study.html" target="_blank" rel="noopener">070-chess-study.html</a><a href="070-chess-study.txt" target="_blank" rel="noopener">070-chess-study.txt</a></div>
   </div>
 </article>
@@ -1607,7 +1510,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp071">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Chroma — Color Palette Studio&quot;, an elegant tool for generating harmonious palettes. A clean white UI (#ffffff, #f4f4f5 panels, #18181b text). The main view is five tall colour columns filling the screen (horizontal bands on mobile); each shows hex, RGB, HSL and a name (nearest match from a curated list of ~150 named colours) and has lock, copy and adjust controls. Space (or a button) generates a new palette that respects locked colours using harmony rules — analogous, complementary, split-complementary, triadic, tetradic, monochromatic — computed in OKLCH for perceptual evenness (implement the conversion). Extra panels: a WCAG AA/AAA contrast checker for text on each colour; a live preview card (a mini UI mockup) using the palette; a gradient preview; and export (CSS variables, JSON) copied to the clipboard. Interaction: drag columns to reorder, click a hex to edit it, and a colour-wheel diagram showing the harmony geometry with draggable points. Smooth colour transitions. Typography: a crisp sans plus monospace.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="071-palette-studio.html" target="_blank" rel="noopener">071-palette-studio.html</a><a href="071-palette-studio.txt" target="_blank" rel="noopener">071-palette-studio.txt</a></div>
   </div>
 </article>
@@ -1627,7 +1529,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp072">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Somewhere Inside&quot;, a double-exposure art piece: a large human profile silhouette (a smooth SVG path of a face in profile with shoulders) acts as a mask revealing a whole landscape inside it — layered mountain ranges, a pine forest, a lake reflecting the moon, drifting fog and birds — while outside the silhouette is a pale misty gradient. Palette: a dusk gradient inside (#1d2b53 → #7e2553 → #ff9e7d), mist outside (#f2efe9 → #d9d4cc), ink details. The inner landscape moves in subtle parallax with the pointer (and slowly on its own), fog layers drift, and the moon&#x27;s reflection shimmers. Original poetic text fragments fade in and out beside the profile in an elegant italic serif. Interaction: pointer parallax; clicking cycles the inner landscape between &quot;Mountains&quot;, &quot;Ocean&quot; (waves and a lighthouse) and &quot;City&quot; (skyline with lights), each with its own palette and a smooth cross-fade. A film-grain overlay. The composition reflows for mobile, with the silhouette scaled and centred.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="072-double-exposure.html" target="_blank" rel="noopener">072-double-exposure.html</a><a href="072-double-exposure.txt" target="_blank" rel="noopener">072-double-exposure.txt</a></div>
   </div>
 </article>
@@ -1647,7 +1548,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp073">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Silicon — Living Circuit Board&quot;. An SVG printed circuit board in rich green solder mask (#0a4d2e with subtle texture) with gold traces and pads (#d4a537 with highlights), white silkscreen labels (component references such as U1, R12, C4, &quot;REV 2.1&quot;), chips (black epoxy with pin legs and printed markings), capacitors, resistors with colour bands, LEDs and a crystal oscillator. Signals — glowing pulses of cyan (#3cf2ff) and warm white light — travel along traces from chip to chip, routed along a graph of trace segments. Interaction: hovering a component highlights all of its connected traces and shows a spec tooltip; a &quot;power&quot; switch boots the board (LEDs light in sequence, a small OLED component shows boot text); clicking a chip &quot;overclocks&quot; it (faster pulses, a slight heat shimmer); a &quot;logic probe&quot; cursor mode shows voltage readings on traces. A title block in silkscreen monospace in the corner. Scales responsively via viewBox.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="073-circuit-board.html" target="_blank" rel="noopener">073-circuit-board.html</a><a href="073-circuit-board.txt" target="_blank" rel="noopener">073-circuit-board.txt</a></div>
   </div>
 </article>
@@ -1667,7 +1567,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp074">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Iridescence — Soap Bubbles&quot;. A soft, bright sky (#dbeafe → #fef3f2 gradient with faint drifting clouds). Bubbles of varied sizes float upward and drift on a gentle wind, wobbling as their shape oscillates; each is rendered with thin-film interference colours — swirling bands of magenta, gold, cyan and green on a mostly transparent sphere — plus a bright window-shaped specular highlight and a smaller secondary one, with the swirl animating over time (canvas gradients and noise-driven hue shifts). Bubbles collide softly. Interaction: clicking/tapping a bubble pops it — it bursts into a ring of tiny droplets and a quick shimmering film fragment, with a soft &quot;pop&quot; (Web Audio, after the first gesture); dragging blows a new bubble from a wand (it grows with drag distance and detaches on release); wind direction follows pointer movement. A tiny, elegant &quot;bubbles popped&quot; counter. Typography: an airy light sans title that is itself slightly iridescent.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="074-soap-bubbles.html" target="_blank" rel="noopener">074-soap-bubbles.html</a><a href="074-soap-bubbles.txt" target="_blank" rel="noopener">074-soap-bubbles.txt</a></div>
   </div>
 </article>
@@ -1687,7 +1586,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp075">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Brush &amp; Ink — Calligraphy Pad&quot;. A sheet of rice paper (#f5f0e1 with visible fibres and an optional faint grid of practice squares) on a dark wood desk (#2b1d14), with an inkstone and a brush illustrated at the side. Drawing produces convincing brush strokes: width responds to speed (slow = thick, fast = thin) and to pointer pressure when available; ink runs out over a long stroke, producing dry-brush &quot;flying white&quot; texture; stroke ends taper; ink bleeds slightly into the paper (a subtle blurred halo). Ink colours: sumi black, diluted grey and vermillion. Tools: brush size, ink wetness, undo, clear (the paper slides away and a fresh sheet slides in), a red seal stamp you can place (SVG seal with generated square characters), and PNG download. Include a &quot;trace&quot; mode that shows faint model strokes of a simple character (e.g. 永) to practise over. Typography: small, elegant serif labels with vertical-text accents.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="075-calligraphy-pad.html" target="_blank" rel="noopener">075-calligraphy-pad.html</a><a href="075-calligraphy-pad.txt" target="_blank" rel="noopener">075-calligraphy-pad.txt</a></div>
   </div>
 </article>
@@ -1707,7 +1605,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp076">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;ARES VII Mission Control&quot;, a dashboard for a fictional crewed Mars mission with clearly simulated telemetry. Aesthetic: &quot;NASA-punk&quot; — dark slate panels (#0e1116), safety orange #ff6b1a, off-white #e8e6e3, amber warnings #ffb000, cyan data #4ee1ff, thin grid lines, rounded-rectangle panels with corner brackets and tiny monospace labels. Panels: a mission elapsed time (MET) counter and a countdown to orbit insertion; a trajectory diagram (SVG Hohmann transfer between Earth and Mars with the spacecraft moving along it); live telemetry charts (cabin O₂, CO₂ ppm, power, velocity) as smoothly scrolling line charts; crew status cards with heart-rate waveforms; a comms log whose messages arrive after a one-way light-time delay; a subsystem status grid with nominal/caution/warning lights; and an animated spacecraft schematic. Interaction: click subsystems for detail; an &quot;acknowledge&quot; button when a random caution appears (flashing, with a Web Audio beep after a gesture); a toggle between Earth time and Mars sol time. A responsive grid that collapses gracefully.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="076-mission-control.html" target="_blank" rel="noopener">076-mission-control.html</a><a href="076-mission-control.txt" target="_blank" rel="noopener">076-mission-control.txt</a></div>
   </div>
 </article>
@@ -1727,7 +1624,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp077">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;The Glass Alibi&quot;, a short interactive film-noir detective story (original, about six scenes with branching choices and two or three endings). Black-and-white visuals with dramatic chiaroscuro: venetian-blind shadow bands sweeping across the scene, rain streaking the window (canvas), a flickering desk lamp, a steaming coffee cup, film grain and vignette overlays, and occasional old-film frame jitter. Scenes are illustrated with SVG silhouettes (office, rainy alley, jazz club, pier) in greys, with a single accent colour reserved for the key clue (a red lipstick mark #b3001b). Narration and dialogue appear with a typewriter effect in a period serif; choices are presented as typed index cards. Include an ambient sound toggle (synthesized rain and a low, jazzy bass line). Features: a case-file notebook that collects clues, iris-wipe scene transitions, and restart. Typography: a Courier-like monospace for notes and a condensed serif for titles.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="077-noir-story.html" target="_blank" rel="noopener">077-noir-story.html</a><a href="077-noir-story.txt" target="_blank" rel="noopener">077-noir-story.txt</a></div>
   </div>
 </article>
@@ -1747,7 +1643,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp078">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Four Seasons — A Fractal Tree&quot;, a generative tree swaying in the wind whose appearance follows a seasons slider. Trunk and branches are grown recursively (randomised angles, tapering widths, gentle curvature) and drawn on canvas with bark colouring; noise-driven wind bends branches in proportion to their depth. Seasons: Spring (pale blossoms #ffc8dd and fresh green buds), Summer (a lush green canopy #52b788 with dappled light), Autumn (leaves turning #e76f51, #f4a261, #e9c46a and falling with tumbling physics to pile on the ground) and Winter (bare branches, snow accumulating on limbs, snowfall). Sky and ground transition smoothly with the season. Interaction: drag the slider (or press &quot;Play the year&quot; for a 60-second cycle); click the tree to shake it (leaves or snow fall); &quot;New seed&quot; grows a new tree with a growth animation. Typography: a gentle serif title with month names around a small circular season dial.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="078-fractal-tree-seasons.html" target="_blank" rel="noopener">078-fractal-tree-seasons.html</a><a href="078-fractal-tree-seasons.txt" target="_blank" rel="noopener">078-fractal-tree-seasons.txt</a></div>
   </div>
 </article>
@@ -1767,7 +1662,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp079">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Pulsar Ridges&quot;, an animated, original piece in the spirit of classic stacked ridge-line plots. Black background (#000) with ~60 stacked white lines (#f5f5f5) drawn on canvas with occlusion (each line filled black beneath so nearer lines hide farther ones); each profile comes from layered noise plus a central peak region and animates continuously, so the ridges roll like a landscape of signals. Interaction: the pointer position becomes the source of the peaks (ridges swell toward the cursor); clicking switches data modes: &quot;Pulsar&quot; (sharp central peaks), &quot;Terrain&quot; (mountain noise), &quot;Audio&quot; (a built-in synthesized drone analysed with an AnalyserNode drives the lines, after a gesture) and &quot;Heartbeat&quot; (ECG-like spikes). Settings: line count, amplitude, speed, colour mode (white, amber, spectrum gradient). Minimal typography: a small, uppercase, widely tracked monospace caption at the bottom like an album credit. PNG download. Perfectly crisp on high-DPI screens.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="079-pulsar-ridges.html" target="_blank" rel="noopener">079-pulsar-ridges.html</a><a href="079-pulsar-ridges.txt" target="_blank" rel="noopener">079-pulsar-ridges.txt</a></div>
   </div>
 </article>
@@ -1787,7 +1681,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp080">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Luminote — Piano with Falling Lights&quot;. A full-width three-octave piano keyboard along the bottom (glossy black and ivory keys with realistic depth and pressed states), playable by mouse/touch (multi-touch) and computer keyboard (two rows mapped). Above it, a dark stage (#0a0a12) where notes fall toward the keys like a rhythm-game visualizer: glowing rounded bars coloured by pitch (a soft chromatic rainbow), with sparks and a light burst when they land. Sound: a pleasant piano-like tone synthesized with Web Audio (several detuned harmonics, fast attack, exponential decay, and reverb from a convolver with a generated noise impulse). Modes: &quot;Free play&quot; — played notes rise as light trails; &quot;Listen&quot; — auto-plays public-domain melodies (Ode to Joy, the opening of Für Elise, Twinkle Twinkle Little Star, the opening of Gymnopédie No. 1) with falling notes; &quot;Learn&quot; — the song waits for you to press the right key. Tempo slider and a note-name toggle. Typography: a refined sans with small caps.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="080-falling-notes-piano.html" target="_blank" rel="noopener">080-falling-notes-piano.html</a><a href="080-falling-notes-piano.txt" target="_blank" rel="noopener">080-falling-notes-piano.txt</a></div>
   </div>
 </article>
@@ -1807,7 +1700,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp081">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;SIGNAL/NOISE&quot;, the portfolio of a fictional glitch artist, &quot;k.oshiro&quot;. Stark black #000 and white #fff with RGB channel accents (#ff0040, #00ff9f, #0070ff). The page is intentionally corrupted but controlled: a headline with RGB split and horizontal slice displacement that re-randomises periodically; project thumbnails that are generative canvases (pixel-sorted gradients, datamosh-like block smears, scanline interference) and glitch harder on hover; CRT scanlines and occasional full-screen tear events; a scrolling &quot;corrupted&quot; hex-dump sidebar. Sections: a works grid (eight generative pieces with titles and years), an about text in monospace that types itself with random character corruption resolving into readable text, an exhibitions list and contact. Interaction: hovering intensifies the glitch; clicking a work opens it full-screen with a &quot;corruption&quot; slider; a &quot;stabilize&quot; toggle calms every effect (and prefers-reduced-motion defaults to stable). Typography: monospace and a heavy grotesk. Despite the chaos, it stays navigable and legible.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="081-glitch-portfolio.html" target="_blank" rel="noopener">081-glitch-portfolio.html</a><a href="081-glitch-portfolio.txt" target="_blank" rel="noopener">081-glitch-portfolio.txt</a></div>
   </div>
 </article>
@@ -1827,7 +1719,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp082">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create a product page for &quot;Rosée — Eau de Parfum&quot; by a fictional maison. Palette: blush #f4d6d0, rose gold #b76e79 → #e8b4a0, cream #fff8f3, deep plum text #3b1f2b. Hero: a tall faceted glass bottle drawn in SVG with realistic refraction highlights and a gold cap, holding pink liquid whose surface sloshes in a gentle wave and responds to pointer tilt (the liquid level tilts against the pointer). Rose petals (gradient SVG shapes) drift down the page with a 3D flutter, staying clear of the text column. Sections: the fragrance pyramid (top/heart/base notes) as an elegant layered triangle where each note appears on hover with a small botanical line illustration; &quot;The Story&quot; editorial paragraph; a size selector (30/50/100 ml) that resizes the bottle smoothly and updates the price; and a luxurious &quot;Add to bag&quot; button with a shimmering sweep. Typography: a refined high-contrast serif with wide-tracked sans captions.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="082-perfume-rosee.html" target="_blank" rel="noopener">082-perfume-rosee.html</a><a href="082-perfume-rosee.txt" target="_blank" rel="noopener">082-perfume-rosee.txt</a></div>
   </div>
 </article>
@@ -1847,7 +1738,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp083">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Connected — A Dot-Matrix Globe&quot;. A rotating 3D globe rendered on canvas as a sphere of evenly spaced dots (Fibonacci sphere), with bright land dots and faint ocean dots — land determined from an embedded low-resolution land mask (a compact hand-encoded bitmap, e.g. a 72×36 character grid of the continents). Palette: midnight background #050a18, ocean dots #1b2a4a, land dots #5ad1e6 → #a6fff2, arcs in coral #ff6f61 and gold #ffd166. Animated great-circle arcs travel between about fifteen major world cities placed at their real latitude/longitude (London, New York, Tokyo, São Paulo, Lagos, Sydney, Mumbai, Cairo…), each with a glowing head, a fading tail and a pulsing ring on arrival. An atmospheric glow halos the globe. Interaction: drag to rotate with inertia; hover a city dot for its name; click a city to fly the globe round to face it; auto-rotation resumes after idle. A side panel with clearly simulated stats (&quot;connections per second&quot;). Typography: a clean geometric sans.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="083-dot-globe.html" target="_blank" rel="noopener">083-dot-globe.html</a><a href="083-dot-globe.txt" target="_blank" rel="noopener">083-dot-globe.txt</a></div>
   </div>
 </article>
@@ -1867,7 +1757,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp084">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Crystalline — No Two Alike&quot;, a procedural snowflake generator. Each snowflake grows with 6-fold (dihedral) symmetry using a branching algorithm — main arms with side dendrites, plates and needles that vary with &quot;temperature&quot; and &quot;humidity&quot; parameters, loosely echoing the Nakaya diagram. Rendered in SVG/canvas as translucent ice with inner facets, edge highlights and a faint glow on a deep winter-blue background (#0c1b33 → #1c3a5e). The hero shows one large flake slowly rotating; below it, a gallery of smaller generated flakes. Background: gentle snowfall of micro-flakes with depth blur. Interaction: &quot;Grow a snowflake&quot; animates growth outward from a hexagonal seed; temperature and humidity sliders show how the form changes (plates at some settings, dendrites at others — keep the explanation light and approximate); clicking a gallery flake enlarges it; each flake gets a catalogue number and date; download as SVG. Typography: a thin, wide-tracked sans with a delicate serif italic.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="084-snowflake-generator.html" target="_blank" rel="noopener">084-snowflake-generator.html</a><a href="084-snowflake-generator.txt" target="_blank" rel="noopener">084-snowflake-generator.txt</a></div>
   </div>
 </article>
@@ -1887,7 +1776,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp085">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;Maison Lierre — Botanical Teas, Paris 1899&quot; (a fictional tea house) as an Art Nouveau poster page in the spirit of the era&#x27;s great poster artists (original artwork, nothing copied). Palette: muted sage #a3b18a, olive #588157, antique gold #c9a227, terracotta #bc6c25, cream #fefae0, deep teal #264653. The page is framed by an ornate SVG border of whiplash curves, stylised lilies and ivy that draw themselves on load and sway gently; a circular halo motif with radiating mosaic sits behind the title; flowing, organic panels hold the content (the house&#x27;s story, three signature blends, an afternoon-tea menu, a contact card). Decorative initials and dividers. Typography: a serif stack plus custom SVG-drawn title lettering with curved terminals. Interaction: hovering a blend grows vines around its card; a subtle gold sparkle on the halo; a toggle between &quot;Day&quot; (cream) and &quot;Salon&quot; (deep teal with glowing gold lines). Graceful responsiveness: the border simplifies on phones.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="085-art-nouveau-botanicals.html" target="_blank" rel="noopener">085-art-nouveau-botanicals.html</a><a href="085-art-nouveau-botanicals.txt" target="_blank" rel="noopener">085-art-nouveau-botanicals.txt</a></div>
   </div>
 </article>
@@ -1907,7 +1795,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp086">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Rule 30 — Tapestries of Elementary Cellular Automata&quot;. Explore all 256 Wolfram elementary cellular-automaton rules rendered as woven textiles: each cell is a small woven block with warp/weft shading, so Rule 30&#x27;s chaos, Rule 90&#x27;s Sierpiński triangles and Rule 110&#x27;s structures read as jacquard fabric. Palette sets: &quot;Kilim&quot; (madder red #a4161a, indigo #1b263b, saffron #f4a300, cream #f1e9da), &quot;Monochrome linen&quot; and &quot;Neon loom&quot;. The rule is displayed as its eight neighbourhood patterns → output, each clickable to toggle a bit, building a custom rule number live. The tapestry scrolls continuously upward as new rows are generated (like a loom producing cloth), with a shuttle illustration moving across. Controls: rule number input/slider, random or single-cell start, speed, palette, and &quot;famous rules&quot; chips (30, 90, 110, 184, 150, 45, 73). Hovering the tapestry shows the rule applied at that cell. Typography: a textile-label serif with monospace numbers.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="086-cellular-tapestry.html" target="_blank" rel="noopener">086-cellular-tapestry.html</a><a href="086-cellular-tapestry.txt" target="_blank" rel="noopener">086-cellular-tapestry.txt</a></div>
   </div>
 </article>
@@ -1927,7 +1814,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp087">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Pages from Juno&#x27;s Sketchbook&quot; (a fictional illustrator), a portfolio designed as a physical sketchbook. Dot-grid paper (#fbf8f1 with faint blue dots), graphite lines (#3d3d3d), highlighter yellow (#fff176) and a single red-pencil accent (#d64545). All illustrations are SVG line drawings with a hand-drawn wobble (SVG turbulence displacement plus slightly irregular paths) that draw themselves as they enter the viewport. Elements: washi-tape strips holding polaroid-style frames of CSS/SVG doodle artworks; sticky notes in a casual handwriting stack (&quot;Segoe Print&quot;, &quot;Bradley Hand&quot;, &quot;Comic Neue&quot;, Chalkboard, cursive); margin doodles (coffee rings, arrows, stars); a spiral binding along the left edge. Sections: a hello note, selected work (six sketched projects), process scribbles, and contact written on an envelope. Interaction: pages flip horizontally with a page-curl animation on desktop and scroll on mobile; doodles wiggle on hover; a pencil cursor leaves a faint fading trail.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="087-sketchbook-portfolio.html" target="_blank" rel="noopener">087-sketchbook-portfolio.html</a><a href="087-sketchbook-portfolio.txt" target="_blank" rel="noopener">087-sketchbook-portfolio.txt</a></div>
   </div>
 </article>
@@ -1947,7 +1833,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp088">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Tempus — Hourglass Timer&quot;, a beautiful focus timer with a physically simulated hourglass. Two glass bulbs drawn in SVG with realistic reflections inside a turned-wood and brass frame (#6b4226, #c9a227); sand simulated as particles (or a cellular sand grid) flowing through the neck: the top pile drains with a conical dip, a thin stream falls, and a mound builds in the lower bulb with grains tumbling down its slopes. Warm desert-glass palette: sand #e3b778, glass tint #e8f4f8, dusk background #2d1b3d → #d98d62. Set the duration with elegant preset chips (1, 5, 15, 25 min) or a custom input; the flow rate adapts so the sand runs out exactly on time. Click the hourglass (or a flip button) to flip it with a smooth 180° rotation — the sand keeps flowing with gravity reversed. Remaining time appears as a large, thin numeral with a progress arc; a gentle chime plays at the end (Web Audio). Pause/resume. Typography: classic serif numerals with old-style figures.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="088-hourglass-timer.html" target="_blank" rel="noopener">088-hourglass-timer.html</a><a href="088-hourglass-timer.txt" target="_blank" rel="noopener">088-hourglass-timer.txt</a></div>
   </div>
 </article>
@@ -1967,7 +1852,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp089">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;SENTINEL — Radar Array&quot;, a radar/sonar console as polished UI art, set in a clearly fictional scenario. Phosphor green (#39ff88) on dark olive-black (#020a05), with an amber mode. The centrepiece: a circular PPI radar scope on canvas with range rings, bearing ticks (0–359°), a rotating sweep beam with a fading afterglow wedge, and contacts (blips) that brighten when swept and then decay; contacts move along plausible tracks (aircraft, ships, a fast unknown), each with a small data tag (ID, heading, speed, altitude) and a trail of past positions. Surrounding console panels: a contact table, a signal-strength waterfall/spectrogram, system status indicators, a compass heading readout and a scrolling event log. Interaction: click a contact to lock on (target reticle, detailed readout); a range selector (10/25/50 nm) that rescales smoothly; a radar/sonar toggle — sonar switches to a blue-green water palette with pings and a Web Audio ping sound after a gesture. Typography: monospace with stencilled headings.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="089-radar-console.html" target="_blank" rel="noopener">089-radar-console.html</a><a href="089-radar-console.txt" target="_blank" rel="noopener">089-radar-console.txt</a></div>
   </div>
 </article>
@@ -1987,7 +1871,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp090">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Horologe — The Word Clock&quot;, a typographic clock that spells the current time in words on a grid of letters (an original English layout in the letter-grid clock tradition: &quot;IT IS HALF PAST TEN&quot;, five-minute precision plus four corner dots for single minutes). An 11×10 letter grid in a clean, wide-tracked sans; inactive letters are faint (#2a2a2a on #111) and active ones glow warm white (#fff6e5) with soft bloom, fading on and off in a gentle stagger when the time changes. Faces: &quot;Obsidian&quot; (dark), &quot;Paper&quot; (ink on #f3efe6), &quot;Copper&quot; (letters etched into a brushed-copper gradient, lit ones glowing) and &quot;Neon&quot; (magenta tube glow). A small subtitle gives the date in words. Interaction: a face switcher; clicking the grid toggles between the English layout and a second-language layout (e.g. Spanish); a fullscreen button; and a &quot;demo&quot; button that runs through a whole day in 20 seconds. The clock scales to fill any screen while keeping its square grid.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="090-word-clock.html" target="_blank" rel="noopener">090-word-clock.html</a><a href="090-word-clock.txt" target="_blank" rel="noopener">090-word-clock.txt</a></div>
   </div>
 </article>
@@ -2007,7 +1890,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp091">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Alpenglow — A Day in the Mountains&quot;, a parallax landscape that cycles through a full day. Six procedurally generated mountain ridge layers (midpoint displacement) with atmospheric perspective (farther = lighter and bluer), a foreground lake reflecting sky and mountains with gentle ripples, pine silhouettes on the nearest ridge, and birds that occasionally cross. Time of day animates (or is scrubbed with a slider): pre-dawn indigo, sunrise with pink alpenglow on the peaks (#ff9eaa, #ffd6a5), bright noon blues, golden hour, sunset reds, dusk violets, and a starry night with a moon and the occasional meteor. The sun and moon follow arcs; sky gradients interpolate smoothly between keyframes; ridge colours are recomputed for each moment. Interaction: pointer parallax; a time slider with icons; &quot;Play day&quot; (60 seconds); clicking the sky regenerates the mountains from a new seed. Typography: a small, elegant sans showing the current time and a poetic name for each phase (&quot;Blue hour&quot;).</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="091-alpenglow-day-cycle.html" target="_blank" rel="noopener">091-alpenglow-day-cycle.html</a><a href="091-alpenglow-day-cycle.txt" target="_blank" rel="noopener">091-alpenglow-day-cycle.txt</a></div>
   </div>
 </article>
@@ -2027,7 +1909,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp092">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Ambience — Soundscape Mixer&quot;, a calm app for mixing natural ambient sounds, all synthesized with Web Audio (no audio files): rain (filtered noise plus random droplet clicks), thunder (low noise bursts), wind (band-pass-swept noise), ocean waves (noise with slow amplitude swells), campfire (crackle impulses and a low rumble), forest birds (short FM chirps at random intervals), crickets (pulsed high sine tones), café murmur (band-limited noise through formant-like filters) and a soft drone pad. Each sound is a card with a hand-crafted SVG illustration that animates subtly while that sound is active (raindrops fall, flames flicker, waves roll), a volume slider and an on/off toggle. Earthy, calm palette: moss #606c38, deep forest #283618, cream #fefae0, sand #dda15e, clay #bc6c25. Presets (&quot;Stormy cabin&quot;, &quot;Beach at dusk&quot;, &quot;Deep focus&quot;), a master volume, and a sleep timer that fades everything out. The background gradient shifts subtly with the active mix. Typography: a soft humanist sans. Audio starts only after a gesture.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="092-soundscape-mixer.html" target="_blank" rel="noopener">092-soundscape-mixer.html</a><a href="092-soundscape-mixer.txt" target="_blank" rel="noopener">092-soundscape-mixer.txt</a></div>
   </div>
 </article>
@@ -2047,7 +1928,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp093">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Windwalker — A Kinetic Sculpture Simulation&quot;, inspired by Theo Jansen&#x27;s wind-walking beach creatures (an original rendering). Simulate the Jansen linkage with its canonical link lengths (a=38, b=41.5, c=39.3, d=40.1, e=55.8, f=39.4, g=36.7, h=65.7, i=49, j=50, k=61.9, l=7.8, m=15), solving every joint position each frame from the crank angle with circle–circle intersections. Draw a multi-legged creature (e.g. 6–12 legs with phase offsets) walking across a beach (sand #e9d8b4, sea #6fb3c7, sky #f0f4f5) in its pale-yellow tube aesthetic (#f4e3a1 tubes with darker joints), with each foot&#x27;s path traced as the characteristic curve and a wind sail driving it. Interaction: a wind slider (walking speed); a &quot;single leg diagram&quot; toggle showing one linkage with labelled lengths and its foot trajectory; a trace-paths toggle; buttons to add/remove leg pairs; drag to pan along the beach. Parallax clouds and footprints fading in the sand behind it. Typography: an engineering-notebook sans with monospace labels.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="093-strandbeest-walker.html" target="_blank" rel="noopener">093-strandbeest-walker.html</a><a href="093-strandbeest-walker.txt" target="_blank" rel="noopener">093-strandbeest-walker.txt</a></div>
   </div>
 </article>
@@ -2067,7 +1947,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp094">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Aquarelle — Generative Watercolor Landscapes&quot;. Each generation paints a new landscape in convincing watercolour: layered translucent washes built by recursively deforming polygons (many low-alpha layers with jittered edges) for sky gradients, distant hills, mid-ground mountains, a lake, trees as dabbed blobs, and a sun or moon — all on textured cold-press paper (procedural grain, with pigment darkening where it pools at edges). Palettes rotate among seasonal watercolour sets: &quot;Ultramarine &amp; Burnt Sienna&quot;, &quot;Sap Green Spring&quot;, &quot;Quinacridone Sunset&quot; and &quot;Payne&#x27;s Grey Winter&quot;. The painting builds up layer by layer over about six seconds, as if being painted. Interaction: &quot;Paint another&quot;; palette choice; a &quot;wet-in-wet&quot; slider controlling bleed; clicking the paper drops water that creates a cauliflower bloom in the wet wash; &quot;Sign &amp; download&quot; adds a small signature and date before saving a PNG. The painting sits on a wooden easel/table background. Typography: a delicate serif with a script-like italic.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="094-watercolor-landscapes.html" target="_blank" rel="noopener">094-watercolor-landscapes.html</a><a href="094-watercolor-landscapes.txt" target="_blank" rel="noopener">094-watercolor-landscapes.txt</a></div>
   </div>
 </article>
@@ -2087,7 +1966,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp095">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Lines of Force — Magnetic Field Explorer&quot;. A lab-styled canvas where you place and drag bar magnets (red N / blue S halves, #d62828 / #1d4e89) on a sheet of paper; the field is computed from magnetic dipoles (or magnetic charges at the poles) and rendered in three switchable styles: (1) iron filings — thousands of tiny dark filings aligned with the field, denser where it is stronger, like the classic school experiment on off-white paper; (2) field lines — smooth streamlines traced from the poles with arrowheads, in elegant ink; (3) a heat map of field magnitude in a refined sequential palette. A small compass follows the pointer and points along the field. Interaction: drag magnets; rotate with the wheel, R key or a handle; double-click to flip polarity; add/remove magnets; presets (single bar, attracting pair, repelling pair, quadrupole, horseshoe). Short explanatory captions in a sidebar. Palette: steel grey #6c757d, paper #f8f6f1, red/blue poles. Typography: a clean scientific sans.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="095-magnetic-field.html" target="_blank" rel="noopener">095-magnetic-field.html</a><a href="095-magnetic-field.txt" target="_blank" rel="noopener">095-magnetic-field.txt</a></div>
   </div>
 </article>
@@ -2107,7 +1985,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp096">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Design &quot;MONOLITH — Architecture &amp; Landscape&quot; (a fictional studio), a brutalist-minimal architecture portfolio: raw concrete surfaces (procedural texture from layered noise with formwork tie-hole dots and board-mark grain) in greys #8d8d8a, #b5b3ad, #d6d4ce and charcoal #262624, with a single accent of oxidised-copper green #4f7f73. Typography: huge, tight, uppercase grotesk headlines and precise small captions with project data (location, year, area in m²). Composition: a severe grid, vast negative space, heavy slabs. Five fictional buildings appear as axonometric SVG drawings of monolithic volumes whose light and shadow shift as a &quot;sun angle&quot; slider moves (shadows computed from the angle). Scroll storytelling: slabs slide in; a building assembles piece by piece as you scroll; a horizontal material-library strip shows concrete, corten, timber and glass as procedural textures. Interaction: the sun slider; hovering a project rotates its axonometric slightly; clicking opens a project sheet. Calm, heavy, precise motion.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="096-concrete-monolith.html" target="_blank" rel="noopener">096-concrete-monolith.html</a><a href="096-concrete-monolith.txt" target="_blank" rel="noopener">096-concrete-monolith.txt</a></div>
   </div>
 </article>
@@ -2127,7 +2004,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp097">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Harmonograph — A Drawing Machine&quot;, simulating the Victorian pendulum drawing device. Two or three damped pendulums (x, y and rotary) combine to trace delicate, decaying Lissajous-like curves: x(t) = A1·sin(f1·t + p1)·e^(−d1·t) + A2·sin(f2·t + p2)·e^(−d2·t), and similarly for y. Render a very fine pen line accumulating on cream paper (#f6f1e3) in sepia ink (#3e2c1c) or selectable inks (indigo, oxblood, or gold on black paper). The machine is illustrated beside the drawing (a wooden table with pendulums swinging in sync, SVG). Controls styled as brass knobs and engraved dials: frequencies (with harmonic-ratio presets such as 2:3, 3:4 and near-unison detuning), phases, damping, pen width and speed. &quot;Release pendulums&quot; starts a fresh drawing that animates stroke by stroke; &quot;Randomize&quot; picks tasteful parameters; &quot;Save drawing&quot; downloads a PNG. Show the current ratio as a musical interval name (fifth, fourth). Typography: Victorian scientific-instrument labels in serif small caps.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="097-harmonograph.html" target="_blank" rel="noopener">097-harmonograph.html</a><a href="097-harmonograph.txt" target="_blank" rel="noopener">097-harmonograph.txt</a></div>
   </div>
 </article>
@@ -2147,7 +2023,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp098">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Pip and the Paper Moon&quot;, an interactive children&#x27;s picture book (an original short story in eight spreads about a little fox who wants to give the moon a gift). Watercolour-pastel illustrations built from SVG shapes with soft gradients, paper texture and gentle outlines: a forest at dusk, a pond reflecting the moon, a hill, a lantern festival, and more. Palette: peach #ffcdb2, dusty pink #e5989b, mauve #b5838d, pale blue #a8dadc, midnight #1d3557, warm yellow #ffd166. Book UX: a two-page spread on desktop and a single page on mobile; a realistic 3D page turn (CSS 3D with shading on the curling page) triggered by clicking page corners, arrow keys or swiping. Each spread hides small delights: tap the fox to make it hop, tap stars to twinkle and chime, tap the pond for ripples, fireflies follow the finger. Large, readable story text in a friendly rounded serif; a &quot;Read along&quot; mode highlights each word in turn and turns the page automatically. A cover page with a sparkling title.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="098-paper-moon-storybook.html" target="_blank" rel="noopener">098-paper-moon-storybook.html</a><a href="098-paper-moon-storybook.txt" target="_blank" rel="noopener">098-paper-moon-storybook.txt</a></div>
   </div>
 </article>
@@ -2167,7 +2042,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp099">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Build &quot;Droste — The Infinite Room&quot;, an endless-zoom artwork: a self-similar scene that zooms forever — a room with a framed picture on the wall that contains the same room, which contains the picture… Render on canvas by drawing the scene recursively at successive scales (each level scaled by the frame ratio), animating the zoom continuously and wrapping seamlessly each time a full level is reached. The room is illustrated in a flat, elegant mid-century-modern style: warm walls (#f1dac4), a teal armchair (#2a9d8f), a mustard lamp (#e9c46a), a geometric rug, a window with a changing sky and a plant; the framed painting is the recursion portal. Each depth level shifts the palette subtly so the journey feels alive. Interaction: scroll/pinch controls zoom speed and direction (zooming out is infinite too); click to switch scenes (&quot;Room&quot;, &quot;Spiral staircase&quot; with an Escher-like spiral, &quot;Ocean window&quot;); pause; and a &quot;Droste twist&quot; toggle that applies a logarithmic-spiral (conformal) transform for the famous Droste spiral effect. Typography: tiny modernist sans captions.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="099-droste-infinite-zoom.html" target="_blank" rel="noopener">099-droste-infinite-zoom.html</a><a href="099-droste-infinite-zoom.txt" target="_blank" rel="noopener">099-droste-infinite-zoom.txt</a></div>
   </div>
 </article>
@@ -2187,7 +2061,6 @@ Project tiles expand into full-screen case studies through a shared-element tran
   <div class="prompt-panel" id="pp100">
     <div class="prompt-label">Original prompt</div>
     <div class="prompt-text">Create &quot;Organic Wave Lab — Ripple Tank&quot;, an interactive wave-interference laboratory. A full-screen 2D wave simulation (discrete wave equation on a grid with damping and absorbing boundaries) rendered with gorgeous shading: a water-like surface lit from above with normal-based highlights, coloured from aqua #3ee6d6 through deep teal #0b4f6c with coral #ff7b6b crests (plus palettes &quot;Lagoon&quot;, &quot;Bioluminescent&quot; and &quot;Monochrome ink&quot;). Tools: click to drop a droplet; place continuous oscillating point sources (adjustable frequency/phase) to show interference patterns; draw walls/barriers with the pointer; and presets — double-slit experiment, single-slit diffraction, a lens (a region of slower wave speed that focuses waves), reflection in a parabolic dish, and rain. A lab-instrument UI panel (glassy, rounded, organic shapes) with sliders for wave speed, damping and source frequency, plus a probe that plots amplitude over time at a point as a live oscilloscope trace. Performance: a Float32Array grid at reduced resolution, drawn via ImageData and smoothed. Typography: a rounded scientific sans.</div>
-    <p class="prompt-note">Given together with the shared requirements listed at the top of this page.</p>
     <div class="file-name"><a href="100-organic-wave-lab.html" target="_blank" rel="noopener">100-organic-wave-lab.html</a><a href="100-organic-wave-lab.txt" target="_blank" rel="noopener">100-organic-wave-lab.txt</a></div>
   </div>
 </article>

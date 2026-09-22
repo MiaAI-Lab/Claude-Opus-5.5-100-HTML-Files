@@ -22,7 +22,6 @@ requests), and ships with the exact prompt that produced it.
 - **Open** loads the page in a new tab
 - **Prompt** expands the exact prompt and links its `.txt` file
 - Search across numbers, titles, descriptions and prompt text, with a live result count (press `/`)
-- The shared requirements given with every prompt are listed once at the top
 
 ## How it was made
 
