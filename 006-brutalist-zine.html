@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOUD HOUSE RECORDS — Issue 07 · The Zine</title>
+<meta name="description" content="Issue 07 of the Loud House Records zine: new releases with generated cover art, tracklists, tour dates with sold-out stamps and the noise list — a neo-brutalist web zine for a fictional independent record label.">
+<meta name="theme-color" content="#ffe600">
+<style>
+:root{
+  --cobalt:#1d3cff;
+  --yellow:#ffe600;
+  --ink:#000;
+  --paper:#f7f5f0;
+  --pink:#ff3ea5;
+  --sh:8px 8px 0 #000;
+  --sh-m:5px 5px 0 #000;
+  --sh-s:4px 4px 0 #000;
+  --display:"Arial Black","Helvetica Neue",Helvetica,"Nimbus Sans",Arial,"Liberation Sans",sans-serif;
+  --grot:"Helvetica Neue",Helvetica,Arial,"Nimbus Sans","Liberation Sans",sans-serif;
+  --mono:"SF Mono",Menlo,Consolas,"DejaVu Sans Mono","Nimbus Mono PS","Liberation Mono",monospace;
+  --gut:24px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:hidden}
+@supports (overflow-x:clip){html{overflow-x:clip}}
+body{
+  margin:0;position:relative;overflow-x:clip;
+  color:var(--ink);font:400 17px/1.5 var(--grot);
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(rgba(0,0,0,.075) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,0,0,.075) 1px,transparent 1px);
+  background-size:32px 32px;
+  background-position:-1px -1px;
+}
+::selection{background:var(--pink);color:#000}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:4px solid var(--cobalt);outline-offset:4px}
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--yellow);border:3px solid #000;padding:8px 12px;font:700 14px var(--mono);text-decoration:none}
+.skip:focus{top:12px}
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+.mono{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.wrap{max-width:1360px;margin:0 auto;padding:0 var(--gut)}
+
+/* ---------- top bar ---------- */
+.topbar{background:#000;color:var(--paper);border-bottom:4px solid #000;position:relative;z-index:5}
+.topbar .wrap{display:flex;align-items:center;gap:18px;min-height:46px}
+.tb-id{font:700 13px/1 var(--mono);letter-spacing:.08em;white-space:nowrap}
+.tb-id b{background:var(--yellow);color:#000;padding:4px 6px;margin-right:8px}
+.tb-nav{display:flex;gap:4px;margin-left:auto}
+.tb-nav a{font:700 12px/1 var(--mono);letter-spacing:.08em;text-decoration:none;padding:8px 10px;border:2px solid transparent}
+.tb-nav a:hover{border-color:var(--yellow);color:var(--yellow)}
+.snd{display:inline-flex;align-items:center;gap:8px;background:var(--paper);color:#000;border:2px solid var(--paper);font:700 12px/1 var(--mono);letter-spacing:.08em;padding:7px 10px;cursor:pointer;white-space:nowrap;flex:none}
+@media (max-width:420px){.tb-id{font-size:11px;letter-spacing:.04em}.snd{padding:7px 8px}}
+.snd .dot{width:10px;height:10px;border:2px solid #000;background:var(--pink)}
+.snd[aria-pressed="true"] .dot{background:var(--paper)}
+.snd:hover{background:var(--yellow);border-color:var(--yellow)}
+.snd:focus-visible{outline-color:var(--yellow)}
+.ruler{border-bottom:3px solid #000;background:var(--paper);overflow:hidden}
+.ruler .wrap{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--gut)}
+.ruler span{font:700 10px/1 var(--mono);padding:5px 0 4px 4px;border-left:2px solid #000;letter-spacing:.1em;position:relative}
+.ruler span::after{content:"";position:absolute;left:50%;bottom:0;width:2px;height:5px;background:#000}
+
+/* ---------- masthead ---------- */
+.mast{position:relative;padding-top:34px}
+.mast .wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:32px;position:relative}
+.halftone{position:absolute;background-image:radial-gradient(#000 1.3px,transparent 1.6px);background-size:9px 9px;pointer-events:none}
+.mast .halftone{left:44%;top:18px;width:30%;height:300px;opacity:.9;transform:rotate(-3deg)}
+.mast-left{position:relative;min-width:0}
+.mast-title{margin:0;font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.8;letter-spacing:-.05em;font-size:clamp(66px,17.4vw,232px);position:relative}
+.w{display:block;width:max-content;max-width:100%;position:relative}
+.w-loud{padding-left:.02em;z-index:1}
+.w-loud .o{display:inline-block;color:var(--pink);-webkit-text-stroke:.035em #000;transform-origin:50% 80%}
+.w-house{margin:.07em 0 0 .42em;padding:.07em .09em .02em .05em;background:var(--cobalt);color:var(--paper);border:4px solid #000;box-shadow:var(--sh);transform:rotate(-1.6deg);z-index:2}
+.w-records{margin:.2em 0 0 .06em;padding:.1em .22em .06em;font-size:.44em;letter-spacing:-.025em;line-height:.9;background:var(--yellow);border:4px solid #000;box-shadow:var(--sh);transform:rotate(2.2deg);z-index:3}
+.def{position:absolute;right:0;top:4px;max-width:260px;background:var(--paper);border:3px solid #000;padding:10px 12px;font:700 12px/1.45 var(--mono);letter-spacing:.04em;text-transform:uppercase;box-shadow:var(--sh-s);transform:rotate(1.2deg);z-index:4}
+.def i{font-style:normal;background:#000;color:var(--yellow);padding:1px 5px}
+.mast-cta{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:36px 0 0}
+.mast-cta .mono{font-size:12px;font-weight:700;max-width:280px;line-height:1.5}
+
+.btn{display:inline-flex;align-items:center;gap:10px;font:700 14px/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;text-decoration:none;border:3px solid #000;background:var(--paper);color:#000;padding:13px 16px;box-shadow:var(--sh-s);cursor:pointer;transition:transform .09s ease,box-shadow .09s ease,background-color .15s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000}
+.btn:active,.btn.is-down{transform:translate(4px,4px);box-shadow:0 0 0 #000}
+.btn-y{background:var(--yellow)}
+.btn-p{background:var(--pink)}
+.btn-b{background:#000;color:var(--paper)}
+.btn-b:hover{background:var(--cobalt)}
+.btn-big{font-size:16px;padding:18px 22px;box-shadow:var(--sh)}
+.btn-big:hover{box-shadow:10px 10px 0 #000}
+.btn .ico{width:14px;height:14px;flex:none}
+.btn[aria-pressed="true"]{background:#000;color:var(--yellow)}
+
+.mast-right{display:flex;flex-direction:column;gap:22px;position:relative}
+.badge{position:relative;width:196px;height:196px;align-self:flex-end;margin-right:6px}
+.badge .ring{position:absolute;inset:0;animation:spin 26s linear infinite}
+.badge .ring text{font:700 11.5px var(--mono);letter-spacing:2.4px;fill:#000}
+.badge .disc{position:absolute;inset:26px;border-radius:50%;background:var(--pink);border:4px solid #000;box-shadow:6px 6px 0 #000;display:grid;place-content:center;text-align:center}
+.badge .disc small{font:700 11px/1 var(--mono);letter-spacing:.14em}
+.badge .disc strong{font:900 78px/.82 var(--display);letter-spacing:-.06em;display:block;margin-top:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.panel{background:var(--paper);border:3px solid #000;box-shadow:var(--sh);padding:16px 18px 18px;position:relative}
+.panel h2{margin:0 0 8px;font:700 12px/1 var(--mono);letter-spacing:.12em;display:flex;justify-content:space-between}
+.panel h2 span:last-child{background:#000;color:var(--paper);padding:3px 6px;margin:-3px 0}
+.note p{margin:0;font-size:15.5px;line-height:1.5}
+.note .sig{margin-top:10px;font:700 11px/1.3 var(--mono);letter-spacing:.06em}
+.note{transform:rotate(-.8deg)}
+.index{background:var(--yellow);transform:rotate(.7deg)}
+.index ol{list-style:none;margin:0;padding:0;counter-reset:ix}
+.index li{border-top:2px solid #000}
+.index li:last-child{border-bottom:2px solid #000}
+.index a{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:baseline;padding:8px 2px;text-decoration:none;font:900 19px/1.1 var(--display);text-transform:uppercase;letter-spacing:-.02em}
+.index a small{font:700 11px var(--mono);letter-spacing:.06em}
+.index a:hover{background:#000;color:var(--yellow)}
+
+/* ---------- marquee strips ---------- */
+.strips{position:relative;height:196px;overflow:hidden;margin-top:34px}
+.strip{position:absolute;left:-4%;width:108%;border-top:4px solid #000;border-bottom:4px solid #000;overflow:hidden;white-space:nowrap}
+.strip-a{top:42px;background:#000;color:var(--yellow);transform:rotate(-2.4deg);z-index:2}
+.strip-b{top:96px;background:var(--cobalt);color:var(--paper);transform:rotate(1.7deg)}
+.track{display:flex;width:max-content;animation:marq 42s linear infinite}
+.strip-b .track{animation-duration:55s;animation-direction:reverse}
+.strips:hover .track{animation-play-state:paused}
+.track span{font:900 34px/1 var(--display);text-transform:uppercase;letter-spacing:-.02em;padding:13px 0}
+.track span::after{content:"✺";display:inline-block;margin:0 26px;color:var(--pink)}
+.strip-b .track span{font:700 20px/1 var(--mono);letter-spacing:.1em;padding:12px 0}
+.strip-b .track span::after{content:"///";color:var(--yellow);margin:0 22px}
+@keyframes marq{to{transform:translateX(-50%)}}
+
+/* ---------- section heads ---------- */
+.sec{padding:70px 0 40px;position:relative}
+.sec-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:18px 30px;margin-bottom:44px;position:relative}
+.kicker{grid-column:1/-1;margin:0;font:700 12px/1 var(--mono);letter-spacing:.14em;display:flex;gap:10px;align-items:center}
+.kicker b{background:#000;color:var(--paper);padding:5px 8px}
+.kicker::after{content:"";flex:1;height:3px;background:#000}
+.big{margin:0;font:900 clamp(50px,10.4vw,156px)/.82 var(--display);text-transform:uppercase;letter-spacing:-.055em}
+.outline{color:transparent;-webkit-text-stroke:3px #000}
+@supports not (-webkit-text-stroke:1px #000){.outline{color:#000}}
+.sec-tools{display:flex;flex-direction:column;align-items:flex-end;gap:12px;text-align:right}
+.sec-tools p{margin:0;font-size:12px;font-weight:700;max-width:320px;line-height:1.5}
+.reg{position:absolute;width:26px;height:26px;pointer-events:none}
+.reg::before,.reg::after{content:"";position:absolute;background:#000}
+.reg::before{left:12px;top:0;width:2px;height:26px}
+.reg::after{top:12px;left:0;height:2px;width:26px}
+.reg i{position:absolute;inset:6px;border:2px solid #000;border-radius:50%}
+
+/* ---------- release grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 40px;align-items:start}
+.card{position:relative;border:4px solid #000;box-shadow:var(--sh);background:var(--paper);padding:18px;transform:rotate(var(--r,0deg));transition:transform .13s cubic-bezier(.3,.7,.4,1),box-shadow .13s cubic-bezier(.3,.7,.4,1);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.card:hover{transform:translate(3px,3px) rotate(var(--r,0deg));box-shadow:5px 5px 0 #000}
+.card:active,.card.is-down{transform:translate(8px,8px) rotate(var(--r,0deg));box-shadow:0 0 0 #000;transition-duration:.06s}
+.card.sel{outline:4px dashed #000;outline-offset:8px}
+.card.c-y{background:var(--yellow)}
+.card.c-p{background:var(--pink)}
+.card.c-b{background:var(--cobalt);color:var(--paper)}
+.card.c-b .btn{border-color:#000}
+.card.c-b .tags li{border-color:var(--paper)}
+.card.c-b:focus-visible{outline-color:var(--yellow)}
+.media{position:relative;aspect-ratio:1/.8;margin-bottom:16px}
+.sleeve{position:relative;width:80%;aspect-ratio:1;border:3px solid #000;background:#000;z-index:2;box-shadow:var(--sh-s);transform-style:preserve-3d}
+.sleeve svg{display:block;width:100%;height:100%}
+.disc{position:absolute;z-index:1;top:5%;left:6%;width:72%;aspect-ratio:1;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%,#000 0 2.2%,var(--lab,#ff3ea5) 2.4% 17%,#000 17.4% 18.6%,transparent 19%),
+    repeating-radial-gradient(circle at 50% 50%,#0b0b0b 0 1.2px,#222 1.6px 2.6px),
+    #111;
+  border:3px solid #000;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.disc::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 20deg,transparent 0 8%,rgba(255,255,255,.18) 12%,transparent 18% 55%,rgba(255,255,255,.12) 62%,transparent 68%)}
+.card:hover .disc,.card.playing .disc{transform:translateX(28%) rotate(160deg)}
+.card.playing .disc{animation:vinyl 1.8s linear infinite}
+@keyframes vinyl{from{transform:translateX(28%) rotate(0)}to{transform:translateX(28%) rotate(360deg)}}
+.seed{position:absolute;right:0;top:0;z-index:3;writing-mode:vertical-rl;font:700 10px/1 var(--mono);letter-spacing:.1em;background:#000;color:var(--paper);padding:7px 4px;white-space:nowrap}
+.cat{margin:10px 0 6px;font:700 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.card h3{margin:0;font:900 clamp(26px,2.4vw,36px)/.92 var(--display);text-transform:uppercase;letter-spacing:-.04em}
+.artist{margin:6px 0 0;font:700 15px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.artist::before{content:"— "}
+.blurb{margin:12px 0 0;font-size:15.5px;line-height:1.45}
+.tags{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-wrap:wrap;gap:6px}
+.tags li{font:700 11px/1 var(--mono);letter-spacing:.08em;border:2px solid #000;padding:5px 7px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.actions .btn{font-size:12.5px;padding:10px 12px}
+.card .tape{position:absolute;top:-17px;left:50%;width:118px;height:30px;transform:translateX(-50%) rotate(var(--tr,-4deg));background:repeating-linear-gradient(90deg,rgba(236,226,196,.86) 0 7px,rgba(246,238,214,.86) 7px 14px);border-left:2px dashed rgba(0,0,0,.18);border-right:2px dashed rgba(0,0,0,.18);box-shadow:0 1px 0 rgba(0,0,0,.12);z-index:4;pointer-events:none}
+.lead{grid-column:span 2;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0 28px;align-items:start}
+.lead .media{margin:0}
+.lead h3{font-size:clamp(40px,4.6vw,72px)}
+.lead .flag{display:inline-block;background:#000;color:var(--yellow);font:700 12px/1 var(--mono);letter-spacing:.12em;padding:6px 8px;margin-bottom:10px}
+.lead .blurb{font-size:17px}
+.quote{grid-column:span 2;align-self:stretch;display:flex;flex-direction:column;justify-content:center;background:#000;color:var(--paper);border:4px solid #000;box-shadow:8px 8px 0 var(--pink);padding:34px 36px;transform:rotate(var(--r,0deg));position:relative;overflow:hidden}
+.quote blockquote{margin:0}
+.quote p{margin:0;font:900 clamp(26px,3.2vw,48px)/.98 var(--display);text-transform:uppercase;letter-spacing:-.035em;position:relative}
+.quote p mark{background:var(--yellow);color:#000;padding:0 .1em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.quote footer{margin-top:18px;font:700 12px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;position:relative}
+.quote .halftone{right:-30px;bottom:-30px;width:240px;height:240px;background-image:radial-gradient(var(--pink) 1.8px,transparent 2.1px);opacity:.75}
+.shuffle-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pressing{font:700 11px/1 var(--mono);letter-spacing:.1em;border:2px solid #000;padding:6px 8px;background:var(--paper)}
+
+/* ---------- tracklist ---------- */
+.tl{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:48px;align-items:start}
+.tl-art{position:sticky;top:24px}
+.tl-cover{border:4px solid #000;box-shadow:var(--sh);aspect-ratio:1;background:#000;transform:rotate(-1.4deg)}
+.tl-cover svg{display:block;width:100%;height:100%}
+.tl-meta{display:grid;grid-template-columns:auto 1fr;margin:30px 0 0;border:3px solid #000;background:var(--paper);font:700 12px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.tl-meta dt,.tl-meta dd{margin:0;padding:8px 10px;border-bottom:2px solid #000}
+.tl-meta dt{background:#000;color:var(--paper);border-bottom-color:#333}
+.tl-meta dt:last-of-type,.tl-meta dd:last-of-type{border-bottom:0}
+.picker{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:18px}
+.picker button{padding:0;border:3px solid #000;background:#000;aspect-ratio:1;cursor:pointer;position:relative;box-shadow:3px 3px 0 #000;transition:transform .08s,box-shadow .08s}
+.picker button svg{display:block;width:100%;height:100%}
+.picker button span{position:absolute;left:0;right:0;bottom:0;background:#000;color:var(--paper);font:700 9px/1 var(--mono);padding:3px 0;text-align:center}
+.picker button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 #000}
+.picker button[aria-pressed="true"]{transform:translate(3px,3px);box-shadow:0 0 0 #000;outline:3px solid var(--pink);outline-offset:2px}
+.tl-main{min-width:0}
+.tl-title{margin:0 0 6px;font:900 clamp(34px,4.4vw,64px)/.9 var(--display);text-transform:uppercase;letter-spacing:-.045em}
+.tl-by{margin:0 0 22px;font:700 14px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;display:flex;flex-wrap:wrap;gap:8px}
+.tl-by span{border:2px solid #000;padding:5px 8px;background:var(--paper)}
+.tl-by span:first-child{background:var(--yellow)}
+.tl-table{width:100%;border-collapse:collapse;border:4px solid #000;background:var(--paper);box-shadow:var(--sh);font-variant-numeric:tabular-nums}
+.tl-table th{font:700 11px/1 var(--mono);letter-spacing:.12em;text-align:left;background:#000;color:var(--paper);padding:12px 12px}
+.tl-table td{border-top:2px solid #000;padding:0 12px;height:56px;font:700 13px/1.2 var(--mono);letter-spacing:.04em}
+.tl-table td.t{font:900 clamp(17px,1.6vw,22px)/1.05 var(--display);text-transform:uppercase;letter-spacing:-.02em;width:100%}
+.tl-table td.n{width:56px}
+.tl-table td.n b{display:inline-block;min-width:34px;text-align:center;border:2px solid #000;padding:4px 0;background:var(--paper)}
+.tl-table tr.side td{height:auto;padding:8px 12px;background:var(--cobalt);color:var(--paper);font:700 11px/1 var(--mono);letter-spacing:.2em}
+.tl-table tbody tr.row{transition:background-color .12s}
+.tl-table tbody tr.row:hover{background:var(--yellow)}
+.tl-table tbody tr.row.now{background:var(--pink)}
+.tl-table .pb{width:40px;height:40px;border:3px solid #000;background:var(--paper);display:grid;place-items:center;cursor:pointer;box-shadow:3px 3px 0 #000;padding:0;transition:transform .08s,box-shadow .08s}
+.tl-table .pb:hover{background:var(--yellow)}
+.tl-table .pb:active{transform:translate(3px,3px);box-shadow:none}
+.tl-table .pb[aria-pressed="true"]{background:#000;color:var(--yellow)}
+.tl-table .pb svg{width:14px;height:14px}
+.tl-table tfoot td{background:#000;color:var(--yellow);height:48px;border-top:0}
+.tl-table .num{text-align:right;white-space:nowrap}
+.tl-note{margin:26px 0 0;font:700 12px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase;max-width:640px}
+
+/* ---------- tour ---------- */
+.tour-band{background:var(--yellow);border-top:4px solid #000;border-bottom:4px solid #000;margin-top:40px}
+.tour-band .sec{padding-top:64px}
+.tour-sub{margin:0;font:700 13px/1.5 var(--mono);letter-spacing:.08em;text-transform:uppercase;max-width:360px;text-align:right}
+.dates{list-style:none;margin:0;padding:0;border:4px solid #000;background:var(--paper);box-shadow:var(--sh)}
+.date-row{display:grid;grid-template-columns:130px minmax(0,1fr) 200px;align-items:center;border-top:3px solid #000;min-height:96px;position:relative;transition:background-color .12s}
+.date-row:first-child{border-top:0}
+.date-row:hover{background:#fff}
+.d{display:flex;align-items:center;gap:10px;height:100%;padding:14px 16px;border-right:3px solid #000;background:#000;color:var(--paper)}
+.d .dd{font:900 46px/.85 var(--display);letter-spacing:-.05em}
+.d .mm{font:700 11px/1.3 var(--mono);letter-spacing:.12em}
+.where{padding:14px 22px;min-width:0}
+.city{margin:0;font:900 clamp(24px,3.2vw,44px)/.9 var(--display);text-transform:uppercase;letter-spacing:-.04em}
+.venue{margin:6px 0 0;font:700 12px/1.4 var(--mono);letter-spacing:.07em;text-transform:uppercase}
+.status{display:flex;justify-content:center;align-items:center;padding:12px 16px;position:relative;min-height:80px}
+.stamp{display:inline-block;font:900 25px/1 var(--display);letter-spacing:.02em;color:var(--pink);border:4px solid var(--pink);outline:2px solid var(--pink);outline-offset:3px;padding:7px 12px 5px;transform:rotate(var(--sr,-11deg));text-transform:uppercase;white-space:nowrap;filter:url(#grit);mix-blend-mode:multiply;background:rgba(255,62,165,.06)}
+.js .stamp{opacity:0}
+.js .stamp.in{animation:thunk .42s cubic-bezier(.2,1.5,.4,1) forwards;animation-delay:var(--sd,0s)}
+@keyframes thunk{0%{opacity:0;transform:rotate(calc(var(--sr,-11deg) - 14deg)) scale(2.4)}60%{opacity:1}100%{opacity:1;transform:rotate(var(--sr,-11deg)) scale(1)}}
+.few{font:700 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;background:#000;color:var(--yellow);padding:8px 10px;display:inline-flex;gap:8px;align-items:center;position:absolute;top:-12px;right:14px;transform:rotate(3deg)}
+.few i{width:8px;height:8px;background:var(--pink);border-radius:50%;animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+.row-last .d{background:var(--pink);color:#000}
+
+/* ---------- sign-up ---------- */
+.signup{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);border:4px solid #000;box-shadow:12px 12px 0 #000;background:var(--paper);position:relative}
+.su-left{background:var(--pink);border-right:4px solid #000;padding:36px 34px;position:relative;overflow:hidden}
+.su-left h2{margin:14px 0 0;font:900 clamp(46px,6.4vw,96px)/.84 var(--display);text-transform:uppercase;letter-spacing:-.055em;position:relative}
+.su-left h2 span{display:inline-block;background:#000;color:var(--yellow);padding:.04em .08em 0;margin-top:.08em;transform:rotate(-1.5deg)}
+.su-left p{margin:22px 0 0;font-size:17px;line-height:1.5;max-width:460px;position:relative}
+.su-left .halftone{right:-40px;top:-30px;width:44%;height:210px;opacity:.3;transform:rotate(4deg)}
+.su-form{padding:36px 34px;display:flex;flex-direction:column;gap:18px;position:relative}
+.su-form label.mono{font-size:12px;font-weight:700;line-height:1.5}
+.su-row{display:flex;gap:0;border:4px solid #000;box-shadow:var(--sh-s);background:#fff}
+.su-row input{flex:1;min-width:0;border:0;background:transparent;font:700 17px/1 var(--mono);padding:16px 14px;color:#000;border-radius:0}
+.su-row input::placeholder{color:#777}
+.su-row input:focus{outline:none;background:#fffbd1}
+.su-row:focus-within{outline:4px solid var(--cobalt);outline-offset:3px}
+.su-row .btn{box-shadow:none;border:0;border-left:4px solid #000}
+.su-row .btn:hover{transform:none;box-shadow:none}
+.genres{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.genres legend{font-size:12px;font-weight:700;padding:0;margin-bottom:10px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;width:1px;height:1px}
+.chip span{display:inline-block;font:700 12px/1 var(--mono);letter-spacing:.08em;border:3px solid #000;padding:9px 11px;cursor:pointer;background:var(--paper);box-shadow:3px 3px 0 #000;transition:transform .08s,box-shadow .08s,background-color .12s}
+.chip input:checked+span{background:var(--cobalt);color:var(--paper);transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.chip input:focus-visible+span{outline:4px solid var(--pink);outline-offset:3px}
+.su-msg{margin:0;min-height:2.8em;font:700 12.5px/1.5 var(--mono);letter-spacing:.05em;text-transform:uppercase}
+.su-msg.err{color:#c4006a}
+.su-stamp{position:absolute;right:24px;bottom:22px;font:900 38px/1 var(--display);color:var(--cobalt);border:5px solid var(--cobalt);padding:6px 14px 4px;transform:rotate(-9deg) scale(2);opacity:0;pointer-events:none;filter:url(#grit);text-transform:uppercase}
+.su-stamp.in{animation:slam .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes slam{to{opacity:.95;transform:rotate(-9deg) scale(1)}}
+.fine{margin:0;font:700 11px/1.5 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:#333}
+
+/* ---------- footer ---------- */
+.foot{margin-top:70px;background:#000;color:var(--paper);border-top:4px solid #000;overflow:hidden;position:relative}
+.foot-big{font:900 clamp(60px,15.5vw,236px)/.8 var(--display);letter-spacing:-.06em;color:transparent;-webkit-text-stroke:2px var(--paper);white-space:nowrap;padding:34px 0 0;margin:0;text-transform:uppercase}
+.foot-big span{color:var(--yellow);-webkit-text-stroke:0}
+.foot-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding:40px 0 30px;border-top:2px solid #333;margin-top:30px}
+.foot-grid h3{margin:0 0 10px;font:700 11px/1 var(--mono);letter-spacing:.14em;color:var(--yellow)}
+.foot-grid p{margin:0;font:400 14px/1.55 var(--grot);color:#d8d6d0}
+.foot-bar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-top:2px solid #333;padding:18px 0 110px;font:700 11px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#bbb}
+.foot .btn{background:var(--yellow);box-shadow:4px 4px 0 var(--pink)}
+.foot .btn:hover{box-shadow:6px 6px 0 var(--pink)}
+.foot .btn:focus-visible{outline-color:var(--pink)}
+
+/* ---------- sticker ---------- */
+.sticker-layer{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:40}
+.sticker{position:absolute;left:0;top:0;pointer-events:auto;width:176px;height:176px;z-index:40;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;transition:scale .15s ease,filter .15s ease;filter:drop-shadow(5px 6px 0 rgba(0,0,0,1));will-change:transform}
+.sticker svg{display:block;width:100%;height:100%;overflow:visible}
+.sticker.lift{cursor:grabbing;scale:1.1;filter:drop-shadow(14px 18px 0 rgba(0,0,0,.9))}
+.sticker:focus-visible{outline:4px dashed var(--cobalt);outline-offset:2px;border-radius:50%}
+.sticker .hint{position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);font:700 10px/1 var(--mono);letter-spacing:.12em;background:#000;color:var(--yellow);padding:4px 6px;white-space:nowrap;opacity:0;transition:opacity .2s}
+.sticker:hover .hint,.sticker:focus-visible .hint{opacity:1}
+
+/* ---------- deck (now playing) ---------- */
+.deck{position:fixed;right:18px;bottom:18px;z-index:60;width:min(540px,calc(100vw - 36px));background:var(--paper);border:4px solid #000;box-shadow:var(--sh);display:grid;grid-template-columns:78px minmax(0,1fr) auto;gap:0;transform:translateY(calc(100% + 40px));transition:transform .35s cubic-bezier(.2,1.1,.3,1);visibility:hidden}
+.deck.on{transform:none;visibility:visible}
+.deck-cover{border-right:4px solid #000;background:#000}
+.deck-cover svg{display:block;width:100%;height:100%}
+.deck-mid{padding:9px 12px 10px;min-width:0}
+.deck-mid .lbl{font:700 10px/1 var(--mono);letter-spacing:.14em;display:flex;gap:8px;align-items:center}
+.deck-mid .lbl i{width:8px;height:8px;background:var(--pink);border:2px solid #000;border-radius:50%}
+.deck-title{margin:5px 0 7px;font:900 17px/1 var(--display);text-transform:uppercase;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leds{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:3px}
+.leds span{height:10px;border:2px solid #000;background:var(--paper)}
+.leds span:nth-child(4n+1){background:#e6e3da}
+.leds span.k{background:#000}
+.leds span.on{background:var(--pink)}
+.leds span.k.on{background:var(--cobalt)}
+.prog{height:4px;background:#ddd;margin-top:7px;overflow:hidden}
+.prog i{display:block;height:100%;background:#000;transform-origin:0 50%;transform:scaleX(0)}
+.deck-btns{display:flex;border-left:4px solid #000}
+.deck-btns button{width:56px;border:0;border-left:3px solid #000;background:var(--yellow);cursor:pointer;display:grid;place-items:center;padding:0}
+.deck-btns button:first-child{border-left:0}
+.deck-btns button:hover{background:var(--pink)}
+.deck-btns button[aria-pressed="true"]{background:#000;color:var(--yellow)}
+.deck-btns svg{width:20px;height:20px}
+.deck-btns button:focus-visible{outline-offset:-6px}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;left:50%;top:70px;z-index:80;transform:translate(-50%,-30px) rotate(-1deg);opacity:0;background:#000;color:var(--yellow);border:3px solid var(--yellow);box-shadow:6px 6px 0 var(--pink);padding:12px 16px;font:700 13px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;max-width:calc(100vw - 32px);pointer-events:none;transition:transform .25s cubic-bezier(.2,1.4,.4,1),opacity .2s}
+.toast.show{opacity:1;transform:translate(-50%,0) rotate(-1deg)}
+
+/* ---------- responsive ---------- */
+@media (max-width:1180px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lead{grid-column:span 2}
+  .quote{grid-column:span 2}
+  .tl{grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:34px}
+}
+@media (max-width:960px){
+  .mast .wrap{grid-template-columns:minmax(0,1fr)}
+  .mast-right{position:static;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+  .badge{position:absolute;right:calc(var(--gut) + 0px);top:-8px;width:150px;height:150px;margin:0}
+  .badge .disc{inset:21px}
+  .badge .disc strong{font-size:58px}
+  .def{position:relative;right:auto;top:auto;margin:26px 0 0;max-width:420px}
+  .tb-nav{display:none}
+  .snd{margin-left:auto}
+  .date-row{grid-template-columns:110px minmax(0,1fr) 170px}
+  .signup{grid-template-columns:minmax(0,1fr)}
+  .su-left{border-right:0;border-bottom:4px solid #000}
+  .foot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tl{grid-template-columns:minmax(0,1fr)}
+  .tl-art{position:relative;top:0;display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:22px;align-items:start}
+  .tl-meta{margin:0}
+  .picker{grid-column:1/-1}
+}
+@media (max-width:700px){
+  :root{--gut:16px}
+  body{font-size:16px}
+  .ruler .wrap{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .ruler span:nth-child(n+7){display:none}
+  .mast{padding-top:22px}
+  .mast .halftone{left:40%;width:52%;height:200px}
+  .mast-right{grid-template-columns:minmax(0,1fr)}
+  .badge{width:120px;height:120px;top:-6px}
+  .badge .ring text{font-size:12.5px}
+  .badge .disc{inset:17px;box-shadow:4px 4px 0 #000;border-width:3px}
+  .badge .disc strong{font-size:44px}
+  .badge .disc small{font-size:9px}
+  .w-house,.w-records{border-width:3px;box-shadow:6px 6px 0 #000}
+  .w-records{font-size:.46em}
+  .def{max-width:calc(100% - 132px);margin-top:30px;font-size:11px}
+  .mast-cta{margin-top:26px}
+  .strips{height:132px;margin-top:22px}
+  .strip-a{top:24px}
+  .strip-b{top:64px}
+  .track span{font-size:24px;padding:10px 0}
+  .strip-b .track span{font-size:15px;padding:9px 0}
+  .sec{padding:54px 0 28px}
+  .sec-head{grid-template-columns:minmax(0,1fr);margin-bottom:30px}
+  .sec-tools{align-items:flex-start;text-align:left}
+  .shuffle-row{justify-content:flex-start}
+  .tour-sub{text-align:left}
+  .outline{-webkit-text-stroke:2px #000}
+  .grid{grid-template-columns:minmax(0,1fr);gap:40px}
+  .lead,.quote{grid-column:auto}
+  .lead{grid-template-columns:minmax(0,1fr)}
+  .lead .media{margin-bottom:16px}
+  .card{padding:14px;box-shadow:6px 6px 0 #000}
+  .quote{padding:26px 22px}
+  .tl-art{grid-template-columns:minmax(0,1fr)}
+  .tl-cover{max-width:320px}
+  .tl-table th.k,.tl-table td.k{display:none}
+  .tl-table td{padding:0 8px;font-size:12px}
+  .tl-table th{padding:10px 8px}
+  .tl-table td.n{width:44px}
+  .tl-table .pb{width:36px;height:36px}
+  .date-row{grid-template-columns:78px minmax(0,1fr);min-height:0}
+  .d{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding:12px 10px}
+  .d .dd{font-size:36px}
+  .status{grid-column:1/-1;border-top:2px dashed #000;justify-content:flex-end;min-height:0;padding:12px 18px}
+  .stamp{font-size:19px;padding:5px 9px 4px}
+  .few{position:static;transform:none;margin-left:10px}
+  .su-left,.su-form{padding:26px 20px}
+  .su-row{flex-direction:column}
+  .su-row .btn{border-left:0;border-top:4px solid #000;justify-content:center}
+  .su-stamp{font-size:28px;right:14px;bottom:14px}
+  .signup{box-shadow:8px 8px 0 #000}
+  .foot-grid{grid-template-columns:minmax(0,1fr)}
+  .sticker{width:122px;height:122px}
+  .deck{right:10px;left:10px;bottom:10px;width:auto;grid-template-columns:64px minmax(0,1fr) auto;box-shadow:5px 5px 0 #000}
+  .deck-btns button{width:46px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .track,.badge .ring,.card.playing .disc,.few i{animation:none!important}
+  .js .stamp{opacity:1}
+  .js .stamp.in{animation:none}
+  .card,.btn,.disc,.deck,.toast{transition-duration:.01s!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#releases">Skip to new releases</a>
+
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="grit" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -7 0 0 0 5" result="holes"/>
+      <feComposite in="SourceGraphic" in2="holes" operator="in" result="eaten"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="1" seed="3" result="w"/>
+      <feDisplacementMap in="eaten" in2="w" scale="2.4"/>
+    </filter>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="wrap">
+    <p class="tb-id" style="margin:0"><b>LHR</b>ZINE № 07 · AUTUMN 2026</p>
+    <nav class="tb-nav" aria-label="Sections">
+      <a href="#releases">Releases</a>
+      <a href="#tracklist">Tracklist</a>
+      <a href="#tour">Tour</a>
+      <a href="#signup">Noise list</a>
+    </nav>
+    <button type="button" class="snd" id="snd" aria-pressed="false" aria-label="Mute sound"><span class="dot" aria-hidden="true"></span><span class="snd-t">SOUND ON</span></button>
+  </div>
+</header>
+<div class="ruler" aria-hidden="true"><div class="wrap"><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span><span>10</span><span>11</span><span>12</span></div></div>
+
+<main id="main">
+  <section class="mast" aria-labelledby="mast-title">
+    <div class="wrap">
+      <div class="mast-left">
+        <div class="halftone" aria-hidden="true"></div>
+        <h1 class="mast-title" id="mast-title">
+          <span class="w w-loud">L<span class="o">O</span>UD</span>
+          <span class="w w-house">HOUSE</span>
+          <span class="w w-records">RECORDS</span>
+        </h1>
+        <p class="def"><i>loud</i> (adj.) — producing a lot of noise, on purpose, with a tote bag. See also: <i>us</i>.</p>
+        <div class="mast-cta">
+          <button type="button" class="btn btn-y btn-big" data-play="0" aria-pressed="false"><svg class="ico" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 1 L13 7 L2 13 Z" fill="currentColor"/></svg>Preview the lead single</button>
+          <p class="mono">Six new records · one long tour · a sticker you are contractually obliged to move.</p>
+        </div>
+      </div>
+      <div class="mast-right">
+        <div class="badge" aria-hidden="true">
+          <svg class="ring" viewBox="0 0 200 200">
+            <defs><path id="ringpath" d="M100,100 m-86,0 a86,86 0 1,1 172,0 a86,86 0 1,1 -172,0"/></defs>
+            <text><textPath href="#ringpath">LOUD HOUSE RECORDS ✺ ISSUE 07 ✺ AUTUMN 2026 ✺ FREE ✺</textPath></text>
+          </svg>
+          <div class="disc"><small>ISSUE</small><strong>07</strong></div>
+        </div>
+        <div class="panel note">
+          <h2><span>EDITOR'S NOTE</span><span>P. 02</span></h2>
+          <p>Issue 07 was assembled on a borrowed photocopier between soundchecks. Inside: six records we'd defend in a car park, a tracklist for every one of them, and eleven nights on the road.</p>
+          <p class="sig">— RUTH CLANGOR, EDITOR (FICTIONAL, LIKE EVERYTHING HERE)</p>
+        </div>
+        <nav class="panel index" aria-label="In this issue">
+          <h2><span>IN THIS ISSUE</span><span>32 PP.</span></h2>
+          <ol>
+            <li><a href="#releases"><small>02</small>New releases<small>P.04</small></a></li>
+            <li><a href="#tracklist"><small>03</small>Tracklists<small>P.10</small></a></li>
+            <li><a href="#tour"><small>04</small>On the road<small>P.12</small></a></li>
+            <li><a href="#signup"><small>05</small>Noise list<small>P.15</small></a></li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <div class="strips" aria-label="Release names in this issue">
+    <div class="strip strip-a">
+      <div class="track">
+        <span>Concrete Lullabies</span><span>Sodium Heart</span><span>Basement Gospel</span><span>Tape Hiss Forever</span><span>Riot in C Minor</span><span>Slow Strobe</span>
+        <span aria-hidden="true">Concrete Lullabies</span><span aria-hidden="true">Sodium Heart</span><span aria-hidden="true">Basement Gospel</span><span aria-hidden="true">Tape Hiss Forever</span><span aria-hidden="true">Riot in C Minor</span><span aria-hidden="true">Slow Strobe</span>
+      </div>
+    </div>
+    <div class="strip strip-b" aria-hidden="true">
+      <div class="track">
+        <span>LHR-071 Mirror Static</span><span>LHR-072 Dolly Voltage</span><span>LHR-073 The Parking Lots</span><span>LHR-074 Kid Cassette</span><span>LHR-075 Gravel &amp; Honey</span><span>LHR-076 Outlet Sisters</span>
+        <span>LHR-071 Mirror Static</span><span>LHR-072 Dolly Voltage</span><span>LHR-073 The Parking Lots</span><span>LHR-074 Kid Cassette</span><span>LHR-075 Gravel &amp; Honey</span><span>LHR-076 Outlet Sisters</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="sec" id="releases" aria-labelledby="rel-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="kicker"><b>§ 02</b>P. 04–09</p>
+        <h2 class="big" id="rel-h">New <span class="outline">Releases</span></h2>
+        <div class="sec-tools">
+          <p class="mono">Six records. Zero filler. Every sleeve is generated fresh — no two pressings look alike.</p>
+          <div class="shuffle-row">
+            <span class="pressing mono" id="pressing">PRESSING #001</span>
+            <button type="button" class="btn btn-p" id="shuffle"><svg class="ico" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 3h3l6 8h3M1 11h3l6-8h3M11 1l2 2-2 2M11 9l2 2-2 2" fill="none" stroke="currentColor" stroke-width="2"/></svg>Shuffle covers</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" id="grid">
+        <article class="card lead" data-i="0" style="--r:-.6deg" tabindex="0" aria-labelledby="t0">
+          <span class="tape" aria-hidden="true" style="--tr:-3deg"></span>
+          <div class="media">
+            <div class="disc" aria-hidden="true" style="--lab:#ff3ea5"></div>
+            <div class="sleeve" role="img" aria-label="Generated geometric cover for Concrete Lullabies"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+            <span class="seed" aria-hidden="true"></span>
+          </div>
+          <div class="info">
+            <span class="flag">LEAD RELEASE</span>
+            <p class="cat">LHR-071 · LP · OUT 09 OCT 2026</p>
+            <h3 id="t0">Concrete Lullabies</h3>
+            <p class="artist">Mirror Static</p>
+            <p class="blurb">Eight songs about ringroads, overpasses and the specific loneliness of a car alarm at 3am. Recorded live to tape in a disused multistorey, bass so dry you could strike a match on it.</p>
+            <ul class="tags"><li>POST-PUNK</li><li>124 BPM</li><li>A MINOR</li><li>180G BLACK</li></ul>
+            <div class="actions">
+              <button type="button" class="btn btn-y play" data-play="0" aria-pressed="false">▶ Preview</button>
+              <button type="button" class="btn" data-tracks="0">Tracklist ↓</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card c-y" data-i="1" style="--r:1.1deg" tabindex="0" aria-labelledby="t1">
+          <div class="media">
+            <div class="disc" aria-hidden="true" style="--lab:#1d3cff"></div>
+            <div class="sleeve" role="img" aria-label="Generated geometric cover for Sodium Heart"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+            <span class="seed" aria-hidden="true"></span>
+          </div>
+          <p class="cat">LHR-072 · 12" · OUT 16 OCT 2026</p>
+          <h3 id="t1">Sodium Heart</h3>
+          <p class="artist">Dolly Voltage</p>
+          <p class="blurb">Streetlight synth-pop with a dub on the flip. Four tracks, one broken drum machine, zero regrets.</p>
+          <ul class="tags"><li>SYNTH-POP</li><li>118 BPM</li><li>F♯ MINOR</li></ul>
+          <div class="actions">
+            <button type="button" class="btn play" data-play="1" aria-pressed="false">▶ Preview</button>
+            <button type="button" class="btn" data-tracks="1">Tracklist ↓</button>
+          </div>
+        </article>
+
+        <article class="card" data-i="2" style="--r:-1.3deg" tabindex="0" aria-labelledby="t2">
+          <span class="tape" aria-hidden="true" style="--tr:5deg"></span>
+          <div class="media">
+            <div class="disc" aria-hidden="true" style="--lab:#ffe600"></div>
+            <div class="sleeve" role="img" aria-label="Generated geometric cover for Basement Gospel"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+            <span class="seed" aria-hidden="true"></span>
+          </div>
+          <p class="cat">LHR-073 · LP · OUT 23 OCT 2026</p>
+          <h3 id="t2">Basement Gospel</h3>
+          <p class="artist">The Parking Lots</p>
+          <p class="blurb">Seven garage hymns at a tempo your landlord will object to. The amp broke on track one. They kept going.</p>
+          <ul class="tags"><li>GARAGE</li><li>142 BPM</li><li>A MAJOR</li></ul>
+          <div class="actions">
+            <button type="button" class="btn btn-y play" data-play="2" aria-pressed="false">▶ Preview</button>
+            <button type="button" class="btn" data-tracks="2">Tracklist ↓</button>
+          </div>
+        </article>
+
+        <article class="card c-p" data-i="3" style="--r:.7deg" tabindex="0" aria-labelledby="t3">
+          <div class="media">
+            <div class="disc" aria-hidden="true" style="--lab:#f7f5f0"></div>
+            <div class="sleeve" role="img" aria-label="Generated geometric cover for Tape Hiss Forever"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+            <span class="seed" aria-hidden="true"></span>
+          </div>
+          <p class="cat">LHR-074 · CASSETTE · OUT 30 OCT 2026</p>
+          <h3 id="t3">Tape Hiss Forever</h3>
+          <p class="artist">Kid Cassette</p>
+          <p class="blurb">A beat tape bounced down to chrome, then played in a warm car for a week. The hiss is the point.</p>
+          <ul class="tags"><li>LO-FI BEATS</li><li>88 BPM</li><li>C MINOR</li></ul>
+          <div class="actions">
+            <button type="button" class="btn btn-y play" data-play="3" aria-pressed="false">▶ Preview</button>
+            <button type="button" class="btn" data-tracks="3">Tracklist ↓</button>
+          </div>
+        </article>
+
+        <article class="card" data-i="4" style="--r:-.9deg" tabindex="0" aria-labelledby="t4">
+          <div class="media">
+            <div class="disc" aria-hidden="true" style="--lab:#ff3ea5"></div>
+            <div class="sleeve" role="img" aria-label="Generated geometric cover for Riot in C Minor"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+            <span class="seed" aria-hidden="true"></span>
+          </div>
+          <p class="cat">LHR-075 · 7" SINGLE · OUT 06 NOV 2026</p>
+          <h3 id="t4">Riot in C Minor</h3>
+          <p class="artist">Gravel &amp; Honey</p>
+          <p class="blurb">Two minutes fifty-two of noise-pop with a chorus you will hum at a funeral. Sorry in advance.</p>
+          <ul class="tags"><li>NOISE-POP</li><li>160 BPM</li><li>C MINOR</li></ul>
+          <div class="actions">
+            <button type="button" class="btn btn-y play" data-play="4" aria-pressed="false">▶ Preview</button>
+            <button type="button" class="btn" data-tracks="4">Tracklist ↓</button>
+          </div>
+        </article>
+
+        <article class="card c-b" data-i="5" style="--r:1.2deg" tabindex="0" aria-labelledby="t5">
+          <span class="tape" aria-hidden="true" style="--tr:-6deg"></span>
+          <div class="media">
+            <div class="disc" aria-hidden="true" style="--lab:#ffe600"></div>
+            <div class="sleeve" role="img" aria-label="Generated geometric cover for Slow Strobe"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+            <span class="seed" aria-hidden="true"></span>
+          </div>
+          <p class="cat">LHR-076 · 2×LP · OUT 13 NOV 2026</p>
+          <h3 id="t5">Slow Strobe</h3>
+          <p class="artist">Outlet Sisters</p>
+          <p class="blurb">Four sides of dub techno, one track per side, each long enough to miss your stop on the night bus.</p>
+          <ul class="tags"><li>DUB TECHNO</li><li>128 BPM</li><li>G MINOR</li></ul>
+          <div class="actions">
+            <button type="button" class="btn btn-y play" data-play="5" aria-pressed="false">▶ Preview</button>
+            <button type="button" class="btn" data-tracks="5">Tracklist ↓</button>
+          </div>
+        </article>
+
+        <aside class="quote" style="--r:-.8deg" aria-label="Pull quote">
+          <div class="halftone" aria-hidden="true"></div>
+          <blockquote>
+            <p>“We press records the way other people press flowers: <mark>hard, often, and with no regrets.</mark>”</p>
+          </blockquote>
+          <footer>— The label, quoting itself, p. 07</footer>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="tracklist" aria-labelledby="tl-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="kicker"><b>§ 03</b>P. 10–11</p>
+        <h2 class="big" id="tl-h">Track<span class="outline">list</span></h2>
+        <div class="sec-tools"><p class="mono">Pick a sleeve. Every row has its own tempo — hit ▶ and the drum machine follows.</p></div>
+      </div>
+      <div class="tl">
+        <div class="tl-art">
+          <div class="tl-cover" id="tl-cover" role="img" aria-label="Cover of the selected release"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+          <dl class="tl-meta" id="tl-meta">
+            <dt>Cat.</dt><dd id="m-cat">LHR-071</dd>
+            <dt>Format</dt><dd id="m-fmt">LP</dd>
+            <dt>Genre</dt><dd id="m-gen">Post-punk</dd>
+            <dt>Runtime</dt><dd id="m-run">—</dd>
+          </dl>
+          <div class="picker" id="picker" role="group" aria-label="Choose a release"></div>
+        </div>
+        <div class="tl-main">
+          <h3 class="tl-title" id="tl-title">Concrete Lullabies</h3>
+          <p class="tl-by" id="tl-by"><span>Mirror Static</span></p>
+          <table class="tl-table">
+            <caption class="sr" id="tl-cap">Tracklist</caption>
+            <thead><tr><th scope="col">No.</th><th scope="col">Title</th><th scope="col" class="k">Key</th><th scope="col" class="num">BPM</th><th scope="col" class="num">Time</th><th scope="col"><span class="sr">Preview</span></th></tr></thead>
+            <tbody id="tl-body"></tbody>
+            <tfoot><tr><td colspan="2" id="tl-count">—</td><td class="k"></td><td></td><td class="num" id="tl-total">—</td><td></td></tr></tfoot>
+          </table>
+          <p class="tl-note">Runtimes are exact. BPMs are approximate, like our accountant. Previews are drum-machine sketches synthesized live in your browser — nothing is streamed, nothing is downloaded.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="tour-band">
+    <section class="sec" id="tour" aria-labelledby="tour-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <p class="kicker"><b>§ 04</b>P. 12–14</p>
+          <h2 class="big" id="tour-h">On the <span class="outline">road</span></h2>
+          <p class="tour-sub">Mirror Static + friends — the Lullaby tour. Eleven nights, nine cities, one van with a questionable clutch.</p>
+        </div>
+        <ol class="dates" id="dates">
+          <li class="date-row"><time class="d" datetime="2026-10-09"><span class="dd">09</span><span class="mm">OCT<br>FRI</span></time><div class="where"><p class="city">Glasgow</p><p class="venue">The Rivet Rooms · w/ Kid Cassette</p></div><div class="status"><span class="stamp" style="--sr:-10deg">Sold out</span></div></li>
+          <li class="date-row"><time class="d" datetime="2026-10-11"><span class="dd">11</span><span class="mm">OCT<br>SUN</span></time><div class="where"><p class="city">Manchester</p><p class="venue">Hall of Mirrors · w/ Kid Cassette</p></div><div class="status"><button type="button" class="btn btn-y tix">Tickets →</button></div></li>
+          <li class="date-row"><time class="d" datetime="2026-10-14"><span class="dd">14</span><span class="mm">OCT<br>WED</span></time><div class="where"><p class="city">London</p><p class="venue">The Coal Exchange · w/ Dolly Voltage</p></div><div class="status"><span class="stamp" style="--sr:-14deg">Sold out</span></div></li>
+          <li class="date-row"><time class="d" datetime="2026-10-16"><span class="dd">16</span><span class="mm">OCT<br>FRI</span></time><div class="where"><p class="city">Amsterdam</p><p class="venue">Kelder Negen · w/ Dolly Voltage</p></div><div class="status"><span class="few"><i aria-hidden="true"></i>Few left</span><button type="button" class="btn btn-y tix">Tickets →</button></div></li>
+          <li class="date-row"><time class="d" datetime="2026-10-17"><span class="dd">17</span><span class="mm">OCT<br>SAT</span></time><div class="where"><p class="city">Brussels</p><p class="venue">Salle Béton · all-dayer</p></div><div class="status"><span class="stamp" style="--sr:-7deg">Sold out</span></div></li>
+          <li class="date-row"><time class="d" datetime="2026-10-21"><span class="dd">21</span><span class="mm">OCT<br>WED</span></time><div class="where"><p class="city">Berlin</p><p class="venue">Zinkhalle · w/ Outlet Sisters (4-hour set)</p></div><div class="status"><span class="stamp" style="--sr:-13deg">Sold out</span></div></li>
+          <li class="date-row"><time class="d" datetime="2026-10-23"><span class="dd">23</span><span class="mm">OCT<br>FRI</span></time><div class="where"><p class="city">Copenhagen</p><p class="venue">Lille Larm · w/ Gravel &amp; Honey</p></div><div class="status"><button type="button" class="btn btn-y tix">Tickets →</button></div></li>
+          <li class="date-row"><time class="d" datetime="2026-10-28"><span class="dd">28</span><span class="mm">OCT<br>WED</span></time><div class="where"><p class="city">Paris</p><p class="venue">La Cave Électrique · w/ Gravel &amp; Honey</p></div><div class="status"><span class="stamp" style="--sr:-9deg">Sold out</span></div></li>
+          <li class="date-row row-last"><time class="d" datetime="2026-11-01"><span class="dd">01</span><span class="mm">NOV<br>SUN</span></time><div class="where"><p class="city">Lisbon</p><p class="venue">Armazém Sete · last night · everybody on stage</p></div><div class="status"><button type="button" class="btn btn-y tix">Tickets →</button></div></li>
+        </ol>
+      </div>
+    </section>
+  </div>
+
+  <section class="sec" id="signup" aria-labelledby="su-h">
+    <div class="wrap">
+      <div class="signup">
+        <div class="su-left">
+          <div class="halftone" aria-hidden="true"></div>
+          <p class="kicker"><b>§ 05</b>BACK PAGE</p>
+          <h2 id="su-h">Join the <span>noise list</span></h2>
+          <p>One email per issue. No algorithms, no tracking pixels, no “we miss you”. Release dates, tour news and the occasional drawing of the label dog, Feedback.</p>
+        </div>
+        <form class="su-form" id="su-form" novalidate>
+          <label class="mono" for="email">Your email — we won't sell it (we can barely sell records)</label>
+          <div class="su-row">
+            <input id="email" name="email" type="email" required autocomplete="email" placeholder="you at mail dot example" aria-describedby="su-msg">
+            <button type="submit" class="btn btn-b">Sign me up →</button>
+          </div>
+          <fieldset class="genres">
+            <legend class="mono">Send me more of</legend>
+            <label class="chip"><input type="checkbox" name="g" value="post-punk" checked><span>POST-PUNK</span></label>
+            <label class="chip"><input type="checkbox" name="g" value="synth"><span>SYNTH</span></label>
+            <label class="chip"><input type="checkbox" name="g" value="garage"><span>GARAGE</span></label>
+            <label class="chip"><input type="checkbox" name="g" value="beats"><span>BEAT TAPES</span></label>
+            <label class="chip"><input type="checkbox" name="g" value="dub"><span>DUB TECHNO</span></label>
+            <label class="chip"><input type="checkbox" name="g" value="dog"><span>DOG DRAWINGS</span></label>
+          </fieldset>
+          <p class="su-msg" id="su-msg" role="status" aria-live="polite"></p>
+          <p class="fine">Demo form: nothing leaves this page. Loud House is a fictional label; your good taste is real.</p>
+          <div class="su-stamp" id="su-stamp" aria-hidden="true">You're in!</div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot-big" aria-hidden="true">Loud <span>House</span></p>
+    <div class="foot-grid">
+      <div><h3>COLOPHON</h3><p>Issue 07, Autumn 2026. Set in whatever heavy grotesk your computer already owns, with monospace for the small print.</p></div>
+      <div><h3>MASTHEAD</h3><p>Ruth Clangor (editor), Dev Sibilance (layout), Feedback (dog). Every person, band, record and venue in this zine is invented.</p></div>
+      <div><h3>POLICY</h3><p>Photocopy freely. Staple crookedly. Leave it on a bus seat for a stranger. That's distribution.</p></div>
+      <div><h3>CONTACT</h3><p>Write to us at loud house records dot example — or just turn it up until we hear you.</p></div>
+    </div>
+    <div class="foot-bar">
+      <span>© 2026 LOUD HOUSE RECORDS (FICTIONAL) · PRINTED ON THE INTERNET</span>
+      <button type="button" class="btn" id="top-btn">Back to the cover ↑</button>
+    </div>
+  </div>
+</footer>
+
+<div class="sticker-layer">
+<div class="sticker" id="sticker" tabindex="0" role="button" aria-roledescription="draggable sticker" aria-label="Play It Loud sticker. Drag it anywhere on the page. With the keyboard: arrow keys move it, Enter slaps it down at a new angle.">
+  <svg viewBox="0 0 200 200" aria-hidden="true">
+    <polygon id="burst" fill="#ff3ea5" stroke="#000" stroke-width="5" stroke-linejoin="round" points="100,4 100,4"/>
+    <circle cx="100" cy="100" r="62" fill="none" stroke="#000" stroke-width="2.5" stroke-dasharray="5 5"/>
+    <text x="100" y="86" text-anchor="middle" font-family="Arial Black, Helvetica, Arial, sans-serif" font-weight="900" font-size="30" letter-spacing="-1">PLAY IT</text>
+    <text x="100" y="124" text-anchor="middle" font-family="Arial Black, Helvetica, Arial, sans-serif" font-weight="900" font-size="42" letter-spacing="-2" fill="#ffe600" stroke="#000" stroke-width="2.5" paint-order="stroke">LOUD!</text>
+    <text x="100" y="146" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-weight="700" font-size="10" letter-spacing="2">★ PEEL &amp; STICK ★</text>
+  </svg>
+  <span class="hint" aria-hidden="true">DRAG ME</span>
+</div>
+</div>
+
+<div class="deck" id="deck" role="region" aria-label="Preview player" aria-hidden="true">
+  <div class="deck-cover" id="deck-cover"><svg viewBox="0 0 100 100" aria-hidden="true"></svg></div>
+  <div class="deck-mid">
+    <p class="lbl mono" style="margin:0"><i aria-hidden="true"></i><span id="deck-lbl">NOW PREVIEWING · 8 BARS</span></p>
+    <p class="deck-title" id="deck-title">—</p>
+    <div class="leds" id="leds" aria-hidden="true"></div>
+    <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+  </div>
+  <div class="deck-btns">
+    <button type="button" id="deck-mute" aria-pressed="false" aria-label="Mute preview"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7h4l5-4v14l-5-4H3z" fill="currentColor"/><path class="wv" d="M14 6.5c1.6 2 1.6 5 0 7" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+    <button type="button" id="deck-stop" aria-label="Stop preview"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="4" width="12" height="12" fill="currentColor"/></svg></button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  document.documentElement.classList.add('js');
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = {
+    get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* storage blocked on file:// — fine */ } }
+  };
+
+  /* ================= DATA (all fictional) ================= */
+  const R = [
+    { cat: 'LHR-071', title: 'Concrete Lullabies', artist: 'Mirror Static', fmt: 'LP · 180g black vinyl', genre: 'Post-punk', bpm: 124, lab: '#ff3ea5',
+      tracks: [['A1','Sodium Streetlight','3:41',124,'Am'],['A2','Lullaby for a Car Alarm','4:12',124,'Em'],['A3','Brutal Tenderness','2:58',132,'Dm'],['A4','Overpass Choir','5:06',118,'Am'],
+               ['B1','Ringroad Romance','3:33',126,'C'],['B2','The Quiet Part Loud','4:47',124,'Gm'],['B3','Rebar Heart','3:19',140,'Em'],['B4','Sleep, Concrete, Sleep','6:02',96,'Am']],
+      pat: { k:'x.......x.x.....', s:'....x.......x...', c:'', h:'x.x.x.x.x.x.x.x.', o:'..............x.', r:'', b:[45,0,45,0,45,0,45,0,48,0,48,0,43,0,43,57], sw:0 } },
+    { cat: 'LHR-072', title: 'Sodium Heart', artist: 'Dolly Voltage', fmt: '12" single · 45rpm', genre: 'Synth-pop', bpm: 118, lab: '#1d3cff',
+      tracks: [['A1','Sodium Heart','5:44',118,'F#m'],['A2','Sodium Heart (Tungsten Dub)','7:12',118,'F#m'],['B1','Arcade After Hours','6:05',120,'Bm'],['B2','Neon, Slowly','4:58',112,'Dm']],
+      pat: { k:'x...x...x...x...', s:'', c:'....x.......x...', h:'.x.x.x.x.x.x.x.x', o:'..x...x...x...x.', r:'', b:[0,0,42,0,0,0,42,0,0,0,45,0,0,0,40,0], sw:0 } },
+    { cat: 'LHR-073', title: 'Basement Gospel', artist: 'The Parking Lots', fmt: 'LP · clear vinyl', genre: 'Garage rock', bpm: 142, lab: '#ffe600',
+      tracks: [['A1','Hymn for a Broken Amp','2:14',150,'E'],['A2','Low Ceiling','2:41',142,'A'],['A3','Fuzz Pedal Prayer','3:02',138,'D'],['A4','Borrowed Van','1:58',160,'E'],
+               ['B1','Basement Gospel','3:47',142,'A'],['B2','Feedback Is a Love Language','2:36',146,'G'],['B3','Last Bus Home','4:20',128,'E']],
+      pat: { k:'x.....x.x.....x.', s:'....x.......x..x', c:'', h:'xxxxxxxxxxxxxxxx', o:'', r:'', b:[45,45,0,45,0,45,45,0,50,50,0,50,52,0,52,0], sw:0 } },
+    { cat: 'LHR-074', title: 'Tape Hiss Forever', artist: 'Kid Cassette', fmt: 'Cassette · chrome C46', genre: 'Lo-fi beats', bpm: 88, lab: '#f7f5f0',
+      tracks: [['A1','Rewind with a Pencil','2:11',88,'Cm'],['A2','Dust on the Heads','2:47',86,'Fm'],['A3','Side B Is Better','1:59',90,'Bbm'],
+               ['B1','Chrome Tape Dreams','3:05',88,'Ebm'],['B2','Auto-Reverse','2:33',84,'Cm'],['B3','Tape Hiss Forever','4:16',88,'Cm']],
+      pat: { k:'x......x..x.....', s:'....x.......x...', c:'', h:'x.xxx.x.x.xxx.x.', o:'', r:'.............x..', b:[36,0,0,0,0,0,0,39,0,0,43,0,0,0,0,0], sw:.2 } },
+    { cat: 'LHR-075', title: 'Riot in C Minor', artist: 'Gravel & Honey', fmt: '7" single · pink vinyl', genre: 'Noise-pop', bpm: 160, lab: '#ff3ea5',
+      tracks: [['A','Riot in C Minor','2:52',160,'Cm'],['B','Honey, Gravel','3:14',152,'Eb']],
+      pat: { k:'x.x.....x.x.....', s:'....x..x....x...', c:'', h:'x.x.x.x.x.x.x.x.', o:'..............x.', r:'', b:[48,0,48,0,51,0,51,0,53,0,53,0,55,0,51,0], sw:0 } },
+    { cat: 'LHR-076', title: 'Slow Strobe', artist: 'Outlet Sisters', fmt: '2×LP · gatefold', genre: 'Dub techno', bpm: 128, lab: '#ffe600',
+      tracks: [['A1','Slow Strobe','9:48',128,'Gm'],['B1','Reverb Tank Lagoon','8:31',126,'Dm'],['C1','Fog Machine Liturgy','10:02',128,'Gm'],['D1','Last Light Out','7:44',122,'Cm']],
+      pat: { k:'x...x...x...x...', s:'', c:'', h:'..x...x...x...x.', o:'......x.......x.', r:'...x.......x..x.', b:[0,0,43,0,0,0,0,43,0,0,43,0,0,46,0,0], sw:.08 } }
+  ];
+
+  /* ================= SEEDED RANDOM ================= */
+  function rng(seed) {
+    let s = seed >>> 0;
+    return function () {
+      s = (s + 0x6D2B79F5) >>> 0;
+      let t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const PAL = ['#1d3cff', '#ffe600', '#000000', '#f7f5f0', '#ff3ea5'];
+  const f1 = n => Math.round(n * 10) / 10;
+  const pick = (a, r) => a[Math.floor(r() * a.length)];
+  function mix(a, r) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function colours(r) {
+    const bg = pick(PAL, r);
+    let rest = PAL.filter(c => c !== bg);
+    if (bg === '#f7f5f0') rest = rest.filter(c => c !== '#ffe600');
+    if (bg === '#ffe600') rest = rest.filter(c => c !== '#f7f5f0');
+    mix(rest, r);
+    return [bg, rest[0], rest[1], rest[2]];
+  }
+  const sq = (x, y, w, h, c) => `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}" fill="${c}"/>`;
+
+  /* ================= COVER GENERATORS ================= */
+  const GEN = {
+    bullseye(r, c) {
+      const cx = f1(10 + r() * 80), cy = f1(10 + r() * 80), st = 6 + Math.floor(r() * 6);
+      let s = sq(0, 0, 100, 100, c[0]), k = 0;
+      for (let rad = 150; rad > st; rad -= st, k++) s += `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="${k % 2 ? c[0] : c[1]}"/>`;
+      s += `<circle cx="${cx}" cy="${cy}" r="${st}" fill="${c[2]}" stroke="#000" stroke-width="2"/>`;
+      const by = f1(62 + r() * 20);
+      return s + sq(0, by, 100, 9, '#000') + sq(0, by + 9, 100, 3, c[2]);
+    },
+    bands(r, c) {
+      const ang = pick([0, 90, 45, -45, 30, -60], r), cols = [c[1], c[2], c[0], c[3]];
+      let s = sq(0, 0, 100, 100, c[0]) + `<g transform="rotate(${ang} 50 50)">`, x = -60, k = 0;
+      while (x < 160) { const w = 3 + Math.floor(r() * 15); s += sq(x, -60, w, 220, cols[k % cols.length]); x += w; k++; }
+      s += '</g>';
+      if (r() < .7) s += `<circle cx="${f1(28 + r() * 44)}" cy="${f1(28 + r() * 44)}" r="${f1(13 + r() * 11)}" fill="${c[0]}" stroke="#000" stroke-width="3"/>`;
+      return s;
+    },
+    bauhaus(r, c) {
+      const n = r() < .55 ? 2 : 3, z = 100 / n; let s = '';
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+        const bg = pick(c, r); let fg = pick(c, r); if (fg === bg) fg = bg === c[1] ? c[2] : c[1];
+        const X = x * z, Y = y * z, cx = X + z / 2, cy = Y + z / 2, rot = Math.floor(r() * 4) * 90, t = Math.floor(r() * 5);
+        s += sq(X, Y, z, z, bg) + `<g transform="rotate(${rot} ${f1(cx)} ${f1(cy)})">`;
+        if (t === 0) s += `<path d="M${f1(X)} ${f1(Y)}H${f1(X + z)}A${f1(z)} ${f1(z)} 0 0 1 ${f1(X)} ${f1(Y + z)}Z" fill="${fg}"/>`;
+        else if (t === 1) s += `<path d="M${f1(X)} ${f1(Y + z)}A${f1(z / 2)} ${f1(z / 2)} 0 0 1 ${f1(X + z)} ${f1(Y + z)}Z" fill="${fg}"/>`;
+        else if (t === 2) s += `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${f1(z * .36)}" fill="${fg}"/>`;
+        else if (t === 3) s += `<path d="M${f1(X)} ${f1(Y + z)}L${f1(X + z)} ${f1(Y + z)}L${f1(X + z)} ${f1(Y)}Z" fill="${fg}"/>`;
+        else s += `<rect x="${f1(cx - z * .24)}" y="${f1(cy - z * .24)}" width="${f1(z * .48)}" height="${f1(z * .48)}" fill="${fg}" transform="rotate(45 ${f1(cx)} ${f1(cy)})"/>`;
+        s += '</g>';
+      }
+      for (let i = 1; i < n; i++) s += sq(i * z - .9, 0, 1.8, 100, '#000') + sq(0, i * z - .9, 100, 1.8, '#000');
+      return s;
+    },
+    checker(r, c) {
+      const n = 4 + Math.floor(r() * 4), z = 100 / n; let s = sq(0, 0, 100, 100, c[1]);
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if ((x + y) % 2) s += sq(x * z, y * z, z + .1, z + .1, c[2]);
+      const cx = f1(25 + r() * 50), cy = f1(25 + r() * 50), rr = f1(20 + r() * 14);
+      s += `<circle cx="${cx}" cy="${cy}" r="${rr}" fill="${c[3]}" stroke="#000" stroke-width="3"/>`;
+      if (r() < .6) s += `<circle cx="${cx}" cy="${cy}" r="${f1(rr * .35)}" fill="${c[0]}" stroke="#000" stroke-width="2"/>`;
+      return s;
+    },
+    zigzag(r, c) {
+      const h = 9 + Math.floor(r() * 9), teeth = 3 + Math.floor(r() * 6), w = 100 / teeth, a = f1(h * (.5 + r() * .7)), cols = [c[1], c[0], c[2], c[3]];
+      let s = sq(0, 0, 100, 100, c[0]), k = 0;
+      for (let y = -h * 2; y < 110; y += h, k++) {
+        let top = '', bot = '';
+        for (let j = 0; j <= teeth; j++) { top += `${f1(j * w)},${f1(y + (j % 2 ? a : 0))} `; }
+        for (let j = teeth; j >= 0; j--) { bot += `${f1(j * w)},${f1(y + h + (j % 2 ? a : 0))} `; }
+        s += `<polygon points="${top}${bot}" fill="${cols[k % cols.length]}"/>`;
+      }
+      return s;
+    },
+    halftone(r, c) {
+      const px = r() * 100, py = r() * 100, n = 10 + Math.floor(r() * 5), st = 100 / n; let s = sq(0, 0, 100, 100, c[0]);
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+        const cx = x * st + st / 2, cy = y * st + st / 2, d = Math.hypot(cx - px, cy - py) / 120;
+        const rad = st * .56 * Math.max(0, 1 - d) + .3;
+        s += `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${f1(rad)}" fill="${c[1]}"/>`;
+      }
+      const by = f1(12 + r() * 64);
+      return s + sq(0, by, 100, 14, c[2]) + sq(0, by, 100, 1.6, '#000') + sq(0, by + 12.4, 100, 1.6, '#000');
+    },
+    numeral(r, c, rel) {
+      const num = rel.cat.slice(-2), tilt = pick([-8, -4, 0, 4, 90, -90], r);
+      let s = sq(0, 0, 100, 100, c[0]) + sq(0, f1(20 + r() * 50), 100, f1(8 + r() * 14), c[2]);
+      s += `<text x="50" y="50" dy="0.35em" text-anchor="middle" transform="rotate(${tilt} 50 50)" font-family="'Arial Black', Helvetica, Arial, sans-serif" font-weight="900" font-size="96" letter-spacing="-7" fill="${c[1]}" stroke="#000" stroke-width="2.4" paint-order="stroke">${num}</text>`;
+      return s + `<circle cx="${f1(15 + r() * 70)}" cy="${f1(72 + r() * 18)}" r="6" fill="${c[3]}" stroke="#000" stroke-width="2"/>`;
+    },
+    stairs(r, c) {
+      const n = 4 + Math.floor(r() * 5), z = 100 / n; let s = sq(0, 0, 100, 100, c[0]);
+      s += `<circle cx="${f1(18 + r() * 30)}" cy="${f1(18 + r() * 22)}" r="${f1(11 + r() * 9)}" fill="${c[2]}" stroke="#000" stroke-width="2.5"/>`;
+      let p = `0,100 `;
+      for (let i = 0; i < n; i++) p += `${f1(i * z)},${f1(100 - (i + 1) * z * .9)} ${f1((i + 1) * z)},${f1(100 - (i + 1) * z * .9)} `;
+      p += `100,100`;
+      s += `<polygon points="${p}" fill="${c[1]}" stroke="#000" stroke-width="2.5" stroke-linejoin="miter"/>`;
+      return s + sq(0, 94, 100, 6, c[3]);
+    },
+    waves(r, c) {
+      const amp = 4 + r() * 8, fr = 1 + Math.floor(r() * 3), cols = [c[1], c[2], c[3]], sw = 6 + Math.floor(r() * 5);
+      let s = sq(0, 0, 100, 100, c[0]), k = 0;
+      for (let y = -5; y < 115; y += sw * 1.6, k++) {
+        let d = `M-5 ${f1(y)}`;
+        for (let x = -5; x <= 105; x += 5) d += ` L${x} ${f1(y + Math.sin((x / 100) * Math.PI * 2 * fr + k * .7) * amp)}`;
+        s += `<path d="${d}" fill="none" stroke="${cols[k % 3]}" stroke-width="${sw}" stroke-linecap="square"/>`;
+      }
+      return s;
+    },
+    burst(r, c) {
+      const ox = pick([0, 100, 50, 0], r), oy = pick([0, 100, 100, 50], r), n = 12 + Math.floor(r() * 12);
+      let s = sq(0, 0, 100, 100, c[0]);
+      for (let i = 0; i < n; i += 2) {
+        const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2;
+        s += `<polygon points="${ox},${oy} ${f1(ox + Math.cos(a0) * 160)},${f1(oy + Math.sin(a0) * 160)} ${f1(ox + Math.cos(a1) * 160)},${f1(oy + Math.sin(a1) * 160)}" fill="${c[1]}"/>`;
+      }
+      return s + `<circle cx="${ox}" cy="${oy}" r="${f1(18 + r() * 12)}" fill="${c[2]}" stroke="#000" stroke-width="3"/>`;
+    }
+  };
+  const STYLES = Object.keys(GEN);
+
+  let pressing = 1;
+  const seeds = R.map((_, i) => (0x5eed + i * 7919) >>> 0);
+  let styleOf = ['bullseye', 'bauhaus', 'zigzag', 'halftone', 'numeral', 'waves'];
+
+  function coverMarkup(i) {
+    const rel = R[i], r = rng(seeds[i]), c = colours(r);
+    const art = GEN[styleOf[i]](r, c, rel);
+    const lab = `<rect x="4.5" y="4.5" width="24" height="8" fill="#000"/><text x="6.4" y="10.5" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-weight="700" font-size="4.6" fill="#f7f5f0">${rel.cat}</text>`;
+    return art + lab;
+  }
+  const hex = n => (n & 0xffff).toString(16).toUpperCase().padStart(4, '0');
+
+  const cards = $$('.card');
+  function paintCard(i) {
+    const card = cards[i];
+    $('.sleeve svg', card).innerHTML = coverMarkup(i);
+    $('.seed', card).textContent = `SLEEVE ${styleOf[i].toUpperCase()} · 0x${hex(seeds[i])}`;
+  }
+  function paintAll() {
+    cards.forEach((_, i) => paintCard(i));
+    $$('#picker button').forEach((b, i) => { $('svg', b).innerHTML = coverMarkup(i); });
+    paintTracklistCover();
+    if (P.on) $('#deck-cover svg').innerHTML = coverMarkup(P.i);
+  }
+
+  /* ================= SHUFFLE ================= */
+  function shuffleCovers() {
+    const r = rng((Date.now() ^ (pressing * 2654435761)) >>> 0);
+    const order = mix(STYLES.slice(), r);
+    pressing++;
+    $('#pressing').textContent = `PRESSING #${String(pressing).padStart(3, '0')}`;
+    R.forEach((_, i) => { seeds[i] = Math.floor(r() * 0xffffffff) >>> 0; styleOf[i] = order[i]; });
+    cards.forEach((card, i) => {
+      const sl = $('.sleeve', card);
+      if (reduce || !sl.animate) { paintCard(i); return; }
+      const a = sl.animate([{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(90deg)' }], { duration: 170, delay: i * 70, easing: 'ease-in', fill: 'forwards' });
+      a.onfinish = () => {
+        paintCard(i);
+        const b = sl.animate([{ transform: 'rotateY(-90deg)' }, { transform: 'rotateY(8deg)' }, { transform: 'rotateY(0deg)' }], { duration: 300, easing: 'cubic-bezier(.2,.9,.3,1.3)', fill: 'forwards' });
+        b.onfinish = () => { a.cancel(); b.cancel(); };
+      };
+    });
+    $$('#picker button').forEach((b, i) => { $('svg', b).innerHTML = coverMarkup(i); });
+    paintTracklistCover();
+    if (P.on) $('#deck-cover svg').innerHTML = coverMarkup(P.i);
+    blip();
+    toast(`Covers re-rolled — pressing #${String(pressing).padStart(3, '0')} is unique`);
+  }
+  $('#shuffle').addEventListener('click', shuffleCovers);
+
+  /* ================= TRACKLIST ================= */
+  let sel = 0;
+  const secs = t => { const [m, s] = t.split(':').map(Number); return m * 60 + s; };
+  const mmss = n => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
+  const picker = $('#picker');
+  R.forEach((rel, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+    b.setAttribute('aria-label', `${rel.cat} ${rel.title} by ${rel.artist}`);
+    b.innerHTML = `<svg viewBox="0 0 100 100" aria-hidden="true"></svg><span aria-hidden="true">${rel.cat.slice(-3)}</span>`;
+    b.addEventListener('click', () => selectRelease(i));
+    picker.appendChild(b);
+  });
+  function paintTracklistCover() { $('#tl-cover svg').innerHTML = coverMarkup(sel); }
+  const playSvg = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 1 L13 7 L2 13 Z" fill="currentColor"/></svg>';
+  const stopSvg = '<svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="2" width="10" height="10" fill="currentColor"/></svg>';
+  function selectRelease(i) {
+    sel = i;
+    const rel = R[i];
+    $$('#picker button').forEach((b, k) => b.setAttribute('aria-pressed', k === i ? 'true' : 'false'));
+    cards.forEach((c, k) => c.classList.toggle('sel', k === i));
+    $('#tl-title').textContent = rel.title;
+    $('#tl-by').innerHTML = '';
+    [rel.artist, rel.cat, rel.bpm + ' BPM'].forEach(t => { const s = document.createElement('span'); s.textContent = t; $('#tl-by').appendChild(s); });
+    $('#m-cat').textContent = rel.cat; $('#m-fmt').textContent = rel.fmt; $('#m-gen').textContent = rel.genre;
+    $('#tl-cover').setAttribute('aria-label', `Generated cover of ${rel.title}`);
+    $('#tl-cap').textContent = `Tracklist for ${rel.title} by ${rel.artist}`;
+    const body = $('#tl-body'); body.innerHTML = '';
+    let side = '', total = 0;
+    rel.tracks.forEach((t, k) => {
+      const sd = t[0].charAt(0);
+      if (sd !== side) {
+        side = sd;
+        const tr = document.createElement('tr'); tr.className = 'side';
+        tr.innerHTML = `<td colspan="6">SIDE ${sd}</td>`;
+        body.appendChild(tr);
+      }
+      total += secs(t[2]);
+      const tr = document.createElement('tr'); tr.className = 'row'; tr.dataset.k = k;
+      tr.innerHTML = `<td class="n"><b>${t[0]}</b></td><td class="t"></td><td class="k">${t[4]}</td><td class="num">${t[3]}</td><td class="num">${t[2]}</td><td><button type="button" class="pb" aria-pressed="false">${playSvg}</button></td>`;
+      $('.t', tr).textContent = t[1];
+      const pb = $('.pb', tr);
+      pb.setAttribute('aria-label', `Preview a ${t[3]} BPM drum sketch for ${t[1]}`);
+      pb.addEventListener('click', () => play(i, t[3], `${t[0]} · ${t[1]}`, k));
+      body.appendChild(tr);
+    });
+    $('#tl-count').textContent = `${rel.tracks.length} TRACK${rel.tracks.length > 1 ? 'S' : ''}`;
+    $('#tl-total').textContent = mmss(total);
+    $('#m-run').textContent = `${mmss(total)} (${rel.tracks.length} tracks)`;
+    paintTracklistCover();
+    syncButtons();
+  }
+
+  /* ================= CARDS: press + select ================= */
+  cards.forEach((card, i) => {
+    card.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; card.classList.add('is-down'); });
+    const up = () => card.classList.remove('is-down');
+    card.addEventListener('pointerup', up); card.addEventListener('pointerleave', up); card.addEventListener('pointercancel', up);
+    card.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      selectRelease(i);
+      toast(`${R[i].cat} loaded into the tracklist ↓`);
+    });
+    card.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target === card) {
+        e.preventDefault(); card.classList.add('is-down');
+        setTimeout(() => card.classList.remove('is-down'), 140);
+        selectRelease(i); toast(`${R[i].cat} loaded into the tracklist ↓`);
+      }
+    });
+  });
+  $$('[data-tracks]').forEach(b => b.addEventListener('click', () => {
+    selectRelease(+b.dataset.tracks);
+    $('#tracklist').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }));
+
+  /* ================= AUDIO ================= */
+  let AC = null, out = null, noise = null, muted = store.get('lhr-muted') === '1';
+  function audio() {
+    if (AC) return AC;
+    const C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return null;
+    try { AC = new C(); } catch (e) { return null; }
+    const comp = AC.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 4; comp.attack.value = .003; comp.release.value = .16;
+    out = AC.createGain(); out.gain.value = muted ? 0 : .8;
+    out.connect(comp); comp.connect(AC.destination);
+    noise = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+    const d = noise.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return AC;
+  }
+  function env(g, t, peak, a, d) {
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    g.gain.exponentialRampToValueAtTime(.0001, t + a + d);
+  }
+  function nsrc(t, dur) { const s = AC.createBufferSource(); s.buffer = noise; s.start(t, Math.random() * .6); s.stop(t + dur); return s; }
+  function kick(t, v) {
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.frequency.setValueAtTime(155, t); o.frequency.exponentialRampToValueAtTime(43, t + .11);
+    env(g, t, v, .003, .4); o.connect(g); g.connect(out); o.start(t); o.stop(t + .46);
+    const c = nsrc(t, .02), cg = AC.createGain(), hp = AC.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2500;
+    env(cg, t, .25 * v, .001, .012); c.connect(hp); hp.connect(cg); cg.connect(out);
+  }
+  function snare(t, v) {
+    const s = nsrc(t, .24), f = AC.createBiquadFilter(), g = AC.createGain();
+    f.type = 'highpass'; f.frequency.value = 1300; env(g, t, .5 * v, .002, .18); s.connect(f); f.connect(g); g.connect(out);
+    const o = AC.createOscillator(), og = AC.createGain(); o.type = 'triangle';
+    o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(155, t + .08);
+    env(og, t, .38 * v, .002, .09); o.connect(og); og.connect(out); o.start(t); o.stop(t + .14);
+  }
+  function clap(t, v) {
+    const s = nsrc(t, .26), f = AC.createBiquadFilter(), g = AC.createGain();
+    f.type = 'bandpass'; f.frequency.value = 1250; f.Q.value = 1.1;
+    g.gain.setValueAtTime(.0001, t);
+    [0, .011, .022].forEach(o => { g.gain.setValueAtTime(.55 * v, t + o); g.gain.exponentialRampToValueAtTime(.06, t + o + .009); });
+    g.gain.setValueAtTime(.6 * v, t + .03); g.gain.exponentialRampToValueAtTime(.0001, t + .24);
+    s.connect(f); f.connect(g); g.connect(out);
+  }
+  function hat(t, v, open) {
+    const s = nsrc(t, open ? .36 : .08), hp = AC.createBiquadFilter(), g = AC.createGain();
+    hp.type = 'highpass'; hp.frequency.value = open ? 6500 : 7800;
+    env(g, t, (open ? .2 : .15) * v, .001, open ? .3 : .045); s.connect(hp); hp.connect(g); g.connect(out);
+  }
+  function rim(t, v) {
+    const o = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain();
+    o.type = 'square'; o.frequency.value = 820; f.type = 'bandpass'; f.frequency.value = 1700; f.Q.value = 4;
+    env(g, t, .3 * v, .001, .035); o.connect(f); f.connect(g); g.connect(out); o.start(t); o.stop(t + .06);
+  }
+  function bass(t, m, dur) {
+    const o = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain();
+    o.type = 'sawtooth'; o.frequency.value = 440 * Math.pow(2, (m - 69) / 12);
+    f.type = 'lowpass'; f.Q.value = 7; f.frequency.setValueAtTime(1100, t); f.frequency.exponentialRampToValueAtTime(170, t + dur);
+    env(g, t, .2, .006, dur); o.connect(f); f.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .05);
+  }
+  function blip() {
+    if (!AC || muted) return;
+    const t = AC.currentTime + .01; rim(t, .8); rim(t + .06, .6);
+  }
+  function slap() {
+    if (!AC || muted) return;
+    const t = AC.currentTime + .005, s = nsrc(t, .09), f = AC.createBiquadFilter(), g = AC.createGain();
+    f.type = 'lowpass'; f.frequency.value = 2200; env(g, t, .5, .002, .07); s.connect(f); f.connect(g); g.connect(out);
+  }
+
+  const BARS = 8;
+  const P = { on: false, i: -1, bpm: 120, step: 0, n: 0, next: 0, t0: 0, end: 0, timer: 0, label: '', row: -1 };
+  const Q = Array.from({ length: 64 }, () => ({ t: 0, s: 0 }));
+  let qw = 0, qr = 0, raf = 0, lastLed = -1;
+
+  function schedule() {
+    const pat = R[P.i].pat, sp = 60 / P.bpm / 4;
+    while (P.next < AC.currentTime + .12) {
+      if (P.n >= BARS * 16) { if (!P.end) P.end = P.next; break; }
+      const st = P.step, t = P.next + (st % 2 ? pat.sw * sp : 0);
+      const acc = st % 4 === 0 ? 1 : .78;
+      if (pat.k[st] === 'x') kick(t, .95);
+      if (pat.s[st] === 'x') snare(t, acc);
+      if (pat.c[st] === 'x') clap(t, 1);
+      if (pat.h[st] === 'x') hat(t, acc * (st % 2 ? .75 : 1), false);
+      if (pat.o[st] === 'x') hat(t, 1, true);
+      if (pat.r[st] === 'x') rim(t, 1);
+      const m = pat.b[st]; if (m && P.n >= 16) bass(t, m, sp * 1.7);
+      const q = Q[qw % 64]; q.t = t; q.s = st; qw++;
+      P.next += sp; P.step = (st + 1) % 16; P.n++;
+    }
+  }
+  function play(i, bpm, label, row) {
+    if (!audio()) { toast('No Web Audio in this browser — imagine a drum machine.'); return; }
+    if (AC.state === 'suspended') AC.resume();
+    const b = bpm || R[i].bpm, lab = label || `${R[i].cat} · ${R[i].title}`;
+    if (P.on && P.i === i && P.bpm === b && P.label === lab) { stop(); return; }
+    stop(true);
+    Object.assign(P, { on: true, i, bpm: b, step: 0, n: 0, label: lab, row: row === undefined ? -1 : row, end: 0 });
+    P.next = AC.currentTime + .08; P.t0 = P.next; qw = qr = 0; lastLed = -1;
+    P.timer = setInterval(schedule, 25); schedule();
+    const deck = $('#deck');
+    $('#deck-cover svg').innerHTML = coverMarkup(i);
+    $('#deck-title').textContent = lab;
+    $('#deck-lbl').textContent = `NOW PREVIEWING · ${b} BPM · ${BARS} BARS`;
+    const pat = R[i].pat;
+    $$('#leds span').forEach((s, k) => s.classList.toggle('k', pat.k[k] === 'x'));
+    deck.classList.add('on'); deck.setAttribute('aria-hidden', 'false');
+    cards.forEach((c, k) => c.classList.toggle('playing', k === i));
+    syncButtons();
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+  }
+  function stop(silent) {
+    if (P.timer) clearInterval(P.timer);
+    P.timer = 0; P.on = false;
+    cancelAnimationFrame(raf);
+    cards.forEach(c => c.classList.remove('playing'));
+    $$('#leds span').forEach(s => s.classList.remove('on'));
+    if (!silent) { const d = $('#deck'); d.classList.remove('on'); d.setAttribute('aria-hidden', 'true'); }
+    syncButtons();
+  }
+  function syncButtons() {
+    $$('[data-play]').forEach(b => {
+      const on = P.on && +b.dataset.play === P.i && P.row === -1;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (b.classList.contains('play')) b.textContent = on ? '■ Stop' : '▶ Preview';
+    });
+    $$('#tl-body tr.row').forEach(tr => {
+      const on = P.on && P.i === sel && +tr.dataset.k === P.row;
+      tr.classList.toggle('now', on);
+      const pb = $('.pb', tr); pb.setAttribute('aria-pressed', on ? 'true' : 'false'); pb.innerHTML = on ? stopSvg : playSvg;
+    });
+  }
+  const badge = $('.badge .disc'), loudO = $('.w-loud .o');
+  function frame() {
+    if (!P.on) return;
+    const now = AC.currentTime;
+    while (qr < qw && Q[qr % 64].t <= now) {
+      const q = Q[qr % 64]; qr++;
+      if (q.s !== lastLed) {
+        const leds = $('#leds').children;
+        if (lastLed >= 0) leds[lastLed].classList.remove('on');
+        leds[q.s].classList.add('on'); lastLed = q.s;
+      }
+      if (R[P.i].pat.k[q.s] === 'x' && !reduce) {
+        const sl = $('.sleeve', cards[P.i]);
+        sl.animate([{ transform: 'scale(1.035) rotate(-.6deg)' }, { transform: 'none' }], { duration: 190, easing: 'cubic-bezier(.2,.8,.3,1)' });
+        badge.animate([{ transform: 'scale(1.08) rotate(-6deg)' }, { transform: 'none' }], { duration: 210, easing: 'ease-out' });
+        loudO.animate([{ transform: 'translateY(-.06em) scale(1.06)' }, { transform: 'none' }], { duration: 200, easing: 'ease-out' });
+      }
+    }
+    const endT = P.end || (P.t0 + BARS * 16 * 60 / P.bpm / 4);
+    $('#prog').style.transform = `scaleX(${Math.min(1, Math.max(0, (now - P.t0) / (endT - P.t0))).toFixed(4)})`;
+    if (P.end && now >= P.end + .05) { stop(); return; }
+    raf = requestAnimationFrame(frame);
+  }
+  const leds = $('#leds');
+  for (let k = 0; k < 16; k++) leds.appendChild(document.createElement('span'));
+
+  $$('[data-play]').forEach(b => b.addEventListener('click', () => play(+b.dataset.play)));
+  $('#deck-stop').addEventListener('click', () => stop());
+
+  function setMuted(m) {
+    muted = m; store.set('lhr-muted', m ? '1' : '0');
+    if (AC && out) out.gain.setTargetAtTime(m ? 0 : .8, AC.currentTime, .02);
+    const s = $('#snd');
+    s.setAttribute('aria-pressed', m ? 'true' : 'false');
+    s.setAttribute('aria-label', m ? 'Unmute sound' : 'Mute sound');
+    $('.snd-t', s).textContent = m ? 'SOUND OFF' : 'SOUND ON';
+    const dm = $('#deck-mute'); dm.setAttribute('aria-pressed', m ? 'true' : 'false'); dm.setAttribute('aria-label', m ? 'Unmute preview' : 'Mute preview');
+    $('.wv', dm).style.opacity = m ? '0' : '1';
+  }
+  $('#snd').addEventListener('click', () => { setMuted(!muted); toast(muted ? 'Sound off. The zine is now a library.' : 'Sound on. Neighbours notified.'); });
+  $('#deck-mute').addEventListener('click', () => setMuted(!muted));
+  setMuted(muted);
+  document.addEventListener('visibilitychange', () => {
+    if (!AC) return;
+    if (document.hidden) { if (P.on) stop(); AC.suspend(); } else AC.resume();
+  });
+
+  /* ================= STICKER ================= */
+  const st = $('#sticker');
+  (function burst() {
+    const n = 18, pts = [];
+    for (let k = 0; k < n * 2; k++) {
+      const a = (k / (n * 2)) * Math.PI * 2 - Math.PI / 2, rad = k % 2 ? 76 : 96;
+      pts.push(`${f1(100 + Math.cos(a) * rad)},${f1(100 + Math.sin(a) * rad)}`);
+    }
+    $('#burst').setAttribute('points', pts.join(' '));
+  })();
+  let sx = 0, sy = 0, srot = -9, lean = 0, userPlaced = false, drag = null;
+  const saved = store.get('lhr-sticker');
+  if (saved) { try { const o = JSON.parse(saved); if (o && isFinite(o.fx) && isFinite(o.y)) { userPlaced = true; srot = +o.r || -9; st.dataset.fx = o.fx; sy = +o.y; } } catch (e) { /* ignore */ } }
+  function applySticker() { st.style.transform = `translate(${f1(sx)}px,${f1(sy)}px) rotate(${f1(srot + lean)}deg)`; }
+  function clampSticker() {
+    const w = st.offsetWidth, h = st.offsetHeight, W = document.documentElement.clientWidth, H = document.documentElement.scrollHeight;
+    sx = Math.max(6, Math.min(W - w - 10, sx)); sy = Math.max(6, Math.min(H - h - 10, sy));
+  }
+  function homeSticker() {
+    const a = $('.w-records').getBoundingClientRect(), w = st.offsetWidth, W = document.documentElement.clientWidth;
+    if (W < 700) { const d = $('.def').getBoundingClientRect(); sx = W - w - 10; sy = d.top + window.scrollY + (d.height - w) / 2; }
+    else { sx = a.right + window.scrollX + w * .12; sy = a.top + window.scrollY - w * .26; }
+    clampSticker(); applySticker();
+  }
+  function placeSticker() {
+    if (userPlaced && st.dataset.fx) { sx = +st.dataset.fx * document.documentElement.clientWidth; clampSticker(); applySticker(); }
+    else homeSticker();
+  }
+  st.addEventListener('pointerdown', e => {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    try { st.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    drag = { id: e.pointerId, ox: e.pageX - sx, oy: e.pageY - sy, lx: e.pageX };
+    st.classList.add('lift'); st.focus({ preventScroll: true });
+  });
+  st.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    sx = e.pageX - drag.ox; sy = e.pageY - drag.oy;
+    lean = Math.max(-16, Math.min(16, lean * .7 + (e.pageX - drag.lx) * .9)); drag.lx = e.pageX;
+    clampSticker(); applySticker();
+  });
+  function drop(e) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    drag = null; lean = 0; st.classList.remove('lift'); userPlaced = true;
+    applySticker(); saveSticker(); slap();
+    if (!reduce && st.animate) st.animate([{ scale: '1.1' }, { scale: '.94' }, { scale: '1' }], { duration: 260, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+  }
+  st.addEventListener('pointerup', drop); st.addEventListener('pointercancel', drop);
+  function saveSticker() { st.dataset.fx = sx / document.documentElement.clientWidth; store.set('lhr-sticker', JSON.stringify({ fx: +st.dataset.fx, y: Math.round(sy), r: srot })); }
+  st.addEventListener('keydown', e => {
+    const step = e.shiftKey ? 64 : 16; let used = true;
+    if (e.key === 'ArrowLeft') sx -= step; else if (e.key === 'ArrowRight') sx += step;
+    else if (e.key === 'ArrowUp') sy -= step; else if (e.key === 'ArrowDown') sy += step;
+    else if (e.key === 'Enter' || e.key === ' ') { srot = Math.round(Math.random() * 40 - 20); slap(); }
+    else used = false;
+    if (used) { e.preventDefault(); userPlaced = true; clampSticker(); applySticker(); saveSticker(); }
+  });
+  st.addEventListener('dblclick', () => { srot = Math.round(Math.random() * 40 - 20); applySticker(); saveSticker(); slap(); });
+
+  /* ================= STAMPS ================= */
+  const stamps = $$('.stamp');
+  if ('IntersectionObserver' in window && !reduce) {
+    const io = new IntersectionObserver(es => {
+      es.forEach(en => {
+        if (!en.isIntersecting) return;
+        const s = en.target; s.style.setProperty('--sd', `${(stamps.indexOf(s) % 3) * 0.12}s`);
+        s.classList.add('in'); io.unobserve(s);
+        if (AC && !muted) setTimeout(() => { if (AC) kick(AC.currentTime + .01, .35); }, 120 + (stamps.indexOf(s) % 3) * 120);
+      });
+    }, { threshold: .6 });
+    stamps.forEach(s => io.observe(s));
+  } else stamps.forEach(s => s.classList.add('in'));
+  $$('.tix').forEach(b => b.addEventListener('click', () => toast('This tour is as fictional as the label. Spend the money on records.')));
+
+  /* ================= SIGN-UP ================= */
+  const form = $('#su-form'), email = $('#email'), msg = $('#su-msg'), sstamp = $('#su-stamp');
+  if (store.get('lhr-listed') === '1') { msg.textContent = 'Welcome back — you are already on the noise list.'; }
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const v = email.value.trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+    if (!ok) {
+      msg.classList.add('err');
+      msg.textContent = v ? "That doesn't look like an email. Try again, louder." : 'Type an email first. We promise not to shout.';
+      email.setAttribute('aria-invalid', 'true');
+      if (!reduce) $('.su-row').animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(9px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(0)' }], { duration: 320 });
+      email.focus();
+      return;
+    }
+    email.removeAttribute('aria-invalid');
+    const g = $$('input[name="g"]:checked', form).map(x => x.nextElementSibling.textContent.toLowerCase());
+    msg.classList.remove('err');
+    msg.textContent = `Signed, sealed, not actually sent. We'll pretend to send you ${g.length ? g.join(', ') : 'absolutely nothing'} — this is a fictional label.`;
+    store.set('lhr-listed', '1');
+    sstamp.classList.remove('in'); void sstamp.offsetWidth; sstamp.classList.add('in');
+    slap();
+    email.value = '';
+  });
+
+  /* ================= TOAST ================= */
+  let tt = 0;
+  function toast(t) {
+    const el = $('#toast'); el.textContent = t; el.classList.add('show');
+    clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  /* ================= MISC ================= */
+  $('#top-btn').addEventListener('click', () => window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }));
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('input, textarea, select, [contenteditable]') || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 's' || e.key === 'S') shuffleCovers();
+    if (e.key === 'Escape' && P.on) stop();
+  });
+  let rz = 0;
+  window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(placeSticker); });
+
+  paintAll();
+  selectRelease(0);
+  cards[0].classList.remove('sel');
+  placeSticker();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeSticker);
+})();
+</script>
+</body>
+</html>

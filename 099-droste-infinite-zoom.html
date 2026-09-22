@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Droste — The Infinite Room</title>
+<meta name="description" content="Droste, the infinite room: a mid-century interior whose framed painting contains the same room, forever. Scroll or pinch to change zoom speed and direction, switch scenes, and apply a logarithmic-spiral Droste twist.">
+<meta name="theme-color" content="#f1dac4">
+<style>
+:root{
+  --wall:#f1dac4; --teal:#2a9d8f; --mustard:#e9c46a; --ink:#2b2622; --chip:rgba(251,246,238,.84);
+  --sans:"Futura","Futura PT","Century Gothic","URW Gothic","Avenir Next",Avenir,"Helvetica Neue",Arial,sans-serif;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; height:100%; overflow:hidden; background:#f1dac4; }
+body{ font-family:var(--sans); color:var(--ink); -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent; }
+canvas{ position:fixed; left:0; top:0; display:block; }
+#view{ touch-action:none; cursor:zoom-in; }
+#view:focus-visible{ outline:none; box-shadow:inset 0 0 0 3px rgba(42,157,143,.7); }
+#twist{ pointer-events:none; opacity:0; transition:opacity .8s ease; }
+body.twist #twist{ opacity:1; }
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+
+.chip{
+  background:var(--chip); color:var(--ink); padding:8px 11px 7px; border-radius:2px;
+  font-size:9.5px; letter-spacing:.3em; text-transform:uppercase; line-height:1.2;
+  box-shadow:0 1px 0 rgba(43,38,34,.06), 0 6px 18px rgba(43,38,34,.08);
+}
+.tl{ position:fixed; left:clamp(12px, 2.4vw, 32px); top:clamp(12px, 2.4vw, 30px); z-index:3; pointer-events:none; display:flex; align-items:stretch; gap:0; }
+.tl .mark{ width:34px; background:var(--ink); display:grid; place-items:center; border-radius:2px 0 0 2px; }
+.tl .mark svg{ width:20px; height:20px; }
+.tl .chip{ border-radius:0 2px 2px 0; padding:9px 14px 8px; }
+.tl h1{ margin:0; font-size:12px; font-weight:700; letter-spacing:.42em; }
+.tl p{ margin:4px 0 0; font-size:9px; letter-spacing:.3em; color:#6b5f55; }
+.tr{ position:fixed; right:clamp(12px, 2.4vw, 32px); top:clamp(12px, 2.4vw, 30px); z-index:3; display:flex; gap:6px; }
+.btn{
+  font:inherit; font-size:9.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--ink);
+  background:var(--chip); border:0; border-radius:2px; padding:9px 12px 8px 11px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:8px; box-shadow:0 6px 18px rgba(43,38,34,.08);
+  transition:background .2s, color .2s, transform .12s;
+}
+.btn:hover{ background:#fffaf2; }
+.btn:active{ transform:scale(.96); }
+.btn[aria-pressed="true"]{ background:var(--teal); color:#fdf8f0; }
+.btn:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+.btn svg{ width:12px; height:12px; flex:none; }
+.bl{ position:fixed; left:clamp(12px, 2.4vw, 32px); bottom:clamp(12px, 2.4vw, 30px); z-index:3; display:flex; gap:6px; pointer-events:none; }
+.bl b{ font-weight:700; }
+.br{ position:fixed; right:clamp(12px, 2.4vw, 32px); bottom:clamp(12px, 2.4vw, 30px); z-index:3; pointer-events:none; margin:0; color:#5f544b; }
+.gauge{
+  position:fixed; left:50%; bottom:clamp(12px, 2.4vw, 30px); transform:translateX(-50%); z-index:3;
+  display:flex; align-items:center; gap:12px; pointer-events:auto;
+}
+.gauge .track{ position:relative; width:150px; height:18px; }
+.gauge .track::before{ content:""; position:absolute; left:0; right:0; top:50%; height:1px; background:rgba(43,38,34,.35); }
+.gauge .track::after{ content:""; position:absolute; left:50%; top:4px; bottom:4px; width:1px; background:rgba(43,38,34,.5); }
+.gauge .dot{ position:absolute; top:50%; left:50%; width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%; background:var(--teal); box-shadow:0 0 0 3px rgba(251,246,238,.9); transition:left .15s linear; }
+.gauge .sbtn{ padding:8px 9px 7px; }
+.hint-mobile{ display:none; }
+
+@media (max-width: 720px){
+  .br{ display:none; }
+  .tl p{ display:none; }
+  .tr{ top:auto; bottom:calc(58px + env(safe-area-inset-bottom)); right:12px; left:12px; justify-content:center; }
+  .bl{ bottom:calc(12px + env(safe-area-inset-bottom)); left:12px; }
+  .gauge{ left:auto; right:12px; transform:none; bottom:calc(12px + env(safe-area-inset-bottom)); gap:6px; }
+  .gauge .track{ width:64px; }
+  .btn .lbl-long{ display:none; }
+  .bl .dep{ display:none; }
+  .bl .chip{ max-width:calc(100vw - 120px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .gauge .track, #spdTxt{ display:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  #twist, .gauge .dot{ transition:none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <canvas id="view" tabindex="0" role="img" aria-label="An endlessly zooming illustration: a mid-century room with a teal armchair, mustard lamp, geometric rug, plant and a window, whose framed painting contains the same room, forever. Click to change scene."></canvas>
+  <canvas id="twist" aria-hidden="true"></canvas>
+
+  <header class="tl">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 20 20"><rect x="1.5" y="1.5" width="17" height="17" fill="none" stroke="#f1dac4" stroke-width="1.4"/><rect x="7.2" y="5.2" width="9" height="9" fill="none" stroke="#e9c46a" stroke-width="1.2"/><rect x="11.5" y="7.4" width="4" height="4" fill="none" stroke="#2a9d8f" stroke-width="1.1"/><rect x="13.6" y="8.6" width="1.6" height="1.6" fill="#f1dac4"/></svg></div>
+    <div class="chip"><h1>Droste</h1><p>The Infinite Room</p></div>
+  </header>
+
+  <nav class="tr" aria-label="View controls">
+    <button type="button" class="btn" id="pauseBtn" aria-pressed="false"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1.5" width="2.6" height="9" fill="currentColor"/><rect x="7.4" y="1.5" width="2.6" height="9" fill="currentColor"/></svg><span>Pause</span></button>
+    <button type="button" class="btn" id="twistBtn" aria-pressed="false"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 6.2c0-.8.9-1.1 1.4-.6.8.8.2 2.2-1 2.3-1.8.2-2.9-1.8-2-3.4 1.1-2 4-2.1 5.3-.3 1.5 2.2.2 5.2-2.5 5.6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span>Droste <span class="lbl-long">twist</span></span></button>
+    <button type="button" class="btn" id="sceneBtn"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 1.8 8.5 6l-5 4.2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Scene</span></button>
+  </nav>
+
+  <div class="bl" aria-live="polite">
+    <div class="chip"><b id="scNo">01</b> · <span id="scName">Room</span></div>
+    <div class="chip dep" id="depth">Depth 000.00</div>
+  </div>
+
+  <div class="gauge">
+    <button type="button" class="btn sbtn" id="slower" aria-label="Zoom slower, or out"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.5"/></svg></button>
+    <div class="track" aria-hidden="true"><i class="dot" id="spdDot"></i></div>
+    <button type="button" class="btn sbtn" id="faster" aria-label="Zoom faster, inward"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6h7M6 2.5v7" stroke="currentColor" stroke-width="1.5"/></svg></button>
+    <span class="chip" id="spdTxt">In 0.13 lv/s</span>
+  </div>
+
+  <p class="br chip">Scroll · speed &nbsp; Click · scene &nbsp; T · twist</p>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const view = $('#view'), vctx = view.getContext('2d');
+const tw = $('#twist');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const frac = x => x - Math.floor(x);
+
+/* ============================================================ colour helpers + per-depth palettes */
+function hexToHsl(hex){
+  const n = parseInt(hex.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b); let h = 0, s = 0; const l = (mx + mn) / 2;
+  if (mx !== mn){ const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn);
+    h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+  return [h, s * 100, l * 100];
+}
+const hsl = (h, s, l, a) => a == null ? `hsl(${h.toFixed(1)},${clamp(s, 0, 100).toFixed(1)}%,${clamp(l, 0, 100).toFixed(1)}%)` : `hsla(${h.toFixed(1)},${clamp(s, 0, 100).toFixed(1)}%,${clamp(l, 0, 100).toFixed(1)}%,${a})`;
+const palCache = new Map();
+function palette(scene, depth){
+  const key = scene.id + depth;
+  let p = palCache.get(key);
+  if (p) return p;
+  const dh = 9 * Math.sin(depth * .83) + 3.5 * Math.sin(depth * 2.07);
+  const dl = 2.4 * Math.sin(depth * 1.37), ds = 5 * Math.sin(depth * .61);
+  p = {};
+  for (const k in scene.base){ const [h, s, l] = scene.hsl[k]; p[k] = hsl(h + dh * (scene.keep && scene.keep.includes(k) ? .35 : 1), s + ds, l + dl); }
+  p.dh = dh;
+  if (palCache.size > 400) palCache.clear();
+  palCache.set(key, p);
+  return p;
+}
+
+/* ============================================================ sky (changes with time and depth) */
+const SKY = [
+  { t: [11, 22, 52], b: [44, 60, 104], sun: 0 },      // night
+  { t: [62, 88, 150], b: [242, 170, 140], sun: .25 }, // dawn
+  { t: [92, 164, 214], b: [206, 232, 243], sun: 1 },  // day
+  { t: [104, 160, 204], b: [246, 196, 122], sun: .8 },// golden
+  { t: [58, 62, 122], b: [236, 140, 104], sun: .15 }  // dusk
+];
+function skyAt(t, depth){
+  const p = frac(t / 80 + depth * .193 + .42);
+  const f = p * SKY.length, i = Math.floor(f), k = f - i, A = SKY[i % SKY.length], B = SKY[(i + 1) % SKY.length];
+  const e = k * k * (3 - 2 * k);
+  const top = A.t.map((v, j) => Math.round(lerp(v, B.t[j], e))), bot = A.b.map((v, j) => Math.round(lerp(v, B.b[j], e)));
+  const light = lerp(A.sun, B.sun, e);
+  const sunArc = clamp((p - .16) / .72, 0, 1);
+  return { p, top: `rgb(${top})`, bot: `rgb(${bot})`, topA: top, botA: bot, light, dark: 1 - light, sunX: sunArc, sunUp: p > .16 && p < .88, moonX: clamp(frac(p + .12) / .28, 0, 1) };
+}
+
+/* ============================================================ drawing helpers */
+function rrect(g, x, y, w, h, r){
+  g.beginPath();
+  g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r);
+  g.lineTo(x + w, y + h - r); g.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  g.lineTo(x + r, y + h); g.quadraticCurveTo(x, y + h, x, y + h - r);
+  g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y); g.closePath();
+}
+function ell(g, x, y, rx, ry, fill){ g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, TAU); g.fillStyle = fill; g.fill(); }
+function poly(g, pts, fill){ g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.closePath(); g.fillStyle = fill; g.fill(); }
+
+function drawSkyGlass(g, x, y, w, h, sky, t, depth, opts){
+  const gr = g.createLinearGradient(0, y, 0, y + h);
+  gr.addColorStop(0, sky.top); gr.addColorStop(1, sky.bot);
+  g.fillStyle = gr; g.fillRect(x, y, w, h);
+  if (sky.dark > .45){
+    g.fillStyle = `rgba(255,248,230,${((sky.dark - .45) * 1.6).toFixed(2)})`;
+    for (let i = 0; i < 16; i++){ const sx = x + frac(Math.sin(i * 91.7 + depth * 3.1) * 43758) * w, sy = y + frac(Math.sin(i * 17.3 + depth) * 24631) * h * .55; g.fillRect(sx, sy, 2.4, 2.4); }
+  }
+  if (sky.sunUp){
+    const sx = x + w * (.1 + .8 * sky.sunX), sy = y + h * (.72 - .52 * Math.sin(Math.PI * sky.sunX));
+    const glow = g.createRadialGradient(sx, sy, 0, sx, sy, w * .22);
+    glow.addColorStop(0, 'rgba(255,240,190,.55)'); glow.addColorStop(1, 'rgba(255,240,190,0)');
+    g.fillStyle = glow; g.fillRect(x, y, w, h);
+    ell(g, sx, sy, w * .045, w * .045, '#fff3c8');
+  } else {
+    const mx = x + w * (.2 + .6 * clamp(sky.moonX, 0, 1)), my = y + h * .22;
+    ell(g, mx, my, w * .035, w * .035, '#f6f1e3');
+    ell(g, mx + w * .014, my - w * .008, w * .03, w * .03, sky.top);
+  }
+  const cw = w * .26, drift = frac(t * .012 + depth * .31);
+  g.fillStyle = `rgba(255,255,255,${(.55 + sky.light * .35).toFixed(2)})`;
+  for (let c = 0; c < 2; c++){
+    const cx = x - cw + (w + cw * 2) * frac(drift + c * .52), cy = y + h * (.18 + c * .17);
+    g.beginPath(); g.ellipse(cx, cy, cw * .5, cw * .13, 0, 0, TAU); g.ellipse(cx - cw * .18, cy - cw * .08, cw * .2, cw * .13, 0, 0, TAU); g.ellipse(cx + cw * .12, cy - cw * .1, cw * .22, cw * .15, 0, 0, TAU); g.fill();
+  }
+  if (opts && opts.hills){
+    const shade = .45 + sky.light * .55;
+    const col = (r, gg, b) => `rgb(${Math.round(r * shade + 20 * (1 - shade))},${Math.round(gg * shade + 22 * (1 - shade))},${Math.round(b * shade + 40 * (1 - shade))})`;
+    g.fillStyle = col(150, 170, 150);
+    g.beginPath(); g.moveTo(x, y + h * .78); g.bezierCurveTo(x + w * .25, y + h * .6, x + w * .5, y + h * .74, x + w * .72, y + h * .64); g.bezierCurveTo(x + w * .86, y + h * .58, x + w, y + h * .66, x + w, y + h * .7); g.lineTo(x + w, y + h); g.lineTo(x, y + h); g.fill();
+    g.fillStyle = col(96, 138, 104);
+    g.beginPath(); g.moveTo(x, y + h * .86); g.bezierCurveTo(x + w * .3, y + h * .76, x + w * .6, y + h * .9, x + w, y + h * .8); g.lineTo(x + w, y + h); g.lineTo(x, y + h); g.fill();
+  }
+}
+
+/* ============================================================ scene 1: the room */
+function drawRoom(g, depth, t, last){
+  const P = palette(SCENES[0], depth), sky = skyAt(t, depth);
+  g.fillStyle = P.wall; g.fillRect(0, 0, 1600, 742);
+  g.fillStyle = P.stripe; for (let x = 24; x < 1600; x += 64) g.fillRect(x, 0, 20, 726);
+  const cg = g.createLinearGradient(0, 0, 0, 130); cg.addColorStop(0, 'rgba(90,50,20,.1)'); cg.addColorStop(1, 'rgba(90,50,20,0)');
+  g.fillStyle = cg; g.fillRect(0, 0, 1600, 130);
+  g.fillStyle = P.floor; g.fillRect(0, 742, 1600, 258);
+  g.fillStyle = P.floorLine;
+  for (const [y, h] of [[786, 3], [842, 3.5], [912, 4]]) g.fillRect(0, y, 1600, h);
+  for (let i = 0; i < 14; i++){ const y0 = [742, 789, 845.5, 916][i % 4], y1 = [786, 842, 912, 1000][i % 4]; const x = (i * 263 + (i % 4) * 131) % 1600; g.fillRect(x, y0, 3, y1 - y0); }
+  g.fillStyle = P.skirt; g.fillRect(0, 724, 1600, 18);
+  g.fillStyle = 'rgba(80,40,10,.12)'; g.fillRect(0, 742, 1600, 8);
+
+  /* window */
+  g.fillStyle = 'rgba(80,40,10,.1)'; g.fillRect(140, 160, 344, 440);
+  g.fillStyle = P.frameWin; g.fillRect(126, 146, 344, 440);
+  g.save(); g.beginPath(); g.rect(142, 162, 312, 408); g.clip();
+  drawSkyGlass(g, 142, 162, 312, 408, sky, t, depth, { hills: true });
+  g.restore();
+  g.fillStyle = P.frameWin; g.fillRect(293, 162, 10, 408); g.fillRect(142, 318, 312, 10);
+  g.fillStyle = P.blind; g.fillRect(142, 162, 312, 40); g.fillStyle = P.blindEdge; g.fillRect(142, 198, 312, 5);
+  g.fillStyle = P.blindEdge; g.fillRect(296, 203, 2, 34); ell(g, 297, 240, 5, 5, P.blindEdge);
+  g.fillStyle = P.sill; g.fillRect(110, 582, 376, 18);
+  g.fillStyle = 'rgba(80,40,10,.12)'; g.fillRect(114, 600, 368, 6);
+  if (sky.sunUp && sky.light > .5){
+    g.fillStyle = `rgba(255,236,190,${((sky.light - .5) * .28).toFixed(3)})`;
+    g.beginPath(); g.moveTo(142, 570); g.lineTo(454, 570); g.lineTo(640, 742); g.lineTo(330, 742); g.closePath(); g.fill();
+  }
+
+  /* plant */
+  const sway = Math.sin(t * .7 + depth) * .035;
+  g.strokeStyle = P.stem; g.lineWidth = 5; g.lineCap = 'round';
+  const leaves = [[-.9, 170, 1], [-.45, 215, 0], [0, 250, 1], [.4, 205, 0], [.85, 160, 1], [-.2, 140, 0], [.2, 120, 1]];
+  for (const [a, len, c] of leaves){
+    const ang = a + sway * (1 + a), ex = 560 + Math.sin(ang) * len * .75, ey = 640 - Math.cos(ang) * len;
+    g.beginPath(); g.moveTo(560, 650); g.quadraticCurveTo(560 + Math.sin(ang) * len * .2, 640 - len * .5, ex, ey); g.stroke();
+    g.save(); g.translate(ex, ey); g.rotate(ang);
+    g.fillStyle = c ? P.leafA : P.leafB;
+    g.beginPath(); g.moveTo(0, 18); g.bezierCurveTo(-46, -8, -34, -78, 0, -96); g.bezierCurveTo(34, -78, 46, -8, 0, 18); g.fill();
+    g.strokeStyle = P.leafVein; g.lineWidth = 2.2; g.beginPath(); g.moveTo(0, 12); g.lineTo(0, -84); g.stroke();
+    g.restore();
+  }
+  poly(g, [506, 636, 614, 636, 598, 740, 522, 740], P.pot);
+  g.fillStyle = P.potRim; g.fillRect(500, 628, 120, 14);
+  g.fillStyle = 'rgba(0,0,0,.08)'; poly(g, [560, 642, 614, 642, 598, 740, 560, 740], 'rgba(0,0,0,.08)');
+
+  /* sunburst clock showing real time */
+  const now = new Date();
+  g.save(); g.translate(700, 250);
+  g.strokeStyle = P.brass; g.lineWidth = 4; g.lineCap = 'round';
+  for (let i = 0; i < 24; i++){ const a = i / 24 * TAU, r2 = i % 2 ? 58 : 70; g.beginPath(); g.moveTo(Math.cos(a) * 36, Math.sin(a) * 36); g.lineTo(Math.cos(a) * r2, Math.sin(a) * r2); g.stroke(); if (!(i % 2)) ell(g, Math.cos(a) * r2, Math.sin(a) * r2, 4.5, 4.5, P.brass); }
+  ell(g, 0, 0, 32, 32, P.clockFace); g.lineWidth = 2; g.strokeStyle = P.brass; g.beginPath(); g.arc(0, 0, 32, 0, TAU); g.stroke();
+  const hA = ((now.getHours() % 12) + now.getMinutes() / 60) / 12 * TAU - Math.PI / 2, mA = (now.getMinutes() + now.getSeconds() / 60) / 60 * TAU - Math.PI / 2;
+  g.strokeStyle = P.ink; g.lineWidth = 4; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(hA) * 17, Math.sin(hA) * 17); g.stroke();
+  g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(mA) * 26, Math.sin(mA) * 26); g.stroke();
+  ell(g, 0, 0, 3.5, 3.5, P.ink);
+  g.restore();
+
+  /* the portal: a framed painting of this very room */
+  g.fillStyle = 'rgba(70,35,10,.16)'; g.fillRect(812, 164, 580, 376);
+  g.fillStyle = P.frame; g.fillRect(802, 152, 580, 376);
+  g.fillStyle = P.frameHi; g.fillRect(802, 152, 580, 5); g.fillRect(802, 152, 5, 376);
+  g.fillStyle = P.frameIn; g.fillRect(816, 166, 552, 348);
+  g.fillStyle = last ? P.wall : P.frameIn; g.fillRect(820, 170, 544, 340);
+
+  /* rug */
+  ell(g, 1060, 900, 380, 68, P.rugA);
+  ell(g, 1060, 900, 322, 56, P.rugB);
+  ell(g, 1060, 900, 252, 44, P.rugC);
+  ell(g, 1060, 900, 168, 29, P.rugA);
+  ell(g, 1060, 900, 92, 16, P.rugD);
+  g.fillStyle = P.rugD;
+  for (let i = 0; i < 18; i++){
+    const a = i / 18 * TAU, x = 1060 + Math.cos(a) * 287, y = 900 + Math.sin(a) * 50;
+    g.beginPath(); g.moveTo(x, y - 8); g.lineTo(x + 11, y); g.lineTo(x, y + 8); g.lineTo(x - 11, y); g.closePath(); g.fill();
+  }
+
+  /* tulip side table with a vase */
+  ell(g, 772, 842, 50, 8, 'rgba(60,30,10,.18)');
+  ell(g, 772, 838, 40, 8, P.wood);
+  g.fillStyle = P.wood; g.fillRect(766, 700, 12, 138);
+  ell(g, 772, 700, 64, 13, P.woodHi); ell(g, 772, 704, 64, 11, P.wood); ell(g, 772, 699, 62, 11, P.woodHi);
+  g.fillStyle = P.vase; g.beginPath(); g.moveTo(760, 698); g.bezierCurveTo(748, 660, 766, 650, 766, 630); g.lineTo(778, 630); g.bezierCurveTo(778, 650, 796, 660, 784, 698); g.closePath(); g.fill();
+  g.strokeStyle = P.stem; g.lineWidth = 2.5; g.beginPath(); g.moveTo(772, 632); g.quadraticCurveTo(760, 580, 786, 548); g.stroke();
+  ell(g, 786, 546, 9, 9, P.rugA); ell(g, 760, 590, 6, 6, P.mustard);
+
+  /* teal lounge chair */
+  ell(g, 1075, 858, 200, 20, 'rgba(60,30,10,.2)');
+  g.strokeStyle = P.wood; g.lineWidth = 9; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(940, 770); g.lineTo(918, 850); g.moveTo(1205, 770); g.lineTo(1228, 850); g.stroke();
+  g.lineWidth = 7; g.beginPath(); g.moveTo(990, 770); g.lineTo(982, 830); g.moveTo(1158, 770); g.lineTo(1168, 830); g.stroke();
+  g.fillStyle = P.chairDark;
+  g.beginPath(); g.moveTo(912, 706); g.bezierCurveTo(896, 566, 960, 516, 1072, 516); g.bezierCurveTo(1186, 516, 1250, 566, 1234, 706); g.closePath(); g.fill();
+  g.fillStyle = P.chair;
+  g.beginPath(); g.moveTo(930, 700); g.bezierCurveTo(918, 582, 972, 536, 1072, 536); g.bezierCurveTo(1174, 536, 1228, 582, 1216, 700); g.closePath(); g.fill();
+  g.fillStyle = P.chairDark;
+  for (const [bx, by] of [[1020, 592], [1072, 580], [1124, 592], [1030, 640], [1114, 640]]) ell(g, bx, by, 4, 4, P.chairDark);
+  rrect(g, 900, 690, 346, 86, 34); g.fillStyle = P.chairDark; g.fill();
+  rrect(g, 930, 668, 286, 62, 28); g.fillStyle = P.chairHi; g.fill();
+  rrect(g, 872, 640, 76, 132, 34); g.fillStyle = P.chair; g.fill();
+  rrect(g, 1198, 640, 76, 132, 34); g.fillStyle = P.chair; g.fill();
+  g.fillStyle = 'rgba(255,255,255,.12)'; rrect(g, 882, 648, 20, 100, 10); g.fill(); rrect(g, 1208, 648, 20, 100, 10); g.fill();
+
+  /* mustard floor lamp */
+  const lampOn = .2 + sky.dark * .8;
+  const lg = g.createRadialGradient(1420, 460, 10, 1420, 560, 330);
+  lg.addColorStop(0, `rgba(255,214,120,${(.34 * lampOn).toFixed(3)})`); lg.addColorStop(1, 'rgba(255,214,120,0)');
+  g.fillStyle = lg; g.fillRect(1090, 230, 510, 650);
+  g.fillStyle = `rgba(255,226,150,${(.16 * lampOn).toFixed(3)})`;
+  g.beginPath(); g.moveTo(1345, 440); g.lineTo(1495, 440); g.lineTo(1560, 850); g.lineTo(1280, 850); g.closePath(); g.fill();
+  ell(g, 1420, 852, 52, 9, 'rgba(40,20,5,.25)');
+  ell(g, 1420, 848, 44, 9, P.metal);
+  g.fillStyle = P.metal; g.fillRect(1417, 430, 6, 420);
+  poly(g, [1372, 326, 1468, 326, 1502, 444, 1338, 444], P.mustard);
+  poly(g, [1372, 326, 1468, 326, 1474, 346, 1366, 346], P.mustardHi);
+  g.fillStyle = P.mustardDark; g.fillRect(1338, 436, 164, 8);
+  ell(g, 1420, 444, 80, 8, `rgba(255,236,170,${(.5 + .5 * lampOn).toFixed(2)})`);
+}
+
+/* ============================================================ scene 2: the Escher-like spiral staircase */
+function drawSpiral(g, depth, t, last){
+  const P = palette(SCENES[1], depth);
+  const cx = 800, cy = 500;
+  g.fillStyle = P.wall; g.fillRect(0, 0, 1600, 1000);
+  const rg = g.createRadialGradient(cx, cy, 120, cx, cy, 1000);
+  rg.addColorStop(0, 'rgba(30,20,10,.34)'); rg.addColorStop(.55, 'rgba(30,20,10,.08)'); rg.addColorStop(1, 'rgba(255,240,220,.1)');
+  g.fillStyle = rg; g.fillRect(0, 0, 1600, 1000);
+  const rot = (reduced.matches ? 0 : t * .05) + depth * .35;
+  const dA = 15 * Math.PI / 180, q = .958, R0 = 1180, rMin = 318;
+  g.fillStyle = P.slit;
+  for (let i = 0; i < 12; i++){
+    const a = rot * .5 + i / 12 * TAU, r1 = 760, r2 = 1100;
+    g.save(); g.translate(cx, cy); g.rotate(a); g.fillRect(r1, -8, r2 - r1, 16); g.restore();
+  }
+  let n = 0; while (R0 * Math.pow(q, n) > rMin) n++;
+  for (let i = n - 1; i >= 0; i--){
+    const Ro = R0 * Math.pow(q, i), Ri = Ro * .6, a0 = rot + i * dA, a1 = a0 + dA * 1.04;
+    g.beginPath(); g.arc(cx, cy, Ro, a0, a1); g.arc(cx, cy, Ri, a1, a0, true); g.closePath();
+    g.fillStyle = i % 2 ? P.tread : P.treadAlt; g.fill();
+    const ar = a0 - dA * .2;
+    g.beginPath(); g.arc(cx, cy, Ro, ar, a0); g.arc(cx, cy, Ri, a0, ar, true); g.closePath();
+    g.fillStyle = P.riser; g.fill();
+    g.beginPath(); g.arc(cx, cy, Ri * 1.06, a0, a1); g.arc(cx, cy, Ri, a1, a0, true); g.closePath();
+    g.fillStyle = 'rgba(0,0,0,.07)'; g.fill();
+  }
+  g.strokeStyle = P.rail; g.lineCap = 'round';
+  g.beginPath();
+  for (let i = 0; i <= n; i++){
+    const Ri = R0 * Math.pow(q, i) * .6, a = rot + i * dA;
+    for (let k = 0; k < 4; k++){ const aa = a + dA * k / 4, rr = Ri * Math.pow(q, k / 4) * .985; const x = cx + Math.cos(aa) * rr, y = cy + Math.sin(aa) * rr; if (i === 0 && k === 0) g.moveTo(x, y); else g.lineTo(x, y); }
+  }
+  g.lineWidth = 7; g.stroke();
+  for (let i = 0; i < n; i++){
+    const Ri = R0 * Math.pow(q, i) * .6 * .985, a = rot + i * dA + dA * .5;
+    ell(g, cx + Math.cos(a) * Ri, cy + Math.sin(a) * Ri, 5 * Ri / 700 + 2, 5 * Ri / 700 + 2, P.rail);
+  }
+  const walkers = [0, .47];
+  for (const w of walkers){
+    const pos = frac((reduced.matches ? 0 : t * .018) + w) * (n - 1);
+    const i = Math.floor(pos), f = pos - i;
+    const Ro = R0 * Math.pow(q, pos), a = rot + (i + f) * dA + dA * .5, rr = Ro * .8;
+    const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr, sc = Ro / 900;
+    g.save(); g.translate(x, y); g.rotate(a + Math.PI / 2);
+    ell(g, 3 * sc, 5 * sc, 26 * sc, 13 * sc, 'rgba(0,0,0,.14)');
+    ell(g, 0, 0, 24 * sc, 12 * sc, P.walker);
+    ell(g, 0, 0, 10 * sc, 10 * sc, P.walkerHead);
+    g.restore();
+  }
+  g.save(); g.beginPath(); g.arc(cx, cy, rMin * 1.02, 0, TAU); g.clip();
+  g.fillStyle = P.checkA; g.fillRect(cx - 340, cy - 340, 680, 680);
+  g.fillStyle = P.checkB;
+  const sq = 34;
+  for (let yy = -10; yy < 10; yy++) for (let xx = -10; xx < 10; xx++) if ((xx + yy) & 1) g.fillRect(cx + xx * sq, cy + yy * sq, sq, sq);
+  const fg = g.createRadialGradient(cx, cy, 200, cx, cy, rMin * 1.05);
+  fg.addColorStop(0, 'rgba(20,10,0,0)'); fg.addColorStop(1, 'rgba(20,10,0,.38)');
+  g.fillStyle = fg; g.fillRect(cx - 340, cy - 340, 680, 680);
+  g.restore();
+  g.strokeStyle = P.rail; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, rMin * 1.02, 0, TAU); g.stroke();
+  g.fillStyle = 'rgba(20,10,0,.25)'; g.fillRect(552, 346, 500, 320);
+  g.fillStyle = P.brass; g.fillRect(546, 336, 508, 328);
+  g.fillStyle = P.brassHi; g.fillRect(546, 336, 508, 4); g.fillRect(546, 336, 4, 328);
+  g.fillStyle = P.brassDark; g.fillRect(556, 346, 488, 308);
+  g.fillStyle = last ? P.wall : P.brassDark; g.fillRect(560, 350, 480, 300);
+}
+
+/* ============================================================ scene 3: the ocean window */
+function drawOcean(g, depth, t, last){
+  const P = palette(SCENES[2], depth), sky = skyAt(t + 23, depth);
+  g.fillStyle = P.wall; g.fillRect(0, 0, 1600, 812);
+  g.fillStyle = P.stripe; for (let x = 0; x < 1600; x += 90) g.fillRect(x, 0, 2, 800);
+  g.fillStyle = P.floor; g.fillRect(0, 812, 1600, 188);
+  g.fillStyle = P.floorLine; for (const y of [852, 910, 975]) g.fillRect(0, y, 1600, 3);
+  g.fillStyle = P.skirt; g.fillRect(0, 796, 1600, 16);
+
+  /* the big window over the sea */
+  g.fillStyle = 'rgba(70,40,15,.12)'; rrect(g, 92, 104, 904, 644, 44); g.fill();
+  g.fillStyle = P.frameWin; rrect(g, 80, 90, 904, 644, 44); g.fill();
+  g.save(); rrect(g, 104, 114, 856, 596, 30); g.clip();
+  drawSkyGlass(g, 104, 114, 856, 596, sky, t, depth, null);
+  const hz = 440, sh = sky.light;
+  const mix = (a, b, k) => a.map((v, j) => Math.round(lerp(v, b[j], k)));
+  const seaFar = mix([34, 110, 140], sky.botA, .35).map(v => Math.round(v * (.45 + .55 * sh)));
+  const seaNear = mix([22, 70, 100], sky.topA, .2).map(v => Math.round(v * (.45 + .55 * sh)));
+  const sg = g.createLinearGradient(0, hz, 0, 710); sg.addColorStop(0, `rgb(${seaFar})`); sg.addColorStop(1, `rgb(${seaNear})`);
+  g.fillStyle = sg; g.fillRect(104, hz, 856, 280);
+  g.fillStyle = `rgba(255,255,255,${(.1 + .12 * sh).toFixed(2)})`;
+  for (let b = 0; b < 9; b++){
+    const y = hz + 14 + b * b * 3.3, amp = 2 + b * .9, ph = (reduced.matches ? 0 : t * (.5 + b * .12)) + b * 1.7;
+    g.beginPath(); g.moveTo(104, y);
+    for (let x = 104; x <= 960; x += 16) g.lineTo(x, y + Math.sin(x * .02 + ph) * amp);
+    g.lineTo(960, y + 2 + b * .5); for (let x = 960; x >= 104; x -= 16) g.lineTo(x, y + 2 + b * .5 + Math.sin(x * .02 + ph + .6) * amp); g.closePath(); g.fill();
+  }
+  if (sky.sunUp){
+    const sx = 104 + 856 * (.1 + .8 * sky.sunX);
+    g.fillStyle = 'rgba(255,238,190,.55)';
+    for (let k = 0; k < 12; k++){ const y = hz + 8 + k * 20, w = 18 + k * 7 + Math.sin(t * 2 + k) * 6; g.fillRect(sx - w / 2, y, w, 3); }
+  }
+  g.fillStyle = P.rock; g.beginPath(); g.moveTo(760, hz + 2); g.quadraticCurveTo(800, hz - 26, 840, hz - 18); g.quadraticCurveTo(880, hz - 30, 930, hz + 2); g.closePath(); g.fill();
+  g.fillStyle = '#f6f1e6'; g.fillRect(826, hz - 88, 14, 66); g.fillStyle = P.accent; g.fillRect(826, hz - 70, 14, 10); g.fillRect(826, hz - 48, 14, 10);
+  g.fillStyle = P.ink; g.fillRect(822, hz - 94, 22, 8);
+  if (sky.dark > .35){ const bl = g.createRadialGradient(833, hz - 80, 0, 833, hz - 80, 60); bl.addColorStop(0, `rgba(255,236,170,${(sky.dark * .8).toFixed(2)})`); bl.addColorStop(1, 'rgba(255,236,170,0)'); g.fillStyle = bl; g.fillRect(773, hz - 140, 120, 120); }
+  const bx = 104 + frac((reduced.matches ? .3 : t * .006) + depth * .21) * 900 - 20;
+  g.fillStyle = P.ink; g.beginPath(); g.moveTo(bx - 22, hz + 6); g.lineTo(bx + 24, hz + 6); g.lineTo(bx + 16, hz + 13); g.lineTo(bx - 16, hz + 13); g.fill();
+  g.fillStyle = '#fbf6ec'; g.beginPath(); g.moveTo(bx, hz + 4); g.lineTo(bx, hz - 44); g.lineTo(bx + 20, hz + 2); g.fill();
+  g.fillStyle = P.accent; g.beginPath(); g.moveTo(bx - 3, hz + 4); g.lineTo(bx - 3, hz - 34); g.lineTo(bx - 18, hz + 2); g.fill();
+  g.strokeStyle = sky.dark > .6 ? 'rgba(240,240,240,.6)' : 'rgba(40,40,50,.7)'; g.lineWidth = 3; g.lineCap = 'round';
+  for (let k = 0; k < 3; k++){
+    const gx = 104 + frac((reduced.matches ? 0 : t * .02) + k * .31 + depth * .13) * 900, gy = 200 + k * 36 + Math.sin(t * .8 + k) * 8, s = 12 - k * 2;
+    g.beginPath(); g.moveTo(gx - s, gy - s * .4); g.quadraticCurveTo(gx - s * .4, gy - s * .7, gx, gy); g.quadraticCurveTo(gx + s * .4, gy - s * .7, gx + s, gy - s * .4); g.stroke();
+  }
+  g.restore();
+  g.fillStyle = P.frameWin; g.fillRect(527, 114, 10, 596);
+  g.fillStyle = P.sill; g.fillRect(60, 726, 944, 24);
+  g.fillStyle = 'rgba(70,40,15,.14)'; g.fillRect(66, 750, 932, 8);
+  poly(g, [180, 690, 250, 690, 240, 728, 190, 728], P.pot);
+  g.fillStyle = P.leafA;
+  for (let k = 0; k < 7; k++){ const a = -Math.PI / 2 + (k - 3) * .38; g.save(); g.translate(215, 690); g.rotate(a); g.beginPath(); g.ellipse(0, -22, 9, 26, 0, 0, TAU); g.fill(); g.restore(); }
+  g.fillStyle = P.leafB; for (let k = 0; k < 4; k++){ const a = -Math.PI / 2 + (k - 1.5) * .45; g.save(); g.translate(215, 690); g.rotate(a); g.beginPath(); g.ellipse(0, -14, 7, 16, 0, 0, TAU); g.fill(); g.restore(); }
+  g.fillStyle = P.shell; g.beginPath(); g.moveTo(330, 726); g.arc(330, 726, 30, Math.PI, 0); g.closePath(); g.fill();
+  g.strokeStyle = P.shellLine; g.lineWidth = 2; for (let k = 1; k < 6; k++){ const a = Math.PI + k / 6 * Math.PI; g.beginPath(); g.moveTo(330, 726); g.lineTo(330 + Math.cos(a) * 30, 726 + Math.sin(a) * 30); g.stroke(); }
+  g.fillStyle = P.bottle; g.fillRect(860, 640, 34, 86); g.fillRect(870, 614, 14, 28);
+  g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(866, 648, 6, 70);
+
+  /* mustard pendant lamp */
+  const lampOn = .25 + sky.dark * .75;
+  g.fillStyle = P.metal; g.fillRect(1297, 0, 5, 118);
+  const pg = g.createRadialGradient(1300, 190, 10, 1300, 260, 380);
+  pg.addColorStop(0, `rgba(255,214,120,${(.3 * lampOn).toFixed(3)})`); pg.addColorStop(1, 'rgba(255,214,120,0)');
+  g.fillStyle = pg; g.fillRect(920, 0, 680, 640);
+  g.fillStyle = P.mustard; g.beginPath(); g.moveTo(1224, 176); g.bezierCurveTo(1226, 128, 1262, 112, 1300, 112); g.bezierCurveTo(1338, 112, 1374, 128, 1376, 176); g.closePath(); g.fill();
+  g.fillStyle = P.mustardHi; g.beginPath(); g.moveTo(1246, 150); g.bezierCurveTo(1256, 126, 1282, 118, 1300, 118); g.lineTo(1300, 126); g.bezierCurveTo(1282, 128, 1262, 136, 1254, 152); g.fill();
+  ell(g, 1300, 176, 76, 7, `rgba(255,240,190,${(.6 + .4 * lampOn).toFixed(2)})`);
+
+  /* geometric runner + teal stool */
+  g.fillStyle = P.rugA; g.fillRect(1010, 900, 560, 70);
+  g.fillStyle = P.rugB; for (let k = 0; k < 14; k++){ const x = 1020 + k * 39; g.beginPath(); g.moveTo(x, 960); g.lineTo(x + 19, 912); g.lineTo(x + 38, 960); g.closePath(); g.fill(); }
+  g.fillStyle = P.rugC; g.fillRect(1010, 900, 560, 6); g.fillRect(1010, 964, 560, 6);
+  ell(g, 1470, 882, 70, 10, 'rgba(40,20,5,.2)');
+  g.strokeStyle = P.wood; g.lineWidth = 7; g.beginPath(); g.moveTo(1430, 830); g.lineTo(1418, 880); g.moveTo(1510, 830); g.lineTo(1522, 880); g.stroke();
+  rrect(g, 1400, 790, 140, 48, 22); g.fillStyle = P.teal; g.fill();
+  rrect(g, 1410, 790, 120, 18, 9); g.fillStyle = P.tealHi; g.fill();
+
+  /* easel with the portal canvas */
+  g.strokeStyle = P.woodDark; g.lineWidth = 12; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(1300, 240); g.lineTo(1300, 870); g.stroke();
+  g.strokeStyle = P.wood; g.lineWidth = 14;
+  g.beginPath(); g.moveTo(1266, 232); g.lineTo(1120, 930); g.moveTo(1334, 232); g.lineTo(1480, 930); g.stroke();
+  g.fillStyle = 'rgba(40,20,5,.22)'; g.fillRect(1082, 268, 456, 291);
+  g.fillStyle = '#f7f1e6'; g.fillRect(1070, 250, 460, 295);
+  g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(1070, 250, 460, 6);
+  g.fillStyle = last ? P.wall : '#f7f1e6'; g.fillRect(1080, 260, 440, 275);
+  g.fillStyle = P.wood; g.fillRect(1052, 545, 496, 18); g.fillStyle = P.woodDark; g.fillRect(1052, 560, 496, 5);
+  g.fillStyle = P.wood; g.fillRect(1280, 232, 40, 24);
+}
+
+/* ============================================================ scenes */
+const SCENES = [
+  { id: 'room', name: 'Room', pr: { x: 820, y: 170, w: 544, h: 340 }, draw: drawRoom,
+    base: { wall: '#f1dac4', stripe: '#ecd2ba', floor: '#b8835a', floorLine: '#a8744c', skirt: '#e6c8aa', frameWin: '#fbf5ec', blind: '#efe2cf', blindEdge: '#d9c4a8', sill: '#f3e8d8',
+      stem: '#4f7a4f', leafA: '#3e7c59', leafB: '#5aa06f', leafVein: '#2f6247', pot: '#d97745', potRim: '#c4663a', brass: '#c99a3e', clockFace: '#fbf5ea', ink: '#2b2622',
+      frame: '#5e3f28', frameHi: '#7a5638', frameIn: '#3f2a1b', rugA: '#e76f51', rugB: '#264653', rugC: '#f4e9d8', rugD: '#f4a261', wood: '#7a4e2d', woodHi: '#8f5f38', vase: '#2a9d8f', mustard: '#e9c46a',
+      chair: '#2a9d8f', chairDark: '#207f74', chairHi: '#35b0a1', metal: '#2f2a26', mustardHi: '#f2d68f', mustardDark: '#c9a247' } },
+  { id: 'spiral', name: 'Spiral staircase', pr: { x: 560, y: 350, w: 480, h: 300 }, draw: drawSpiral,
+    base: { wall: '#d98c6c', slit: '#c77758', tread: '#f3e6d3', treadAlt: '#ead9c1', riser: '#b98a62', rail: '#2b2622', checkA: '#264653', checkB: '#e9c46a', brass: '#c99a3e', brassHi: '#e7c47a', brassDark: '#6b4a22', walker: '#2a9d8f', walkerHead: '#2b2622' } },
+  { id: 'ocean', name: 'Ocean window', pr: { x: 1080, y: 260, w: 440, h: 275 }, draw: drawOcean,
+    base: { wall: '#f1dac4', stripe: '#e6ccb3', floor: '#a9754e', floorLine: '#946543', skirt: '#e4c5a6', frameWin: '#fbf5ec', sill: '#f4e9da', rock: '#3b3a45', ink: '#2b2622', accent: '#e76f51',
+      pot: '#e9c46a', leafA: '#6fa37d', leafB: '#4d8a64', shell: '#f2c6ae', shellLine: '#d99a80', bottle: '#2a9d8f', metal: '#2f2a26', mustard: '#e9c46a', mustardHi: '#f2d68f',
+      rugA: '#264653', rugB: '#e9c46a', rugC: '#f4e9d8', wood: '#8a5a36', woodDark: '#6b4428', teal: '#2a9d8f', tealHi: '#39b3a4' } }
+];
+for (const sc of SCENES){
+  sc.s = sc.pr.w / 1600;
+  sc.c = { x: sc.pr.x / (1 - sc.s), y: sc.pr.y / (1 - sc.s) };
+  sc.hsl = {}; for (const k in sc.base) sc.hsl[k] = hexToHsl(sc.base[k]);
+}
+
+/* ============================================================ recursive renderer */
+function drawRecursive(g, sc, S0x, S0y, base, D, t, cw, ch, dpr, uniform){
+  let kmin = 0;
+  for (; kmin > -8; kmin--){
+    const sk = base * Math.pow(sc.s, kmin), x0 = S0x - sc.c.x * sk, y0 = S0y - sc.c.y * sk;
+    if (x0 <= .5 && y0 <= .5 && x0 + 1600 * sk >= cw - .5 && y0 + 1000 * sk >= ch - .5) break;
+  }
+  for (let k = kmin; k < kmin + 40; k++){
+    const sk = base * Math.pow(sc.s, k);
+    const last = sc.pr.w * sk < 2.2;
+    g.setTransform(sk * dpr, 0, 0, sk * dpr, (S0x - sc.c.x * sk) * dpr, (S0y - sc.c.y * sk) * dpr);
+    g.save(); g.beginPath(); g.rect(0, 0, 1600, 1000); g.clip();
+    sc.draw(g, uniform ? D : D + k, t, last);
+    g.restore();
+    if (last) break;
+  }
+  g.setTransform(1, 0, 0, 1, 0, 0);
+}
+let W = 0, H = 0, DPR = 1;
+function viewParams(sc, cw, ch){
+  const B = Math.max(cw / 1600, ch / 1000);
+  const ox = (cw - 1600 * B) / 2, oy = (ch - 1000 * B) / 2;
+  let S0x = ox + sc.c.x * B, S0y = oy + sc.c.y * B;
+  if (cw / ch < 1.25){ S0x = clamp(S0x, cw * .38, cw * .62); S0y = clamp(S0y, ch * .3, ch * .62); }
+  return { B, S0x, S0y };
+}
+
+/* ============================================================ state */
+const st = { scene: 0, prevScene: -1, fade: 1, f: .8, D: -1, t: 0, speed: .13, target: .13, paused: false, twist: false };
+if (reduced.matches){ st.speed = st.target = .05; }
+function setScene(i){
+  st.prevScene = st.scene; st.scene = (i + SCENES.length) % SCENES.length; st.fade = reduced.matches ? 1 : 0;
+  $('#scNo').textContent = String(st.scene + 1).padStart(2, '0');
+  $('#scName').textContent = SCENES[st.scene].name;
+  texDirty = true;
+}
+function render(){
+  const cw = W, ch = H;
+  vctx.setTransform(1, 0, 0, 1, 0, 0);
+  const draw = (idx, alpha) => {
+    const sc = SCENES[idx], vp = viewParams(sc, cw, ch);
+    const M = Math.pow(1 / sc.s, st.f);
+    vctx.globalAlpha = alpha;
+    drawRecursive(vctx, sc, vp.S0x, vp.S0y, vp.B * M, st.D, st.t, cw, ch, DPR);
+    vctx.globalAlpha = 1;
+  };
+  if (st.fade < 1 && st.prevScene >= 0){ draw(st.prevScene, 1); draw(st.scene, st.fade); }
+  else draw(st.scene, 1);
+}
+
+/* ============================================================ Droste twist (WebGL log-polar conformal map, CPU fallback) */
+const TEX = Math.min(2048, Math.max(1024, Math.pow(2, Math.ceil(Math.log2(Math.max(window.screen.width, window.screen.height) * .9)))));
+const texC = document.createElement('canvas'); texC.width = texC.height = TEX;
+const tctx = texC.getContext('2d');
+let texDirty = true, texTimer = 0, twistBaseD = 0;
+function renderTexture(){
+  const sc = SCENES[st.scene];
+  tctx.setTransform(1, 0, 0, 1, 0, 0);
+  const base = .55 * TEX / sc.pr.w;
+  drawRecursive(tctx, sc, TEX / 2, TEX / 2, base, twistBaseD, st.t, TEX, TEX, 1, true);
+}
+let gl = null, glProg = null, glTex = null, uni = {}, cpu = null;
+function initGL(){
+  try { gl = tw.getContext('webgl', { antialias: false, premultipliedAlpha: false }) || tw.getContext('experimental-webgl'); } catch (e) { gl = null; }
+  if (!gl){ cpu = { c: tw.getContext('2d') }; return; }
+  const vs = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}';
+  const fs = [
+    'precision highp float;',
+    'uniform sampler2D u_tex; uniform vec2 u_res; uniform float u_L; uniform float u_off; uniform float u_rot; uniform float u_scale;',
+    'void main(){',
+    '  vec2 p = (gl_FragCoord.xy - 0.5*u_res) / (0.5*min(u_res.x,u_res.y));',
+    '  p.y = -p.y; p *= u_scale;',
+    '  float r = max(length(p), 1e-6);',
+    '  vec2 e = vec2(log(r), atan(p.y, p.x) + u_rot);',
+    '  float k = u_L / 6.28318530718;',
+    '  vec2 z = vec2(e.x + e.y*k, e.y - e.x*k);',
+    '  z.x -= u_off;',
+    '  z.x = -u_L + mod(z.x + u_L, u_L);',
+    '  vec2 q = exp(z.x) * vec2(cos(z.y), sin(z.y));',
+    '  gl_FragColor = texture2D(u_tex, q*0.5 + 0.5);',
+    '}'
+  ].join('\n');
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error('shader'); return s; };
+  try {
+    glProg = gl.createProgram();
+    gl.attachShader(glProg, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(glProg, sh(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(glProg);
+    if (!gl.getProgramParameter(glProg, gl.LINK_STATUS)) throw new Error('link');
+  } catch (e) { gl = null; cpu = { c: tw.getContext('2d') }; return; }
+  gl.useProgram(glProg);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(glProg, 'a'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  for (const u of ['u_tex', 'u_res', 'u_L', 'u_off', 'u_rot', 'u_scale']) uni[u] = gl.getUniformLocation(glProg, u);
+  glTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, glTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.uniform1i(uni.u_tex, 0);
+}
+function uploadTexture(){
+  renderTexture();
+  if (gl){ gl.bindTexture(gl.TEXTURE_2D, glTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texC); }
+  else if (cpu){ cpu.src = tctx.getImageData(0, 0, TEX, TEX).data; }
+  texDirty = false;
+}
+function sizeTwist(){
+  if (gl){ tw.width = Math.round(W * DPR); tw.height = Math.round(H * DPR); }
+  else { const s = Math.min(1, 360 / W); tw.width = Math.round(W * s); tw.height = Math.round(H * s); }
+  tw.style.width = W + 'px'; tw.style.height = H + 'px';
+}
+function renderTwist(){
+  const sc = SCENES[st.scene], L = Math.log(1 / sc.s), off = st.f * L, rot = reduced.matches ? 0 : st.t * .03;
+  if (gl){
+    gl.viewport(0, 0, tw.width, tw.height);
+    gl.uniform2f(uni.u_res, tw.width, tw.height); gl.uniform1f(uni.u_L, L); gl.uniform1f(uni.u_off, off); gl.uniform1f(uni.u_rot, rot); gl.uniform1f(uni.u_scale, .9);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  } else if (cpu && cpu.src){
+    const w = tw.width, h = tw.height, img = cpu.img && cpu.img.width === w && cpu.img.height === h ? cpu.img : (cpu.img = cpu.c.createImageData(w, h));
+    const d = img.data, src = cpu.src, k = L / TAU, m = .5 * Math.min(w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+      const px = (x + .5 - w / 2) / m * .9, py = (y + .5 - h / 2) / m * .9;
+      const r = Math.max(Math.hypot(px, py), 1e-6), ex = Math.log(r), ey = Math.atan2(py, px) + rot;
+      let zx = ex + ey * k - off; const zy = ey - ex * k;
+      zx = -L + (((zx + L) % L) + L) % L;
+      const R = Math.exp(zx), u = Math.cos(zy) * R * .5 + .5, v = Math.sin(zy) * R * .5 + .5;
+      const si = ((Math.min(TEX - 1, Math.max(0, v * TEX | 0)) * TEX) + Math.min(TEX - 1, Math.max(0, u * TEX | 0))) * 4, di = (y * w + x) * 4;
+      d[di] = src[si]; d[di + 1] = src[si + 1]; d[di + 2] = src[si + 2]; d[di + 3] = 255;
+    }
+    cpu.c.putImageData(img, 0, 0);
+  }
+}
+function setTwist(on){
+  st.twist = on;
+  document.body.classList.toggle('twist', on);
+  $('#twistBtn').setAttribute('aria-pressed', String(on));
+  if (on){ twistBaseD = st.D; if (!gl && !cpu){ initGL(); sizeTwist(); } texDirty = true; }
+}
+
+/* ============================================================ input: wheel / pinch / tap / keys / buttons */
+function nudge(v){ st.target = clamp(+(st.target + v).toFixed(3), -.9, .9); if (st.paused) setPaused(false); }
+view.addEventListener('wheel', e => { e.preventDefault(); const d = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY; nudge(-d * .0007); }, { passive: false });
+const ptrs = new Map(); let pinchD = 0, tap = null;
+view.addEventListener('pointerdown', e => {
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  try { view.setPointerCapture(e.pointerId); } catch (err) {}
+  if (ptrs.size === 1) tap = { x: e.clientX, y: e.clientY, t: performance.now() };
+  if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); tap = null; }
+});
+view.addEventListener('pointermove', e => {
+  if (!ptrs.has(e.pointerId)) return;
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptrs.size === 2){
+    const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pinchD > 0){ nudge(Math.log(d / pinchD) * .6); }
+    pinchD = d;
+  } else if (tap && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 12){
+    const dy = e.clientY - tap.y; nudge(-dy * .0012); tap.y = e.clientY; tap.moved = true;
+  }
+});
+const up = e => {
+  ptrs.delete(e.pointerId);
+  if (ptrs.size < 2) pinchD = 0;
+  if (tap && !tap.moved && e.type === 'pointerup' && performance.now() - tap.t < 500) setScene(st.scene + 1);
+  if (!ptrs.size) tap = null;
+};
+view.addEventListener('pointerup', up); view.addEventListener('pointercancel', up);
+function setPaused(p){
+  st.paused = p; const b = $('#pauseBtn'); b.setAttribute('aria-pressed', String(p));
+  b.lastChild.textContent = p ? 'Play' : 'Pause';
+}
+$('#pauseBtn').addEventListener('click', () => setPaused(!st.paused));
+$('#twistBtn').addEventListener('click', () => setTwist(!st.twist));
+$('#sceneBtn').addEventListener('click', () => setScene(st.scene + 1));
+$('#faster').addEventListener('click', () => nudge(.05));
+$('#slower').addEventListener('click', () => nudge(-.05));
+window.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key, tag = e.target && e.target.tagName;
+  if (k === ' ' && tag !== 'BUTTON'){ e.preventDefault(); setPaused(!st.paused); }
+  else if (k === 't' || k === 'T') setTwist(!st.twist);
+  else if (k === 'ArrowUp'){ e.preventDefault(); nudge(.04); }
+  else if (k === 'ArrowDown'){ e.preventDefault(); nudge(-.04); }
+  else if (k === 'ArrowRight' || k === 'n' || k === 'N') setScene(st.scene + 1);
+  else if (k === 'ArrowLeft') setScene(st.scene - 1);
+  else if (k === '0'){ st.target = .13; }
+  else if (/^[1-3]$/.test(k)) setScene(+k - 1);
+  else if (k === 'Enter' && document.activeElement === view) setScene(st.scene + 1);
+});
+
+/* ============================================================ loop */
+const spdDot = $('#spdDot'), spdTxt = $('#spdTxt'), depthEl = $('#depth');
+let last = performance.now(), hudT = 0;
+function loop(now){
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (!document.hidden){
+    if (!st.paused){
+      st.t += dt;
+      st.speed += (st.target - st.speed) * (1 - Math.exp(-dt * 3));
+      st.f += st.speed * dt;
+      while (st.f >= 1){ st.f -= 1; st.D += 1; }
+      while (st.f < 0){ st.f += 1; st.D -= 1; }
+    }
+    if (st.fade < 1) st.fade = Math.min(1, st.fade + dt / .9);
+    if (st.twist){
+      texTimer -= dt;
+      if (texDirty || texTimer <= 0){ uploadTexture(); texTimer = .45; }
+      renderTwist();
+    }
+    if (!st.twist || document.body.classList.contains('twist') && getComputedStyle(tw).opacity !== '1') render();
+    hudT -= dt;
+    if (hudT <= 0){
+      hudT = .1;
+      const v = st.speed;
+      spdDot.style.left = (50 + clamp(v / .9, -1, 1) * 50) + '%';
+      spdTxt.textContent = Math.abs(v) < .004 ? 'Still' : (v > 0 ? 'In ' : 'Out ') + Math.abs(v).toFixed(2) + ' lv/s';
+      const dep = st.D + st.f;
+      depthEl.textContent = 'Depth ' + (dep < 0 ? '−' : '') + Math.abs(dep).toFixed(2).padStart(6, '0');
+    }
+  }
+  requestAnimationFrame(loop);
+}
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  view.width = Math.round(W * DPR); view.height = Math.round(H * DPR);
+  view.style.width = W + 'px'; view.style.height = H + 'px';
+  sizeTwist();
+  render();
+}
+let rzT = 0;
+window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(resize, 60); });
+
+resize();
+requestAnimationFrame(t => { last = t; loop(t); });
+})();
+</script>
+</body>
+</html>

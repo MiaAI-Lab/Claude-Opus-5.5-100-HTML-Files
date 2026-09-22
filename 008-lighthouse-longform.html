@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Last Keepers — Life at the Edge of the Light · Tidewater Quarterly</title>
+<meta name="description" content="A long-read editorial feature from the fictional Tidewater Quarterly: an impressionistic story of lighthouse keepers, told with a sweeping hero beam, a dusk-to-night watch and an assembling Fresnel lens.">
+<meta name="theme-color" content="#14213d">
+<style>
+:root{
+  --paper:#f6f1e7;
+  --paper-2:#efe7d7;
+  --paper-3:#e6dcc8;
+  --ink:#14213d;
+  --ink-2:#26324f;
+  --ink-soft:#4f5a73;
+  --signal:#c0392b;
+  --signal-deep:#9a2c21;
+  --fog:#a3aab2;
+  --fog-2:#d7d3c9;
+  --fog-3:#6f7885;
+  --glow:#ffefc6;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"P052","URW Palladio L","Book Antiqua",Georgia,serif;
+  --didone:Didot,"Bodoni 72","Bodoni MT","Bodoni Moda","Big Caslon","C059","Century Schoolbook L","Century Schoolbook",Georgia,serif;
+  --measure:35rem;
+  --gutter:clamp(18px,4vw,32px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);
+  font-size:clamp(1.0625rem,.97rem + .36vw,1.25rem);
+  line-height:1.68;
+  font-kerning:normal;
+  font-variant-numeric:oldstyle-nums proportional-nums;
+  text-rendering:optimizeLegibility;
+  overflow-x:clip;
+}
+::selection{background:rgba(192,57,43,.22);color:var(--ink)}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:2px}
+.vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+#grain{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.55}
+main{position:relative;z-index:1}
+
+/* ---------- masthead + beam progress ---------- */
+.mast{
+  position:fixed;top:0;left:0;right:0;height:52px;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:0 var(--gutter);color:var(--paper);
+  transition:background-color .3s ease,box-shadow .3s ease;
+}
+.mast.solid{background:#14213d;box-shadow:0 1px 0 rgba(246,241,231,.07),0 10px 30px -18px rgba(0,0,0,.6)}
+.brand{position:relative;z-index:2;display:flex;align-items:center;gap:.6rem;text-decoration:none;font-variant:small-caps;letter-spacing:.14em;font-size:.95rem;white-space:nowrap}
+.brand i{font-style:italic;letter-spacing:.06em}
+.glyph{width:18px;height:36px;flex:none;overflow:visible}
+.glyph .lamp{fill:#ffe9b0;transition:fill .3s}
+.mast.solid .mast-meta{background:#14213d;box-shadow:-18px 0 16px #14213d;padding-left:.4rem}
+.mast-meta{position:relative;z-index:2;margin:0;font-variant:small-caps;letter-spacing:.14em;font-size:.88rem;opacity:.86;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48vw}
+.prog{position:absolute;top:0;bottom:0;left:calc(var(--gutter) + 9px);right:0;pointer-events:none;opacity:0;transition:opacity .7s ease;--p:0}
+.mast.solid .prog{opacity:1}
+.cone{position:absolute;left:0;top:50%;height:46px;margin-top:-23px;width:calc(var(--p) * 100%);
+  background:linear-gradient(90deg,rgba(255,240,200,.05),rgba(255,236,190,.26) 70%,rgba(255,246,222,.62));
+  clip-path:polygon(0 47%,100% 6%,100% 94%,0 53%);}
+.tipdot{position:absolute;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;left:calc(var(--p) * 100%);border-radius:50%;
+  background:radial-gradient(circle,rgba(255,250,232,.95) 0,rgba(255,236,190,.4) 35%,rgba(255,236,190,0) 70%)}
+.pline{position:absolute;left:0;bottom:0;height:2px;width:calc(var(--p) * 100%);background:var(--signal)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;height:100vh;height:100svh;min-height:560px;overflow:hidden;background:#0d1730;color:var(--paper);isolation:isolate}
+.scene,.beams{position:absolute;inset:0;width:100%;height:100%;display:block}
+.beams{z-index:1;pointer-events:none}
+.hero-shade{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:
+   linear-gradient(90deg,rgba(8,14,30,.58) 0%,rgba(8,14,30,.3) 36%,rgba(8,14,30,0) 60%),
+   linear-gradient(0deg,rgba(8,14,30,.5) 0%,rgba(8,14,30,0) 28%);}
+.hero-frame{position:absolute;inset:clamp(8px,1.4vw,18px);z-index:3;border:1px solid rgba(246,241,231,.16);pointer-events:none}
+.wash{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at var(--lx,75%) var(--ly,25%),rgba(255,244,214,.34),rgba(255,240,200,.08) 35%,rgba(255,240,200,0) 70%)}
+.hero-copy{position:absolute;z-index:5;left:clamp(22px,6.2vw,112px);top:var(--copy-top,22%);width:min(56rem,62vw)}
+.kicker{display:flex;align-items:center;gap:.8rem;margin:0 0 1.1rem;font-variant:small-caps;letter-spacing:.2em;font-size:clamp(.82rem,.75rem + .25vw,1rem);color:var(--fog-2)}
+.kicker::before{content:"";width:2.4rem;height:1px;background:var(--signal);box-shadow:0 0 0 .5px var(--signal)}
+.h1wrap{position:relative}
+.headline{margin:0;font-family:var(--didone);font-weight:400;font-size:clamp(3.7rem,10.6vw,11.2rem);line-height:.86;letter-spacing:-.028em;color:#f3ecdf;text-wrap:balance}
+.headline span{display:block}
+.headline em{font-style:italic;letter-spacing:-.04em}
+.headline .l2{margin-left:.42em}
+.lit{position:absolute;inset:0;pointer-events:none;color:#fff8e2;
+  text-shadow:0 0 .12em rgba(255,236,190,.9),0 0 .5em rgba(255,226,160,.55);clip-path:polygon(0 0,0 0,0 0)}
+.lit.pen{color:#f9ecd0;text-shadow:0 0 .3em rgba(255,226,160,.35)}
+.dek{margin:1.3rem 0 0 .12em;font-style:italic;font-size:clamp(1.3rem,1rem + 1.25vw,2.15rem);line-height:1.2;color:#eadfcd;max-width:24ch}
+.byline{margin:1.25rem 0 0 .15em;font-variant:small-caps;letter-spacing:.16em;font-size:clamp(.85rem,.8rem + .2vw,1rem);color:var(--fog-2)}
+.byline b{font-weight:600;color:#f3ecdf}
+.byline .nb{white-space:nowrap}
+@media (max-width:560px){.byline .nb{display:block}.byline .dot{display:none}}
+.hero-foot{position:absolute;z-index:5;left:0;right:0;bottom:clamp(20px,4vh,40px);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;padding:0 clamp(24px,6.2vw,112px)}
+.plate-cap{margin:0;font-style:italic;font-size:.86rem;color:rgba(246,241,231,.62);max-width:28ch;line-height:1.4}
+.plate-cap span{font-style:normal;font-variant:small-caps;letter-spacing:.14em;color:var(--fog-2)}
+.begin{display:inline-flex;flex-direction:column;align-items:center;gap:.5rem;background:none;border:0;cursor:pointer;padding:.4rem .6rem;font-variant:small-caps;letter-spacing:.24em;font-size:.9rem;color:var(--paper)}
+.begin .shaft{width:1px;height:46px;background:linear-gradient(rgba(246,241,231,.9),rgba(246,241,231,0));transform-origin:top;animation:shaft 2.6s ease-in-out infinite}
+@keyframes shaft{0%{transform:scaleY(0);opacity:1}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
+.hero-copy>*{animation:rise 1.1s cubic-bezier(.2,.7,.15,1) both}
+.hero-copy>:nth-child(2){animation-delay:.12s}
+.hero-copy>:nth-child(3){animation-delay:.3s}
+.hero-copy>:nth-child(4){animation-delay:.42s}
+.hero-foot{animation:fadein 1.4s .5s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+/* scene pieces */
+.star{fill:#fff6df;animation:twinkle 5s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.9}50%{opacity:.25}}
+.glit{fill:#f8dfbd;animation:glint 2.8s ease-in-out infinite}
+@keyframes glint{0%,100%{opacity:.75}45%{opacity:.12}}
+.foam{fill:#efe9df;animation:foam 5.5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes foam{0%,100%{opacity:.08;transform:scaleX(.7)}40%{opacity:.62;transform:scaleX(1.08)}}
+.gull{animation:glide 70s linear infinite}
+.gull path{fill:none;stroke:#1b2440;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:flap 1.1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes glide{from{transform:translate(0,0)}to{transform:translate(-900px,40px)}}
+@keyframes flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}
+.smoke{fill:#b5b3b7;animation:smoke 7s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes smoke{0%{transform:translate(0,0) scale(.5);opacity:0}15%{opacity:.5}100%{transform:translate(-40px,-70px) scale(2.2);opacity:0}}
+.shiplight{animation:blink 2.2s steps(1) infinite}
+@keyframes blink{0%,60%{opacity:1}61%,100%{opacity:.15}}
+.wave{fill:none;stroke:#ece4d8;stroke-linecap:round}
+
+/* ---------- article typography ---------- */
+.col{width:min(var(--measure),100% - 2*var(--gutter));margin-inline:auto}
+.standfirst{padding:clamp(4.5rem,9vw,8rem) 0 clamp(2.5rem,5vw,4rem);text-align:center}
+.standfirst p{margin:0 auto;max-width:30ch;font-style:italic;font-size:clamp(1.35rem,1.05rem + 1.1vw,2rem);line-height:1.38;color:var(--ink-2);text-wrap:balance}
+.orn{display:block;margin:0 auto 1.8rem;width:150px;height:18px;color:var(--signal)}
+.orn line{stroke:var(--ink);stroke-width:1;opacity:.45}
+.meta-row{display:flex;justify-content:center;flex-wrap:wrap;gap:.4rem 1.4rem;margin:2rem 0 0;padding:0;list-style:none;font-variant:small-caps;letter-spacing:.14em;font-size:.86rem;color:var(--fog-3)}
+.meta-row li+li::before{content:"·";margin-right:1.4rem;color:var(--signal)}
+
+.body p{margin:0 0 1.05em;hyphens:auto;-webkit-hyphens:auto}
+.body p+p{text-indent:1.4em}
+.body .noind,.body .lede{text-indent:0}
+.lede{font-size:1.04em}
+.lede .sc{font-variant:small-caps;letter-spacing:.08em;font-size:1.02em}
+.initial{float:left;position:relative;width:4.5em;height:4.62em;margin:.32em .72em .1em 0;
+  display:grid;place-items:center;
+  background:
+    repeating-conic-gradient(from -90deg at 100% 0,rgba(192,57,43,.09) 0 3deg,rgba(0,0,0,0) 3deg 9deg),
+    var(--paper-2);
+  border:1px solid var(--ink);
+  font-family:var(--didone);font-size:1em;line-height:1;color:var(--signal)}
+.initial::before{content:"";position:absolute;inset:4px;border:1px solid rgba(20,33,61,.45)}
+.initial::after{content:"";position:absolute;right:-1px;top:-1px;width:10px;height:10px;background:var(--signal)}
+.initial span{font-size:4.1em;line-height:.8;transform:translateY(.03em)}
+
+.sec{margin:clamp(3.5rem,7vw,5.5rem) 0 2.1rem;text-align:center;font-weight:400}
+.sec .num{display:block;font-family:var(--didone);font-size:clamp(3rem,2.2rem + 3vw,4.8rem);line-height:1;color:var(--signal);font-style:italic}
+.sec .t{display:flex;align-items:center;justify-content:center;gap:1rem;margin-top:.5rem;font-variant:small-caps;letter-spacing:.24em;font-size:clamp(1rem,.92rem + .3vw,1.2rem);color:var(--ink)}
+.sec .t::before,.sec .t::after{content:"";flex:0 1 4.5rem;height:1px;background:linear-gradient(90deg,transparent,rgba(20,33,61,.5))}
+.sec .t::after{background:linear-gradient(270deg,transparent,rgba(20,33,61,.5))}
+
+.fnref{appearance:none;border:0;background:none;padding:0 .12em;margin:0 0 0 .04em;cursor:pointer;
+  font-family:var(--serif);font-size:.66em;line-height:1;vertical-align:super;color:var(--signal);font-weight:700;font-variant-numeric:lining-nums;
+  border-bottom:1px dotted rgba(192,57,43,.6);transition:color .2s,background-color .2s}
+.fnref:hover,.fnref[aria-expanded="true"]{background:rgba(192,57,43,.12);color:var(--signal-deep)}
+
+.marg{font-size:.8rem;line-height:1.5;color:var(--ink-soft);margin:0 0 1.4em;padding:.1rem 0 .1rem 1rem;border-left:2px solid var(--signal)}
+.marg b{display:block;font-variant:small-caps;letter-spacing:.14em;font-weight:600;color:var(--signal);font-size:.8rem;margin-bottom:.2rem}
+@media (min-width:1180px){
+  .marg{float:right;clear:right;width:12.5rem;margin:.35em -16.5rem 1em 0;border-left:0;border-top:1px solid var(--signal);padding:.55rem 0 0}
+}
+
+.pull{position:relative;margin:2.6em 0;padding:1.6em 0 1.4em;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);text-align:center}
+.pull::before{content:"";position:absolute;left:50%;top:-5px;width:9px;height:9px;margin-left:-4.5px;background:var(--signal);transform:rotate(45deg)}
+.pull p{margin:0;font-family:var(--didone);font-style:italic;font-size:clamp(1.75rem,1.2rem + 2vw,2.9rem);line-height:1.12;letter-spacing:-.01em;color:var(--ink);text-indent:0!important;text-wrap:balance}
+.pull p::before{content:"\201C";color:var(--signal);margin-right:.04em}
+.pull p::after{content:"\201D";color:var(--signal);margin-left:.02em}
+.copyq{position:absolute;right:0;bottom:-15px;width:30px;height:30px;border-radius:50%;border:1px solid var(--ink);background:var(--paper);display:grid;place-items:center;cursor:pointer;color:var(--ink);transition:background-color .2s,color .2s,transform .2s}
+.copyq:hover{background:var(--ink);color:var(--paper);transform:translateY(-2px)}
+.copyq svg{width:14px;height:14px}
+@media (min-width:1100px){
+  .pull{margin:3em -7.5rem;padding:1.8em 3rem 1.6em}
+}
+
+/* ---------- dusk to night ---------- */
+.watch{position:relative;color:var(--paper);--s1:#2d3a63;--s2:#8a6a7e;--s3:#e0a383;--sea:#3b3552;background:var(--s1);overflow:clip}
+.edge{position:absolute;left:0;width:100%;height:clamp(36px,5vw,80px);z-index:3;display:block;pointer-events:none}
+.edge-top{top:-1px}
+.edge-bottom{bottom:-1px}
+.watch-sky{position:sticky;top:0;height:100vh;overflow:hidden;
+  background:linear-gradient(180deg,var(--s1) 0%,var(--s2) 58%,var(--s3) 84%,var(--s3) 100%)}
+.night{position:absolute;inset:0;width:100%;height:100%}
+.wc{fill:var(--cl,#f0b8a0);opacity:var(--co,.34)}
+.wclock{position:absolute;left:clamp(20px,5vw,72px);top:clamp(86px,14vh,140px);z-index:2;text-align:left}
+.wtime{display:block;font-family:var(--didone);font-size:clamp(2.4rem,1.6rem + 3vw,4.6rem);line-height:1;letter-spacing:-.01em;font-variant-numeric:lining-nums tabular-nums;color:#f6f1e7;text-shadow:0 2px 30px rgba(0,0,0,.35)}
+.wlbl{display:block;margin-top:.45rem;font-variant:small-caps;letter-spacing:.18em;font-size:.8rem;color:rgba(246,241,231,.72)}
+.wlog{position:absolute;right:clamp(20px,5vw,72px);top:clamp(90px,16vh,150px);z-index:2;margin:0;padding:1rem 1.2rem .6rem;list-style:none;width:17rem;
+  border:1px solid rgba(246,241,231,.24);background:rgba(10,16,34,.28);font-size:.82rem;line-height:1.45;color:rgba(246,241,231,.9)}
+.wlog::before{content:"Keeper\2019s log";display:block;font-variant:small-caps;letter-spacing:.18em;font-size:.78rem;color:#f0b7aa;margin-bottom:.6rem}
+.wlog li{margin:0 0 .6rem;opacity:.12;transform:translateX(8px);transition:opacity .8s ease,transform .8s ease;font-style:italic}
+.wlog li.on{opacity:1;transform:none}
+.wlog time{font-style:normal;font-variant-numeric:lining-nums tabular-nums;color:#f6f1e7;margin-right:.4rem;font-weight:600}
+.watch-text{position:relative;z-index:2;margin-top:-100vh;padding:34vh 0 52vh}
+.watch-text .sec .num{color:#f3a597}
+.watch-text .sec .t{color:var(--paper)}
+.watch-text .sec .t::before{background:linear-gradient(90deg,transparent,rgba(246,241,231,.6))}
+.watch-text .sec .t::after{background:linear-gradient(270deg,transparent,rgba(246,241,231,.6))}
+.watch-text .sec{margin-top:0}
+.watch-text p{margin:0 auto 36vh;text-shadow:0 1px 2px rgba(8,12,28,.55),0 0 24px rgba(8,12,28,.55);text-indent:0!important}
+.watch-text p:last-child{margin-bottom:0}
+.watch-text .fnref{color:#ffd0c4;border-bottom-color:rgba(255,208,196,.7)}
+.watch-text .marg{color:rgba(246,241,231,.86);border-color:#f3a597}
+.watch-text .marg b{color:#f3a597}
+.watch-text .pull{border-color:rgba(246,241,231,.7);margin-bottom:36vh}
+.watch-text .pull p{color:#fff7e6}
+.watch-text .pull .copyq{background:var(--ink);color:var(--paper);border-color:rgba(246,241,231,.7)}
+@media (min-width:1180px){.watch-text .marg{border-top-color:#f3a597}}
+
+/* ---------- lens plate ---------- */
+.plate{width:min(64rem,100% - 2*var(--gutter));margin:2.8rem auto 3.5rem;padding:clamp(1.1rem,2.6vw,2.2rem);background:var(--paper-2);border:1px solid var(--ink);position:relative}
+.plate::before{content:"";position:absolute;inset:6px;border:1px solid rgba(20,33,61,.3);pointer-events:none}
+.plate-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;border-bottom:1px solid rgba(20,33,61,.35);padding-bottom:.7rem;margin-bottom:1.2rem;font-variant:small-caps;letter-spacing:.18em;font-size:.86rem;color:var(--ink-soft)}
+.plate-head strong{font-family:var(--didone);font-weight:400;font-style:italic;letter-spacing:0;font-variant:normal;font-size:clamp(1.3rem,1rem + 1vw,1.8rem);color:var(--ink)}
+.plate-views{display:grid;grid-template-columns:1.18fr 1fr;gap:clamp(1rem,3vw,2.5rem);align-items:center}
+.plate-views figure{margin:0}
+.plate-views svg{display:block;width:100%;height:auto;overflow:visible}
+.view-cap{margin:.5rem 0 0;text-align:center;font-variant:small-caps;letter-spacing:.16em;font-size:.78rem;color:var(--fog-3)}
+.pc{transform-box:fill-box;transform-origin:center}
+.glass{fill:url(#gGlassSide);stroke:var(--ink);stroke-width:1.1;stroke-linejoin:round}
+.ray{fill:none;stroke:var(--signal);stroke-width:1.15;stroke-dasharray:1;stroke-dashoffset:1}
+.mk circle{fill:var(--paper);stroke:var(--ink);stroke-width:1}
+.mk text{font-family:var(--didone);font-style:italic;font-size:13px;fill:var(--signal);text-anchor:middle;dominant-baseline:central}
+.mk line{stroke:var(--ink);stroke-width:.8;opacity:.6}
+.plate-key{margin:1.6rem 0 0;padding:1.1rem 0 0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:.7rem 1.8rem;border-top:1px solid rgba(20,33,61,.35);font-size:.86rem;line-height:1.5;color:var(--ink-2)}
+.plate-key li{display:grid;grid-template-columns:1.7rem 1fr;align-items:start}
+.plate-key b{font-family:var(--didone);font-style:italic;font-weight:400;color:var(--signal);font-size:1.15rem;line-height:1.2}
+.plate-key strong{font-variant:small-caps;letter-spacing:.1em;font-weight:600}
+.plate figcaption.cap{margin:1.2rem 0 0;font-style:italic;font-size:.9rem;line-height:1.5;color:var(--ink-soft);max-width:60ch}
+.plate figcaption.cap span{font-style:normal;font-variant:small-caps;letter-spacing:.14em;color:var(--signal)}
+.assemble{display:flex;align-items:center;gap:.6rem;margin-top:.9rem;font-variant:small-caps;letter-spacing:.14em;font-size:.76rem;color:var(--fog-3)}
+.assemble i{display:block;flex:1;max-width:14rem;height:2px;background:rgba(20,33,61,.15);position:relative;overflow:hidden}
+.assemble i::after{content:"";position:absolute;inset:0;background:var(--signal);transform-origin:left;transform:scaleX(var(--ap,0))}
+
+/* ---------- endmatter ---------- */
+.signoff{display:flex;justify-content:center;margin:2.4rem 0 0}
+.signoff svg{width:32px;height:32px;color:var(--signal)}
+.notes{margin:clamp(3.5rem,7vw,5rem) auto 0;padding-top:1.6rem;border-top:1px solid var(--ink);font-size:.86rem;line-height:1.55;color:var(--ink-2)}
+.notes h2{margin:0 0 1rem;font-weight:400;font-variant:small-caps;letter-spacing:.2em;font-size:.95rem}
+.notes ol{margin:0;padding-left:1.4rem}
+.notes li{margin:0 0 .75rem;padding-left:.3rem}
+.notes li::marker{color:var(--signal);font-weight:700}
+.back{background:none;border:0;padding:0 .2rem;cursor:pointer;color:var(--signal);font-size:.95rem}
+.fiction{margin:2.2rem 0 0;padding:1rem 1.2rem;background:var(--paper-2);border-left:3px solid var(--signal);font-size:.86rem;line-height:1.55;color:var(--ink-soft)}
+.fiction b{font-variant:small-caps;letter-spacing:.12em;color:var(--ink)}
+.colophon{position:relative;z-index:1;margin-top:clamp(4rem,8vw,6rem);background:var(--ink);color:var(--fog-2);padding:clamp(2.5rem,6vw,4.5rem) var(--gutter) 3rem;text-align:center}
+.colophon .orn line{stroke:var(--fog-2)}
+.colophon p{margin:.4rem auto;max-width:44ch;font-size:.88rem;line-height:1.6}
+.colophon .mastname{font-family:var(--didone);font-size:clamp(1.6rem,1.2rem + 1.5vw,2.4rem);color:var(--paper);margin-bottom:.8rem;font-style:italic}
+.totop{margin-top:1.4rem;background:none;border:1px solid rgba(246,241,231,.4);color:var(--paper);padding:.55rem 1.2rem;cursor:pointer;font-variant:small-caps;letter-spacing:.2em;font-size:.84rem;transition:background-color .25s,color .25s}
+.totop:hover{background:var(--paper);color:var(--ink)}
+
+/* ---------- footnote popover ---------- */
+.fnpop{position:absolute;z-index:80;width:min(22rem,calc(100vw - 32px));padding:1rem 1.1rem 1rem 1.15rem;background:var(--ink);color:var(--paper);font-size:.86rem;line-height:1.55;
+  box-shadow:0 18px 40px -16px rgba(10,16,34,.6);border-top:3px solid var(--signal);opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .3s cubic-bezier(.2,.8,.2,1)}
+.fnpop.show{opacity:1;transform:none}
+.fnpop::before{content:"";position:absolute;top:-9px;left:var(--ax,50%);width:12px;height:12px;margin-left:-6px;background:var(--signal);transform:rotate(45deg);z-index:-1}
+.fnpop h3{margin:0 0 .35rem;font-weight:400;font-variant:small-caps;letter-spacing:.18em;font-size:.8rem;color:#f3a597}
+.fnpop p{margin:0}
+.fnpop .x{position:absolute;right:6px;top:6px;width:28px;height:28px;border:0;background:none;color:var(--fog-2);cursor:pointer;font-size:1.1rem;line-height:1;border-radius:50%}
+.fnpop .x:hover{background:rgba(246,241,231,.1)}
+.fnpop.sheet{position:fixed;left:12px!important;right:12px;bottom:12px;top:auto!important;width:auto}
+.fnpop.sheet::before{display:none}
+.toast{position:fixed;left:50%;bottom:24px;z-index:90;transform:translate(-50%,20px);opacity:0;background:var(--signal);color:#fff;padding:.55rem 1.1rem;font-variant:small-caps;letter-spacing:.14em;font-size:.86rem;transition:opacity .3s,transform .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- reveal ---------- */
+.js .reveal{opacity:0;transform:translateY(30px);transition:opacity 1.1s ease,transform 1.3s cubic-bezier(.18,.7,.16,1)}
+.js .reveal.in{opacity:1;transform:none}
+
+/* ---------- small screens ---------- */
+@media (max-width:760px){
+  .hero-copy{width:auto;right:22px}
+  .headline .l2{margin-left:.18em}
+  .hero-shade{background:linear-gradient(90deg,rgba(8,14,30,.55),rgba(8,14,30,.15) 80%),linear-gradient(0deg,rgba(8,14,30,.6) 0%,rgba(8,14,30,0) 34%)}
+  .plate-cap{display:none}
+  .hero-foot{justify-content:center}
+  .plate-views{grid-template-columns:1fr}
+  .wlog{left:16px;right:16px;width:auto;top:66px;padding:.7rem .9rem .3rem;font-size:.76rem}
+  .wlog li{display:none;margin-bottom:.4rem}
+  .wlog li.cur{display:block}
+  .wclock{top:auto;bottom:26px;left:18px}
+  .plate-head{flex-wrap:wrap;justify-content:flex-start;gap:.2rem 1rem}
+  .plate-head strong{order:-1;flex:1 1 100%}
+  .plate-head .ph-r::before{content:"·";margin-right:1rem;color:var(--signal)}
+  .mast-meta{max-width:42vw;font-size:.8rem}
+  .brand{font-size:.84rem;letter-spacing:.1em}
+}
+@media (max-width:420px){.brand .q{display:none}}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .star,.glit,.foam,.gull,.gull path,.smoke,.shiplight,.begin .shaft{animation:none!important}
+  .hero-copy>*,.hero-foot{animation-duration:.01s!important;animation-delay:0s!important}
+  .js .reveal{transform:none;transition:opacity .4s ease}
+}
+</style>
+</head>
+<body>
+<canvas id="grain" aria-hidden="true"></canvas>
+
+<header class="mast" id="mast">
+  <a class="brand" href="#top" aria-label="Tidewater Quarterly — back to the top">
+    <svg class="glyph" viewBox="0 0 18 36" aria-hidden="true" focusable="false">
+      <path d="M5 10 Q9 5 13 10Z" fill="currentColor"/>
+      <rect x="5.5" y="10.5" width="7" height="6" rx=".5" class="lamp"/>
+      <rect x="3.6" y="16.6" width="10.8" height="1.6" fill="currentColor"/>
+      <path d="M5.4 18.4h7.2l1.6 16.6H3.8z" fill="currentColor"/>
+      <path d="M5.1 22h7.8l.36 3.4H4.74z" fill="#c0392b"/>
+      <path d="M4.5 28.6h9l.36 3.4H4.14z" fill="#c0392b"/>
+    </svg>
+    <span>Tidewater <i class="q">Quarterly</i></span>
+  </a>
+  <div class="prog" id="prog" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <span class="cone"></span><span class="tipdot"></span><span class="pline"></span>
+  </div>
+  <p class="mast-meta" id="mastSec">No. 14 · Winter</p>
+</header>
+
+<main id="top">
+<article>
+
+<header class="hero" id="hero" data-label="No. 14 · Winter">
+  <svg id="scene" class="scene" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="642" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#0b1530"/>
+        <stop offset=".26" stop-color="#1a2850"/>
+        <stop offset=".48" stop-color="#3b4368"/>
+        <stop offset=".64" stop-color="#6c5c78"/>
+        <stop offset=".79" stop-color="#ad7373"/>
+        <stop offset=".9" stop-color="#d99a7e"/>
+        <stop offset="1" stop-color="#f1c99f"/>
+      </linearGradient>
+      <radialGradient id="gSun" cx="430" cy="640" r="560" gradientUnits="userSpaceOnUse" gradientTransform="translate(430 640) scale(1 .5) translate(-430 -640)">
+        <stop offset="0" stop-color="#ffe6bb" stop-opacity=".85"/>
+        <stop offset=".22" stop-color="#f4b995" stop-opacity=".45"/>
+        <stop offset=".6" stop-color="#b8727a" stop-opacity=".12"/>
+        <stop offset="1" stop-color="#b8727a" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="gSea" x1="0" y1="640" x2="0" y2="1000" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#8a7488"/>
+        <stop offset=".06" stop-color="#55526f"/>
+        <stop offset=".3" stop-color="#27365a"/>
+        <stop offset="1" stop-color="#0a1328"/>
+      </linearGradient>
+      <linearGradient id="gHorizon" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="#ffe0b8" stop-opacity=".1"/>
+        <stop offset=".27" stop-color="#ffe6c4" stop-opacity=".9"/>
+        <stop offset=".6" stop-color="#e8b39a" stop-opacity=".25"/>
+        <stop offset="1" stop-color="#e8b39a" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="gTower" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="#fff3dd"/>
+        <stop offset=".38" stop-color="#e8dccb"/>
+        <stop offset=".7" stop-color="#9e9aa6"/>
+        <stop offset="1" stop-color="#5d6380"/>
+      </linearGradient>
+      <linearGradient id="gBand" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="#e2553f"/>
+        <stop offset=".4" stop-color="#c0392b"/>
+        <stop offset=".75" stop-color="#8c2d2e"/>
+        <stop offset="1" stop-color="#5b2234"/>
+      </linearGradient>
+      <radialGradient id="gLantern" cx=".5" cy=".5" r=".6">
+        <stop offset="0" stop-color="#fffbef"/>
+        <stop offset=".35" stop-color="#ffe7a8"/>
+        <stop offset="1" stop-color="#e59a4e"/>
+      </radialGradient>
+      <radialGradient id="gHalo" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#fff2cf" stop-opacity=".95"/>
+        <stop offset=".25" stop-color="#ffdca0" stop-opacity=".4"/>
+        <stop offset="1" stop-color="#ffdca0" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="gFog" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#c9c6cc" stop-opacity=".38"/>
+        <stop offset="1" stop-color="#c9c6cc" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="gCottage" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="#efe3d0"/>
+        <stop offset="1" stop-color="#a49da4"/>
+      </linearGradient>
+    </defs>
+
+    <rect x="0" y="-520" width="1600" height="1162" fill="url(#gSky)"/>
+    <g id="stars"></g>
+    <circle cx="560" cy="318" r="2.6" fill="#fff8e8"/>
+    <circle cx="560" cy="318" r="9" fill="#fff8e8" opacity=".12"/>
+    <!-- high stratus -->
+    <path d="M660 300C880 282 1140 290 1380 306C1150 316 890 316 660 300Z" fill="#a3aab2" opacity=".16"/>
+    <path d="M60 422C240 404 440 410 650 428C500 438 270 440 60 422Z" fill="#e8a893" opacity=".32"/>
+    <path d="M250 516C500 496 820 502 1040 520C790 532 470 538 250 516Z" fill="#f6cfb0" opacity=".3"/>
+    <path d="M820 470C960 462 1100 466 1220 474C1100 480 950 482 820 470Z" fill="#e9b39e" opacity=".22"/>
+    <ellipse cx="430" cy="640" rx="620" ry="310" fill="url(#gSun)"/>
+    <!-- far headlands -->
+    <path d="M0 642V598C60 590 120 574 190 578C250 582 300 604 360 612C420 620 470 632 520 642Z" fill="#2a2f4d"/>
+    <path d="M500 642C580 634 650 630 720 636L760 642Z" fill="#46445f" opacity=".8"/>
+    <!-- sea -->
+    <rect x="0" y="640" width="1600" height="360" fill="url(#gSea)"/>
+    <rect x="0" y="639.2" width="1600" height="2" fill="url(#gHorizon)"/>
+    <g id="glitter"></g>
+    <!-- steamer on the horizon -->
+    <g transform="translate(610 624)">
+      <path d="M0 14H62L56 19H6Z" fill="#232a44"/>
+      <rect x="14" y="8" width="26" height="6" fill="#232a44"/>
+      <rect x="24" y="1" width="5" height="8" fill="#232a44"/>
+      <line x1="46" y1="14" x2="46" y2="0" stroke="#232a44" stroke-width="1"/>
+      <circle class="shiplight" cx="46" cy="0" r="1.6" fill="#ffe7b0"/>
+    </g>
+    <ellipse id="fogA" cx="620" cy="612" rx="560" ry="26" fill="url(#gFog)"/>
+    <g id="waves"></g>
+    <!-- rocks -->
+    <path d="M760 1000L780 972L812 960L842 976L856 1000Z" fill="#121b33"/>
+    <path d="M696 936L712 921L738 918L752 936Z" fill="#1c2644"/>
+    <path d="M820 1000L850 962L884 930L912 884L948 846L972 790L996 736L1016 710L1060 704L1300 706L1336 722L1372 748L1418 782L1470 812L1528 846L1600 862V1000Z" fill="#101a30"/>
+    <path d="M912 884L948 846L990 870L960 920Z" fill="#1a253f"/>
+    <path d="M972 790L996 736L1040 760L1010 820Z" fill="#1a253f"/>
+    <path d="M1300 706L1336 722L1320 780L1270 752Z" fill="#18223b"/>
+    <path d="M1418 782L1470 812L1440 870L1390 840Z" fill="#18223b"/>
+    <path d="M1030 850L1090 800L1150 830L1100 900Z" fill="#121c33"/>
+    <path d="M1200 860L1280 820L1330 880L1250 930Z" fill="#121c33"/>
+    <path d="M884 930L912 884L930 900L905 945Z" fill="#433e5c"/>
+    <path d="M948 846L972 790L986 806L963 860Z" fill="#433e5c"/>
+    <path d="M996 736L1016 710L1030 716L1010 752Z" fill="#5a4a63"/>
+    <path d="M850 962L884 930L912 884L948 846L972 790L996 736L1016 710L1060 704" fill="none" stroke="#b58a86" stroke-width="2" opacity=".55"/>
+    <ellipse class="foam" cx="846" cy="970" rx="44" ry="5"/>
+    <ellipse class="foam" cx="1548" cy="866" rx="54" ry="5" style="animation-delay:-2s"/>
+    <ellipse class="foam" cx="764" cy="975" rx="30" ry="4" style="animation-delay:-3.4s"/>
+    <ellipse class="foam" cx="726" cy="936" rx="24" ry="3" style="animation-delay:-1.2s"/>
+    <ellipse class="foam" cx="905" cy="930" rx="30" ry="4" style="animation-delay:-4.1s"/>
+    <!-- wall and path -->
+    <path d="M1016 706H1300" stroke="#0a1224" stroke-width="3"/>
+    <path d="M1250 706h8v-8h-8zM1266 706h8v-8h-8zM1282 706h8v-8h-8z" fill="#2c3552"/>
+    <!-- cottage -->
+    <rect x="1030" y="664" width="84" height="42" fill="url(#gCottage)"/>
+    <path d="M1022 667L1072 632L1122 667Z" fill="#7d2a26"/>
+    <path d="M1072 632L1122 667H1098Z" fill="#561d25"/>
+    <rect x="1092" y="634" width="10" height="22" fill="#5b2a2a"/>
+    <circle class="smoke" cx="1097" cy="628" r="5"/>
+    <circle class="smoke" cx="1097" cy="628" r="5" style="animation-delay:-2.4s"/>
+    <circle class="smoke" cx="1097" cy="628" r="5" style="animation-delay:-4.7s"/>
+    <rect x="1043" y="678" width="12" height="14" fill="#f3c77a"/>
+    <rect x="1043" y="678" width="12" height="14" fill="none" stroke="#5d4b44" stroke-width="1.2"/>
+    <rect x="1086" y="678" width="12" height="14" fill="#e9b464"/>
+    <rect x="1066" y="686" width="11" height="20" fill="#2a2536"/>
+    <!-- tower -->
+    <path d="M1169 300H1231L1252 705H1148Z" fill="url(#gTower)"/>
+    <path d="M1169 300H1231L1233.9 355H1166.1Z" fill="url(#gBand)"/>
+    <path d="M1161.7 440H1238.3L1241.4 500H1158.6Z" fill="url(#gBand)"/>
+    <path d="M1154 590H1246L1248.9 645H1151.1Z" fill="url(#gBand)"/>
+    <path d="M1231 300L1252 705H1222L1210 300Z" fill="#14213d" opacity=".22"/>
+    <rect x="1196" y="384" width="8" height="15" rx="4" fill="#1e2744"/>
+    <rect x="1195" y="528" width="9" height="16" rx="4.5" fill="#f1c47a"/>
+    <path d="M1188 705V682Q1200 668 1212 682V705Z" fill="#241f30"/>
+    <path d="M1192 705V684Q1200 675 1208 684V705Z" fill="#e4a55a" opacity=".55"/>
+    <!-- gallery + lantern -->
+    <rect x="1156" y="292" width="88" height="10" fill="#131d36"/>
+    <rect x="1159" y="271" width="82" height="2.6" fill="#131d36"/>
+    <path d="M1162 273v19M1170 273v19M1178 273v19M1186 273v19M1194 273v19M1202 273v19M1210 273v19M1218 273v19M1226 273v19M1234 273v19M1240 273v19" stroke="#131d36" stroke-width="1.3"/>
+    <rect x="1174" y="266" width="52" height="7" fill="#1a2440"/>
+    <circle id="halo" cx="1200" cy="247" r="70" fill="url(#gHalo)" opacity=".7"/>
+    <rect x="1178" y="222" width="44" height="45" fill="url(#gLantern)"/>
+    <path d="M1189 222v45M1200 222v45M1211 222v45M1178 245h44" stroke="#2a2b3f" stroke-width="1.3" opacity=".75"/>
+    <circle id="lampcore" cx="1200" cy="247" r="7" fill="#fffdf4"/>
+    <path d="M1172 223Q1200 186 1228 223Z" fill="#131d36"/>
+    <path d="M1200 190Q1214 200 1226 222H1228Q1216 196 1200 190Z" fill="#c0392b" opacity=".6"/>
+    <circle cx="1200" cy="186" r="5" fill="#131d36"/>
+    <path d="M1200 181V166" stroke="#131d36" stroke-width="1.6"/>
+    <!-- gulls -->
+    <g class="gull" style="animation-delay:-8s"><path d="M860 360q7-6 14 0q7-6 14 0"/></g>
+    <g class="gull" style="animation-delay:-20s;animation-duration:84s"><path d="M920 392q5-4 10 0q5-4 10 0"/></g>
+    <g class="gull" style="animation-delay:-46s;animation-duration:96s"><path d="M1320 330q6-5 12 0q6-5 12 0"/></g>
+    <ellipse id="fogB" cx="1160" cy="672" rx="620" ry="30" fill="url(#gFog)"/>
+    <path id="swell" fill="#0a1328" opacity=".55"/>
+  </svg>
+
+  <svg id="beams" class="beams" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="gBeam" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#fff8e0" stop-opacity=".8"/>
+        <stop offset=".2" stop-color="#ffecc0" stop-opacity=".42"/>
+        <stop offset=".65" stop-color="#ffe2aa" stop-opacity=".14"/>
+        <stop offset="1" stop-color="#ffe2aa" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="gBeamCore" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#fffdf4" stop-opacity=".95"/>
+        <stop offset=".3" stop-color="#fff2cf" stop-opacity=".45"/>
+        <stop offset="1" stop-color="#fff2cf" stop-opacity="0"/>
+      </linearGradient>
+      <radialGradient id="gGlare" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+        <stop offset=".12" stop-color="#fff5d8" stop-opacity=".75"/>
+        <stop offset=".4" stop-color="#ffe2a8" stop-opacity=".2"/>
+        <stop offset="1" stop-color="#ffe2a8" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <g id="beamA"><polygon id="beamAo" fill="url(#gBeam)"/><polygon id="beamAi" fill="url(#gBeamCore)"/></g>
+    <g id="beamB"><polygon id="beamBo" fill="url(#gBeam)"/><polygon id="beamBi" fill="url(#gBeamCore)"/></g>
+    <circle id="glare" r="1" fill="url(#gGlare)" opacity="0"/>
+  </svg>
+
+  <div class="hero-shade"></div>
+  <div class="hero-frame"></div>
+  <div class="wash" id="wash"></div>
+
+  <div class="hero-copy" id="heroCopy">
+    <p class="kicker">A Winter Feature</p>
+    <div class="h1wrap">
+      <h1 class="headline" id="headline"><span class="l1">The <em>Last</em></span><span class="l2">Keepers</span></h1>
+      <div class="headline lit pen" id="litPen" aria-hidden="true"><span class="l1">The <em>Last</em></span><span class="l2">Keepers</span></div>
+      <div class="headline lit" id="litCore" aria-hidden="true"><span class="l1">The <em>Last</em></span><span class="l2">Keepers</span></div>
+    </div>
+    <p class="dek">Life at the Edge of the Light</p>
+    <p class="byline"><span class="nb">By <b>Ada Penrose</b></span><span class="dot"> &nbsp;·&nbsp; </span><span class="nb">Drawings by <b>Tomas Lind</b></span></p>
+  </div>
+
+  <div class="hero-foot">
+    <p class="plate-cap"><span>Plate I.</span> The rock at dusk, a minute after the lamp is lit.</p>
+    <button class="begin" type="button" id="begin">Begin reading<span class="shaft" aria-hidden="true"></span></button>
+    <p class="plate-cap" aria-hidden="true" style="visibility:hidden"><span>Plate I.</span> The rock at dusk.</p>
+  </div>
+</header>
+
+<div class="standfirst col" id="standfirst">
+  <svg class="orn" viewBox="0 0 150 18" aria-hidden="true" focusable="false">
+    <line x1="0" y1="9" x2="58" y2="9"/><line x1="92" y1="9" x2="150" y2="9"/>
+    <path d="M75 1L78 8L75 17L72 8Z" fill="currentColor"/><circle cx="64" cy="9" r="1.6" fill="currentColor"/><circle cx="86" cy="9" r="1.6" fill="currentColor"/>
+  </svg>
+  <p>They lived on rocks at the ends of the map, in towers built to be seen and never visited. This is a story about the watching&nbsp;— and about the evening it stopped.</p>
+  <ul class="meta-row">
+    <li>Fiction</li><li>Five-minute read</li><li>Winter issue</li>
+  </ul>
+</div>
+
+<div class="body">
+<section class="col" id="s-rock" data-label="I · The Rock" aria-labelledby="h-rock">
+  <p class="lede reveal"><span class="initial" aria-hidden="true"><span>T</span></span><span class="vh">T</span><span class="sc">he light was never</span> the keeper’s to own. It belonged to ships that would never learn his name, to trawlers running late for harbour, to the sleepless on the mainland who glanced up at two in the morning and found, far out on the black water, a small star turning. The keeper only tended it, the way you tend a fire in a house where everyone else has gone to bed.</p>
+  <p class="reveal">I have spent most of a winter trying to imagine what that tending felt like. What follows is not history. It is a composite, a weather report from a country that no longer exists: the country of the last keepers, who lived at the edge of the light and then, one by one, were asked to leave it.</p>
+
+  <h2 class="sec reveal" id="h-rock"><span class="num">I</span><span class="t">The Rock</span></h2>
+
+  <aside class="marg reveal" aria-label="Margin note"><b>Relief</b>Supply boats kept the sea’s timetable, not the calendar’s. A keeper’s larder was a hedge against a fortnight of weather.</aside>
+  <p class="noind reveal">Picture a rock with no trees on it. A tower, white banded in red, rising from basalt the colour of wet slate. A cottage with walls a yard thick and windows set deep as eyes. A vegetable patch the gulls regard as common land. A derrick for the supply boat, which comes when the sea allows and not a day before.</p>
+  <p class="reveal">Everything on the rock is measured in tides and turns. The keeper knows the hour by the colour of the water and the week by the level of oil in the store. He knows which of the hundred and eleven stairs creaks in a north wind<button class="fnref" type="button" data-fn="1" aria-expanded="false" aria-label="Footnote 1">1</button> and which one weeps salt in the thaw. He has learned the particular silence that falls between one wave and the next, and learned not to trust it. Darkness was never the enemy. Darkness was the job.</p>
+
+  <aside class="pull reveal" aria-label="Pull quote">
+    <p>Darkness was never the enemy. Darkness was the job.</p>
+    <button class="copyq" type="button" aria-label="Copy this quote"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5" y="5" width="8.5" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 11V3.5A1.5 1.5 0 0 1 4.5 2H10" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
+  </aside>
+</section>
+
+<section class="watch" id="s-watch" data-label="II · The Watch" aria-labelledby="h-watch">
+  <svg class="edge edge-top" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 0H1440V30C1320 54 1190 16 1040 28S760 68 600 50 330 12 190 34 50 60 0 46Z" fill="#f6f1e7"/></svg>
+  <div class="watch-sky">
+    <svg class="night" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+      <defs>
+        <radialGradient id="gMoonGlow" cx=".5" cy=".5" r=".5">
+          <stop offset="0" stop-color="#fff6de" stop-opacity=".5"/>
+          <stop offset=".3" stop-color="#e9e2d0" stop-opacity=".14"/>
+          <stop offset="1" stop-color="#e9e2d0" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="gMiniHalo" cx=".5" cy=".5" r=".5">
+          <stop offset="0" stop-color="#fff2cf" stop-opacity=".9"/>
+          <stop offset="1" stop-color="#fff2cf" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="gMiniBeam" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#fff3d2" stop-opacity=".75"/>
+          <stop offset="1" stop-color="#fff3d2" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g id="wStars" opacity="0"></g>
+      <g id="wClouds">
+        <path class="wc" d="M-100 330C200 312 520 318 820 336C560 346 180 350-100 330Z"/>
+        <path class="wc" d="M700 470C980 452 1320 458 1700 478C1360 488 960 492 700 470Z"/>
+        <path class="wc" d="M100 610C360 596 640 600 900 614C660 624 330 626 100 610Z"/>
+        <path class="wc" d="M980 690C1180 680 1420 684 1640 694C1440 702 1180 704 980 690Z"/>
+      </g>
+      <g id="wMoon" transform="translate(1240 900)">
+        <circle r="150" fill="url(#gMoonGlow)"/>
+        <circle r="30" fill="#f3ecda"/>
+        <circle cx="-9" cy="-7" r="6" fill="#ddd4be"/>
+        <circle cx="8" cy="9" r="4.2" fill="#ddd4be"/>
+        <circle cx="10" cy="-10" r="2.6" fill="#ddd4be"/>
+      </g>
+      <g id="wIsland">
+        <path d="M40 862V852C110 850 160 840 210 842C260 836 300 846 340 852C380 857 420 860 470 862Z" fill="#0b1224" opacity=".85"/>
+        <path d="M200 862L236 842L262 838L292 842L318 852L336 862Z" fill="#060b18"/>
+        <path d="M258.5 804H265.5L268 840H256Z" fill="#0a1020"/>
+        <rect x="256" y="794" width="12" height="10" fill="#ffe7aa"/>
+        <path d="M255 794Q262 786 269 794Z" fill="#0a1020"/>
+        <circle cx="262" cy="799" r="16" fill="url(#gMiniHalo)"/>
+        <g id="wBeamA"><polygon id="wBeamAp" fill="url(#gMiniBeam)"/></g>
+        <g id="wBeamB"><polygon id="wBeamBp" fill="url(#gMiniBeam)"/></g>
+      </g>
+      <rect x="0" y="860" width="1600" height="140" style="fill:var(--sea)"/>
+      <rect x="0" y="859.5" width="1600" height="1.2" fill="#f6f1e7" opacity=".14"/>
+      <path d="M60 884h90m60 0h40M420 880h120m80 0h30M900 890h70m50 0h140M1320 882h100m40 0h60M160 912h160m90 0h60M700 918h120M1050 924h200m60 0h90M40 956h240M520 962h180m120 0h90M1180 968h260" stroke="#f6f1e7" stroke-width="1.2" stroke-linecap="round" opacity=".07" fill="none"/>
+      <g id="wGlitter" opacity="0"></g>
+    </svg>
+    <div class="wclock" aria-hidden="true"><span class="wtime" id="wTime">19:40</span><span class="wlbl">The watch, hour by hour</span></div>
+    <ol class="wlog" id="wLog" aria-label="Keeper’s log (illustrative)">
+      <li data-at=".08"><time>20:00</time>Wind WSW, fresh. Sea moderate. Lamp lit at dusk.</li>
+      <li data-at=".42"><time>00:00</time>Wind backing south. Haze thickening. One steamer bound north.</li>
+      <li data-at=".76"><time>04:00</time>Wind light. Sea slight. All well.</li>
+    </ol>
+  </div>
+
+  <div class="watch-text col">
+    <h2 class="sec reveal" id="h-watch"><span class="num">II</span><span class="t">The Watch</span></h2>
+    <p class="reveal">At dusk the ritual begins. He climbs with a lamp in one hand and a cloth in the other, and he does what keepers have always done first: he polishes. Salt, soot, the fine grey bloom the fog leaves behind — all of it steals light, and light is the only thing he is here to give away.</p>
+    <p class="reveal">Then the wick, trimmed square. Then the flame, coaxed from blue to gold. Then the clockwork, wound by hand, a weight sinking slowly through the heart of the tower so that the great lens can turn on its bath of mercury<button class="fnref" type="button" data-fn="2" aria-expanded="false" aria-label="Footnote 2">2</button> — tonnes of glass floating like a leaf on a pond.</p>
+    <p class="reveal">And then the long part. The watch. The sea goes from pewter to ink. The mainland lights come out like someone sowing seed. Somewhere past midnight the stars lose their argument with the cloud, and the only light left in the world seems to be the one above his head, pouring out in two slow arms, sweeping the water, touching nothing, touching everything.</p>
+    <aside class="marg reveal" aria-label="Margin note"><b>The log</b>Entries were terse as telegrams: wind, sea, visibility, vessels. A dull page meant a good night.</aside>
+    <p class="reveal">He writes in the log every four hours: wind, visibility, the state of the sea, vessels observed. Most nights the entries are dull, and the dullness is the achievement. A quiet log means that no one, anywhere within reach of the beam, has come to grief.</p>
+    <aside class="pull reveal" aria-label="Pull quote">
+      <p>A quiet log means that no one, anywhere within reach of the beam, has come to grief.</p>
+      <button class="copyq" type="button" aria-label="Copy this quote"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5" y="5" width="8.5" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 11V3.5A1.5 1.5 0 0 1 4.5 2H10" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
+    </aside>
+  </div>
+  <svg class="edge edge-bottom" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 80H1440V40C1300 20 1180 62 1030 50S760 12 600 30 330 70 190 46 50 22 0 34Z" fill="#f6f1e7"/></svg>
+</section>
+
+<section class="col" id="s-lens" data-label="III · The Lens" aria-labelledby="h-lens">
+  <h2 class="sec reveal" id="h-lens"><span class="num">III</span><span class="t">The Lens</span></h2>
+  <p class="noind reveal">Up close the lens is not a single glass eye at all but a beehive of prisms, ring upon ring of them, each set at its own precise angle to catch a sliver of the flame and bend it level. Stand inside it on a clear afternoon and you are in a cathedral made of rainbows. Keepers drew the curtains by day<button class="fnref" type="button" data-fn="3" aria-expanded="false" aria-label="Footnote 3">3</button> for good reason: glass that can throw a flame across twenty miles of sea can also, turned toward the sun, set fire to the room it lives in.</p>
+</section>
+
+<figure class="plate" id="plate" aria-labelledby="plateCap">
+  <div class="plate-head"><span>Plate III</span><strong>Anatomy of a Lens</strong><span class="ph-r">Section &amp; elevation</span></div>
+  <div class="plate-views">
+    <figure>
+      <svg id="lensSide" viewBox="0 0 520 440" role="img" aria-labelledby="lsT lsD">
+        <title id="lsT">Cross-section of a Fresnel lens panel</title>
+        <desc id="lsD">A lamp at the focal point on the left; to its right a central bullseye lens, three refracting prisms above and below it, and three reflecting prisms curving back at top and bottom, all bending rays into a level beam.</desc>
+        <defs>
+          <linearGradient id="gGlassSide" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f4f8f8"/>
+            <stop offset=".5" stop-color="#d4dde2"/>
+            <stop offset="1" stop-color="#aebbc5"/>
+          </linearGradient>
+          <linearGradient id="gBeamPlate" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#c0392b" stop-opacity=".12"/>
+            <stop offset="1" stop-color="#c0392b" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <rect x="296" y="14" width="214" height="412" fill="url(#gBeamPlate)" class="raysoft" opacity="0"/>
+        <line x1="30" y1="220" x2="510" y2="220" stroke="#14213d" stroke-width=".7" stroke-dasharray="3 5" opacity=".45"/>
+        <g class="rays">
+          <path class="ray" pathLength="1" d="M118 220H505"/>
+          <path class="ray" pathLength="1" d="M118 220L262 171H505"/>
+          <path class="ray" pathLength="1" d="M118 220L262 141H505"/>
+          <path class="ray" pathLength="1" d="M118 220L262 111H505"/>
+          <path class="ray" pathLength="1" d="M118 220L262 269H505"/>
+          <path class="ray" pathLength="1" d="M118 220L262 299H505"/>
+          <path class="ray" pathLength="1" d="M118 220L262 329H505"/>
+          <path class="ray" pathLength="1" d="M118 220L262.7 76.7H505"/>
+          <path class="ray" pathLength="1" d="M118 220L244 48.7H505"/>
+          <path class="ray" pathLength="1" d="M118 220L221.3 24.7H505"/>
+          <path class="ray" pathLength="1" d="M118 220L262.7 363.3H505"/>
+          <path class="ray" pathLength="1" d="M118 220L244 391.3H505"/>
+          <path class="ray" pathLength="1" d="M118 220L221.3 415.3H505"/>
+        </g>
+        <!-- frame -->
+        <g class="pc" data-k="9" data-x="60" data-y="0" data-r="0" data-s="1">
+          <path d="M196 6C250 18 288 60 294 108V332C288 380 250 422 196 434" fill="none" stroke="#6f7885" stroke-width="3"/>
+          <path d="M258 94H294M258 346H294M259 96V344" stroke="#6f7885" stroke-width="2" fill="none"/>
+        </g>
+        <!-- lamp -->
+        <g class="pc" data-k="0" data-x="-50" data-y="0" data-r="0" data-s="1">
+          <rect x="106" y="236" width="24" height="30" rx="2" fill="#14213d"/>
+          <rect x="100" y="266" width="36" height="6" rx="1" fill="#14213d"/>
+          <path d="M118 198C127 209 130 222 118 236C106 222 109 209 118 198Z" fill="#c0392b"/>
+          <path d="M118 212C122 218 123 225 118 232C113 225 114 218 118 212Z" fill="#ffd88f"/>
+        </g>
+        <!-- bullseye -->
+        <g class="pc" data-k="1" data-x="0" data-y="0" data-r="0" data-s=".2"><path class="glass" d="M262 188V252Q296 220 262 188Z"/></g>
+        <!-- dioptric -->
+        <g class="pc" data-k="2" data-x="70" data-y="-20" data-r="-25" data-s="1"><path class="glass" d="M262 158V184H284Z"/></g>
+        <g class="pc" data-k="2" data-x="70" data-y="20" data-r="25" data-s="1"><path class="glass" d="M262 282V256H284Z"/></g>
+        <g class="pc" data-k="3" data-x="80" data-y="-40" data-r="-30" data-s="1"><path class="glass" d="M262 128V154H282Z"/></g>
+        <g class="pc" data-k="3" data-x="80" data-y="40" data-r="30" data-s="1"><path class="glass" d="M262 312V286H282Z"/></g>
+        <g class="pc" data-k="4" data-x="90" data-y="-60" data-r="-35" data-s="1"><path class="glass" d="M262 98V124H280Z"/></g>
+        <g class="pc" data-k="4" data-x="90" data-y="60" data-r="35" data-s="1"><path class="glass" d="M262 342V316H280Z"/></g>
+        <!-- catadioptric -->
+        <g class="pc" data-k="5" data-x="40" data-y="-80" data-r="60" data-s="1"><path class="glass" d="M250 88L276 80L262 62Z"/></g>
+        <g class="pc" data-k="5" data-x="40" data-y="80" data-r="-60" data-s="1"><path class="glass" d="M250 352L276 360L262 378Z"/></g>
+        <g class="pc" data-k="6" data-x="30" data-y="-90" data-r="70" data-s="1"><path class="glass" d="M232 60L258 52L242 34Z"/></g>
+        <g class="pc" data-k="6" data-x="30" data-y="90" data-r="-70" data-s="1"><path class="glass" d="M232 380L258 388L242 406Z"/></g>
+        <g class="pc" data-k="7" data-x="20" data-y="-100" data-r="80" data-s="1"><path class="glass" d="M210 36L236 28L218 10Z"/></g>
+        <g class="pc" data-k="7" data-x="20" data-y="100" data-r="-80" data-s="1"><path class="glass" d="M210 404L236 412L218 430Z"/></g>
+        <g class="mk lbl" opacity="0">
+          <line x1="84" y1="262" x2="104" y2="250"/><circle cx="76" cy="268" r="11"/><text x="76" y="268">A</text>
+          <line x1="318" y1="236" x2="282" y2="224"/><circle cx="328" cy="240" r="11"/><text x="328" y="240">B</text>
+          <line x1="318" y1="150" x2="283" y2="163"/><circle cx="328" cy="146" r="11"/><text x="328" y="146">C</text>
+          <line x1="292" y1="44" x2="258" y2="52"/><circle cx="302" cy="42" r="11"/><text x="302" y="42">D</text>
+          <line x1="318" y1="396" x2="268" y2="398"/><circle cx="328" cy="396" r="11"/><text x="328" y="396">E</text>
+          <text x="470" y="206" style="font-size:11px;font-style:normal;letter-spacing:.14em;fill:#4f5a73">LEVEL BEAM</text>
+        </g>
+      </svg>
+      <figcaption class="view-cap">Section — light leaves the flame</figcaption>
+    </figure>
+    <figure>
+      <svg id="lensFront" viewBox="0 0 440 440" role="img" aria-labelledby="lfT">
+        <title id="lfT">Front elevation of a lens panel: a bullseye ringed by refracting prisms, with reflecting prisms above and below</title>
+        <defs>
+          <radialGradient id="gBull" cx=".42" cy=".38" r=".7">
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset=".35" stop-color="#e3eaee"/>
+            <stop offset="1" stop-color="#9fb0bc"/>
+          </radialGradient>
+          <linearGradient id="gRing" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f7fafa"/>
+            <stop offset=".45" stop-color="#c9d4da"/>
+            <stop offset="1" stop-color="#93a4b1"/>
+          </linearGradient>
+          <clipPath id="clipCata"><rect x="42" y="22" width="356" height="82"/><rect x="42" y="336" width="356" height="82"/></clipPath>
+          <radialGradient id="gCore" cx=".5" cy=".5" r=".5">
+            <stop offset="0" stop-color="#fff3cf"/>
+            <stop offset="1" stop-color="#fff3cf" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect x="40" y="20" width="360" height="400" rx="4" fill="#e9e1d1" stroke="#6f7885" stroke-width="1.2"/>
+        <g class="pc" data-k="5" data-x="0" data-y="-70" data-r="0" data-s="1" clip-path="url(#clipCata)">
+          <circle cx="220" cy="220" r="128" fill="none" stroke="url(#gRing)" stroke-width="15"/>
+          <circle cx="220" cy="220" r="150" fill="none" stroke="url(#gRing)" stroke-width="15"/>
+          <circle cx="220" cy="220" r="172" fill="none" stroke="url(#gRing)" stroke-width="15"/>
+          <circle cx="220" cy="220" r="194" fill="none" stroke="url(#gRing)" stroke-width="15"/>
+        </g>
+        <g class="pc" data-k="1" data-x="0" data-y="0" data-r="0" data-s=".1">
+          <circle cx="220" cy="220" r="60" fill="url(#gCore)" opacity=".7"/>
+          <circle cx="220" cy="220" r="34" fill="url(#gBull)" stroke="#14213d" stroke-width="1"/>
+          <path d="M200 206A26 26 0 0 1 222 196" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+        </g>
+        <g class="pc" data-k="2" data-x="0" data-y="0" data-r="-40" data-s="1.7"><circle cx="220" cy="220" r="46" fill="none" stroke="url(#gRing)" stroke-width="17"/><circle cx="220" cy="220" r="54.5" fill="none" stroke="#14213d" stroke-width=".8"/></g>
+        <g class="pc" data-k="3" data-x="0" data-y="0" data-r="40" data-s="1.7"><circle cx="220" cy="220" r="68" fill="none" stroke="url(#gRing)" stroke-width="17"/><circle cx="220" cy="220" r="76.5" fill="none" stroke="#14213d" stroke-width=".8"/></g>
+        <g class="pc" data-k="4" data-x="0" data-y="0" data-r="-40" data-s="1.7"><circle cx="220" cy="220" r="90" fill="none" stroke="url(#gRing)" stroke-width="17"/><circle cx="220" cy="220" r="98.5" fill="none" stroke="#14213d" stroke-width=".8"/></g>
+        <g class="pc" data-k="9" data-x="0" data-y="0" data-r="0" data-s="1.15">
+          <path d="M40 106H400M40 334H400" stroke="#6f7885" stroke-width="3"/>
+          <path d="M40 20V420M400 20V420" stroke="#6f7885" stroke-width="4"/>
+          <path d="M150 106V20M290 106V20M150 334V420M290 334V420" stroke="#6f7885" stroke-width="1.6"/>
+        </g>
+        <g class="mk lbl" opacity="0">
+          <line x1="248" y1="236" x2="292" y2="252"/><circle cx="302" cy="256" r="11"/><text x="302" y="256">B</text>
+          <line x1="170" y1="170" x2="138" y2="146"/><circle cx="130" cy="140" r="11"/><text x="130" y="140">C</text>
+          <line x1="220" y1="64" x2="220" y2="84"/><circle cx="220" cy="56" r="11" /><text x="220" y="56">D</text>
+          <line x1="386" y1="334" x2="370" y2="360"/><circle cx="366" cy="370" r="11"/><text x="366" y="370">E</text>
+        </g>
+      </svg>
+      <figcaption class="view-cap">Elevation — as a ship would see it</figcaption>
+    </figure>
+  </div>
+  <ol class="plate-key">
+    <li><b>A</b><span><strong>The lamp.</strong> Everything else exists to serve one small flame at the focal point.</span></li>
+    <li><b>B</b><span><strong>Bullseye.</strong> A central lens gathers the light that leaves the flame straight ahead.</span></li>
+    <li><b>C</b><span><strong>Dioptric prisms.</strong> Rings of glass that bend (refract) the rays above and below the bullseye into line.</span></li>
+    <li><b>D</b><span><strong>Catadioptric prisms.</strong> Outer rings that catch the steepest rays and turn them by total internal reflection.</span></li>
+    <li><b>E</b><span><strong>Frame.</strong> Bronze holds every prism at its own angle, so the panel acts as one lens.</span></li>
+  </ol>
+  <figcaption class="cap" id="plateCap"><span>Fig. 1</span> — Augustin-Jean Fresnel’s design, first lit at Cordouan in the Gironde estuary in 1823, replaced one impossibly thick lens with rings of thin prisms that behave as if they were one.</figcaption>
+  <div class="assemble" aria-hidden="true"><span>Assembly</span><i id="assembleBar"></i></div>
+</figure>
+
+<section class="col" id="s-last" data-label="IV · The Last Light" aria-labelledby="h-last">
+  <h2 class="sec reveal" id="h-last"><span class="num">IV</span><span class="t">The Last Light</span></h2>
+  <p class="noind reveal">Then the machines came, as machines do, patient and very reasonable. A sensor to know the dusk. A motor to turn the lens. A bulb that did not need trimming, and a changer that swapped it when it failed. A radio link, so that someone on the mainland, drinking tea in an office, could see that all was well.</p>
+  <aside class="marg reveal" aria-label="Margin note"><b>Automation</b>Through the twentieth century most of the world’s lighthouses lost their keepers; many now run on sunlight and small, patient lamps.</aside>
+  <p class="reveal">Nobody could argue with it. The light would still burn. The ships would still pass safely. Only the watching would stop — the human part, the part that had never appeared on any chart.</p>
+  <aside class="pull reveal" aria-label="Pull quote">
+    <p>Only the watching would stop — the part that had never appeared on any chart.</p>
+    <button class="copyq" type="button" aria-label="Copy this quote"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="5" y="5" width="8.5" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 11V3.5A1.5 1.5 0 0 1 4.5 2H10" fill="none" stroke="currentColor" stroke-width="1.4"/></svg></button>
+  </aside>
+  <p class="noind reveal">On the last evening our composite keeper — let us give him that much — climbs the stair one more time. He polishes glass that no longer needs him. He writes a final line in the log, and it is only the weather: wind light, sea slight, visibility good. Then he walks down, shuts a door that will not be opened again for months, and stands on the landing stage while the boat comes in.</p>
+  <p class="reveal">Behind him, at dusk, exactly on time and entirely alone, the light comes on.</p>
+  <p class="reveal">The towers stand yet, most of them. Their lamps have been swapped for smaller, cleverer things, and some of the great lenses have been lifted out and set behind museum glass, where children press their faces close and watch the room turn inside out. If you are ever on a coast at nightfall, watch for the flash. Count the seconds between. Every light has its own rhythm, its own signature written on the dark,<button class="fnref" type="button" data-fn="4" aria-expanded="false" aria-label="Footnote 4">4</button> and somebody, once, stayed up all night to keep it true.</p>
+  <div class="signoff reveal"><svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 2L18.2 13.8L30 16L18.2 18.2L16 30L13.8 18.2L2 16L13.8 13.8Z" fill="currentColor"/><circle cx="16" cy="16" r="2.4" fill="#f6f1e7"/></svg></div>
+
+  <section class="notes" aria-labelledby="h-notes">
+    <h2 id="h-notes">Notes</h2>
+    <ol>
+      <li id="fn-1">The stair count is invented, like the rock itself. Real towers vary enormously in height, and so in the number of steps a keeper climbed each night. <button class="back" type="button" data-back="1" aria-label="Back to footnote 1 in the text">↩</button></li>
+      <li id="fn-2">From the late nineteenth century many large rotating lenses floated in a trough of mercury, which let a falling clockwork weight turn several tonnes of glass with very little friction. <button class="back" type="button" data-back="2" aria-label="Back to footnote 2 in the text">↩</button></li>
+      <li id="fn-3">Keepers hung linen curtains or blinds inside the lantern during the day, to shield the lens from the sun and to stop it concentrating sunlight into heat. <button class="back" type="button" data-back="3" aria-label="Back to footnote 3 in the text">↩</button></li>
+      <li id="fn-4">A light’s pattern of flashes and eclipses is called its characteristic. It is printed beside the tower on nautical charts, so a navigator can tell one light from another in the dark. <button class="back" type="button" data-back="4" aria-label="Back to footnote 4 in the text">↩</button></li>
+    </ol>
+    <p class="fiction"><b>A note on the story.</b> “The Last Keepers” is a work of fiction. The rock, the keeper, the writer, the illustrator and <i>Tidewater Quarterly</i> are all imagined. The lens is real.</p>
+  </section>
+</section>
+</div>
+</article>
+</main>
+
+<footer class="colophon">
+  <svg class="orn" viewBox="0 0 150 18" aria-hidden="true" focusable="false">
+    <line x1="0" y1="9" x2="58" y2="9"/><line x1="92" y1="9" x2="150" y2="9"/>
+    <path d="M75 1L78 8L75 17L72 8Z" fill="#c0392b"/><circle cx="64" cy="9" r="1.6" fill="#c0392b"/><circle cx="86" cy="9" r="1.6" fill="#c0392b"/>
+  </svg>
+  <p class="mastname">Tidewater Quarterly</p>
+  <p>A fictional magazine of coasts and the people who watch them. No. 14, the winter issue.</p>
+  <p>Set in Iowan Old Style or Palatino, with headlines in Didot — or the nearest Didone your system keeps on the shelf.</p>
+  <button class="totop" type="button" id="toTop">Return to the light</button>
+</footer>
+
+<div class="fnpop" id="fnpop" role="dialog" aria-modal="false" aria-labelledby="fnpopH" tabindex="-1" hidden>
+  <h3 id="fnpopH">Note</h3>
+  <p id="fnpopB"></p>
+  <button class="x" type="button" id="fnpopX" aria-label="Close note">×</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+(function(){
+  var doc = document, root = doc.documentElement;
+  root.classList.add('js');
+  function $(s, c){ return (c || doc).querySelector(s); }
+  function $$(s, c){ return Array.prototype.slice.call((c || doc).querySelectorAll(s)); }
+  var NS = 'http://www.w3.org/2000/svg';
+  var mq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var RM = !!(mq && mq.matches);
+  if (mq) { try { mq.addEventListener('change', function(e){ RM = e.matches; onScroll(); }); } catch (_) {} }
+  function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  var seed = 4127;
+  function rnd(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+
+  /* ---------------- paper grain ---------------- */
+  var grain = $('#grain');
+  function paintGrain(){
+    var w = innerWidth, h = innerHeight;
+    grain.width = w; grain.height = h;
+    var g = grain.getContext('2d');
+    var tile = doc.createElement('canvas'); tile.width = tile.height = 180;
+    var tg = tile.getContext('2d'), img = tg.createImageData(180, 180), d = img.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var r = Math.random();
+      if (r < .5) { d[i] = 70; d[i+1] = 58; d[i+2] = 40; d[i+3] = Math.random() * 20; }
+      else { d[i] = 255; d[i+1] = 252; d[i+2] = 244; d[i+3] = Math.random() * 26; }
+    }
+    tg.putImageData(img, 0, 0);
+    g.fillStyle = g.createPattern(tile, 'repeat');
+    g.fillRect(0, 0, w, h);
+  }
+
+  /* ---------------- hero scene ---------------- */
+  var hero = $('#hero'), scene = $('#scene'), beams = $('#beams');
+  var SW = 1600, SH = 1000, LX = 1200, LY = 247;
+  var vb = [0, 0, SW, SH];
+  var starG = $('#stars');
+  for (var i = 0; i < 150; i++) {
+    var c = doc.createElementNS(NS, 'circle');
+    var y = i < 110 ? Math.pow(rnd(), 1.5) * 440 + 8 : -rnd() * 330, x = i < 110 ? rnd() * SW : 700 + rnd() * 900;
+    c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1));
+    c.setAttribute('r', (.45 + rnd() * 1.25).toFixed(2));
+    c.setAttribute('class', 'star');
+    c.setAttribute('opacity', (1 - y / 520).toFixed(2));
+    c.style.animationDelay = (-rnd() * 6).toFixed(2) + 's';
+    c.style.animationDuration = (3 + rnd() * 5).toFixed(2) + 's';
+    starG.appendChild(c);
+  }
+  var glit = $('#glitter');
+  for (i = 0; i < 26; i++) {
+    var gr = doc.createElementNS(NS, 'rect');
+    var gy = 646 + Math.pow(i, 1.55) * 3.2;
+    var gw = 10 + i * 4 + rnd() * 26;
+    gr.setAttribute('x', (430 - gw / 2 + (rnd() - .5) * (18 + i * 5)).toFixed(1));
+    gr.setAttribute('y', gy.toFixed(1));
+    gr.setAttribute('width', gw.toFixed(1));
+    gr.setAttribute('height', (1.1 + i * .07).toFixed(2));
+    gr.setAttribute('rx', '1');
+    gr.setAttribute('class', 'glit');
+    gr.setAttribute('opacity', (.85 - i * .025).toFixed(2));
+    gr.style.animationDelay = (-rnd() * 3).toFixed(2) + 's';
+    glit.appendChild(gr);
+  }
+  var WAVES = [
+    { y: 650, a: 1.1, l: 70, v: 10, w: 1, o: .34, d: '26 18 60 30 12 24' },
+    { y: 664, a: 1.6, l: 96, v: 12, w: 1.1, o: .32, d: '40 22 16 30 70 28' },
+    { y: 684, a: 2.4, l: 132, v: 15, w: 1.3, o: .3, d: '60 34 20 40 90 30' },
+    { y: 712, a: 3.4, l: 176, v: 19, w: 1.5, o: .28, d: '90 40 30 60 120 44' },
+    { y: 752, a: 4.6, l: 236, v: 24, w: 1.8, o: .26, d: '120 60 40 70 160 50' },
+    { y: 808, a: 6.4, l: 310, v: 30, w: 2.2, o: .24, d: '160 70 60 90 200 60' },
+    { y: 884, a: 8.6, l: 410, v: 38, w: 2.8, o: .2, d: '220 90 70 120 260 80' }
+  ];
+  var waveG = $('#waves');
+  WAVES.forEach(function(wv){
+    var p = doc.createElementNS(NS, 'path');
+    p.setAttribute('class', 'wave');
+    p.setAttribute('stroke-width', wv.w);
+    p.setAttribute('opacity', wv.o);
+    p.setAttribute('stroke-dasharray', wv.d);
+    waveG.appendChild(p); wv.el = p;
+  });
+  var swell = $('#swell');
+  var fogA = $('#fogA'), fogB = $('#fogB'), halo = $('#halo');
+
+  var beamAo = $('#beamAo'), beamAi = $('#beamAi'), beamBo = $('#beamBo'), beamBi = $('#beamBi');
+  var beamA = $('#beamA'), beamB = $('#beamB'), glare = $('#glare'), wash = $('#wash');
+  var litCore = $('#litCore'), litPen = $('#litPen'), heroCopy = $('#heroCopy'), headline = $('#headline');
+  var W = 1, H = 1, lx = 0, ly = 0, BL = 1, scale = 1;
+
+  function fitScene(){
+    var r = hero.getBoundingClientRect();
+    W = Math.max(1, r.width); H = Math.max(1, r.height);
+    var a = W / H;
+    if (a >= SW / SH) {
+      var vh = SW / a;
+      vb = [0, clamp(LY - .3 * vh, 0, SH - vh), SW, vh];
+    } else if (a < .8) {
+      /* portrait: pull the camera back into the extended sky so the tower sits small and to the right */
+      var ph = lerp(1340, 1080, clamp((a - .45) / .35, 0, 1)), pw = ph * a;
+      vb = [clamp(LX - pw * .8, 0, SW - pw), SH - ph, pw, ph];
+    } else {
+      var vw = SH * a;
+      vb = [clamp(LX - vw * .7, 0, SW - vw), 0, vw, SH];
+    }
+    scene.setAttribute('viewBox', vb.map(function(n){ return n.toFixed(2); }).join(' '));
+    scale = W / vb[2];
+    lx = (LX - vb[0]) * scale; ly = (LY - vb[1]) * scale;
+    beams.setAttribute('viewBox', '0 0 ' + W.toFixed(1) + ' ' + H.toFixed(1));
+    BL = Math.max(lx, W - lx) * 1.12;
+    hero.style.setProperty('--lx', (lx / W * 100).toFixed(2) + '%');
+    hero.style.setProperty('--ly', (ly / H * 100).toFixed(2) + '%');
+    glare.setAttribute('cx', lx.toFixed(1)); glare.setAttribute('cy', ly.toFixed(1));
+    glare.setAttribute('r', (Math.max(150, 260 * scale)).toFixed(1));
+    // Seat the headline so the beam crosses its heart.
+    heroCopy.style.setProperty('--copy-top', '0px');
+    var cr = heroCopy.getBoundingClientRect(), hr = headline.getBoundingClientRect();
+    var hMid = (hr.top - cr.top) + hr.height * .42;
+    var top = ly - hMid;
+    var minTop = 64, maxTop = H - cr.height - (W < 700 ? 110 : 120);
+    heroCopy.style.setProperty('--copy-top', clamp(top, minTop, Math.max(minTop, maxTop)).toFixed(1) + 'px');
+  }
+
+  var PERIOD = 12, PHASE = -2.03;
+  function beamPts(len, hw){
+    return '0,-1.6 ' + len.toFixed(1) + ',' + (-hw).toFixed(1) + ' ' + len.toFixed(1) + ',' + hw.toFixed(1) + ' 0,1.6';
+  }
+  function drawBeams(t){
+    var th = PHASE + t * 2 * Math.PI / PERIOD;
+    var c = Math.cos(th), s = Math.sin(th);
+    var out = [], clipC = [], clipP = [];
+    var hr = litCore.getBoundingClientRect(), br = hero.getBoundingClientRect();
+    var ox = hr.left - br.left, oy = hr.top - br.top;
+    var bestLit = 0, glareV = 0;
+    [[beamA, beamAo, beamAi, c, s], [beamB, beamBo, beamBi, -c, -s]].forEach(function(b){
+      var cc = b[3], ss = b[4];
+      var len = BL * Math.abs(cc), dir = cc >= 0 ? 1 : -1;
+      var hw = 3 + len * .082;
+      var facing = Math.max(0, ss);
+      var op = .2 + .7 * Math.pow(facing, .7);
+      b[0].setAttribute('transform', 'translate(' + lx.toFixed(1) + ' ' + ly.toFixed(1) + ') scale(' + dir + ' 1)');
+      b[0].setAttribute('opacity', op.toFixed(3));
+      b[1].setAttribute('points', beamPts(len, hw));
+      b[2].setAttribute('points', beamPts(len * .92, hw * .42));
+      glareV = Math.max(glareV, Math.pow(facing, 14) * (1 - Math.abs(cc) * .4));
+      if (dir < 0 || lx < W * .5) {
+        var ex = lx + dir * len;
+        clipP.push([lx - ox, ly - oy - 2], [ex - ox, ly - hw - oy], [ex - ox, ly + hw - oy]);
+        clipC.push([lx - ox, ly - oy - 1], [ex - ox, ly - hw * .5 - oy], [ex - ox, ly + hw * .5 - oy]);
+        bestLit = Math.max(bestLit, op * Math.min(1, len / (BL * .35)));
+      }
+    });
+    function poly(arr){
+      if (!arr.length) return 'polygon(0 0,0 0,0 0)';
+      return 'polygon(' + arr.map(function(p){ return p[0].toFixed(1) + 'px ' + p[1].toFixed(1) + 'px'; }).join(',') + ')';
+    }
+    litCore.style.clipPath = poly(clipC);
+    litPen.style.clipPath = poly(clipP);
+    litCore.style.opacity = clamp(bestLit * 1.25, 0, 1).toFixed(3);
+    litPen.style.opacity = clamp(bestLit * .9, 0, 1).toFixed(3);
+    glare.setAttribute('opacity', glareV.toFixed(3));
+    wash.style.opacity = (glareV * .9).toFixed(3);
+    halo.setAttribute('opacity', (.55 + .45 * glareV).toFixed(3));
+  }
+  function drawSea(t){
+    var x0 = vb[0] - 30, x1 = vb[0] + vb[2] + 30;
+    for (var k = 0; k < WAVES.length; k++) {
+      var wv = WAVES[k], step = Math.max(10, wv.l / 9), d = '';
+      var ph = t * wv.v / wv.l * Math.PI * 2 * .35;
+      for (var x = x0; x <= x1 + step; x += step) {
+        var yy = wv.y + wv.a * Math.sin(x / wv.l * 6.2832 - ph) + wv.a * .45 * Math.sin(x / (wv.l * .37) + ph * 1.3 + k);
+        d += (x === x0 ? 'M' : 'L') + x.toFixed(1) + ' ' + yy.toFixed(1);
+      }
+      wv.el.setAttribute('d', d);
+      wv.el.style.strokeDashoffset = (-t * wv.v * .8).toFixed(1);
+    }
+    var sd = 'M' + x0.toFixed(0) + ' 1000', st = 24;
+    for (var sx = x0; sx <= x1 + st; sx += st) {
+      var sy = 944 + 7 * Math.sin(sx / 170 - t * .7) + 4 * Math.sin(sx / 61 + t * 1.1);
+      sd += 'L' + sx.toFixed(1) + ' ' + sy.toFixed(1);
+    }
+    swell.setAttribute('d', sd + 'L' + (x1 + st).toFixed(0) + ' 1000Z');
+    fogA.setAttribute('transform', 'translate(' + (Math.sin(t * .05) * 90).toFixed(1) + ' 0)');
+    fogB.setAttribute('transform', 'translate(' + (Math.sin(t * .04 + 2) * -110).toFixed(1) + ' 0)');
+  }
+
+  /* ---------------- watch section ---------------- */
+  var watch = $('#s-watch'), wStars = $('#wStars'), wMoon = $('#wMoon'), wGl = $('#wGlitter'), wIsland = $('#wIsland'), wClouds = $('#wClouds');
+  var wTime = $('#wTime'), wLog = $$('#wLog li');
+  for (i = 0; i < 170; i++) {
+    var ws = doc.createElementNS(NS, 'circle');
+    ws.setAttribute('cx', (rnd() * SW).toFixed(1));
+    ws.setAttribute('cy', (Math.pow(rnd(), 1.3) * 800 + 10).toFixed(1));
+    ws.setAttribute('r', (.5 + rnd() * 1.5).toFixed(2));
+    ws.setAttribute('class', 'star');
+    ws.style.animationDelay = (-rnd() * 6).toFixed(2) + 's';
+    ws.style.animationDuration = (2.5 + rnd() * 5).toFixed(2) + 's';
+    wStars.appendChild(ws);
+  }
+  for (i = 0; i < 16; i++) {
+    var wr = doc.createElementNS(NS, 'rect');
+    var ww = 8 + i * 5 + rnd() * 16;
+    wr.setAttribute('x', (1240 - ww / 2 + (rnd() - .5) * i * 6).toFixed(1));
+    wr.setAttribute('y', (866 + Math.pow(i, 1.4) * 4).toFixed(1));
+    wr.setAttribute('width', ww.toFixed(1)); wr.setAttribute('height', '1.6');
+    wr.setAttribute('class', 'glit'); wr.setAttribute('fill', '#efe8d6');
+    wr.style.animationDelay = (-rnd() * 3).toFixed(2) + 's';
+    wGl.appendChild(wr);
+  }
+  var SKY = [
+    [[45, 58, 99], [138, 106, 126], [224, 163, 131], [59, 53, 82]],
+    [[23, 34, 63], [52, 56, 91], [106, 90, 114], [22, 29, 52]],
+    [[7, 13, 28], [13, 23, 48], [26, 38, 68], [6, 10, 22]]
+  ];
+  function mix(a, b, t){ return 'rgb(' + Math.round(lerp(a[0], b[0], t)) + ',' + Math.round(lerp(a[1], b[1], t)) + ',' + Math.round(lerp(a[2], b[2], t)) + ')'; }
+  var watchP = 0;
+  function updateWatch(){
+    var r = watch.getBoundingClientRect(), vh = innerHeight;
+    var p = clamp((-r.top + vh * .15) / Math.max(1, r.height - vh * .85), 0, 1);
+    watchP = p;
+    var seg = p < .5 ? 0 : 1, t = p < .5 ? p / .5 : (p - .5) / .5;
+    var A = SKY[seg], B = SKY[seg + 1];
+    watch.style.setProperty('--s1', mix(A[0], B[0], t));
+    watch.style.setProperty('--s2', mix(A[1], B[1], t));
+    watch.style.setProperty('--s3', mix(A[2], B[2], t));
+    watch.style.setProperty('--sea', mix(A[3], B[3], t));
+    wStars.setAttribute('opacity', clamp((p - .12) * 1.6, 0, 1).toFixed(3));
+    var ct = clamp(p / .7, 0, 1);
+    watch.style.setProperty('--cl', mix([240, 184, 160], [16, 24, 46], ct));
+    watch.style.setProperty('--co', lerp(.34, .55, ct).toFixed(3));
+    wClouds.setAttribute('transform', 'translate(' + (-p * 160).toFixed(1) + ' 0)');
+    /* keep moon and island inside the sliced view, on opposite sides of the text */
+    var vw0 = innerWidth, sc = Math.max(vw0 / 1600, vh / 1000), visW = vw0 / sc, vx0 = 800 - visW / 2;
+    var narrow = vw0 < 760;
+    var islandX = vx0 + visW * (narrow ? .2 : .83);
+    wIsland.setAttribute('transform', 'translate(' + (islandX - 262).toFixed(1) + ' 0)');
+    var baseX = vx0 + visW * (narrow ? .74 : .2);
+    var my = lerp(930, narrow ? 360 : 330, clamp((p - .1) / .8, 0, 1)), mx = baseX + lerp(-40, 40, p);
+    wMoon.setAttribute('transform', 'translate(' + mx.toFixed(1) + ' ' + my.toFixed(1) + ')');
+    wGl.setAttribute('opacity', clamp((p - .3) * 2, 0, .9).toFixed(3));
+    wGl.setAttribute('transform', 'translate(' + (mx - 1240).toFixed(1) + ' 0)');
+    var mins = Math.round(1180 + p * 540);
+    var hh = Math.floor(mins / 60) % 24, mm = mins % 60;
+    wTime.textContent = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+    var cur = -1;
+    wLog.forEach(function(li, idx){ var on = p >= parseFloat(li.getAttribute('data-at')); li.classList.toggle('on', on); if (on) cur = idx; });
+    wLog.forEach(function(li, idx){ li.classList.toggle('cur', idx === Math.max(0, cur)); });
+  }
+  var wBA = $('#wBeamA'), wBB = $('#wBeamB'), wBAp = $('#wBeamAp'), wBBp = $('#wBeamBp');
+  function drawMini(t){
+    var th = PHASE + t * 2 * Math.PI / PERIOD, c = Math.cos(th), s = Math.sin(th);
+    [[wBA, wBAp, c, s], [wBB, wBBp, -c, -s]].forEach(function(b){
+      var len = 520 * Math.abs(b[2]), dir = b[2] >= 0 ? 1 : -1, hw = 1 + len * .07;
+      b[0].setAttribute('transform', 'translate(262 799) scale(' + dir + ' 1)');
+      b[0].setAttribute('opacity', (.25 + .7 * Math.pow(Math.max(0, b[3]), .7)) * clamp(watchP * 2.2, .25, 1));
+      b[1].setAttribute('points', '0,-1 ' + len.toFixed(1) + ',' + (-hw).toFixed(1) + ' ' + len.toFixed(1) + ',' + hw.toFixed(1) + ' 0,1');
+    });
+  }
+
+  /* ---------------- lens plate ---------------- */
+  var plate = $('#plate'), pcs = $$('#plate .pc'), rays = $$('#plate .ray'), lbls = $$('#plate .lbl'), raysoft = $('#plate .raysoft'), aBar = $('#assembleBar');
+  pcs.forEach(function(g){
+    g._k = +g.getAttribute('data-k'); g._x = +g.getAttribute('data-x'); g._y = +g.getAttribute('data-y');
+    g._r = +g.getAttribute('data-r'); g._s = +g.getAttribute('data-s');
+  });
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+  function easeBack(t){ var c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+  var lastLens = -1;
+  function updateLens(){
+    var r = plate.getBoundingClientRect(), vh = innerHeight;
+    var p = RM ? 1 : clamp((vh * .95 - r.top) / (vh * .55 + r.height * .35), 0, 1);
+    if (Math.abs(p - lastLens) < .0015) return; lastLens = p;
+    pcs.forEach(function(g){
+      var st = g._k * .055, e = clamp((p - st) / .38, 0, 1), k = easeBack(e), inv = 1 - k;
+      var sc = lerp(g._s, 1, k);
+      g.style.transform = 'translate(' + (g._x * inv).toFixed(2) + 'px,' + (g._y * inv).toFixed(2) + 'px) rotate(' + (g._r * inv).toFixed(2) + 'deg) scale(' + sc.toFixed(3) + ')';
+      g.style.opacity = easeOut(e).toFixed(3);
+    });
+    var p2 = clamp((p - .72) / .26, 0, 1);
+    rays.forEach(function(ry, idx){
+      var q = clamp(p2 * 1.4 - idx * .03, 0, 1);
+      ry.style.strokeDashoffset = (1 - q).toFixed(3);
+    });
+    lbls.forEach(function(l){ l.setAttribute('opacity', clamp((p2 - .3) / .5, 0, 1).toFixed(3)); });
+    raysoft.setAttribute('opacity', p2.toFixed(3));
+    aBar.style.setProperty('--ap', p.toFixed(3));
+  }
+
+  /* ---------------- masthead / progress ---------------- */
+  var mast = $('#mast'), prog = $('#prog'), mastSec = $('#mastSec');
+  var sections = $$('[data-label]');
+  var lastLabel = '';
+  function updateProgress(){
+    var max = Math.max(1, doc.documentElement.scrollHeight - innerHeight);
+    var p = clamp(scrollY / max, 0, 1);
+    prog.style.setProperty('--p', p.toFixed(4));
+    prog.setAttribute('aria-valuenow', Math.round(p * 100));
+    mast.classList.toggle('solid', scrollY > hero.offsetHeight - 60);
+    var label = sections[0].getAttribute('data-label');
+    for (var s = 0; s < sections.length; s++) {
+      if (sections[s].getBoundingClientRect().top < innerHeight * .4) label = sections[s].getAttribute('data-label');
+    }
+    if (label !== lastLabel) { mastSec.textContent = label; lastLabel = label; }
+  }
+
+  /* ---------------- scroll + loop ---------------- */
+  var scrollQueued = false;
+  function onScroll(){
+    if (scrollQueued) return; scrollQueued = true;
+    requestAnimationFrame(function(){ scrollQueued = false; updateProgress(); updateWatch(); updateLens(); });
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+
+  var heroOn = true, watchOn = false, running = false, t0 = performance.now(), frozenT = 1.1;
+  function tick(now){
+    running = false;
+    if (doc.hidden) return;
+    var t = RM ? frozenT : (now - t0) / 1000 + 1.1;
+    if (heroOn) { drawBeams(t); drawSea(t); }
+    if (watchOn) drawMini(t);
+    if (!RM && (heroOn || watchOn)) kick();
+  }
+  function kick(){ if (!running) { running = true; requestAnimationFrame(tick); } }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(es){ es.forEach(function(e){ heroOn = e.isIntersecting; }); kick(); }).observe(hero);
+    new IntersectionObserver(function(es){ es.forEach(function(e){ watchOn = e.isIntersecting; }); kick(); }).observe(watch);
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: .08 });
+    $$('.reveal').forEach(function(el){ io.observe(el); });
+  } else {
+    watchOn = true; $$('.reveal').forEach(function(el){ el.classList.add('in'); });
+  }
+  doc.addEventListener('visibilitychange', function(){ if (!doc.hidden) kick(); });
+
+  var rzT = 0;
+  function onResize(){
+    fitScene(); paintGrain(); lastLens = -1; onScroll();
+    if (RM) { drawBeams(frozenT); drawSea(frozenT); drawMini(frozenT); }
+    kick();
+  }
+  addEventListener('resize', function(){ clearTimeout(rzT); rzT = setTimeout(onResize, 60); fitScene(); });
+
+  /* ---------------- footnotes ---------------- */
+  var pop = $('#fnpop'), popB = $('#fnpopB'), popH = $('#fnpopH'), popX = $('#fnpopX');
+  var openBtn = null, hideT = 0;
+  function noteText(n){
+    var li = $('#fn-' + n); if (!li) return '';
+    var clone = li.cloneNode(true); var b = $('.back', clone); if (b) b.parentNode.removeChild(b);
+    return clone.textContent.trim();
+  }
+  function placePop(btn){
+    if (innerWidth < 640) { pop.classList.add('sheet'); return; }
+    pop.classList.remove('sheet');
+    var r = btn.getBoundingClientRect(), pw = pop.offsetWidth;
+    var x = r.left + r.width / 2 - pw / 2 + scrollX;
+    x = clamp(x, scrollX + 16, scrollX + innerWidth - pw - 16);
+    pop.style.left = x.toFixed(1) + 'px';
+    pop.style.top = (r.bottom + scrollY + 12).toFixed(1) + 'px';
+    pop.style.setProperty('--ax', (r.left + r.width / 2 + scrollX - x).toFixed(1) + 'px');
+  }
+  function openNote(btn){
+    if (openBtn === btn) { closeNote(true); return; }
+    if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+    clearTimeout(hideT);
+    var n = btn.getAttribute('data-fn');
+    popH.textContent = 'Note ' + n;
+    popB.textContent = noteText(n);
+    pop.hidden = false; pop.classList.remove('show');
+    placePop(btn);
+    requestAnimationFrame(function(){ pop.classList.add('show'); });
+    btn.setAttribute('aria-expanded', 'true');
+    openBtn = btn;
+    pop.focus({ preventScroll: true });
+  }
+  function closeNote(refocus){
+    if (!openBtn) return;
+    var b = openBtn; openBtn = null;
+    b.setAttribute('aria-expanded', 'false');
+    pop.classList.remove('show');
+    hideT = setTimeout(function(){ pop.hidden = true; }, 260);
+    if (refocus) b.focus({ preventScroll: true });
+  }
+  $$('.fnref').forEach(function(b){ b.addEventListener('click', function(e){ e.stopPropagation(); openNote(b); }); });
+  popX.addEventListener('click', function(){ closeNote(true); });
+  pop.addEventListener('click', function(e){ e.stopPropagation(); });
+  doc.addEventListener('click', function(){ closeNote(false); });
+  doc.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeNote(true); });
+  $$('.back').forEach(function(b){
+    b.addEventListener('click', function(){
+      var ref = $('.fnref[data-fn="' + b.getAttribute('data-back') + '"]');
+      if (ref) { ref.scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' }); ref.focus({ preventScroll: true }); }
+    });
+  });
+
+  /* ---------------- copy quote ---------------- */
+  var toast = $('#toast'), toastT = 0;
+  function say(msg){ toast.textContent = msg; toast.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function(){ toast.classList.remove('show'); }, 1800); }
+  function fallbackCopy(txt){
+    try {
+      var ta = doc.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.opacity = '0'; doc.body.appendChild(ta); ta.select();
+      var ok = doc.execCommand && doc.execCommand('copy'); doc.body.removeChild(ta);
+      say(ok ? 'Quote copied' : 'Select the quote to copy it');
+    } catch (_) { say('Select the quote to copy it'); }
+  }
+  $$('.copyq').forEach(function(b){
+    b.addEventListener('click', function(){
+      var txt = '“' + b.parentNode.querySelector('p').textContent.trim() + '” — The Last Keepers';
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(txt).then(function(){ say('Quote copied'); }, function(){ fallbackCopy(txt); });
+        } else fallbackCopy(txt);
+      } catch (_) { fallbackCopy(txt); }
+    });
+  });
+
+  /* ---------------- buttons ---------------- */
+  $('#begin').addEventListener('click', function(){ $('#standfirst').scrollIntoView({ behavior: RM ? 'auto' : 'smooth' }); });
+  $('#toTop').addEventListener('click', function(){ scrollTo({ top: 0, behavior: RM ? 'auto' : 'smooth' }); });
+
+  onResize();
+  updateWatch(); updateLens(); updateProgress();
+  drawBeams(1.1); drawSea(1.1); drawMini(1.1);
+})();
+</script>
+</body>
+</html>

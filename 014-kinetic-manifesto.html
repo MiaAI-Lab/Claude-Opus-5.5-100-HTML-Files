@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MOVE — A Manifesto in Motion</title>
+<meta name="description" content="A scroll-driven kinetic typography manifesto: seven statements about motion, attention and design, each played as its own full-screen scene. Your scroll is the playhead.">
+<meta name="theme-color" content="#0a0a0a">
+<style>
+:root{
+  --ink:#0a0a0a;
+  --ink-2:#141414;
+  --paper:#f1f1ec;
+  --acid:#c6ff00;
+  --dim:rgba(241,241,236,.56);
+  --faint:rgba(241,241,236,.14);
+  --hair:rgba(241,241,236,.09);
+  --display:"Anton","Bebas Neue","League Gothic","Oswald","Impact","Haettenschweiler","Arial Narrow Bold","Arial Narrow","Nimbus Sans Narrow","Liberation Sans Narrow","Roboto Condensed","DejaVu Sans Condensed",sans-serif;
+  --mono:"SF Mono","JetBrains Mono","IBM Plex Mono","Menlo","Consolas","DejaVu Sans Mono","Nimbus Mono PS",monospace;
+  --sans:"Helvetica Neue","Arial","Nimbus Sans","Liberation Sans",sans-serif;
+  --gx:clamp(16px,4vw,64px);
+  --rail:56px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--ink);color:var(--paper);-webkit-text-size-adjust:100%;scroll-behavior:auto}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+main{overflow-x:clip}
+::selection{background:var(--acid);color:var(--ink)}
+:focus-visible{outline:2px solid var(--acid);outline-offset:3px}
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:fixed;left:12px;top:-60px;z-index:50;background:var(--acid);color:var(--ink);font:600 13px/1 var(--mono);padding:12px 14px;text-decoration:none;letter-spacing:.06em}
+.skip:focus{top:12px}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;line-height:1.6}
+.glyphdefs{position:absolute;width:0;height:0;overflow:hidden}
+
+/* ---------- top bar ---------- */
+.topbar{position:fixed;inset:0 0 auto 0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px var(--gx) 0;pointer-events:none;color:var(--paper);transition:color .4s}
+.topbar>*{pointer-events:auto}
+.brand{display:flex;align-items:baseline;gap:12px;font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:inherit;text-decoration:none}
+.brand b{font:700 22px/1 var(--display);letter-spacing:.02em;font-synthesis:none}
+.brand b i{font-style:normal;color:var(--acid);transition:color .4s}
+.brand span{opacity:.62}
+.tc{font:500 11px/1 var(--mono);letter-spacing:.14em;opacity:.7;font-variant-numeric:tabular-nums}
+.tc b{font-weight:500;color:var(--acid);transition:color .4s}
+.toggle{appearance:none;border:1px solid var(--faint);background:rgba(10,10,10,.5);color:inherit;font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;padding:9px 12px 9px 10px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:border-color .25s,background .25s,color .4s}
+.toggle:hover{border-color:var(--acid)}
+.toggle .dot{width:8px;height:8px;border-radius:50%;background:var(--acid);box-shadow:0 0 0 3px rgba(198,255,0,.16);transition:background .25s,box-shadow .25s}
+.toggle[aria-pressed="false"] .dot{background:transparent;box-shadow:inset 0 0 0 1.5px var(--dim)}
+.tb-right{display:flex;align-items:center;gap:22px}
+body.on-acid .topbar{color:var(--ink)}
+body.on-acid .brand b i,body.on-acid .tc b{color:var(--ink)}
+body.on-acid .toggle{border-color:rgba(10,10,10,.35);background:rgba(198,255,0,.6)}
+body.on-acid .toggle .dot{background:var(--ink);box-shadow:none}
+
+/* ---------- rail ---------- */
+.rail{position:fixed;z-index:30;right:calc(var(--gx) - 4px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:14px;transition:opacity .5s,color .4s;color:var(--paper)}
+.rail-label{writing-mode:vertical-rl;transform:rotate(180deg);font:600 10px/1 var(--mono);letter-spacing:.2em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rail-label b{color:var(--acid);font-weight:600;transition:color .4s}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rail li{display:block}
+.seg{appearance:none;background:none;border:0;padding:0 8px;margin:0;cursor:pointer;display:flex;align-items:center;gap:10px;color:inherit;position:relative;height:calc(56vh / 7 - 6px);min-height:26px}
+.seg .trk{position:relative;display:block;width:2px;height:100%;background:var(--faint);overflow:hidden}
+.seg .fil{position:absolute;inset:0;background:var(--acid);transform-origin:50% 0;transform:scaleY(0);transition:background .4s}
+.seg .num{position:absolute;right:22px;top:50%;transform:translate(6px,-50%);opacity:0;font:600 10px/1 var(--mono);letter-spacing:.16em;white-space:nowrap;transition:opacity .25s,transform .25s;pointer-events:none;background:var(--ink);padding:5px 7px}
+.seg:hover .num,.seg:focus-visible .num{opacity:1;transform:translate(0,-50%)}
+.seg.on .trk{width:4px}
+body.on-acid .rail{color:var(--ink)}
+body.on-acid .seg .trk{background:rgba(10,10,10,.2)}
+body.on-acid .seg .fil,body.on-acid .rail-label b{background:var(--ink)}
+body.on-acid .rail-label b{background:none;color:var(--ink)}
+body.at-top .rail{opacity:.35}
+.brand,.tc{transition:opacity .35s ease}
+body.zooming .brand,body.zooming .tc,body.zooming .rail{opacity:0}
+
+/* ---------- intro ---------- */
+.intro{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;padding:78px calc(var(--gx) + var(--rail)) 0 var(--gx);border-bottom:1px solid var(--hair)}
+.intro-grid{position:absolute;inset:0;pointer-events:none;background:
+  linear-gradient(var(--hair) 1px,transparent 1px) 0 0/100% 25%,
+  linear-gradient(90deg,var(--hair) 1px,transparent 1px) 0 0/12.5% 100%;opacity:.55;mask-image:linear-gradient(180deg,#000 30%,transparent 92%);-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent 92%)}
+.slate{position:relative;display:flex;justify-content:space-between;gap:12px;color:var(--dim);padding-bottom:14px;border-bottom:1px solid var(--faint)}
+.slate span:nth-child(2){color:var(--acid)}
+.title{position:relative;margin:clamp(18px,3.4vh,40px) 0 0;display:flex;align-items:flex-end;gap:0;line-height:0;font-size:0}
+.title svg{display:block;height:auto;overflow:hidden}
+.title .glyph{transform:translateY(420px);animation:rise 1s cubic-bezier(.16,1,.3,1) forwards}
+.title .g2{animation-delay:.08s}.title .g3{animation-delay:.16s}.title .g4{animation-delay:.24s}.title .g5{animation-delay:.32s}
+.title .counter{fill:var(--acid);transform:translateY(420px);animation:rise 1s cubic-bezier(.16,1,.3,1) .08s forwards,breathe 3.6s ease-in-out 1.4s infinite}
+.title-wrap{display:block;transform-origin:0 100%}
+@keyframes rise{to{transform:translateY(0)}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.78}}
+.intro-meta{position:relative;display:grid;grid-template-columns:1.25fr 1fr auto;gap:clamp(18px,3vw,48px);align-items:end;padding:clamp(18px,3vh,34px) 0 clamp(20px,3vh,32px);opacity:0;animation:fadein .9s ease .55s forwards}
+@keyframes fadein{to{opacity:1}}
+.kicker{margin:0;font:700 clamp(30px,4.4vw,68px)/.9 var(--display);text-transform:uppercase;letter-spacing:.005em;font-synthesis:none}
+.kicker em{font-style:normal;color:var(--acid)}
+.lede{margin:0;max-width:44ch;font:400 12.5px/1.75 var(--mono);color:var(--dim);letter-spacing:.02em}
+.lede b{color:var(--paper);font-weight:600}
+.cue{display:flex;flex-direction:column;align-items:flex-end;gap:10px;color:var(--paper);text-decoration:none;font:600 10px/1 var(--mono);letter-spacing:.2em}
+.cue .shaft{position:relative;width:1px;height:64px;background:var(--faint);overflow:hidden}
+.cue .shaft::after{content:"";position:absolute;left:0;top:0;width:1px;height:22px;background:var(--acid);animation:drip 1.8s cubic-bezier(.6,0,.3,1) infinite}
+@keyframes drip{from{transform:translateY(-24px)}to{transform:translateY(66px)}}
+.ticker{position:relative;margin:auto calc(-1 * (var(--gx) + var(--rail))) 0 calc(-1 * var(--gx));background:var(--acid);color:var(--ink);overflow:hidden;white-space:nowrap;height:44px;display:flex;align-items:center}
+.ticker-in{display:inline-flex;animation:tick 26s linear infinite;will-change:transform}
+.ticker span{font:700 22px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;padding:0 18px;font-synthesis:none}
+.ticker span.m{font:600 11px/1 var(--mono);letter-spacing:.2em;padding:0 6px}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ---------- scenes ---------- */
+.scene{position:relative;height:calc(var(--len,300) * 1vh)}
+.stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;padding:0 calc(var(--gx) + var(--rail)) 0 var(--gx);display:flex;flex-direction:column;contain:paint}
+.hud{display:flex;align-items:baseline;gap:18px;padding-top:66px;color:var(--dim);position:relative;z-index:3}
+.hud .no{color:var(--acid);font-weight:600}
+.hud .t{margin-left:auto;font-variant-numeric:tabular-nums;min-width:11ch;text-align:right}
+.hud .bar{flex:1;height:1px;background:var(--faint);align-self:center;position:relative;overflow:hidden;max-width:220px}
+.hud .bar i{position:absolute;inset:0;background:var(--acid);transform-origin:0 50%;transform:scaleX(0)}
+.ghost{position:absolute;right:calc(var(--gx) + var(--rail) - .04em);bottom:-.12em;font:700 min(62vh,48vw)/.8 var(--display);font-synthesis:none;color:transparent;-webkit-text-stroke:1px rgba(241,241,236,.07);pointer-events:none;user-select:none;z-index:0;letter-spacing:-.02em}
+.play{flex:1;position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;min-height:0}
+.foot{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding-bottom:clamp(20px,4vh,40px)}
+.foot .body{margin:0;max-width:42ch;font:400 clamp(14px,1.15vw,17px)/1.55 var(--sans);color:var(--paper);opacity:0;transform:translateY(12px)}
+.foot .body b{color:var(--acid);font-weight:600}
+.foot .anno{margin:0;text-align:right;color:var(--dim);white-space:nowrap}
+.dsp{font-family:var(--display);font-weight:700;font-synthesis:none;text-transform:uppercase;line-height:.86;letter-spacing:.004em;margin:0}
+.ch{display:inline-block;will-change:auto}
+.acc{color:var(--acid)}
+
+/* SC 01 — assembly */
+.s1 .ln{display:block;white-space:nowrap}
+.s1 .reg{position:absolute;width:18px;height:18px;opacity:.5}
+.s1 .reg::before,.s1 .reg::after{content:"";position:absolute;background:var(--acid)}
+.s1 .reg::before{left:8px;top:0;width:1px;height:18px}
+.s1 .reg::after{top:8px;left:0;height:1px;width:18px}
+.s1 .block{position:relative;align-self:flex-start}
+.s1 .r1{left:-26px;top:-24px}.s1 .r2{right:-26px;top:-24px}.s1 .r3{left:-26px;bottom:-18px}.s1 .r4{right:-26px;bottom:-18px}
+
+/* SC 02 — stretch */
+.s2{display:flex;flex-direction:column;gap:clamp(4px,1vh,12px)}
+.sl{position:relative;display:block;white-space:nowrap;border-top:1px solid var(--faint);padding-top:32px}
+.sl:last-child{border-bottom:1px solid var(--hair)}
+.sw{display:inline-block;transform-origin:0 50%;padding-top:.04em}
+.sx{position:absolute;right:0;top:6px;line-height:1;font:600 11px/1 var(--mono);letter-spacing:.12em;color:var(--acid);font-variant-numeric:tabular-nums;background:var(--ink);padding:3px 0 3px 8px}
+
+/* SC 03 — split */
+.s3 .cut{position:relative;width:100%;white-space:nowrap}
+.s3 .half{position:relative;display:block;text-align:center}
+.s3 .half.bot{position:absolute;left:0;right:0;top:0}
+.s3 .cut{--cut:50%}
+.s3 .half.top{clip-path:polygon(-20% -60%,120% -60%,120% var(--cut),-20% var(--cut))}
+.s3 .half.bot{clip-path:polygon(-20% var(--cut),120% var(--cut),120% 160%,-20% 160%)}
+.s3 .band{position:absolute;left:calc(-1 * var(--gx));right:calc(-1 * (var(--gx) + var(--rail)));top:var(--cut);background:var(--acid);color:var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden;transform:translateY(-50%) scaleY(0)}
+.s3 .band-in{display:block;white-space:nowrap}
+.s3 .blade{position:absolute;left:calc(-1 * var(--gx));right:calc(-1 * (var(--gx) + var(--rail)));top:var(--cut);height:2px;margin-top:-1px;background:var(--acid);transform-origin:0 50%;transform:scaleX(0)}
+.s3 .cutlabel{position:absolute;right:0;top:var(--cut);transform:translate(0,-160%);color:var(--acid);opacity:0;font-variant-numeric:tabular-nums}
+.s3 .band-meta{position:absolute;left:var(--gx);top:10px;font:600 10px/1 var(--mono);letter-spacing:.18em;opacity:.7}
+
+/* SC 04 — cascade */
+.s4{display:flex;flex-direction:column;gap:clamp(6px,1.6vh,18px)}
+.dl{position:relative;display:block;white-space:nowrap}
+.dl::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--faint)}
+.dw{position:relative;display:inline-block;perspective:700px;perspective-origin:50% -160%}
+.dm{display:inline-block;transform-origin:50% 100%;transform:rotateX(90deg);backface-visibility:visible}
+.tk{position:absolute;left:18%;right:18%;bottom:-7px;height:3px;background:var(--acid);opacity:0}
+.gap{display:inline-block;width:.24em}
+
+/* SC 05 — prism */
+.s5{align-items:center}
+.prism-wrap{position:relative;perspective:1600px;margin:0 auto}
+.prism{position:relative;width:100%;height:100%;transform-style:preserve-3d}
+.face{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.face span{display:block;white-space:nowrap;padding-top:.06em}
+.face .shade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
+.face .fm{position:absolute;left:14px;top:12px;font:600 10px/1 var(--mono);letter-spacing:.2em;opacity:.7}
+.f0{background:var(--ink);color:var(--paper);box-shadow:inset 0 0 0 1px var(--faint)}
+.f1{background:var(--acid);color:var(--ink)}
+.f2{background:var(--paper);color:var(--ink)}
+.f3{background:var(--ink-2);color:var(--acid);box-shadow:inset 0 0 0 1px rgba(198,255,0,.4)}
+.prism-static{display:none}
+.faceidx{margin-top:clamp(14px,3vh,28px);color:var(--dim);text-align:center;font-variant-numeric:tabular-nums}
+.faceidx b{color:var(--acid);font-weight:600}
+
+/* SC 06 — typed */
+.prompt{color:var(--dim);margin:0 0 clamp(10px,2vh,22px)}
+.prompt b{color:var(--acid);font-weight:600}
+.typed{font-size:clamp(44px,8.6vw,150px);max-width:14ch;min-height:3.5em}
+.typed .tb{color:var(--dim)}
+.typed .tb.flag{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--acid);text-decoration-thickness:.07em}
+.caret{display:inline-block;width:.09em;height:.74em;margin-left:.04em;background:var(--acid);vertical-align:-.02em;animation:blink 1.05s steps(1) infinite}
+.typed.busy .caret{animation:none}
+@keyframes blink{50%{opacity:0}}
+.keys{margin:clamp(12px,2.4vh,26px) 0 0;color:var(--dim);font-variant-numeric:tabular-nums}
+.keys b{color:var(--paper);font-weight:600}
+
+/* SC 07 — zoom */
+.s7{align-items:center}
+.pre{margin:0 0 clamp(12px,2.4vh,28px);font-size:clamp(28px,4.2vw,64px);text-align:center}
+.zoom-wrap{position:relative;line-height:0}
+.zoom-wrap svg{display:block;width:100%;height:auto;overflow:hidden}
+.zoom-wrap .counter{fill:var(--acid)}
+.flood{position:absolute;inset:0;background:var(--acid);opacity:0;pointer-events:none;z-index:4}
+
+/* ---------- outro ---------- */
+.outro{position:relative;background:var(--acid);color:var(--ink);padding:110px calc(var(--gx) + var(--rail)) 48px var(--gx)}
+.outro .mono{color:rgba(10,10,10,.7)}
+.outro-head{display:flex;justify-content:space-between;align-items:flex-end;gap:32px}
+.yours{font-size:clamp(96px,23vw,380px);line-height:.8;margin:.2em 0 0;letter-spacing:-.005em}
+.stats{margin:0;min-width:220px;border-top:2px solid var(--ink)}
+.stats div{display:flex;justify-content:space-between;gap:24px;padding:9px 0;border-bottom:1px solid rgba(10,10,10,.25)}
+.stats dt{opacity:.7}
+.stats dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+.yours span{display:block}
+.outro-cols{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,5vw,80px);margin-top:clamp(36px,7vh,80px);border-top:2px solid var(--ink);padding-top:22px}
+.outro-cols h3{margin:0 0 12px;font:600 11px/1.4 var(--mono);letter-spacing:.18em;text-transform:uppercase}
+.outro p.small{margin:0 0 14px;font:400 15px/1.6 var(--sans);max-width:40ch}
+.index{list-style:none;margin:0;padding:0;counter-reset:ix}
+.index li{display:grid;grid-template-columns:4.5ch 9ch 1fr;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid rgba(10,10,10,.22)}
+.index li:first-child{border-top:1px solid rgba(10,10,10,.22)}
+.index .n{font:600 11px/1 var(--mono);letter-spacing:.14em}
+.index .k{font:600 10px/1 var(--mono);letter-spacing:.16em;opacity:.7}
+.index button{appearance:none;background:none;border:0;padding:0;margin:0;color:inherit;text-align:left;cursor:pointer;font:700 clamp(20px,2.4vw,34px)/.95 var(--display);text-transform:uppercase;font-synthesis:none;transition:transform .25s cubic-bezier(.2,.9,.3,1.2)}
+.index button:hover{transform:translateX(8px)}
+.outro :focus-visible{outline-color:var(--ink)}
+.replay{appearance:none;margin-top:22px;border:2px solid var(--ink);background:var(--ink);color:var(--acid);font:600 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;padding:14px 18px;cursor:pointer;display:inline-flex;gap:12px;align-items:center;transition:background .2s,color .2s}
+.replay:hover{background:transparent;color:var(--ink)}
+.colophon{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-top:clamp(40px,8vh,90px);padding-top:16px;border-top:1px solid rgba(10,10,10,.3)}
+
+/* ---------- static / reduced ---------- */
+body.static .scene{height:auto}
+body.static .stage{position:relative;height:auto;min-height:100vh;min-height:100svh}
+body.static .play{padding:6vh 0}
+body.static .reveal{opacity:0;transform:translateY(18px);transition:opacity .9s ease,transform .9s ease}
+body.static .reveal.in{opacity:1;transform:none}
+body.static .foot .body{opacity:1;transform:none}
+body.static .prism-wrap,body.static .faceidx{display:none}
+body.static .prism-static{display:block;font-size:clamp(52px,11vw,170px);text-align:center}
+body.static .prism-static span{display:block}
+body.static .prism-static span:nth-child(2){color:var(--acid)}
+body.static .flood{display:none}
+body.static .ticker-in,body.static .cue .shaft::after,body.static .title .counter{animation-play-state:paused}
+
+@media (max-width:760px){
+  :root{--rail:0px}
+  .tc{display:none}
+  .brand span{display:none}
+  .rail{top:auto;bottom:10px;right:var(--gx);left:var(--gx);transform:none;flex-direction:row;gap:10px;align-items:center}
+  .rail-label{writing-mode:horizontal-tb;transform:none;font-size:9px}
+  .rail ol{flex-direction:row;flex:1;gap:4px}
+  .rail li{flex:1}
+  .seg{height:22px;min-height:0;width:100%;padding:0}
+  .seg .trk{width:100%;height:2px}
+  .seg.on .trk{width:100%;height:4px}
+  .seg .fil{transform-origin:0 50%;transform:scaleX(0)}
+  .seg .num{display:none}
+  body.at-top .rail{opacity:0;pointer-events:none}
+  .intro-meta{grid-template-columns:1fr;gap:16px}
+  .cue{flex-direction:row;align-items:center;justify-content:flex-start}
+  .cue .shaft{width:48px;height:1px}
+  .cue .shaft::after{width:18px;height:1px;animation-name:dripx}
+  .slate span:nth-child(3){display:none}
+  .hud{gap:12px;padding-top:58px}
+  .hud .bar{display:none}
+  .s3 .band-meta{display:none}
+  .face .fm{display:none}
+  body.on-acid .rail{opacity:0;pointer-events:none}
+  .foot{flex-direction:column;align-items:flex-start;gap:10px;padding-bottom:52px}
+  .foot .anno{text-align:left;white-space:normal}
+  .outro-cols{grid-template-columns:1fr}
+  .outro-head{flex-direction:column;align-items:stretch}
+  .stats{min-width:0}
+  .index li{grid-template-columns:4ch 1fr}
+  .index .k{display:none}
+}
+@keyframes dripx{from{transform:translateX(-20px)}to{transform:translateX(50px)}}
+@media (prefers-reduced-motion:reduce){
+  .title .glyph,.title .counter{animation:none;transform:none}
+  .intro-meta{animation:none;opacity:1}
+  .ticker-in,.cue .shaft::after{animation:none}
+}
+</style>
+</head>
+<body class="at-top">
+<a class="skip" href="#sc1">Skip to the first scene</a>
+
+<!-- glyph library: custom heavy condensed lettering for M, O, V, E -->
+<svg class="glyphdefs" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <path id="gM" d="M20,380 L20,20 L96,20 L150,196 L204,20 L280,20 L280,380 L218,380 L218,168 L176,300 L124,300 L82,168 L82,380 Z"/>
+    <path id="gO" fill-rule="evenodd" d="M410,20 A110,110 0 0 1 520,130 L520,270 A110,110 0 0 1 410,380 A110,110 0 0 1 300,270 L300,130 A110,110 0 0 1 410,20 Z M410,80 A50,50 0 0 0 360,130 L360,270 A50,50 0 0 0 410,320 A50,50 0 0 0 460,270 L460,130 A50,50 0 0 0 410,80 Z"/>
+    <path id="gC" d="M410,77 A53,53 0 0 1 463,130 L463,270 A53,53 0 0 1 410,323 A53,53 0 0 1 357,270 L357,130 A53,53 0 0 1 410,77 Z"/>
+    <path id="gV" d="M540,20 L604,20 L650,292 L696,20 L760,20 L690,380 L610,380 Z"/>
+    <path id="gE" d="M780,20 L950,20 L950,82 L844,82 L844,168 L936,168 L936,230 L844,230 L844,318 L950,318 L950,380 L780,380 Z"/>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <a class="brand" href="#top" aria-label="MOVE, back to the top"><b>MOVE<i>/</i></b><span>A manifesto in motion</span></a>
+  <div class="tb-right">
+    <span class="tc" aria-hidden="true">TC <b id="tc">00:00:00</b> / 01:45:00</span>
+    <button type="button" class="toggle" id="motionToggle" aria-pressed="true" aria-label="Toggle kinetic motion"><span class="dot" aria-hidden="true"></span><span id="motionLabel">Motion on</span></button>
+  </div>
+</header>
+
+<nav class="rail" aria-label="Scenes">
+  <span class="rail-label" aria-live="polite"><span id="railSc">SC. <b>00</b> / 07</span></span>
+  <ol>
+    <li><button type="button" class="seg" data-go="1" aria-label="Scene 1, Assembly"><span class="trk"><span class="fil"></span></span><span class="num">01 · ASSEMBLY</span></button></li>
+    <li><button type="button" class="seg" data-go="2" aria-label="Scene 2, Stretch"><span class="trk"><span class="fil"></span></span><span class="num">02 · STRETCH</span></button></li>
+    <li><button type="button" class="seg" data-go="3" aria-label="Scene 3, Split"><span class="trk"><span class="fil"></span></span><span class="num">03 · SPLIT</span></button></li>
+    <li><button type="button" class="seg" data-go="4" aria-label="Scene 4, Cascade"><span class="trk"><span class="fil"></span></span><span class="num">04 · CASCADE</span></button></li>
+    <li><button type="button" class="seg" data-go="5" aria-label="Scene 5, Rotate"><span class="trk"><span class="fil"></span></span><span class="num">05 · ROTATE</span></button></li>
+    <li><button type="button" class="seg" data-go="6" aria-label="Scene 6, Type"><span class="trk"><span class="fil"></span></span><span class="num">06 · TYPE</span></button></li>
+    <li><button type="button" class="seg" data-go="7" aria-label="Scene 7, Zoom"><span class="trk"><span class="fil"></span></span><span class="num">07 · ZOOM</span></button></li>
+  </ol>
+</nav>
+
+<main>
+  <!-- ============ INTRO ============ -->
+  <section class="intro" id="top" aria-labelledby="introTitle">
+    <div class="intro-grid" aria-hidden="true"></div>
+    <div class="slate mono" aria-hidden="true"><span>Roll 01 · Take 07</span><span>Seven scenes · one scroll</span><span>24 fps · ed. 2026</span></div>
+    <h1 class="title" id="introTitle">
+      <span class="sr">MOVE — a manifesto in motion</span>
+      <span class="title-wrap" id="titleWrap" aria-hidden="true">
+        <svg id="tMO" viewBox="20 20 500 360" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <use href="#gM" class="glyph g1" fill="#f1f1ec"/>
+          <use href="#gC" class="counter"/>
+          <use href="#gO" class="glyph g2" fill="#f1f1ec"/>
+        </svg>
+      </span>
+      <span class="title-wrap" id="titleWrap2" aria-hidden="true">
+        <svg id="tVE" viewBox="540 20 410 360" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <use href="#gV" class="glyph g3" fill="#f1f1ec"/>
+          <use href="#gE" class="glyph g4" fill="#f1f1ec"/>
+        </svg>
+      </span>
+    </h1>
+    <div class="intro-meta">
+      <p class="kicker">A manifesto<br>in <em>motion.</em></p>
+      <p class="lede">Seven statements on <b>motion, attention and design</b>. Each one is a scene; each scene is played by your scroll. Slow down and it slows down. Stop and it holds the frame. <b>Your scroll is the playhead.</b></p>
+      <a class="cue" href="#sc1"><span>Scroll to play</span><span class="shaft" aria-hidden="true"></span></a>
+    </div>
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-in">
+        <span>Assemble</span><span class="m">01</span><span>Stretch</span><span class="m">02</span><span>Split</span><span class="m">03</span><span>Cascade</span><span class="m">04</span><span>Rotate</span><span class="m">05</span><span>Type</span><span class="m">06</span><span>Zoom</span><span class="m">07</span><span>Move</span><span class="m">■</span>
+        <span>Assemble</span><span class="m">01</span><span>Stretch</span><span class="m">02</span><span>Split</span><span class="m">03</span><span>Cascade</span><span class="m">04</span><span>Rotate</span><span class="m">05</span><span>Type</span><span class="m">06</span><span>Zoom</span><span class="m">07</span><span>Move</span><span class="m">■</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SC 01 — ASSEMBLY ============ -->
+  <section class="scene" id="sc1" data-scene="1" style="--len:280" aria-labelledby="h-s1">
+    <div class="stage">
+      <span class="ghost" aria-hidden="true">01</span>
+      <div class="hud mono reveal"><span class="no">SC. 01 / 07</span><span>Assembly</span><span class="bar" aria-hidden="true"><i></i></span><span class="t" aria-hidden="true">t = 0.000</span></div>
+      <div class="play s1">
+        <h2 class="dsp block reveal" id="h-s1">
+          <span class="sr">Nothing arrives whole.</span>
+          <span class="reg r1" aria-hidden="true"></span><span class="reg r2" aria-hidden="true"></span><span class="reg r3" aria-hidden="true"></span><span class="reg r4" aria-hidden="true"></span>
+          <span class="ln" aria-hidden="true" data-split>NOTHING</span>
+          <span class="ln" aria-hidden="true" data-split>ARRIVES</span>
+          <span class="ln" aria-hidden="true" data-split>WHOLE.</span>
+        </h2>
+      </div>
+      <div class="foot">
+        <p class="body">Meaning is put together in the eye, one fragment at a time. <b>Design the arrival</b>, not just the destination.</p>
+        <p class="anno mono" aria-hidden="true">20 glyphs · scattered → set<br>translate · rotate · scale</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SC 02 — STRETCH ============ -->
+  <section class="scene" id="sc2" data-scene="2" style="--len:300" aria-labelledby="h-s2">
+    <div class="stage">
+      <span class="ghost" aria-hidden="true">02</span>
+      <div class="hud mono reveal"><span class="no">SC. 02 / 07</span><span>Stretch</span><span class="bar" aria-hidden="true"><i></i></span><span class="t" aria-hidden="true">t = 0.000</span></div>
+      <div class="play">
+        <h2 class="dsp s2 reveal" id="h-s2">
+          <span class="sr">Time is material.</span>
+          <span class="sl" aria-hidden="true"><span class="sw">TIME</span><span class="sx">×1.00</span></span>
+          <span class="sl" aria-hidden="true"><span class="sw acc">IS</span><span class="sx">×1.00</span></span>
+          <span class="sl" aria-hidden="true"><span class="sw">MATERIAL.</span><span class="sx">×1.00</span></span>
+        </h2>
+      </div>
+      <div class="foot">
+        <p class="body">Duration has weight and grain, like colour or type. <b>Hold a moment longer</b> and it starts to speak.</p>
+        <p class="anno mono" aria-hidden="true">transform: scaleX(n)<br>three words · one measure</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SC 03 — SPLIT ============ -->
+  <section class="scene" id="sc3" data-scene="3" style="--len:270" aria-labelledby="h-s3">
+    <div class="stage">
+      <span class="ghost" aria-hidden="true">03</span>
+      <div class="hud mono reveal"><span class="no">SC. 03 / 07</span><span>Split</span><span class="bar" aria-hidden="true"><i></i></span><span class="t" aria-hidden="true">t = 0.000</span></div>
+      <div class="play s3">
+        <h2 class="dsp cut reveal" id="h-s3">
+          <span class="sr">Transitions are the content.</span>
+          <span class="band" aria-hidden="true"><span class="band-meta">INSERT · 00:00:12</span><span class="band-in">ARE THE CONTENT.</span></span>
+          <span class="half top" aria-hidden="true">TRANSITIONS</span>
+          <span class="half bot" aria-hidden="true">TRANSITIONS</span>
+          <span class="blade" aria-hidden="true"></span>
+          <span class="cutlabel mono" aria-hidden="true">CUT @ 50.0%</span>
+        </h2>
+      </div>
+      <div class="foot">
+        <p class="body">The cut is not the gap between ideas. It is <b>where the viewer does the work</b>, and where the work is remembered.</p>
+        <p class="anno mono" aria-hidden="true">clip-path × 2 · one blade<br>translateY(±n)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SC 04 — CASCADE ============ -->
+  <section class="scene" id="sc4" data-scene="4" style="--len:300" aria-labelledby="h-s4">
+    <div class="stage">
+      <span class="ghost" aria-hidden="true">04</span>
+      <div class="hud mono reveal"><span class="no">SC. 04 / 07</span><span>Cascade</span><span class="bar" aria-hidden="true"><i></i></span><span class="t" aria-hidden="true">t = 0.000</span></div>
+      <div class="play">
+        <h2 class="dsp s4 reveal" id="h-s4">
+          <span class="sr">Every move sets off the next.</span>
+          <span class="dl" aria-hidden="true" data-domino>EVERY MOVE</span>
+          <span class="dl" aria-hidden="true" data-domino>SETS OFF</span>
+          <span class="dl" aria-hidden="true" data-domino>THE NEXT.</span>
+        </h2>
+      </div>
+      <div class="foot">
+        <p class="body">Choreograph in chains. Every motion should have <b>a visible cause</b>, and cause something in turn.</p>
+        <p class="anno mono" aria-hidden="true"><span id="domCount">22</span> dominoes · rotateX(90° → 0°)<br>origin: the baseline</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SC 05 — ROTATE ============ -->
+  <section class="scene" id="sc5" data-scene="5" style="--len:360" aria-labelledby="h-s5">
+    <div class="stage">
+      <span class="ghost" aria-hidden="true">05</span>
+      <div class="hud mono reveal"><span class="no">SC. 05 / 07</span><span>Rotate</span><span class="bar" aria-hidden="true"><i></i></span><span class="t" aria-hidden="true">t = 0.000</span></div>
+      <div class="play s5">
+        <h2 class="sr" id="h-s5">Look again. Then closer.</h2>
+        <div class="prism-wrap reveal" aria-hidden="true">
+          <div class="prism">
+            <div class="face f0"><span class="fm">FACE A</span><span class="dsp">LOOK</span><i class="shade"></i></div>
+            <div class="face f1"><span class="fm">FACE B</span><span class="dsp">AGAIN.</span><i class="shade"></i></div>
+            <div class="face f2"><span class="fm">FACE C</span><span class="dsp">THEN</span><i class="shade"></i></div>
+            <div class="face f3"><span class="fm">FACE D</span><span class="dsp">CLOSER.</span><i class="shade"></i></div>
+          </div>
+        </div>
+        <p class="dsp prism-static reveal" aria-hidden="true"><span>LOOK</span><span>AGAIN.</span><span>THEN</span><span>CLOSER.</span></p>
+        <p class="faceidx mono" aria-hidden="true">FACE <b id="faceNo">A</b> / D · rotateX(<span id="faceDeg">000</span>°)</p>
+      </div>
+      <div class="foot">
+        <p class="body">Attention is not a click, it is <b>a return</b>. Give people a reason to turn the thing over.</p>
+        <p class="anno mono" aria-hidden="true">one prism · four faces<br>preserve-3d · perspective 1600</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SC 06 — TYPE ============ -->
+  <section class="scene" id="sc6" data-scene="6" style="--len:300" aria-labelledby="h-s6">
+    <div class="stage">
+      <span class="ghost" aria-hidden="true">06</span>
+      <div class="hud mono reveal"><span class="no">SC. 06 / 07</span><span>Type</span><span class="bar" aria-hidden="true"><i></i></span><span class="t" aria-hidden="true">t = 0.000</span></div>
+      <div class="play s6">
+        <p class="prompt mono reveal" aria-hidden="true">&gt; manifesto --statement <b>06</b> --no-decoration</p>
+        <h2 class="sr" id="h-s6">If it moves, it must mean something.</h2>
+        <p class="dsp typed reveal" id="typed" aria-hidden="true"><span class="ta"></span><span class="tb"></span><span class="caret"></span></p>
+        <p class="keys mono reveal" aria-hidden="true">Keystrokes <b id="keyN">00</b> / 58 · backspace × <b id="bsN">0</b></p>
+      </div>
+      <div class="foot">
+        <p class="body">Animation is a claim. If a movement cannot say why it exists, <b>delete it</b>. The caret will wait.</p>
+        <p class="anno mono" aria-hidden="true">58 keystrokes · 8 of them regret<br>caret: 1.05 s blink</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SC 07 — ZOOM ============ -->
+  <section class="scene" id="sc7" data-scene="7" style="--len:380" aria-labelledby="h-s7">
+    <div class="stage">
+      <span class="ghost" aria-hidden="true">07</span>
+      <div class="hud mono reveal"><span class="no">SC. 07 / 07</span><span>Zoom</span><span class="bar" aria-hidden="true"><i></i></span><span class="t" aria-hidden="true">t = 0.000</span></div>
+      <div class="play s7">
+        <h2 class="sr" id="h-s7">Stop watching. Move.</h2>
+        <p class="dsp pre reveal" aria-hidden="true">STOP WATCHING.</p>
+        <div class="zoom-wrap reveal" id="zoomWrap" aria-hidden="true">
+          <svg viewBox="0 0 970 400" xmlns="http://www.w3.org/2000/svg" focusable="false">
+            <g class="zg" data-i="0"><use href="#gM" fill="#f1f1ec"/></g>
+            <g class="zg" data-i="1"><use href="#gC" class="counter"/><use href="#gO" fill="#f1f1ec"/></g>
+            <g class="zg" data-i="2"><use href="#gV" fill="#f1f1ec"/></g>
+            <g class="zg" data-i="3"><use href="#gE" fill="#f1f1ec"/></g>
+          </svg>
+        </div>
+      </div>
+      <div class="foot">
+        <p class="body">Every manifesto ends where the reader begins. <b>Go through the letter.</b></p>
+        <p class="anno mono" aria-hidden="true">scale(1 → <span id="zoomMax">40</span>)<br>origin: the counter of O</p>
+      </div>
+      <div class="flood" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ============ OUTRO ============ -->
+  <section class="outro" id="end" aria-labelledby="h-end">
+    <p class="mono">End of manifesto · 07 / 07 · runtime 01:45</p>
+    <div class="outro-head">
+      <h2 class="dsp yours" id="h-end"><span>Your</span><span>move.</span></h2>
+      <dl class="stats mono">
+        <div><dt>Runtime</dt><dd>01:45:00</dd></div>
+        <div><dt>Scenes</dt><dd>07</dd></div>
+        <div><dt>Statements</dt><dd>07</dd></div>
+        <div><dt>Colours</dt><dd>03</dd></div>
+        <div><dt>Images</dt><dd>00</dd></div>
+        <div><dt>Playhead</dt><dd>You</dd></div>
+      </dl>
+    </div>
+    <div class="outro-cols">
+      <div>
+        <h3>Colophon</h3>
+        <p class="small">MOVE is an original typographic study. Seven statements, seven motions, one rule: every transform is driven by your scroll, and nothing moves without a reason.</p>
+        <p class="small">Display set in your system’s heaviest condensed sans; the M-O-V-E lettering is drawn by hand in SVG. Annotations in monospace. Three colours, no images.</p>
+        <button type="button" class="replay" id="replay">Replay from the top <span aria-hidden="true">↑</span></button>
+      </div>
+      <div>
+        <h3>The seven statements</h3>
+        <ol class="index">
+          <li><span class="n">01</span><span class="k">Assemble</span><button type="button" data-go="1">Nothing arrives whole.</button></li>
+          <li><span class="n">02</span><span class="k">Stretch</span><button type="button" data-go="2">Time is material.</button></li>
+          <li><span class="n">03</span><span class="k">Split</span><button type="button" data-go="3">Transitions are the content.</button></li>
+          <li><span class="n">04</span><span class="k">Cascade</span><button type="button" data-go="4">Every move sets off the next.</button></li>
+          <li><span class="n">05</span><span class="k">Rotate</span><button type="button" data-go="5">Look again. Then closer.</button></li>
+          <li><span class="n">06</span><span class="k">Type</span><button type="button" data-go="6">If it moves, it must mean something.</button></li>
+          <li><span class="n">07</span><span class="k">Zoom</span><button type="button" data-go="7">Stop watching. Move.</button></li>
+        </ol>
+      </div>
+    </div>
+    <footer class="colophon mono">
+      <span>A fictional imprint of the Institute for Unfixed Things</span>
+      <span>Keys 1–7 jump to a scene · M toggles motion</span>
+    </footer>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const clamp = (v, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const seg = (p, a, b) => clamp((p - a) / (b - a));
+  const E = {
+    inOut: t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+    out: t => 1 - Math.pow(1 - t, 3),
+    outQuart: t => 1 - Math.pow(1 - t, 4),
+    expo: t => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+    sine: t => 0.5 - Math.cos(Math.PI * t) / 2
+  };
+  const knock = l => (l >= 1 ? 1 : 1 - Math.exp(-5 * l) * Math.cos(9 * l));
+  function rng(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } }
+  };
+
+  const body = document.body;
+  const mqReduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  let staticMode = mqReduce.matches;
+  const saved = store.get('move-motion');
+  if (saved === 'off') staticMode = true;
+  if (saved === 'on') staticMode = false;
+
+  /* ---------- split helpers ---------- */
+  function splitChars(el, wrap) {
+    const text = el.textContent;
+    el.textContent = '';
+    const out = [];
+    for (const c of text) {
+      if (c === ' ') {
+        const g = document.createElement('span');
+        g.className = 'gap';
+        el.appendChild(g);
+        continue;
+      }
+      const s = document.createElement('span');
+      s.className = 'ch' + (c === '.' ? ' acc' : '');
+      s.textContent = c;
+      if (wrap) {
+        const w = document.createElement('span');
+        w.className = 'dw';
+        s.className = 'dm' + (c === '.' ? ' acc' : '');
+        const tk = document.createElement('i');
+        tk.className = 'tk';
+        w.appendChild(s); w.appendChild(tk);
+        el.appendChild(w);
+        out.push({ el: s, tk });
+      } else {
+        el.appendChild(s);
+        out.push(s);
+      }
+    }
+    return out;
+  }
+
+  /* ---------- measurement helper: size a display element so its natural width hits target ---------- */
+  function widthAt(el, px) { el.style.fontSize = px + 'px'; return el.offsetWidth; }
+
+  /* ================= scenes ================= */
+  const scenes = [];
+  const R = rng(1407);
+
+  /* SC 01 — assembly */
+  (function () {
+    const root = $('#sc1');
+    const h = $('.s1 .block', root);
+    const lines = $$('[data-split]', h);
+    const chars = [];
+    lines.forEach(l => splitChars(l).forEach(c => chars.push(c)));
+    const seeds = chars.map(() => ({ x: R() - 0.5, y: R() - 0.5, r: (R() - 0.5) * 340, s: 0.35 + R() * 2.2, d: R() * 0.32 }));
+    let W = 0, H = 0;
+    const regs = $$('.reg', h);
+    scenes.push({
+      root, stage: $('.stage', root),
+      layout(w, hh) {
+        W = w; H = hh;
+        let fs = 100;
+        const ws = lines.map(l => { l.style.display = 'inline-block'; const v = widthAt(l, 100); l.style.display = ''; return v; });
+        const wide = Math.max(...ws);
+        fs = Math.min(100 * (w * 0.9) / wide, (hh * 0.8) / (3 * 0.86));
+        h.style.fontSize = fs + 'px';
+        lines.forEach(l => (l.style.fontSize = ''));
+      },
+      render(p) {
+        for (let i = 0; i < chars.length; i++) {
+          const s = seeds[i];
+          const l = seg(p, 0.02 + s.d, 0.02 + s.d + 0.42);
+          const e = E.outQuart(l), k = 1 - e;
+          chars[i].style.transform = `translate3d(${(s.x * W * 1.3 * k).toFixed(1)}px,${(s.y * H * 1.2 * k).toFixed(1)}px,0) rotate(${(s.r * k).toFixed(1)}deg) scale(${lerp(s.s, 1, e).toFixed(3)})`;
+          chars[i].style.opacity = (0.18 + 0.82 * e).toFixed(3);
+        }
+        const rg = seg(p, 0.0, 0.2) * (1 - seg(p, 0.72, 0.9));
+        regs.forEach(r => (r.style.opacity = (0.15 + 0.65 * rg).toFixed(3)));
+      },
+      finalP: 1
+    });
+  })();
+
+  /* SC 02 — stretch */
+  (function () {
+    const root = $('#sc2');
+    const h = $('.s2', root);
+    const words = $$('.sw', h);
+    const readouts = $$('.sx', h);
+    let finals = [1, 1, 1];
+    scenes.push({
+      root, stage: $('.stage', root),
+      layout(w, hh) {
+        const nat = words.map(el => { const t = el.style.transform; el.style.transform = 'none'; const v = widthAt(el, 100); el.style.transform = t; return v; });
+        const fs = Math.min(100 * (w * 0.6) / nat[2], (hh * 0.64) / (3 * 0.92));
+        words.forEach(el => (el.style.fontSize = ''));
+        h.style.fontSize = fs + 'px';
+        finals = words.map(el => { const t = el.style.transform; el.style.transform = 'none'; const v = el.offsetWidth; el.style.transform = t; return (w - 2) / v; });
+      },
+      render(p) {
+        for (let j = 0; j < 3; j++) {
+          const l = E.inOut(seg(p, 0.06 + j * 0.2, 0.36 + j * 0.2));
+          const sx = lerp(1, finals[j], l);
+          words[j].style.transform = `scaleX(${sx.toFixed(4)})`;
+          readouts[j].textContent = '×' + sx.toFixed(2);
+        }
+      }
+    });
+  })();
+
+  /* SC 03 — split */
+  (function () {
+    const root = $('#sc3');
+    const cut = $('.cut', root);
+    const top = $('.half.top', root), bot = $('.half.bot', root);
+    const band = $('.band', root), bin = $('.band-in', root), blade = $('.blade', root), lab = $('.cutlabel', root);
+    let B = 100, FS = 100;
+    // where, as a fraction of the line box, the visual centre of the capitals sits
+    function capCenter(el, sample) {
+      try {
+        const cs = getComputedStyle(el);
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.font = `${cs.fontWeight} 100px ${cs.fontFamily}`;
+        const m = ctx.measureText(sample);
+        const fA = m.fontBoundingBoxAscent, fD = m.fontBoundingBoxDescent;
+        if (!fA || !isFinite(fA)) return 0.5;
+        const L = (parseFloat(cs.lineHeight) / parseFloat(cs.fontSize)) * 100 || 86;
+        const base = (L - (fA + fD)) / 2 + fA;
+        const mid = base - (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+        return clamp(mid / L, 0.25, 0.75);
+      } catch (e) { return 0.5; }
+    }
+    scenes.push({
+      root, stage: $('.stage', root),
+      layout(w, hh) {
+        top.style.display = 'inline-block';
+        const nat = widthAt(top, 100);
+        top.style.display = '';
+        top.style.fontSize = '';
+        const fs = Math.min(100 * (w * 0.94) / nat, hh * 0.34);
+        cut.style.fontSize = fs + 'px';
+        FS = fs;
+        cut.style.setProperty('--cut', (capCenter(top, 'TRANSITIONS') * 100).toFixed(2) + '%');
+        B = Math.min(fs * 0.62, hh * 0.2);
+        band.style.height = B + 'px';
+        bin.style.display = 'inline-block';
+        const bn = widthAt(bin, 100);
+        bin.style.display = '';
+        bin.style.fontSize = Math.min(B * 0.78, 100 * (w * 0.8) / bn) + 'px';
+      },
+      render(p) {
+        const b = E.inOut(seg(p, 0.04, 0.24));
+        const o = E.inOut(seg(p, 0.26, 0.66));
+        const g = o * (B * 0.5 + FS * 0.05);
+        const sh = o * B * 0.18;
+        top.style.transform = `translate3d(${(-sh).toFixed(1)}px,${(-g).toFixed(1)}px,0)`;
+        bot.style.transform = `translate3d(${sh.toFixed(1)}px,${g.toFixed(1)}px,0)`;
+        blade.style.transform = `scaleX(${b.toFixed(4)})`;
+        blade.style.opacity = (1 - o).toFixed(3);
+        band.style.transform = `translateY(-50%) scaleY(${o.toFixed(4)})`;
+        const t = E.out(seg(p, 0.42, 0.78));
+        bin.style.transform = `translate3d(${((1 - t) * 60).toFixed(1)}px,0,0)`;
+        bin.style.opacity = t.toFixed(3);
+        lab.style.opacity = (seg(p, 0.12, 0.22) * (1 - seg(p, 0.3, 0.4))).toFixed(3);
+      }
+    });
+  })();
+
+  /* SC 04 — cascade */
+  (function () {
+    const root = $('#sc4');
+    const h = $('.s4', root);
+    const lines = $$('[data-domino]', h);
+    const doms = [];
+    lines.forEach(l => splitChars(l, true).forEach(d => doms.push(d)));
+    $('#domCount').textContent = doms.length;
+    const N = doms.length;
+    scenes.push({
+      root, stage: $('.stage', root),
+      layout(w, hh) {
+        // lines are flex items (stretched), so measure them at max-content width
+        const ws = lines.map(l => { l.style.width = 'max-content'; const v = widthAt(l, 100); l.style.width = ''; return v; });
+        lines.forEach(l => (l.style.fontSize = ''));
+        const fs = Math.min(100 * (w * 0.9) / Math.max(...ws), (hh * 0.8) / (3 * 0.98));
+        h.style.fontSize = fs + 'px';
+      },
+      render(p) {
+        for (let i = 0; i < N; i++) {
+          const t0 = 0.05 + 0.62 * (i / N);
+          const l = seg(p, t0, t0 + 0.14);
+          const k = knock(l);
+          const d = doms[i];
+          d.el.style.transform = `rotateX(${(90 * (1 - k)).toFixed(2)}deg)`;
+          d.el.style.opacity = (0.3 + 0.7 * clamp(k)).toFixed(3);
+          const bump = l > 0.18 && l < 1 ? Math.sin(Math.PI * clamp((l - 0.18) / 0.7)) : 0;
+          d.tk.style.opacity = bump.toFixed(3);
+        }
+      }
+    });
+  })();
+
+  /* SC 05 — prism */
+  (function () {
+    const root = $('#sc5');
+    const wrap = $('.prism-wrap', root);
+    const prism = $('.prism', root);
+    const faces = $$('.face', root);
+    const shades = faces.map(f => $('.shade', f));
+    const faceNo = $('#faceNo'), faceDeg = $('#faceDeg');
+    const idx = $('.faceidx', root);
+    const letters = 'ABCD';
+    let FH = 200, tiltX = 0, tiltY = 0, lastP = 0;
+    scenes.push({
+      root, stage: $('.stage', root),
+      layout(w, hh) {
+        const PW = Math.min(w, 1400);
+        FH = Math.round(Math.min(hh * 0.4, PW * (PW < 600 ? 0.48 : 0.3)));
+        wrap.style.width = PW + 'px';
+        wrap.style.height = FH + 'px';
+        wrap.style.perspective = Math.round(Math.max(1100, PW * 2.1)) + 'px';
+        idx.style.marginTop = Math.round(FH * 0.24 + 18) + 'px';
+        faces.forEach((f, i) => {
+          f.style.transform = `rotateX(${i * 90}deg) translateZ(${FH / 2}px)`;
+          const sp = $('.dsp', f);
+          sp.style.display = 'inline-block';
+          const nat = widthAt(sp, 100);
+          sp.style.display = '';
+          sp.style.fontSize = Math.min(100 * (PW * 0.84) / nat, FH * 0.9) + 'px';
+        });
+        this.render(lastP);
+      },
+      tilt(x, y) { tiltX = x; tiltY = y; },
+      render(p) {
+        lastP = p;
+        const s = p * 3.0;
+        const k = Math.min(2, Math.floor(s));
+        const f = s - k;
+        const a = 90 * (k + E.inOut(seg(f, 0.3, 0.85)));
+        prism.style.transform = `translateZ(${(-FH / 2).toFixed(1)}px) rotateY(${tiltY.toFixed(2)}deg) rotateX(${(-a + tiltX).toFixed(2)}deg)`;
+        for (let i = 0; i < 4; i++) {
+          const rel = ((i * 90 - a) * Math.PI) / 180;
+          shades[i].style.opacity = (clamp(1 - Math.cos(rel)) * 0.85).toFixed(3);
+        }
+        const idx = Math.round(a / 90);
+        faceNo.textContent = letters[clamp(idx, 0, 3)];
+        faceDeg.textContent = String(Math.round(a)).padStart(3, '0');
+      }
+    });
+  })();
+
+  /* SC 06 — typed */
+  (function () {
+    const root = $('#sc6');
+    const typed = $('#typed');
+    const ta = $('.ta', typed), tb = $('.tb', typed);
+    const keyN = $('#keyN'), bsN = $('#bsN');
+    const PRE = 'IF IT MOVES, IT MUST ', WRONG = 'DECORATE', RIGHT = 'MEAN SOMETHING.';
+    const P = PRE.length, W = WRONG.length, PAUSE = 6, RR = RIGHT.length;
+    const TOTAL = P + W + PAUSE + W + RR;
+    let last = -1, busyT = 0;
+    function state(n) {
+      if (n <= P) return { a: PRE.slice(0, n), b: '', flag: false, keys: n, bs: 0 };
+      n -= P;
+      if (n <= W) return { a: PRE, b: WRONG.slice(0, n), flag: false, keys: P + n, bs: 0 };
+      n -= W;
+      if (n <= PAUSE) return { a: PRE, b: WRONG, flag: n > 1, keys: P + W, bs: 0 };
+      n -= PAUSE;
+      if (n <= W) return { a: PRE, b: WRONG.slice(0, W - n), flag: true, keys: P + W + n, bs: n };
+      n -= W;
+      const r = Math.min(n, RR);
+      return { a: PRE + RIGHT.slice(0, r), b: '', flag: false, keys: P + W + W + r, bs: W };
+    }
+    scenes.push({
+      root, stage: $('.stage', root),
+      layout() {},
+      render(p) {
+        const n = Math.round(seg(p, 0.04, 0.84) * TOTAL);
+        if (n === last) return;
+        last = n;
+        const s = state(n);
+        ta.textContent = s.a;
+        tb.textContent = s.b;
+        tb.classList.toggle('flag', s.flag);
+        keyN.textContent = String(s.keys).padStart(2, '0');
+        bsN.textContent = s.bs;
+        typed.classList.add('busy');
+        clearTimeout(busyT);
+        busyT = setTimeout(() => typed.classList.remove('busy'), 420);
+      }
+    });
+  })();
+
+  /* SC 07 — zoom into the counter */
+  (function () {
+    const root = $('#sc7');
+    const stage = $('.stage', root);
+    const wrap = $('#zoomWrap');
+    const gs = $$('.zg', wrap);
+    const pre = $('.pre', root);
+    const hud = $('.hud', root), foot = $('.foot', root);
+    const flood = $('.flood', root);
+    const ghost = $('.ghost', root);
+    const zoomMax = $('#zoomMax');
+    const CX = 410 / 970, CY = 200 / 400;
+    let Smax = 30, dx = 0, dy = 0;
+    scenes.push({
+      root, stage,
+      layout(w, hh) {
+        const ww = Math.min(w * 0.94, (hh * 0.5) * (970 / 400));
+        wrap.style.width = ww + 'px';
+        wrap.style.transformOrigin = (CX * 100).toFixed(3) + '% ' + (CY * 100).toFixed(3) + '%';
+        const u = ww / 970;
+        const sw = stage.clientWidth, sh = stage.clientHeight;
+        Smax = Math.max((sw * 1.12) / (100 * u), (sh * 1.1) / (140 * u));
+        zoomMax.textContent = Math.round(Smax);
+        const prevT = wrap.style.transform;
+        wrap.style.transform = 'none';
+        const sr = stage.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+        wrap.style.transform = prevT;
+        const cx = wr.left - sr.left + wr.width * CX, cy = wr.top - sr.top + wr.height * CY;
+        dx = sw / 2 - cx; dy = sh / 2 - cy;
+      },
+      render(p) {
+        for (let i = 0; i < 4; i++) {
+          const l = E.outQuart(seg(p, 0.0 + i * 0.03, 0.14 + i * 0.03));
+          gs[i].setAttribute('transform', `translate(0 ${((1 - l) * 420).toFixed(1)})`);
+        }
+        const z = seg(p, 0.22, 0.9);
+        const e = E.sine(z);
+        const S = Math.exp(Math.log(Smax) * Math.pow(e, 1.15));
+        const m = E.inOut(clamp(z * 1.6));
+        wrap.style.transform = `translate(${(dx * m).toFixed(1)}px,${(dy * m).toFixed(1)}px) scale(${S.toFixed(4)})`;
+        const fade = 1 - seg(p, 0.2, 0.34);
+        pre.style.opacity = (seg(p, 0.06, 0.16) * fade).toFixed(3);
+        pre.style.transform = `translate3d(0,${((1 - fade) * -40).toFixed(1)}px,0)`;
+        hud.style.opacity = (1 - seg(p, 0.26, 0.4)).toFixed(3);
+        ghost.style.opacity = (1 - seg(p, 0.2, 0.4)).toFixed(3);
+        body.classList.toggle('zooming', p > 0.3 && p < 0.985);
+        foot.style.opacity = (1 - seg(p, 0.3, 0.45)).toFixed(3);
+        flood.style.opacity = seg(p, 0.86, 0.93).toFixed(3);
+      }
+    });
+  })();
+
+  /* ---------- shared per-scene chrome ---------- */
+  scenes.forEach((sc, i) => {
+    sc.i = i;
+    sc.p = -1;
+    sc.target = 0;
+    sc.t = $('.hud .t', sc.root);
+    sc.bar = $('.hud .bar i', sc.root);
+    sc.body = $('.foot .body', sc.root);
+    sc.ghost = $('.ghost', sc.root);
+    sc.seg = $$('.rail .seg')[i];
+    sc.fil = $('.fil', sc.seg);
+  });
+  const vertical = () => window.innerWidth > 760;
+
+  /* ---------- intro ---------- */
+  const tMO = $('#tMO'), tVE = $('#tVE');
+  const tw1 = $('#titleWrap'), tw2 = $('#titleWrap2');
+  const title = $('.title');
+  const intro = $('#top');
+  function layoutTitle() {
+    const cs = getComputedStyle(intro);
+    const avail = intro.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const hh = window.innerHeight;
+    const narrow = window.innerWidth <= 760;
+    let u;
+    if (narrow) {
+      u = Math.min(avail / 500, (hh * 0.5) / (2 * 360 + 16));
+      title.style.flexDirection = 'column';
+      title.style.alignItems = 'flex-start';
+      title.style.gap = (16 * u) + 'px';
+    } else {
+      u = Math.min(avail / 930, (hh * 0.54) / 360);
+      title.style.flexDirection = 'row';
+      title.style.alignItems = 'flex-end';
+      title.style.gap = (20 * u) + 'px';
+    }
+    tMO.style.width = (500 * u) + 'px';
+    tVE.style.width = (410 * u) + 'px';
+  }
+
+  /* ---------- layout all ---------- */
+  function layoutAll() {
+    layoutTitle();
+    scenes.forEach(sc => {
+      const st = sc.stage;
+      const cs = getComputedStyle(st);
+      const w = st.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const hh = Math.max(240, window.innerHeight - (window.innerWidth <= 760 ? 250 : 200));
+      sc.layout(w, hh);
+      sc.p = -1;
+    });
+    applyMode();
+    kick();
+  }
+
+  /* ---------- static (reduced-motion) mode ---------- */
+  const reveals = $$('.reveal');
+  let io = null;
+  function applyMode() {
+    body.classList.toggle('static', staticMode);
+    const tg = $('#motionToggle');
+    tg.setAttribute('aria-pressed', String(!staticMode));
+    $('#motionLabel').textContent = staticMode ? 'Motion off' : 'Motion on';
+    if (staticMode) {
+      scenes.forEach((sc, i) => {
+        sc.render(i === 6 ? 0.21 : 1);
+        if (i === 4) sc.render(0);
+        sc.body.style.opacity = ''; sc.body.style.transform = '';
+        if (sc.t) sc.t.textContent = 't = static';
+        if (sc.bar) sc.bar.style.transform = 'scaleX(1)';
+      });
+      $('#sc7 .foot').style.opacity = '';
+      $('#sc7 .hud').style.opacity = '';
+      $('#sc7 .pre').style.opacity = '';
+      $('#sc7 .pre').style.transform = '';
+      $('#zoomWrap').style.transform = 'none';
+      if ('IntersectionObserver' in window) {
+        if (!io) io = new IntersectionObserver(ents => ents.forEach(en => { if (en.isIntersecting) en.target.classList.add('in'); }), { threshold: 0.15 });
+        reveals.forEach(r => io.observe(r));
+      } else reveals.forEach(r => r.classList.add('in'));
+    } else {
+      if (io) { io.disconnect(); }
+      reveals.forEach(r => r.classList.remove('in'));
+    }
+  }
+
+  /* ---------- frame loop ---------- */
+  let raf = 0;
+  const tcEl = $('#tc'), railSc = $('#railSc');
+  let activeIdx = -2, railLab = '';
+  function frame() {
+    raf = 0;
+    const vh = window.innerHeight;
+    let moving = false;
+    // read phase
+    const rects = scenes.map(sc => sc.root.getBoundingClientRect());
+    const doc = document.documentElement;
+    const maxScroll = Math.max(1, doc.scrollHeight - vh);
+    const overall = clamp(window.scrollY / maxScroll);
+    const endRect = $('#end').getBoundingClientRect();
+    // write phase
+    let active = -1;
+    scenes.forEach((sc, i) => {
+      const r = rects[i];
+      const span = r.height - vh;
+      const target = span > 1 ? clamp(-r.top / span) : (r.top < vh * 0.5 ? 1 : 0);
+      sc.target = target;
+      if (r.top <= vh * 0.5 && r.bottom > vh * 0.5) active = i;
+      const visible = r.top < vh && r.bottom > 0;
+      if (staticMode) { sc.p = target; }
+      else {
+        const d = target - sc.p;
+        if (sc.p < 0 || !visible) sc.p = target;
+        else if (Math.abs(d) > 0.0006) { sc.p += d * 0.2; moving = true; }
+        else sc.p = target;
+        if (visible) {
+          sc.render(sc.p);
+          if (sc.t) sc.t.textContent = 't = ' + sc.p.toFixed(3);
+          if (sc.bar) sc.bar.style.transform = `scaleX(${sc.p.toFixed(4)})`;
+          if (sc.ghost) sc.ghost.style.transform = `translate3d(0,${((0.5 - sc.p) * vh * 0.16).toFixed(1)}px,0)`;
+          if (sc.body) {
+            const b = E.out(seg(sc.p, 0.55, 0.75));
+            sc.body.style.opacity = i === 6 ? '' : b.toFixed(3);
+            sc.body.style.transform = i === 6 ? '' : `translate3d(0,${((1 - b) * 12).toFixed(1)}px,0)`;
+          }
+        }
+      }
+      sc.fil.style.transform = vertical() ? `scaleY(${target.toFixed(4)})` : `scaleX(${target.toFixed(4)})`;
+    });
+    if (scenes[6].body && !staticMode) {
+      const b7 = E.out(seg(scenes[6].p, 0.08, 0.2));
+      scenes[6].body.style.opacity = b7.toFixed(3);
+    }
+    const lab = active < 0 ? (endRect.top < vh * 0.5 ? 'END' : '00') : String(active + 1).padStart(2, '0');
+    if (active !== activeIdx || lab !== railLab) {
+      activeIdx = active; railLab = lab;
+      scenes.forEach((sc, i) => sc.seg.classList.toggle('on', i === active));
+      railSc.innerHTML = 'SC. <b>' + lab + '</b> / 07';
+    }
+    if (staticMode || !(rects[6].top < vh && rects[6].bottom > 0)) body.classList.remove('zooming');
+    body.classList.toggle('at-top', window.scrollY < vh * 0.55);
+    body.classList.toggle('on-acid', endRect.top < 60 || (!staticMode && scenes[6].p > 0.9 && rects[6].top <= 0 && rects[6].bottom > 0));
+    // timecode (01:45:00 runtime at 24 fps)
+    const secs = overall * 105;
+    const mm = Math.floor(secs / 60), ss = Math.floor(secs % 60), ff = Math.floor((secs % 1) * 24);
+    tcEl.textContent = `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}:${String(ff).padStart(2, '0')}`;
+    // intro parallax
+    if (!staticMode) {
+      const f = clamp(window.scrollY / vh);
+      if (f < 1) {
+        tw1.style.transform = `translate3d(${(skew.x * 0.4).toFixed(1)}px,${(-f * 60).toFixed(1)}px,0) skewX(${(-skew.v).toFixed(2)}deg) scaleY(${(1 + f * 0.35).toFixed(3)})`;
+        tw2.style.transform = `translate3d(${(skew.x * 0.7).toFixed(1)}px,${(-f * 140).toFixed(1)}px,0) skewX(${(-skew.v * 1.3).toFixed(2)}deg) scaleY(${(1 + f * 0.55).toFixed(3)})`;
+      }
+      if (Math.abs(skew.v) > 0.02 || Math.abs(skew.x) > 0.1) {
+        skew.v *= 0.86; skew.x *= 0.88; moving = true;
+      }
+    } else {
+      tw1.style.transform = ''; tw2.style.transform = '';
+    }
+    if (moving && !document.hidden) raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+
+  /* ---------- pointer: intro skew + prism tilt ---------- */
+  const skew = { v: 0, x: 0, lx: null, lt: 0 };
+  window.addEventListener('pointermove', e => {
+    if (staticMode) return;
+    const now = performance.now();
+    if (skew.lx !== null && window.scrollY < window.innerHeight) {
+      const dt = Math.max(8, now - skew.lt);
+      const vx = (e.clientX - skew.lx) / dt;
+      skew.v = clamp(skew.v + vx * 2.2, -9, 9);
+      skew.x = clamp(skew.x + vx * 6, -28, 28);
+    }
+    skew.lx = e.clientX; skew.lt = now;
+    const nx = e.clientX / window.innerWidth - 0.5, ny = e.clientY / window.innerHeight - 0.5;
+    scenes[4].tilt(-ny * 10, nx * 14);
+    kick();
+  }, { passive: true });
+
+  /* ---------- navigation ---------- */
+  function go(n) {
+    const target = n === 0 ? 0 : $('#sc' + n).offsetTop + 2;
+    window.scrollTo({ top: target, behavior: staticMode ? 'auto' : 'smooth' });
+  }
+  $$('[data-go]').forEach(b => b.addEventListener('click', () => go(+b.dataset.go)));
+  $('#replay').addEventListener('click', () => go(0));
+  $('#motionToggle').addEventListener('click', () => {
+    staticMode = !staticMode;
+    store.set('move-motion', staticMode ? 'off' : 'on');
+    applyMode();
+    scenes.forEach(sc => (sc.p = -1));
+    kick();
+  });
+  window.addEventListener('keydown', e => {
+    if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/^[1-7]$/.test(e.key)) { go(+e.key); }
+    else if (e.key === 'm' || e.key === 'M') { $('#motionToggle').click(); }
+    else if (e.key === '0') { go(0); }
+  });
+  if (mqReduce.addEventListener) mqReduce.addEventListener('change', ev => { if (store.get('move-motion') === null) { staticMode = ev.matches; applyMode(); kick(); } });
+
+  window.addEventListener('scroll', kick, { passive: true });
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layoutAll, 60); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) kick(); });
+
+  layoutAll();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutAll).catch(() => {});})();
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+TITLE: HYPERBRICK
+FILE: 038-neon-breakout.html
+
+=== PROMPT (exact prompt used) ===
+Create "HYPERBRICK", a polished, playable Breakout-style arcade game with a synthwave aesthetic. A canvas playfield framed by an arcade bezel; background dark purple (#12002b) with a perspective grid horizon and a glowing sun. Bricks in glowing neon rows (#ff2e97, #ff9e00, #fff200, #00f5d4, #00bbf9, #9b5de5); a sleek neon capsule paddle; a ball that leaves a motion trail. Juicy feedback: bricks shatter into particles, screen shake on impact, a combo counter with pop text, paddle squash, flashes, and synthesized sound effects (Web Audio blips whose pitch rises with the combo; mute toggle). Power-ups drop from some bricks: multi-ball, wide paddle, laser, slow-mo. Five hand-designed levels (e.g. heart, invader, spiral) plus an endless mode. Controls: mouse/touch drag and arrow keys; Space to launch/pause. Screens: a title screen with an attract-mode demo, pause, and game over with a high score saved in localStorage. Typography: bold italic sans with neon glow for the HUD. Scales to phone screens with a portrait playfield.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+HYPERBRICK is a complete, playable Breakout game built as a synthwave arcade cabinet. A backlit marquee carries the chrome-and-neon logo; below it a screwed-down bezel with pink and cyan neon rims frames a portrait CRT playfield (scanlines, vignette, glass glare), flanked on desktop by illuminated side panels for score, hi-score, stage, lives, a combo meter and a live power-up legend. The whole cabinet stands in a synthwave landscape: a huge striped sun, stars, and a CSS perspective grid rushing toward the viewer. Inside the screen, a painted sky, striped sun and neon-rimmed mountains sit behind glowing glass bricks, and the floor is an animated perspective grid whose speed rises with your combo. On phones the side panels fold into a compact HUD strip and the logical playfield grows taller, so the game stays a true portrait field.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Canvas 2D at devicePixelRatio (capped at 2) with a fixed 600-unit-wide logical field whose height adapts (800 on desktop, up to 1000 on tall phones)
+- Neon bricks, the ball glow and the sky/sun/mountain backdrop are pre-rendered to offscreen canvases (glow baked in with shadowBlur once per resize) so each frame is mostly drawImage calls
+- Striped sun made with destination-out compositing; perspective floor grid redrawn every frame with hyperbolic line spacing
+- Pooled particle system (520 slots): rotating shards on additive blending, shock-ring ellipses, paddle sparks and a stage-clear firework
+- Juice: screen shake, hit-stop on big combos, white brick flashes, cracked two-hit bricks, paddle squash, tapered two-pass ball trail that shifts cyan to orange to pink as the combo grows, floating score pop text, red flash on a lost ball and a violet tint during slow-mo
+- DOM overlays with CSS container-query type: skewed neon menu buttons, a sliding stage banner, a popping combo counter, a chrome gradient logo with a cyan offset outline
+- Page backdrop: CSS-masked striped sun, a rotated repeating-gradient grid plane with a looping animation, and a glowing horizon
+
+=== INTERACTION MODEL ===
+- Title screen runs an attract-mode demo, with a predictive AI paddle playing a random stage behind the menu; choose Arcade (five hand-built stages: Love Circuit, Invader, Spiral, Palm Drive, Hyper Sun) or Endless (seeded, symmetric generated waves that get denser and tougher)
+- Mouse moves the paddle directly; on touch devices you drag anywhere (relative drag with a little gain) and tap to launch; Arrow keys or A/D also move it
+- Space (or click / tap) launches; Space, P or Esc pauses; the Pause button and the pause overlay offer Resume or Quit
+- Power-up capsules drop from about 15% of bricks: Multi-ball, Wide paddle (14 s), Twin laser with auto-fire (10 s) and Slow-mo (8 s), each with a countdown bar on the playfield and in the side legend
+- Combos count bricks broken between paddle touches and multiply the points; the Web Audio synth pitches brick blips up a pentatonic scale as the combo rises, with separate sounds for walls, paddle, armour, lasers, power-ups, a lost life, stage clear and game over
+- Sound starts only after a user gesture; the Sound button or M toggles mute (remembered). The hi-score is saved in localStorage (guarded), and a finished arcade run can carry its score and lives into endless mode
+- The game pauses automatically when the tab is hidden; a polite live region announces stages, lives and results; reduced motion removes shake, hit-stop and big flashes and slows the backgrounds

@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Herbarium Imaginarium — A Cabinet of Plants That Never Were</title>
+<meta name="description" content="A Victorian botanical specimen cabinet of imaginary plants, each grown by a branching grammar, drawn in sepia ink, strapped with paper tape and labelled with an invented Latin binomial.">
+<style>
+:root{
+  --paper:#efe6d2;
+  --sheet:#f6efdd;
+  --ink:#4a3622;
+  --ink-soft:#6f5a3e;
+  --ink-faint:rgba(74,54,34,.55);
+  --green:#6b7f4e;
+  --green-pale:#9aa77a;
+  --madder:#9e2f28;
+  --madder-soft:#b85a4c;
+  --brass-hi:#e2c682;
+  --brass-lo:#7a5a24;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"P052","Book Antiqua",Georgia,serif;
+  --panel-w:clamp(300px,26vw,390px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;color:var(--ink);font-family:var(--serif);
+  background-color:var(--paper);
+  background-image:var(--fibre,none),repeating-linear-gradient(93deg,rgba(255,255,255,.035) 0 1px,transparent 1px 5px),repeating-linear-gradient(3deg,rgba(120,90,50,.025) 0 1px,transparent 1px 7px);
+  background-size:320px 320px,auto,auto;
+}
+/* foxing and age toning, fixed to the viewport so the whole cabinet feels old */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(circle at 7% 12%,rgba(150,96,44,.22) 0 2px,rgba(150,96,44,.09) 5px,transparent 13px),
+    radial-gradient(circle at 11% 16%,rgba(150,96,44,.14) 0 1px,rgba(150,96,44,.05) 3px,transparent 7px),
+    radial-gradient(circle at 23% 83%,rgba(140,88,40,.20) 0 3px,rgba(140,88,40,.07) 8px,transparent 18px),
+    radial-gradient(circle at 26% 88%,rgba(140,88,40,.12) 0 1px,transparent 6px),
+    radial-gradient(circle at 44% 6%,rgba(160,104,50,.16) 0 2px,rgba(160,104,50,.05) 6px,transparent 14px),
+    radial-gradient(circle at 63% 94%,rgba(150,96,44,.18) 0 2px,rgba(150,96,44,.06) 7px,transparent 16px),
+    radial-gradient(circle at 78% 9%,rgba(140,90,42,.14) 0 3px,rgba(140,90,42,.05) 9px,transparent 20px),
+    radial-gradient(circle at 91% 37%,rgba(150,96,44,.20) 0 2px,rgba(150,96,44,.07) 6px,transparent 15px),
+    radial-gradient(circle at 94% 41%,rgba(150,96,44,.10) 0 1px,transparent 5px),
+    radial-gradient(circle at 86% 78%,rgba(130,84,38,.16) 0 4px,rgba(130,84,38,.05) 10px,transparent 22px),
+    radial-gradient(circle at 52% 58%,rgba(150,96,44,.08) 0 2px,transparent 9px),
+    radial-gradient(circle at 34% 41%,rgba(150,96,44,.07) 0 3px,transparent 12px),
+    radial-gradient(ellipse 60% 40% at 0% 100%,rgba(150,108,52,.16),transparent 70%),
+    radial-gradient(ellipse 50% 35% at 100% 0%,rgba(150,108,52,.13),transparent 70%),
+    radial-gradient(ellipse 120% 95% at 50% 45%,transparent 58%,rgba(116,80,36,.24) 100%);
+}
+::selection{background:rgba(158,47,40,.22)}
+a{color:inherit}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--sheet);padding:8px 14px;z-index:99}
+.skip:focus{left:8px}
+:focus-visible{outline:2px solid var(--madder);outline-offset:4px}
+
+/* ---------- layout ---------- */
+.page{display:grid;grid-template-columns:var(--panel-w) minmax(0,1fr);min-height:100vh}
+.index-panel{
+  position:sticky;top:0;height:100vh;overflow:auto;padding:34px 30px 30px 38px;
+  border-right:1px solid rgba(74,54,34,.28);
+  box-shadow:inset -5px 0 0 -4px rgba(74,54,34,.18),6px 0 22px -18px rgba(74,54,34,.5);
+  scrollbar-width:thin;scrollbar-color:rgba(74,54,34,.3) transparent;
+}
+.cabinet{padding:32px clamp(18px,3vw,46px) 56px;min-width:0}
+
+/* brass label holder, like the front of a specimen drawer */
+.holder{
+  display:inline-flex;position:relative;padding:6px 22px;border-radius:4px;
+  background:linear-gradient(160deg,var(--brass-hi) 0%,#b8944c 30%,var(--brass-lo) 52%,#c9a860 70%,#8a6a2e 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 3px 6px -2px rgba(60,40,15,.55);
+}
+.holder::before,.holder::after{
+  content:"";position:absolute;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#f4dea0,#9a7632 55%,#5a4218);
+  box-shadow:0 1px 1px rgba(0,0,0,.4);
+}
+.holder::before{left:7px}.holder::after{right:7px}
+.holder span{
+  display:block;padding:5px 14px 4px;background:#f4ecd8;color:var(--ink);font-size:12.5px;letter-spacing:.2em;
+  font-variant:small-caps;text-transform:lowercase;box-shadow:inset 0 1px 3px rgba(74,54,34,.35);white-space:nowrap;
+}
+h1{margin:26px 0 0;font-weight:400;line-height:.92;font-size:clamp(42px,3.75vw,62px);letter-spacing:.005em}
+h1 .l1{display:block}
+h1 .l2{display:block;font-style:italic;padding-left:.32em;color:#3f2c19}
+.subtitle{margin:12px 0 0;font-size:13px;letter-spacing:.24em;font-variant:small-caps;text-transform:lowercase;color:var(--ink-soft)}
+.orn{display:block;width:100%;max-width:300px;height:22px;margin:16px 0 14px;color:var(--ink)}
+.intro{margin:0;font-size:15.5px;line-height:1.55;color:#4f3b26;hyphens:auto}
+.intro::first-letter{float:left;font-size:3.1em;line-height:.82;padding:4px 7px 0 0;color:var(--madder);font-style:italic}
+
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 20px}
+.btn{
+  -webkit-appearance:none;appearance:none;font:inherit;font-size:15px;line-height:1;display:inline-flex;align-items:center;gap:10px;
+  padding:12px 16px 11px 13px;border:1px solid var(--ink);color:var(--ink);background:#f7f0de;cursor:pointer;border-radius:1px;
+  box-shadow:inset 0 0 0 2px #f7f0de,inset 0 0 0 3px rgba(74,54,34,.35),0 2px 0 rgba(74,54,34,.25);
+  transition:transform .2s ease,box-shadow .2s ease,background-color .3s ease,color .3s ease;
+}
+.btn svg{width:20px;height:20px;flex:none}
+.btn:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 2px #f7f0de,inset 0 0 0 3px rgba(74,54,34,.45),0 4px 8px -3px rgba(74,54,34,.45)}
+.btn:active{transform:translateY(1px);box-shadow:inset 0 0 0 2px #f7f0de,inset 0 0 0 3px rgba(74,54,34,.45),0 0 0 rgba(74,54,34,.25)}
+.btn-primary{background:var(--ink);color:#f6edd8;box-shadow:inset 0 0 0 2px var(--ink),inset 0 0 0 3px rgba(246,237,216,.4),0 2px 0 rgba(40,28,14,.4)}
+.btn-primary:hover{background:#3d2c1b;box-shadow:inset 0 0 0 2px #3d2c1b,inset 0 0 0 3px rgba(246,237,216,.55),0 5px 10px -4px rgba(40,28,14,.6)}
+.btn-primary:active{box-shadow:inset 0 0 0 2px var(--ink),inset 0 0 0 3px rgba(246,237,216,.4)}
+.btn[aria-pressed="true"]{background:#e6dcc2;box-shadow:inset 0 2px 5px rgba(74,54,34,.35),inset 0 0 0 3px rgba(74,54,34,.25)}
+.btn .kbd{font-size:11px;opacity:.6;letter-spacing:.08em;margin-left:2px;font-style:italic}
+
+.ledger{margin:0 0 20px;padding:0;list-style:none;font-size:14px}
+.ledger li{display:flex;align-items:baseline;gap:6px;padding:4px 0}
+.ledger li::after{content:"";order:1;flex:1;border-bottom:1px dotted rgba(74,54,34,.45);transform:translateY(-3px)}
+.ledger .v{order:2;font-style:italic;color:var(--madder);font-variant-numeric:oldstyle-nums}
+.ledger .k{font-variant:small-caps;text-transform:lowercase;letter-spacing:.08em}
+
+.index-title{margin:4px 0 8px;font-size:12px;font-weight:400;letter-spacing:.24em;font-variant:small-caps;text-transform:lowercase;color:var(--ink-soft);display:flex;align-items:center;gap:10px}
+.index-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(74,54,34,.45),transparent)}
+.index{list-style:none;margin:0 0 22px;padding:0}
+.index li{border-bottom:1px solid rgba(74,54,34,.12)}
+.index button{
+  -webkit-appearance:none;appearance:none;width:100%;display:flex;align-items:baseline;gap:10px;background:none;border:0;padding:7px 2px;
+  font:inherit;font-size:15px;color:var(--ink);text-align:left;cursor:pointer;transition:color .2s,padding-left .25s;
+}
+.index button:hover{color:var(--madder);padding-left:8px}
+.index .ix-no{font-size:11.5px;letter-spacing:.08em;color:var(--ink-soft);font-variant-numeric:tabular-nums;min-width:40px}
+.index i{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.index li.fresh{animation:inkin 1.4s ease}
+@keyframes inkin{from{background:rgba(158,47,40,.14)}to{background:transparent}}
+.footnote{margin:0;font-size:12.5px;line-height:1.55;color:var(--ink-soft);font-style:italic}
+.footnote kbd{font-family:inherit;font-style:normal;font-size:11px;border:1px solid rgba(74,54,34,.4);border-bottom-width:2px;padding:0 5px;border-radius:2px;background:rgba(255,255,255,.35)}
+
+/* ---------- the cabinet grid ---------- */
+.drawer-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0 auto 18px;max-width:var(--grid-max);font-size:12.5px;letter-spacing:.2em;font-variant:small-caps;text-transform:lowercase;color:var(--ink-soft)}
+.drawer-head b{font-weight:400;color:var(--ink)}
+.grid{
+  --grid-max:max(760px,calc((100vh - 170px) / 2 / 1.4 * 3 + 64px));
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px 32px;max-width:var(--grid-max);margin:0 auto;list-style:none;padding:0;
+}
+.cabinet{--grid-max:max(760px,calc((100vh - 170px) / 2 / 1.4 * 3 + 64px))}
+.card{position:relative;margin:0;transform:rotate(var(--rot,0deg));transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.card:hover,.card:focus-within{transform:rotate(0deg) translateY(-5px)}
+.sheet{
+  position:relative;width:100%;aspect-ratio:600/840;background-color:var(--sheet);
+  background-image:var(--fox,none);
+  box-shadow:inset 0 0 38px rgba(160,118,60,.16),inset 0 0 2px rgba(120,90,50,.35),0 1px 1px rgba(74,54,34,.25),0 10px 22px -12px rgba(60,40,20,.55);
+  transition:box-shadow .6s ease;
+}
+.sheet::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:var(--fibre,none);background-size:320px 320px;opacity:.9}
+.card:hover .sheet{box-shadow:inset 0 0 38px rgba(160,118,60,.16),inset 0 0 2px rgba(120,90,50,.35),0 2px 3px rgba(74,54,34,.2),0 22px 34px -16px rgba(60,40,20,.6)}
+.sheet svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+.sheet .plant{
+  filter:drop-shadow(.5px 1.2px .7px rgba(58,38,18,.38)) saturate(1) sepia(0) contrast(1) brightness(1);
+  transition:filter 1.1s ease,opacity 1.1s ease;
+}
+.furn text{font-family:var(--serif);fill:var(--ink)}
+.furn .t-caps{font-size:11px;letter-spacing:2.4px}
+.furn .t-name{font-style:italic}
+.furn .t-sm{font-size:12.5px;fill:#5a4630}
+.furn .t-hand{font-size:14px;font-style:italic;fill:#3e2c1a}
+.furn .t-stamp{font-size:10.5px;letter-spacing:1.4px;fill:var(--madder);font-weight:700}
+.furn .t-slip{font-size:11.5px;font-style:italic;fill:#4d3a26}
+.card figcaption{margin-top:11px;display:flex;align-items:baseline;justify-content:center;gap:9px;font-size:14.5px;white-space:nowrap;min-width:0}
+.card figcaption .no{font-size:11px;letter-spacing:.14em;color:var(--ink-soft);font-variant-numeric:tabular-nums;flex:none}
+.card figcaption i{overflow:hidden;text-overflow:ellipsis}
+.examine{
+  -webkit-appearance:none;appearance:none;position:absolute;left:0;top:0;width:100%;aspect-ratio:600/840;background:transparent;border:0;padding:0;margin:0;cursor:zoom-in;
+}
+.examine:focus-visible{outline-offset:6px}
+
+/* growth: stroke-by-stroke ink */
+.grow .st{stroke-dasharray:1 1;stroke-dashoffset:1;animation:ink var(--t,1s) linear var(--d,0s) forwards,vis .01s linear var(--d,0s) both}
+.grow .gl{transform:scale(0);animation:unfurl var(--u,.7s) cubic-bezier(.25,1.35,.5,1) var(--d,0s) forwards}
+.grow .gf{transform:scale(0) rotate(-50deg);animation:bloom var(--u,.9s) cubic-bezier(.2,1.25,.4,1) var(--d,0s) forwards}
+.grow .tape{opacity:0;transform:translate(-5px,-14px) rotate(-4deg);animation:tapeon .5s cubic-bezier(.2,.9,.3,1) var(--d,0s) forwards}
+.grow .ink-late{opacity:0;animation:fadein .9s ease var(--d,0s) forwards}
+.grow .stamp{opacity:0;transform:scale(1.35);animation:stampon .38s cubic-bezier(.3,1.6,.5,1) var(--d,0s) forwards}
+@keyframes ink{to{stroke-dashoffset:0}}
+@keyframes vis{from{visibility:hidden}to{visibility:visible}}
+@keyframes unfurl{to{transform:scale(1)}}
+@keyframes bloom{to{transform:scale(1) rotate(0deg)}}
+@keyframes tapeon{to{opacity:1;transform:none}}
+@keyframes fadein{to{opacity:1}}
+@keyframes stampon{to{opacity:1;transform:scale(1)}}
+.stamp{transform-box:fill-box;transform-origin:50% 50%}
+
+/* pressed */
+.is-pressed .sheet .plant{filter:drop-shadow(0 0 0 rgba(58,38,18,0)) saturate(.5) sepia(.72) contrast(.9) brightness(1.03);opacity:.8}
+.is-pressed .sheet{box-shadow:inset 0 0 38px rgba(160,118,60,.2),inset 0 0 0 9px rgba(120,90,50,.035),inset 0 0 2px rgba(120,90,50,.35),0 1px 1px rgba(74,54,34,.25),0 6px 14px -10px rgba(60,40,20,.5)}
+.pressing .card .sheet{animation:squash .7s cubic-bezier(.3,.7,.3,1)}
+@keyframes squash{0%{transform:none}30%{transform:scale(.982,.974);filter:brightness(.96)}100%{transform:none}}
+.enter{animation:laydown .8s cubic-bezier(.2,.8,.2,1) both}
+@keyframes laydown{from{opacity:0;transform:translateY(-26px) rotate(-3deg) scale(1.04)}to{opacity:1;transform:rotate(var(--rot,0deg))}}
+
+/* ---------- lightbox ---------- */
+.lb{
+  position:fixed;inset:0;z-index:50;overflow:auto;padding:28px 24px;display:flex;
+  background:radial-gradient(ellipse 80% 70% at 45% 45%,rgba(62,44,24,.9),rgba(22,14,7,.96));
+  opacity:0;transition:opacity .35s ease;overscroll-behavior:contain;
+}
+.lb[hidden]{display:none}
+.lb.open{opacity:1}
+.lb-inner{margin:auto;display:grid;grid-template-columns:auto minmax(280px,340px);gap:34px;align-items:center;position:relative;transform:translateY(12px) scale(.985);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.lb.open .lb-inner{transform:none}
+.lb-stage{display:flex;flex-direction:column;align-items:center;gap:10px}
+.lb-sheet{position:relative;height:min(84vh,1000px);aspect-ratio:600/840;touch-action:none;cursor:zoom-in;box-shadow:0 30px 60px -20px rgba(0,0,0,.7)}
+.lb-sheet .sheet{position:absolute;inset:0;width:100%;height:100%}
+.lb-sheet.looking{cursor:none}
+.lb-hint{margin:0;font-size:12.5px;letter-spacing:.14em;color:rgba(240,228,204,.66);font-variant:small-caps;text-transform:lowercase;text-align:center}
+.lb-notes{
+  position:relative;padding:30px 28px 26px;color:var(--ink);
+  background-color:#f3ead4;
+  background-image:repeating-linear-gradient(180deg,transparent 0 27px,rgba(90,120,150,.16) 27px 28px),linear-gradient(90deg,transparent 30px,rgba(158,47,40,.28) 30px 31px,transparent 31px);
+  background-position:0 14px,0 0;
+  box-shadow:0 26px 50px -22px rgba(0,0,0,.75),inset 0 0 30px rgba(160,118,60,.18);
+}
+.lb-no{margin:0 0 4px 16px;font-size:12px;letter-spacing:.24em;font-variant:small-caps;text-transform:lowercase;color:var(--madder)}
+.lb-notes h2{margin:0 0 2px 16px;font-weight:400;font-size:29px;line-height:1.1}
+.lb-auth{display:block;font-style:normal;font-size:14px;letter-spacing:.06em;color:var(--ink-soft);margin-top:4px}
+.lb-vern{margin:4px 0 16px 16px;font-size:15px;color:var(--ink-soft)}
+.lb-notes dl{margin:0 0 14px 16px;display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:14px;line-height:1.5}
+.lb-notes dt{font-variant:small-caps;text-transform:lowercase;letter-spacing:.1em;color:var(--ink-soft)}
+.lb-notes dd{margin:0;font-style:italic}
+.lb-desc{margin:0 0 18px 16px;font-size:15px;line-height:1.62}
+.lb-nav{display:flex;flex-wrap:wrap;gap:10px;margin-left:16px}
+.lb-nav .btn{padding:10px 12px;font-size:14px}
+.lb-close{
+  -webkit-appearance:none;appearance:none;position:fixed;top:16px;right:18px;z-index:3;width:46px;height:46px;border-radius:50%;
+  border:1px solid rgba(240,228,204,.45);background:rgba(30,20,10,.55);color:#f3e7cc;font:inherit;font-size:26px;line-height:1;cursor:pointer;
+  display:grid;place-items:center;transition:transform .25s ease,background-color .25s ease;
+}
+.lb-close:hover{transform:rotate(90deg);background:rgba(158,47,40,.7)}
+
+/* the loupe */
+.loupe{
+  position:fixed;left:0;top:0;width:230px;height:230px;margin:-115px 0 0 -115px;z-index:70;pointer-events:none;border-radius:50%;
+  padding:8px;opacity:0;scale:.55;transition:opacity .18s ease,scale .28s cubic-bezier(.2,1.3,.4,1);
+  background:conic-gradient(from 30deg,#f3dc9c,#8f6b2a 18%,#d9b86a 36%,#6d4f1e 52%,#e8cd88 70%,#7d5d24 86%,#f3dc9c);
+  box-shadow:0 18px 36px -8px rgba(0,0,0,.6),0 0 0 1px rgba(60,40,15,.6);
+}
+.loupe.on{opacity:1;scale:1}
+.loupe::before{
+  content:"";position:absolute;left:50%;top:50%;width:22px;height:118px;margin-left:-11px;border-radius:9px 9px 11px 11px;
+  transform-origin:50% 0;transform:rotate(-45deg) translateY(116px);
+  background:linear-gradient(90deg,#2e1b0e,#6e4524 35%,#8a5a31 50%,#4a2d17 80%,#2a180c);
+  box-shadow:0 6px 12px rgba(0,0,0,.45);
+}
+.loupe-glass{position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;background:var(--sheet);box-shadow:inset 0 0 0 1px rgba(40,25,10,.5)}
+.loupe-glass::after{
+  content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.34),rgba(255,255,255,0) 28%),radial-gradient(circle at 50% 50%,transparent 62%,rgba(40,24,8,.35) 100%);
+}
+.loupe-view{position:absolute;left:0;top:0;transform-origin:0 0}
+.loupe-view .sheet{position:absolute;left:0;top:0}
+
+/* ---------- responsive ---------- */
+@media (max-width:1100px){
+  .page{grid-template-columns:1fr}
+  .index-panel{position:relative;height:auto;overflow:visible;border-right:0;border-bottom:1px solid rgba(74,54,34,.28);box-shadow:0 6px 22px -18px rgba(74,54,34,.5);padding:30px clamp(18px,5vw,48px) 26px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0 44px}
+  .index-panel > .col-a{grid-column:1}
+  .index-panel > .col-b{grid-column:2;align-self:end}
+  .cabinet{--grid-max:980px}
+  .grid{--grid-max:980px}
+}
+@media (max-width:760px){
+  .index-panel{display:block;padding:26px 18px 22px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 18px}
+  .index,.index-title{display:none}
+  .drawer-head{font-size:11px;letter-spacing:.14em}
+}
+@media (max-width:560px){ .footnote .keys{display:none} .btn .kbd{display:none} }
+@media (max-width:560px){
+  .grid{grid-template-columns:1fr;gap:34px}
+  .ledger{margin-bottom:14px}
+  .ledger li{padding:3px 0}
+  .cabinet{padding:26px 16px 48px}
+  h1{font-size:44px;margin-top:20px}
+  .intro{font-size:15px}
+  .actions{margin:18px 0 16px}
+  .btn{font-size:14.5px}
+  .card{max-width:420px;margin:0 auto;width:100%}
+}
+@media (max-width:900px){
+  .lb{padding:70px 16px 28px}
+  .lb-inner{grid-template-columns:1fr;gap:22px;width:100%;max-width:560px}
+  .lb-sheet{height:auto;width:100%}
+  .lb-notes{padding:24px 20px 22px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .card,.sheet,.sheet .plant,.lb,.lb-inner,.loupe{transition:none!important}
+  .grow .st,.grow .gl,.grow .gf,.grow .tape,.grow .ink-late,.grow .stamp,.enter,.pressing .card .sheet{animation:none!important;opacity:1;transform:none;stroke-dashoffset:0;visibility:visible}
+  .grow .st{stroke-dasharray:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#cabinet">Skip to the specimens</a>
+<div class="page">
+  <header class="index-panel" aria-label="Cabinet index">
+    <div class="col-a">
+      <div class="holder"><span>Cabinet VII &middot; Drawer iii</span></div>
+      <h1><span class="l1">Herbarium</span><span class="l2">Imaginarium</span></h1>
+      <p class="subtitle">Specimens of an unrecorded flora</p>
+      <svg class="orn" viewBox="0 0 300 22" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-linecap="round">
+          <path d="M4 11H112" stroke-width=".8"/>
+          <path d="M188 11H296" stroke-width=".8"/>
+          <path d="M8 14H104" stroke-width=".4" opacity=".6"/>
+          <path d="M196 8H292" stroke-width=".4" opacity=".6"/>
+          <path d="M118 11c7-8 15-8 22-2M182 11c-7-8-15-8-22-2" stroke-width="1"/>
+          <path d="M118 11c7 8 15 8 22 2M182 11c-7 8-15 8-22 2" stroke-width=".7"/>
+          <path d="M131 7c-1-4 1-6 5-6M169 7c1-4-1-6-5-6" stroke-width=".7"/>
+        </g>
+        <path d="M150 3l6 8-6 8-6-8z" fill="#9e2f28"/>
+        <circle cx="150" cy="11" r="1.6" fill="#f6efdd"/>
+        <circle cx="113" cy="11" r="1.8" fill="currentColor"/>
+        <circle cx="187" cy="11" r="1.8" fill="currentColor"/>
+      </svg>
+      <p class="intro">Six sheets from a drawer of plants that never grew anywhere but here. Each is raised from a seed of numbers by a branching grammar, then pressed, strapped down with gummed tape and labelled in the manner of the old collectors.</p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="collect">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="M12 13c-4 0-6-2-7-6 4 0 6 2 7 6zM12 10c3 0 5-2 6-5-3 0-5 2-6 5z"/><path d="M7 21h10"/></g></svg>
+          Collect a new specimen <span class="kbd">N</span>
+        </button>
+        <button type="button" class="btn" id="press" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="15" width="18" height="4" rx=".5"/><rect x="3" y="8" width="18" height="3" rx=".5"/><path d="M6 8V3M18 8V3M4.5 3h3M16.5 3h3M6 19v2M18 19v2"/><path d="M8 13.2c1.5-.9 3-.9 4 0s2.5.9 4 0" stroke-width="1"/></g></svg>
+          <span id="press-label">Press the sheets</span> <span class="kbd">P</span>
+        </button>
+      </div>
+    </div>
+    <div class="col-b">
+      <ul class="ledger" aria-label="Drawer ledger">
+        <li><span class="k">Sheets in this drawer</span><span class="v" id="lg-count">six</span></li>
+        <li><span class="k">Collected this sitting</span><span class="v" id="lg-new">none yet</span></li>
+        <li><span class="k">Last accession</span><span class="v" id="lg-last">&mdash;</span></li>
+      </ul>
+      <h2 class="index-title">Index of the drawer</h2>
+      <ol class="index" id="index"></ol>
+      <p class="footnote">Every plant, collector and locality here is imaginary. The Latin, at least, is honest: each epithet agrees in gender with its genus. <span class="keys"><kbd>N</kbd> collect &middot; <kbd>P</kbd> press &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> turn sheets &middot; <kbd>Esc</kbd> close</span></p>
+    </div>
+  </header>
+
+  <main class="cabinet" id="cabinet">
+    <p class="drawer-head"><span>Flora Incognita &middot; <b>Series&nbsp;II</b></span><span id="drawer-note">six sheets, freshly mounted</span></p>
+    <div class="grid" id="grid" role="list" aria-label="Specimen sheets"></div>
+  </main>
+</div>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-labelledby="lb-title" hidden>
+  <button type="button" class="lb-close" id="lb-close" aria-label="Close the specimen">&times;</button>
+  <div class="lb-inner">
+    <div class="lb-stage">
+      <div class="lb-sheet" id="lb-sheet" role="img" aria-label="Enlarged specimen sheet"></div>
+      <p class="lb-hint" id="lb-hint">Hover to examine with the loupe &middot; drag on touch screens</p>
+    </div>
+    <aside class="lb-notes" aria-label="Collector's notes">
+      <p class="lb-no" id="lb-no"></p>
+      <h2 id="lb-title"></h2>
+      <p class="lb-vern" id="lb-vern"></p>
+      <dl id="lb-data"></dl>
+      <p class="lb-desc" id="lb-desc"></p>
+      <div class="lb-nav">
+        <button type="button" class="btn" id="lb-prev" aria-label="Previous specimen">&larr; Previous</button>
+        <button type="button" class="btn" id="lb-next" aria-label="Next specimen">Next &rarr;</button>
+        <button type="button" class="btn" id="lb-press" aria-pressed="false">Press</button>
+      </div>
+    </aside>
+  </div>
+  <div class="loupe" id="loupe" aria-hidden="true"><div class="loupe-glass"><div class="loupe-view" id="loupe-view"></div></div></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const DEG = Math.PI / 180;
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s) => document.querySelector(s);
+
+/* ------------------------------------------------------------------
+   Paper fibre: a seamless procedural tile, drawn once on a canvas
+------------------------------------------------------------------ */
+function paperTile(){
+  try{
+    const S = 320, c = document.createElement('canvas');
+    c.width = S; c.height = S;
+    const g = c.getContext('2d');
+    let seed = 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    const fibre = (x, y, a, l, col, lw) => {
+      for (let ox = -S; ox <= S; ox += S) for (let oy = -S; oy <= S; oy += S){
+        const x0 = x + ox, y0 = y + oy;
+        if (x0 < -40 || x0 > S + 40 || y0 < -40 || y0 > S + 40) continue;
+        g.beginPath();
+        g.moveTo(x0, y0);
+        const b = (rnd() - .5) * l * .5;
+        g.quadraticCurveTo(x0 + Math.cos(a) * l * .5 - Math.sin(a) * b, y0 + Math.sin(a) * l * .5 + Math.cos(a) * b, x0 + Math.cos(a) * l, y0 + Math.sin(a) * l);
+        g.strokeStyle = col; g.lineWidth = lw; g.stroke();
+      }
+    };
+    for (let i = 0; i < 950; i++){
+      const dark = rnd() < .55;
+      const col = dark ? `rgba(118,86,48,${(.04 + rnd() * .09).toFixed(3)})` : `rgba(255,251,238,${(.14 + rnd() * .26).toFixed(3)})`;
+      fibre(rnd() * S, rnd() * S, rnd() * Math.PI * 2, 5 + rnd() * 24, col, .35 + rnd() * .7);
+    }
+    for (let i = 0; i < 420; i++){
+      g.fillStyle = `rgba(96,64,30,${(.05 + rnd() * .14).toFixed(3)})`;
+      g.beginPath(); g.arc(rnd() * S, rnd() * S, .25 + rnd() * .9, 0, Math.PI * 2); g.fill();
+    }
+    document.documentElement.style.setProperty('--fibre', 'url("' + c.toDataURL('image/png') + '")');
+  }catch(e){ /* the paper is plain without it */ }
+}
+paperTile();
+
+/* ------------------------------------------------------------------
+   Seeded randomness
+------------------------------------------------------------------ */
+function rngFrom(seed){
+  let a = seed >>> 0;
+  return function(){
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function tools(r){
+  return {
+    r,
+    f: (a, b) => a + (b - a) * r(),
+    i: (a, b) => Math.floor(a + (b - a + 1) * r()),
+    pick: (arr) => arr[Math.floor(r() * arr.length)],
+    ch: (p) => r() < p,
+    sg: () => (r() < .5 ? -1 : 1)
+  };
+}
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const n1 = (v) => Math.round(v * 10) / 10;
+function hex2rgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function mix(a, b, t){
+  const A = hex2rgb(a), B = hex2rgb(b);
+  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+
+/* ------------------------------------------------------------------
+   Names: Latin binomials that agree in gender
+------------------------------------------------------------------ */
+const STEMS = ['Vesper','Lumin','Chrys','Melan','Phyll','Astr','Noct','Silen','Umbr','Thalass','Or','Call','Myri','Dry','Lept','Chlor','Xanth','Eury','Argyr','Crypt','Selen','Hesper','Oneir','Mnem','Cirr','Glauc','Somn','Lachn','Nephel','Scot'];
+const SUFFIXES = [['anthus','m'],['carpus','m'],['cladus','m'],['thamnus','m'],['dendron','n'],['phyllum','n'],['caulon','n'],['petalum','n'],['ella','f'],['aria','f'],['opsis','f'],['ago','f'],['stachys','f'],['odora','f']];
+const REAL = new Set(['Phyllanthus','Nephelium','Chlorella','Glaucium','Cryptocarpus','Xanthium','Melanthium','Chrysopsis','Leptopetalum','Scotanthus','Astranthus','Callianthus','Dryandra','Chrysophyllum','Chrysanthus','Melanthus','Myriophyllum','Leptocarpus','Callopsis','Dryopsis','Chloranthus','Xanthella','Callistachys','Leptostachys','Myriocarpus','Orcaria','Astraria','Scotaria','Xanthophyllum','Chlorophyllum','Leptocladus','Melanocarpus','Glaucopsis','Umbraria','Thalassodendron','Eurycarpus','Oranthus','Calladendron','Orago','Callago']);
+const EPITHETS = [
+  ['vagabund','12'],['lucifug','12'],['noctiflor','12'],['argente','12'],['plumos','12'],['pallid','12'],['umbros','12'],['pendul','12'],['ignot','12'],['tremul','12'],['chimaeric','12'],['obscur','12'],['nebulos','12'],['stellat','12'],['velutin','12'],['oblivios','12'],['imaginari','12'],['somnolent','12'],
+  ['mirabil','3'],['crepuscular','3'],['memorial','3'],['volubil','3'],['nocturnal','3'],['insomn','3'],['lunar','3'],['fragil','3'],
+  ['somnians','x'],['errans','x'],['evanescens','x'],['susurrans','x'],['vigilans','x'],['dormiens','x'],['fugax','x'],['recondens','x']
+];
+const END = { '12': {m:'us', f:'a', n:'um'}, '3': {m:'is', f:'is', n:'e'} };
+const FAMILIES = ['Somniaceae','Umbraceae','Chimaeraceae','Oneiraceae','Lucifugaceae','Fictaceae','Mnemosynaceae','Crepusculaceae','Nepheliaceae'];
+const AUTHORS = ['Thistlew.','Fernsby','Marrowby','Quillf.','Ashgr.','Hollowbr.','Thistlew. & Fernsby'];
+const COLLECTORS = ['A. Thistlewood','Rev. O. Fernsby','Prof. O. Marrowby','Capt. H. Quillfeather','Miss E. Ashgrove','Dr. P. Hollowbrook','Mrs. W. Lanternby'];
+const LOCALITIES = ['Banks of the Nevermere','Lantern Falls, lower pool','Hedgerow, Wolds-under-Hollow',"Chalk, St Ninnian's Reach",'Peat by Glimmering Tarn','Moss-slope, Isle of Umbrel','Ruined orangery, Hushbury','Scree below Mt Quietude','Salt-marsh, Cape Seldom','Churchyard wall, Little Nowhere','Beech-hanger, Owlpenny Combe','Ditch by the Moth Inn'];
+const ROMAN = ['i','ii','iii','iv','v','vi','vii','viii','ix','x','xi','xii'];
+const VERN_A = ["Lamplighter's","Curate's","Sexton's","Widow's","Clockmaker's","Moth","Midsummer","Ink","Candle","Hollow","Lantern","Owl","Dusk","Ghost","Silver","Sleeper's"];
+const VERN_B = {
+  spicata: ['Bell','Bellwort','Spire','Foxbell','Taper'],
+  ramosa: ['Thorn','Bramble','Myrtle','Berry','Broom'],
+  umbella: ['Lace','Parsley','Umbrella','Hemlock-lace','Chervil'],
+  filix: ['Fern','Brake','Spleenwort','Maidenhair','Bracken'],
+  scandens: ['Vine','Bine','Creeper','Bryony','Tangle'],
+  rosula: ['Clock','Star','Cup','Rosette','Daisy']
+};
+const WHIMSY = [
+  'Opens its flowers only while someone nearby is reading aloud.',
+  'Turns its leaves toward candlelight and ignores the sun entirely.',
+  'Smells faintly of pencil shavings and warm rain.',
+  'The collector swore it hummed a little as it was pressed.',
+  'In still air its seeds are said to fall upward.',
+  'First found growing in the gutter of an unfinished letter.',
+  'Closes at once at the mention of arithmetic.',
+  'Frequent in the margins of old atlases; rare elsewhere.',
+  'Keeps its dew until noon, then gives it back.',
+  'Village children call it lucky and will not say why.',
+  'Blooms on the one evening each year the clocks disagree.',
+  'Leaves rustle in rooms where no window is open.',
+  'Moths visit it in single file.',
+  'Grows only where a promise was once kept.'
+];
+function makeName(R){
+  let genus = '', gender = 'f', tries = 0;
+  do {
+    const stem = R.pick(STEMS), suf = R.pick(SUFFIXES);
+    const vowelEnd = /[aeiouy]$/.test(stem), vowelStart = /^[aeiouy]/.test(suf[0]);
+    genus = stem + (!vowelEnd && !vowelStart ? 'o' : '') + suf[0];
+    gender = suf[1];
+  } while (REAL.has(genus) && ++tries < 20);
+  const e = R.pick(EPITHETS);
+  const epithet = e[1] === 'x' ? e[0] : e[0] + END[e[1]][gender];
+  return { genus, epithet };
+}
+
+/* ------------------------------------------------------------------
+   A small parametric L-system
+------------------------------------------------------------------ */
+const PU = { s: '[' }, PO = { s: ']' };
+const F = (l, w) => ({ s: 'F', l, w: w == null ? 1 : w });
+const T = (a) => ({ s: '+', a });
+const Lf = (sz, o) => Object.assign({ s: 'L', sz }, o || {});
+const K = (sz, o) => Object.assign({ s: 'K', sz }, o || {});
+const Bd = (sz) => ({ s: 'B', sz });
+const Ry = (sz) => ({ s: 'R', sz });
+const Hd = (sz) => ({ s: 'H', sz });
+const M = (s, o) => Object.assign({ s }, o || {});
+
+function derive(axiom, rules, n, finals){
+  let cur = axiom;
+  for (let i = 0; i < n; i++){
+    let changed = false;
+    const next = [];
+    for (const m of cur){
+      const rule = rules[m.s];
+      if (rule){ changed = true; const rep = rule(m, i); for (const x of rep) next.push(x); }
+      else next.push(m);
+    }
+    cur = next;
+    if (!changed) break;
+  }
+  const out = [];
+  for (const m of cur){
+    if (finals && finals[m.s]){ for (const x of finals[m.s](m)) out.push(x); }
+    else if (!rules[m.s]) out.push(m);
+  }
+  return out;
+}
+
+function interpret(mods, P, R){
+  const g = { segs: [], leaves: [], flowers: [], buds: [], berries: [], heads: [] };
+  let st = { x: 0, y: 0, h: 90 + P.lean, w: P.w0, d: 0, dep: 0 };
+  const stack = [];
+  for (const m of mods){
+    switch (m.s){
+      case 'F': {
+        let h = st.h + (R.r() * 2 - 1) * P.jit;
+        if (P.trop) h += P.trop.e * Math.sin((P.trop.t - h) * DEG);
+        const len = m.l, a = h * DEG;
+        const x2 = st.x + Math.cos(a) * len, y2 = st.y + Math.sin(a) * len;
+        const b = (R.r() * 2 - 1) * P.curl * len, pa = a + Math.PI / 2;
+        const cx = (st.x + x2) / 2 + Math.cos(pa) * b, cy = (st.y + y2) / 2 + Math.sin(pa) * b;
+        g.segs.push({ x1: st.x, y1: st.y, cx, cy, x2, y2, w: st.w * m.w, d0: st.d, len, dep: st.dep, h });
+        st.x = x2; st.y = y2; st.h = h; st.d += len; st.w *= P.taper;
+        break;
+      }
+      case '+': st.h += m.a + (R.r() * 2 - 1) * P.angJit; break;
+      case '[': stack.push(st); st = Object.assign({}, st, { dep: st.dep + 1, w: st.w * P.branchW }); break;
+      case ']': st = stack.pop() || st; break;
+      case 'L': g.leaves.push({ x: st.x, y: st.y, h: st.h, sz: m.sz, d: st.d, shape: m.shape || P.leafShape, pin: !!m.pin, sori: !!m.sori }); break;
+      case 'K': g.flowers.push({ x: st.x, y: st.y, h: st.h, sz: m.sz, d: st.d, type: m.type || P.flowerType }); break;
+      case 'B': g.buds.push({ x: st.x, y: st.y, h: st.h, sz: m.sz, d: st.d }); break;
+      case 'R': g.berries.push({ x: st.x, y: st.y, h: st.h, sz: m.sz, d: st.d }); break;
+      case 'H': g.heads.push({ x: st.x, y: st.y, h: st.h, sz: m.sz, d: st.d }); break;
+    }
+  }
+  return g;
+}
+
+/* ------------------------------------------------------------------
+   Six habits of growth
+------------------------------------------------------------------ */
+const HABITS = ['spicata','ramosa','umbella','filix','scandens','rosula'];
+const HABIT_TEXT = {
+  spicata: 'Erect herb; flowers borne in a single terminal spike',
+  ramosa: 'Much-branched undershrub, forking at every node',
+  umbella: 'Stout umbellifer; compound umbels of minute florets',
+  filix: 'Fern; fronds pinnate, the young ones coiled as croziers',
+  scandens: 'Scandent climber with coiling tendrils',
+  rosula: 'Acaulescent rosette; flowers on leafless scapes'
+};
+const FLOWER_PALETTES = [
+  { petal: '#b4473c', edge: '#7a261f', centre: '#d8b25a', name: 'madder red' },
+  { petal: '#d38a7c', edge: '#9a4538', centre: '#8a5a2a', name: 'faded rose-madder' },
+  { petal: '#d9b95e', edge: '#94731f', centre: '#7a4a22', name: 'weld yellow' },
+  { petal: '#efe3c3', edge: '#96825c', centre: '#c79a40', name: 'cream' },
+  { petal: '#948aac', edge: '#5a4f70', centre: '#d8b25a', name: 'faded violet' },
+  { petal: '#8199ae', edge: '#4c6075', centre: '#e0c070', name: 'woad blue' }
+];
+
+function buildSpecies(seed, habit){
+  const R = tools(rngFrom(seed));
+  const P = { habit, jit: 3.5, angJit: 5, taper: .968, branchW: .7, curl: .1, lean: R.f(-5, 5), w0: 1, trop: null, wUnit: 4.4,
+    leafShape: 'lanceolate', flowerType: 'star', petals: R.pick([4, 5, 5, 5, 6]), fcol: R.pick(FLOWER_PALETTES),
+    serr: 0, teeth: R.i(10, 16), curlLeaf: R.f(.02, .12), pet: R.f(.06, .22), wMul: R.f(.85, 1.15),
+    stem: '#5d5733', roots: 'fibrous', greenBias: R.f(0, 1), berry: R.pick(['#9e2f28', '#8a2520', '#a8352c']) };
+  let mods;
+  if (habit === 'spicata'){
+    const N = R.i(10, 13), fs = N - R.i(4, 6), ang = R.f(40, 58), l0 = R.f(.85, 1.05);
+    const opposite = R.ch(.3);
+    P.leafShape = R.pick(['lanceolate', 'ovate', 'lobed', 'cordate', 'lanceolate']);
+    const leafSz = (P.leafShape === 'lanceolate' ? R.f(1.6, 2.2) : R.f(1.15, 1.55)) * (opposite ? .85 : 1);
+    P.serr = P.leafShape === 'lanceolate' || P.leafShape === 'ovate' ? (R.ch(.6) ? R.f(.1, .22) : 0) : 0;
+    P.flowerType = R.ch(.6) ? 'bell' : 'star';
+    if (P.flowerType === 'bell' && P.fcol.name === 'cream') P.fcol = FLOWER_PALETTES[4];
+    P.trop = { t: 90, e: 3 };
+    const rules = {
+      A: (m) => {
+        const k = m.k;
+        if (k >= N) return [F(.3, .8), Bd(.7)];
+        const f = 1 - k / N * .55, sg = k % 2 ? 1 : -1;
+        if (k < fs){
+          const sz = leafSz * (1 - k / N * .75) * R.f(.85, 1.1);
+          const out = [F(l0 * f * R.f(.85, 1.15))];
+          if (opposite) out.push(PU, T(ang), Lf(sz), PO, PU, T(-ang), Lf(sz), PO);
+          else out.push(PU, T(sg * ang), Lf(sz), PO);
+          if (k === 2 && R.ch(.55)) out.push(PU, T(-sg * R.f(24, 34)), M('A', { k: k + 3 }), PO);
+          out.push(M('A', { k: k + 1 }));
+          return out;
+        }
+        const out = [F(l0 * f * .55)];
+        const fz = (k - fs) / Math.max(1, N - fs);
+        out.push(PU, T(sg * R.f(48, 66)), F(.3, .35), K(R.f(.9, 1.1) * (1 - fz * .35)), PO);
+        if (R.ch(.35)) out.push(PU, T(-sg * R.f(40, 60)), F(.25, .35), Bd(.55), PO);
+        out.push(M('A', { k: k + 1 }));
+        return out;
+      }
+    };
+    const basal = [PU, T(78), Lf(leafSz * 1.05), PO, PU, T(-74), Lf(leafSz * .95), PO, PU, T(R.f(55, 65)), Lf(leafSz * .8), PO];
+    mods = derive(basal.concat([M('A', { k: 0 })]), rules, N + 5, { A: () => [Bd(.6)] });
+    P.roots = R.pick(['fibrous', 'taproot']);
+  } else if (habit === 'ramosa'){
+    const D = 4, baseA = R.f(22, 32);
+    P.leafShape = R.pick(['ovate', 'lanceolate', 'orbicular', 'spathulate', 'ovate']);
+    P.serr = R.ch(.3) ? R.f(.08, .16) : 0;
+    P.stem = '#6b4c2e'; P.wUnit = 5.6; P.taper = .95; P.branchW = .74; P.curl = .16;
+    P.trop = { t: 90, e: 2 };
+    const fruiting = R.ch(.65);
+    P.flowerType = 'star';
+    const leafy = (d) => (R.ch(.55) ? [PU, T(R.sg() * R.f(50, 75)), Lf(R.f(.45, .7) * Math.pow(.9, d)), PO] : []);
+    const rules = {
+      X: (m) => {
+        const d = m.d, l = Math.pow(.8, d) * R.f(.8, 1.2), a = baseA * R.f(.8, 1.25), v = R.r();
+        if (v < .4) return [F(l), ...leafy(d), PU, T(a), M('X', { d: d + 1 }), PO, F(l * .8), ...leafy(d), PU, T(-a), M('X', { d: d + 1 }), PO, T(a * .25), M('X', { d: d + 1 })];
+        if (v < .75) return [F(l), ...leafy(d), PU, T(-a), M('X', { d: d + 1 }), PO, F(l * .8), ...leafy(d), PU, T(a), M('X', { d: d + 1 }), PO, T(-a * .25), M('X', { d: d + 1 })];
+        return [F(l * 1.15), ...leafy(d), PU, T(a * .8), M('X', { d: d + 1 }), PO, PU, T(-a * .8), M('X', { d: d + 1 }), PO];
+      }
+    };
+    mods = derive([F(.8), F(.6), M('X', { d: 0 })], rules, D, {
+      X: () => {
+        const v = R.r();
+        if (v < .6) return [Lf(R.f(.5, .72))];
+        if (fruiting && v < .85) return [F(.12, .4), Ry(1)];
+        return [F(.1, .4), K(R.f(.32, .42))];
+      }
+    });
+    P.roots = 'woody';
+  } else if (habit === 'umbella'){
+    const N = R.i(4, 6), l0 = R.f(1.3, 1.6), rays = R.i(7, 11), spread = R.f(52, 72), rayLen = R.f(1.1, 1.5), leafSz = R.f(2.3, 3.1);
+    P.leafShape = R.pick(['pinnatifid', 'lobed', 'pinnatifid']);
+    P.wUnit = 5.8; P.taper = .97; P.branchW = .6;
+    P.fcol = R.ch(.7) ? FLOWER_PALETTES[3] : FLOWER_PALETTES[2];
+    P.flowerType = 'floret';
+    P.trop = { t: 90, e: 2.2 };
+    const rules = {
+      S: (m) => {
+        const k = m.k, sg = k % 2 ? 1 : -1;
+        if (k >= N) return [F(l0 * .55), M('U', { sc: 1 })];
+        const out = [F(l0 * R.f(.85, 1.1) * (1 - k * .06)), PU, T(sg * R.f(35, 55)), Lf(leafSz * (1 - k / N * .62)), PO];
+        if (k === N - 2 && R.ch(.75)) out.push(PU, T(-sg * R.f(28, 38)), F(l0 * .8, .8), F(l0 * .7), M('U', { sc: .6 }), PO);
+        out.push(M('S', { k: k + 1 }));
+        return out;
+      },
+      U: (m) => {
+        const out = [], n = m.sc < 1 ? Math.max(5, rays - 3) : rays;
+        for (let i = 0; i < n; i++){
+          const a = -spread + 2 * spread * i / (n - 1) + R.f(-4, 4);
+          out.push(PU, T(a), F(rayLen * m.sc * R.f(.9, 1.05) / Math.cos(a * DEG * .75), .32), M('V', { sc: m.sc }), PO);
+        }
+        return out;
+      },
+      V: (m) => {
+        const out = [], n = R.i(6, 9);
+        for (let j = 0; j < n; j++){
+          const b = -55 + 110 * j / (n - 1) + R.f(-5, 5);
+          out.push(PU, T(b), F(.26 * m.sc / Math.cos(b * DEG * .6), .22), K(.1), PO);
+        }
+        return out;
+      }
+    };
+    const basal = [PU, T(70), Lf(leafSz * 1.1), PO, PU, T(-72), Lf(leafSz * 1.05), PO];
+    mods = derive(basal.concat([M('S', { k: 0 })]), rules, N + 6, {});
+    P.roots = 'taproot';
+  } else if (habit === 'filix'){
+    P.leafShape = 'oblong'; P.stem = '#5b4a30'; P.wUnit = 3.8; P.taper = .975; P.branchW = .5; P.jit = 2; P.angJit = 3; P.curl = .05;
+    P.trop = { t: -90, e: R.f(1.2, 2.2) };
+    P.greenBias = R.f(.1, .5);
+    const fertile = R.ch(.7);
+    const frond = (N, l, pl) => {
+      const out = [];
+      for (let k = 0; k < N; k++){
+        const lk = l * (1 - k / N * .45);
+        if (k < 3){ out.push(F(lk)); continue; }
+        const q = Math.pow(Math.sin(Math.PI * (k - 1.4) / (N - 1.4)), .75);
+        const pLen = pl * Math.max(.18, q);
+        const pa = R.f(58, 70);
+        out.push(F(lk * .5), PU, T(pa), M('Q', { len: pLen, sg: 1 }), PO, F(lk * .5), PU, T(-pa), M('Q', { len: pLen, sg: -1 }), PO);
+      }
+      // crozier tip
+      for (let i = 0; i < 9; i++) out.push(T(22 + i * 5), F(.09 * (1 - i / 11), .6));
+      return out;
+    };
+    const rules = {
+      Q: (m) => {
+        const steps = Math.max(2, Math.round(m.len / .24)), out = [];
+        for (let j = 0; j < steps; j++){
+          const s = m.len / steps, psz = s * 1.05 * (1 - j / steps * .5);
+          out.push(F(s, .55), T(m.sg * 1.5), PU, T(64), Lf(psz, { sori: fertile && j < steps - 1 }), PO, PU, T(-64), Lf(psz, { sori: fertile && j < steps - 1 }), PO);
+        }
+        out.push(Lf(m.len / steps * 1.1));
+        return out;
+      }
+    };
+    const young = [];
+    for (let i = 0; i < 14; i++) young.push(F(.22 * (1 - i / 16), .7), T(-(14 + i * 6)));
+    const ax = [PU, T(R.f(8, 16)), ...frond(R.i(12, 14), R.f(.64, .74), R.f(1.2, 1.45)), PO,
+      PU, T(-R.f(14, 24)), ...frond(R.i(10, 12), R.f(.56, .64), R.f(.95, 1.2)), PO,
+      PU, T(R.f(-4, 2)), ...young, PO];
+    mods = derive(ax, rules, 2, {});
+    P.roots = 'rhizome';
+    P.fcol = FLOWER_PALETTES[0];
+  } else if (habit === 'scandens'){
+    const N = R.i(11, 14), l = R.f(.7, .85);
+    P.leafShape = R.pick(['cordate', 'cordate', 'ovate', 'lobed']);
+    P.stem = '#666238'; P.wUnit = 3.8; P.taper = .975; P.branchW = .7; P.curl = .2; P.jit = 6;
+    P.trop = { t: -90, e: R.f(3.5, 5.5) };
+    P.pet = R.f(.18, .32);
+    const vine = (n, len, first) => {
+      const out = [];
+      for (let k = 0; k < n; k++){
+        const sg = k % 2 ? 1 : -1;
+        out.push(F(len * R.f(.85, 1.15)), T(R.f(-12, 12)));
+        out.push(PU, T(sg * R.f(45, 70)), Lf(R.f(.95, 1.3) * (1 - k / n * .35)), PO);
+        if (k % 3 === 2) out.push(PU, T(-sg * R.f(20, 40)), F(.35, .35), Ry(1), PO);
+        else if (k % 4 === 1 && k > 1){
+          const tsg = R.sg();
+          out.push(PU, T(-sg * 30), F(.18, .25));
+          for (let i = 0; i < 16; i++) out.push(T(tsg * (22 + i * 3)), F(.1 * (1 - i / 20), .22));
+          out.push(PO);
+        } else if (first && k === 5) out.push(PU, T(-sg * 35), F(.25, .35), K(.5), PO);
+      }
+      out.push(F(len * .6), Bd(.5));
+      return out;
+    };
+    P.flowerType = 'star';
+    mods = [PU, T(R.f(-14, -4)), ...vine(N, l, true), PO, PU, T(R.f(10, 24)), ...vine(Math.round(N * .55), l * .85, false), PO];
+    P.roots = 'fibrous';
+  } else {
+    // rosula
+    const nL = R.i(6, 9), leafSz = R.f(2.1, 2.8), scapes = R.i(1, 3);
+    P.leafShape = R.pick(['pinnatifid', 'spathulate', 'lanceolate', 'pinnatifid']);
+    P.serr = P.leafShape === 'lanceolate' || P.leafShape === 'spathulate' ? R.f(.08, .18) : 0;
+    P.pet = R.f(.02, .1); P.wUnit = 3.2; P.taper = .985; P.curl = .06;
+    P.trop = { t: 90, e: 2 };
+    const out = [];
+    for (let i = 0; i < nL; i++){
+      const a = -84 + 168 * i / (nL - 1) + R.f(-6, 6);
+      out.push(PU, T(a), Lf(leafSz * R.f(.75, 1.05) * (.78 + .38 * Math.abs(a) / 84)), PO);
+    }
+    const headType = R.pick(['ray', 'ray', 'clock', 'star']);
+    for (let s = 0; s < scapes; s++){
+      const m = R.i(7, 10), a = scapes === 1 ? R.f(-6, 6) : -16 + 32 * s / (scapes - 1) + R.f(-4, 4);
+      out.push(PU, T(a));
+      for (let j = 0; j < m; j++){
+        out.push(F(R.f(.62, .78) * (s === 1 ? .8 : 1)));
+        if (j === 3 && R.ch(.5)) out.push(PU, T(40), Lf(.5, { shape: 'linear' }), PO);
+      }
+      const ht = s === 0 ? headType : R.pick(['clock', 'bud', headType]);
+      if (ht === 'clock') out.push(Hd(1));
+      else if (ht === 'bud') out.push(T(R.sg() * 50), F(.3, .8), Bd(.8));
+      else out.push(K(R.f(.8, 1), { type: ht }));
+      out.push(PO);
+    }
+    mods = out;
+    P.flowerType = 'ray';
+    P.petals = R.i(13, 19);
+    P.roots = 'taproot';
+  }
+  const geom = interpret(mods, P, R);
+  return { P, geom, R };
+}
+
+/* ------------------------------------------------------------------
+   Drawing helpers
+------------------------------------------------------------------ */
+const SHAPES = {
+  lanceolate: { w: .19, f: (t) => Math.pow(Math.sin(Math.PI * Math.pow(t, .78)), .9) },
+  ovate: { w: .33, f: (t) => Math.sin(Math.PI * Math.pow(t, .62)) },
+  cordate: { w: .42, f: (t) => Math.sin(Math.PI * Math.pow(t, .7)), cord: true },
+  linear: { w: .06, f: (t) => Math.pow(1 - Math.pow(t, 2.4), .7) * Math.min(1, t * 10) },
+  lobed: { w: .34, f: (t) => Math.sin(Math.PI * Math.pow(t, .75)) * (.6 + .4 * Math.abs(Math.sin(Math.PI * t * 4.5))) },
+  pinnatifid: { w: .36, f: (t) => Math.sin(Math.PI * Math.pow(t, .8)) * (.26 + .74 * Math.pow(Math.abs(Math.sin(Math.PI * t * 5.5)), .7)) },
+  orbicular: { w: .46, f: (t) => Math.pow(Math.sin(Math.PI * t), .55) },
+  spathulate: { w: .26, f: (t) => Math.pow(t, 1.4) * Math.pow(1 - t, .35) * 2.4 },
+  oblong: { w: .24, f: (t) => Math.pow(Math.sin(Math.PI * t), .45) }
+};
+const f2 = (p) => n1(p[0]) + ' ' + n1(p[1]);
+function smoothPath(pts, closed){
+  let d = 'M' + f2(pts[0]);
+  for (let i = 1; i < pts.length - 1; i++){
+    const m = [(pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2];
+    d += 'Q' + f2(pts[i]) + ' ' + f2(m);
+  }
+  d += 'L' + f2(pts[pts.length - 1]);
+  return closed ? d + 'Z' : d;
+}
+function polyPath(pts){
+  let d = 'M' + f2(pts[0]);
+  for (let i = 1; i < pts.length; i++) d += 'L' + f2(pts[i]);
+  return d + 'Z';
+}
+
+/* one leaf, drawn around its attachment point (0,0) */
+function leafMarkup(L, ang, shapeName, o){
+  const S = SHAPES[shapeName] || SHAPES.lanceolate;
+  const W = L * S.w * o.wMul, serr = o.serr, N = serr ? 44 : 20;
+  const pet = o.pet * L, ca = Math.cos(ang), sa = Math.sin(ang);
+  const tr = (u, v) => [u * ca - v * sa, u * sa + v * ca];
+  const top = [], bot = [], mid = [];
+  for (let i = 0; i <= N; i++){
+    const t = i / N;
+    let hw = W * S.f(t);
+    if (serr && t > .08 && t < .95){ const q = (t * o.teeth) % 1; hw *= 1 + serr * (q - .5) * 2; }
+    const u = pet + L * (S.cord ? t - 2.2 * t * Math.pow(1 - t, 5) : t);
+    const bend = o.curl * L * t * t;
+    top.push(tr(u, bend + hw)); bot.push(tr(u, bend - hw * o.asym));
+    mid.push(tr(pet + L * t, bend));
+  }
+  const outline = top.concat(bot.slice().reverse());
+  const body = serr ? polyPath(outline) : smoothPath(outline, true);
+  let s = '';
+  if (pet > .5) s += `<path d="M0 0L${f2(tr(pet + L * .02, 0))}" fill="none" stroke="${o.stem}" stroke-width="${n1(clamp(L * .03, .7, 2.2))}" stroke-linecap="round"/>`;
+  s += `<path d="${body}" fill="${o.fill}" stroke="rgba(62,44,26,.82)" stroke-width="${L < 14 ? .5 : .8}" stroke-linejoin="round"/>`;
+  if (L >= 14){
+    // shade one half of the blade, like a watercolour wash
+    const half = top.concat(mid.slice().reverse());
+    s += `<path d="${smoothPath(half, true)}" fill="${o.shade}" opacity=".3"/>`;
+    let v = `M${f2(mid[0])}` + mid.slice(1, -1).map((p, i) => (i % 2 ? '' : 'L' + f2(p))).join('') + 'L' + f2(mid[N - 1]);
+    if (L > 24){
+      const nv = clamp(Math.round(L / 13), 3, 8);
+      for (let k = 1; k <= nv; k++){
+        const t = k / (nv + 1.4), i0 = Math.round(t * N), i1 = Math.min(N, Math.round((t + .16) * N));
+        const a = mid[i0], b1 = top[i1], b2 = bot[i1];
+        const e1 = [a[0] + (b1[0] - a[0]) * .82, a[1] + (b1[1] - a[1]) * .82];
+        const e2 = [a[0] + (b2[0] - a[0]) * .82, a[1] + (b2[1] - a[1]) * .82];
+        v += `M${f2(a)}L${f2(e1)}M${f2(a)}L${f2(e2)}`;
+      }
+    }
+    s += `<path d="${v}" fill="none" stroke="rgba(62,44,26,.42)" stroke-width="${L > 40 ? .75 : .5}" stroke-linecap="round"/>`;
+  }
+  if (o.sori && L > 7){
+    for (let k = 0; k < 3; k++){
+      const t = .32 + k * .2, i = Math.round(t * N);
+      const p1 = [(mid[i][0] * 2 + top[i][0]) / 3, (mid[i][1] * 2 + top[i][1]) / 3];
+      const p2 = [(mid[i][0] * 2 + bot[i][0]) / 3, (mid[i][1] * 2 + bot[i][1]) / 3];
+      const r = n1(clamp(L * .07, .7, 1.6));
+      s += `<circle cx="${n1(p1[0])}" cy="${n1(p1[1])}" r="${r}" fill="#8a4a28"/><circle cx="${n1(p2[0])}" cy="${n1(p2[1])}" r="${r}" fill="#8a4a28"/>`;
+    }
+  }
+  return s;
+}
+
+function petalPath(len, wid, ang, notch){
+  const ca = Math.cos(ang), sa = Math.sin(ang), pts = [], N = 10;
+  const tr = (u, v) => [u * ca - v * sa, u * sa + v * ca];
+  const prof = (t) => Math.pow(Math.sin(Math.PI * Math.pow(t, .55)), .8);
+  for (let i = 0; i <= N; i++){ const t = i / N; pts.push(tr(len * (notch && i === N ? .9 : t), wid * prof(t))); }
+  for (let i = N; i >= 0; i--){ const t = i / N; pts.push(tr(len * (notch && i === N ? .9 : t), -wid * prof(t))); }
+  return smoothPath(pts, true);
+}
+
+function flowerMarkup(fl, P, R, s){
+  const c = P.fcol;
+  let out = '';
+  if (fl.type === 'floret'){
+    const r = clamp(fl.sz * s * .3, 1.7, 3.4);
+    out += `<circle r="${n1(r)}" fill="${c.petal}" stroke="rgba(62,44,26,.7)" stroke-width=".45"/><circle r="${n1(r * .32)}" fill="${c.edge}"/>`;
+    return out;
+  }
+  if (fl.type === 'bell'){
+    const Lb = clamp(fl.sz * s * .42, 11, 28), w0 = Lb * .16;
+    const dir = -fl.h * DEG;
+    let vx = Math.cos(dir) * .45, vy = Math.sin(dir) * .45 + .55;
+    const a = Math.atan2(vy, vx), ca = Math.cos(a), sa = Math.sin(a);
+    const tr = (u, v) => [u * ca - v * sa, u * sa + v * ca];
+    const p = [[0, -w0], [Lb * .45, -w0 * 1.5], [Lb * .82, -w0 * 1.85], [Lb * 1.02, -w0 * 2.7], [Lb * .96, -w0 * 1.1], [Lb * 1.04, -w0 * .2], [Lb * .96, w0 * .6], [Lb * 1.03, w0 * 1.6], [Lb * 1.0, w0 * 2.7], [Lb * .82, w0 * 1.85], [Lb * .45, w0 * 1.5], [0, w0]];
+    out += `<path d="${smoothPath(p.map((q) => tr(q[0], q[1])), true)}" fill="${c.petal}" stroke="${c.edge}" stroke-width=".8" stroke-linejoin="round"/>`;
+    out += `<path d="M${f2(tr(Lb * .1, -w0 * .4))}Q${f2(tr(Lb * .55, -w0 * 1.1))} ${f2(tr(Lb * .92, -w0 * 1.9))}M${f2(tr(Lb * .1, w0 * .4))}Q${f2(tr(Lb * .55, w0 * 1.1))} ${f2(tr(Lb * .92, w0 * 1.9))}" fill="none" stroke="${c.edge}" stroke-width=".5" opacity=".7"/>`;
+    out += `<path d="M${f2(tr(Lb * .95, 0))}L${f2(tr(Lb * 1.2, w0 * .3))}" stroke="rgba(62,44,26,.8)" stroke-width=".6"/><circle cx="${n1(tr(Lb * 1.22, w0 * .3)[0])}" cy="${n1(tr(Lb * 1.22, w0 * .3)[1])}" r="1.2" fill="${c.centre}" stroke="rgba(62,44,26,.7)" stroke-width=".4"/>`;
+    out += `<path d="M${f2(tr(-1, -w0 * 1.2))}L${f2(tr(Lb * .22, 0))}L${f2(tr(-1, w0 * 1.2))}Z" fill="#6b7f4e" stroke="rgba(62,44,26,.7)" stroke-width=".5"/>`;
+    return out;
+  }
+  if (fl.type === 'ray'){
+    const r = clamp(fl.sz * s * .5, 16, 40), n = P.petals, rot = R.f(0, 360);
+    for (let i = 0; i < n; i++){
+      const a = (rot + i * 360 / n + R.f(-4, 4)) * DEG, len = r * R.f(.9, 1.05);
+      out += `<path d="${petalPath(len, r * .12, a, true)}" fill="${c.petal}" stroke="${c.edge}" stroke-width=".55"/>`;
+    }
+    const dr = r * .3;
+    out += `<circle r="${n1(dr)}" fill="${c.centre}" stroke="rgba(62,44,26,.8)" stroke-width=".7"/>`;
+    for (let i = 1; i < 34; i++){
+      const rr = dr * .9 * Math.sqrt(i / 34), a = i * 137.508 * DEG;
+      out += `<circle cx="${n1(Math.cos(a) * rr)}" cy="${n1(Math.sin(a) * rr)}" r="${n1(dr * .075 + .25)}" fill="rgba(74,44,20,.75)"/>`;
+    }
+    return out;
+  }
+  // star: face-on flower
+  const r = clamp(fl.sz * s * .42, 6, 24), n = P.petals, rot = R.f(0, 360);
+  for (let i = 0; i < n; i++){
+    const a = (rot + i * 360 / n) * DEG;
+    out += `<path d="${petalPath(r, r * (n > 5 ? .32 : .42), a, false)}" fill="${c.petal}" stroke="${c.edge}" stroke-width=".6"/>`;
+    out += `<path d="M0 0L${n1(Math.cos(a) * r * .7)} ${n1(Math.sin(a) * r * .7)}" stroke="${c.edge}" stroke-width=".4" opacity=".6"/>`;
+  }
+  out += `<circle r="${n1(r * .24)}" fill="${c.centre}" stroke="rgba(62,44,26,.8)" stroke-width=".6"/>`;
+  for (let i = 0; i < 7; i++){
+    const a = (i / 7) * Math.PI * 2 + rot;
+    out += `<circle cx="${n1(Math.cos(a) * r * .34)}" cy="${n1(Math.sin(a) * r * .34)}" r=".9" fill="rgba(62,44,26,.85)"/>`;
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------
+   The specimen: grow, fit to the sheet, mount, label
+------------------------------------------------------------------ */
+let nextNo = 1400 + Math.floor(Math.random() * 90);
+let nextSeed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
+
+function makeSpecimen(habit, speedMode){
+  const seed = (nextSeed = (nextSeed * 1103515245 + 12345) >>> 0);
+  const { P, geom, R } = buildSpecies(seed, habit);
+  const no = nextNo++;
+  const nm = makeName(R);
+  const sp = {
+    seed, habit, no, genus: nm.genus, epithet: nm.epithet,
+    family: R.pick(FAMILIES), author: R.pick(AUTHORS), collector: R.pick(COLLECTORS), locality: R.pick(LOCALITIES),
+    day: R.i(1, 28), month: R.i(3, 9), year: R.i(1851, 1899),
+    vern: R.pick(VERN_A) + (R.ch(.5) ? ' ' : ' ') + R.pick(VERN_B[habit]),
+    whimsy: R.pick(WHIMSY), P, rot: R.f(-.9, .9)
+  };
+  sp.fox = foxing(R);
+  const art = drawSheet(sp, geom, R, speedMode);
+  sp.plantSVG = art.plant; sp.furnSVG = art.furn; sp.total = art.total; sp.heightCm = art.heightCm;
+  return sp;
+}
+
+function foxing(R){
+  const spots = [];
+  const n = R.i(4, 9);
+  for (let i = 0; i < n; i++){
+    const x = R.f(3, 97).toFixed(1), y = R.f(3, 97).toFixed(1), r = R.f(1, 3.4), a = R.f(.08, .2);
+    spots.push(`radial-gradient(circle at ${x}% ${y}%,rgba(150,98,46,${a.toFixed(2)}) 0 ${r.toFixed(1)}px,rgba(150,98,46,${(a * .35).toFixed(2)}) ${(r * 2.4).toFixed(1)}px,transparent ${(r * 5.5).toFixed(1)}px)`);
+  }
+  spots.push(`linear-gradient(${R.i(0, 360)}deg,rgba(170,128,70,.07),transparent 40%)`);
+  return spots.join(',');
+}
+
+function drawSheet(sp, g, R, speedMode){
+  const P = sp.P;
+  const box = { x0: 52, y0: 60, x1: 548, y1: 648 };
+  // bounding box of the plant in turtle space
+  let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+  const add = (x, y) => { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; };
+  for (const q of g.segs){ add(q.x1, q.y1); add(q.x2, q.y2); }
+  for (const l of g.leaves){
+    const a = l.h * DEG, L = l.sz * (1 + P.pet), w = l.sz * ((SHAPES[l.shape] || SHAPES.lanceolate).w);
+    add(l.x + Math.cos(a) * L, l.y + Math.sin(a) * L);
+    add(l.x + Math.cos(a) * L * .5 - Math.sin(a) * w, l.y + Math.sin(a) * L * .5 + Math.cos(a) * w);
+    add(l.x + Math.cos(a) * L * .5 + Math.sin(a) * w, l.y + Math.sin(a) * L * .5 - Math.cos(a) * w);
+  }
+  for (const f of g.flowers){ const r = f.type === 'floret' ? .06 : f.type === 'bell' ? f.sz * .55 : f.sz * .45; add(f.x - r, f.y - r); add(f.x + r, f.y + r); }
+  for (const b of g.berries){ add(b.x - .25, b.y - .45); add(b.x + .25, b.y + .05); }
+  for (const h of g.heads){ add(h.x - .6, h.y - .6); add(h.x + .6, h.y + .6); }
+  for (const b of g.buds){ add(b.x, b.y); }
+  const bw = Math.max(.5, maxX - minX), bh = Math.max(.5, maxY - minY);
+  const s = Math.min((box.x1 - box.x0) / bw, (box.y1 - box.y0) / bh, 150);
+  const ox = (box.x0 + box.x1) / 2 - s * (minX + maxX) / 2;
+  const oy = box.y1 + s * minY - Math.max(0, ((box.y1 - box.y0) - s * bh) * .15);
+  const X = (x) => ox + s * x, Y = (y) => oy - s * y;
+
+  // timing: every stroke is inked at one steady speed
+  let maxDist = 1;
+  for (const q of g.segs) maxDist = Math.max(maxDist, (q.d0 + q.len) * s);
+  const growDur = speedMode === 'fast' ? .95 : 3.6;
+  const speed = maxDist / growDur;
+  const unfurl = speedMode === 'fast' ? .38 : .75;
+  let total = 0;
+  const tm = (d) => d * s / speed;
+
+  let plant = '';
+  // roots first, growing down from the crown
+  const rootData = drawRoots(X(0), Y(0), P, R, speed);
+  plant += rootData.svg;
+  total = Math.max(total, rootData.end);
+
+  // stems
+  let stems = `<g fill="none" stroke="${P.stem}" stroke-linecap="round" stroke-linejoin="round">`;
+  let hl = `<g fill="none" stroke="rgba(214,210,160,.55)" stroke-linecap="round">`;
+  for (const q of g.segs){
+    const t0 = tm(q.d0), dur = Math.max(.015, tm(q.len));
+    const sw = Math.max(.55, q.w * P.wUnit);
+    const d = `M${n1(X(q.x1))} ${n1(Y(q.y1))}Q${n1(X(q.cx))} ${n1(Y(q.cy))} ${n1(X(q.x2))} ${n1(Y(q.y2))}`;
+    stems += `<path class="st" pathLength="1" d="${d}" stroke-width="${sw.toFixed(2)}" style="--d:${t0.toFixed(3)}s;--t:${dur.toFixed(3)}s"/>`;
+    if (sw > 2.6){
+      const a = -q.h * DEG + Math.PI / 2, off = sw * .2, dx = Math.cos(a) * off, dy = Math.sin(a) * off;
+      hl += `<path class="st" pathLength="1" d="M${n1(X(q.x1) + dx)} ${n1(Y(q.y1) + dy)}Q${n1(X(q.cx) + dx)} ${n1(Y(q.cy) + dy)} ${n1(X(q.x2) + dx)} ${n1(Y(q.y2) + dy)}" stroke-width="${(sw * .28).toFixed(2)}" style="--d:${t0.toFixed(3)}s;--t:${dur.toFixed(3)}s"/>`;
+    }
+    total = Math.max(total, t0 + dur);
+  }
+  plant += stems + '</g>' + hl + '</g>';
+
+  // leaves
+  const shadeCol = '#3f4a2a';
+  for (const l of g.leaves){
+    const L = l.sz * s, ang = -l.h * DEG;
+    const roll = R.r();
+    let fill = mix('#6b7f4e', '#9aa77a', clamp(P.greenBias * .6 + R.r() * .55, 0, 1));
+    if (P.habit !== 'filix'){
+      if (roll < .1) fill = mix(fill, '#b9a96a', R.f(.45, .8));
+      else if (roll < .15) fill = mix(fill, '#9c7a4a', R.f(.4, .7));
+    }
+    if (l.shape === 'linear') fill = mix(fill, '#8a9a62', .5);
+    const o = { wMul: P.wMul * R.f(.9, 1.08), serr: P.serr, teeth: P.teeth, curl: P.curlLeaf * R.sg() * R.f(.4, 1.2), asym: R.f(.86, 1.05),
+      pet: l.shape === 'oblong' || l.shape === 'linear' ? 0 : P.pet, fill, shade: shadeCol, stem: P.stem, sori: l.sori };
+    const t0 = tm(l.d) + .04;
+    plant += `<g transform="translate(${n1(X(l.x))} ${n1(Y(l.y))})"><g class="gl" style="--d:${t0.toFixed(3)}s;--u:${unfurl}s">${leafMarkup(L, ang, l.shape, o)}</g></g>`;
+    total = Math.max(total, t0 + unfurl);
+  }
+  // buds
+  for (const b of g.buds){
+    const L = clamp(b.sz * s * .22, 5, 14), a = -b.h * DEG, ca = Math.cos(a), sa = Math.sin(a);
+    const tr = (u, v) => [u * ca - v * sa, u * sa + v * ca];
+    const pts = [[0, 0], [L * .35, L * .3], [L * .8, L * .18], [L, 0], [L * .8, -L * .18], [L * .35, -L * .3], [0, 0]].map((q) => tr(q[0], q[1]));
+    const t0 = tm(b.d) + .1;
+    plant += `<g transform="translate(${n1(X(b.x))} ${n1(Y(b.y))})"><g class="gl" style="--d:${t0.toFixed(3)}s;--u:${unfurl}s"><path d="${smoothPath(pts, true)}" fill="#7d8c56" stroke="rgba(62,44,26,.8)" stroke-width=".6"/><path d="M${f2(tr(L * .62, 0))}L${f2(tr(L, 0))}" stroke="${P.fcol.petal}" stroke-width="${n1(L * .22)}" stroke-linecap="round"/></g></g>`;
+    total = Math.max(total, t0 + unfurl);
+  }
+  // flowers
+  for (const f of g.flowers){
+    const t0 = tm(f.d) + unfurl * .6;
+    const dur = speedMode === 'fast' ? .45 : .95;
+    plant += `<g transform="translate(${n1(X(f.x))} ${n1(Y(f.y))})"><g class="gf" style="--d:${t0.toFixed(3)}s;--u:${dur}s">${flowerMarkup(f, P, R, s)}</g></g>`;
+    total = Math.max(total, t0 + dur);
+  }
+  // berries hang in clusters
+  for (const b of g.berries){
+    const n = R.i(3, 7), rb = clamp(s * .1, 3.2, 7.2), bx = X(b.x), by = Y(b.y);
+    const items = [];
+    for (let i = 0; i < n; i++){
+      const a = (90 + R.f(-70, 70)) * DEG, dd = rb * R.f(1.2, 3.2);
+      items.push({ x: Math.cos(a) * dd, y: Math.sin(a) * dd + rb * .6, r: rb * R.f(.8, 1.1), c: mix(P.berry, '#5e1714', R.f(0, .45)) });
+    }
+    items.sort((p, q) => p.y - q.y);
+    let inner = '';
+    for (const it of items) inner += `<path d="M0 0Q${n1(it.x * .2)} ${n1(it.y * .6)} ${n1(it.x)} ${n1(it.y - it.r)}" fill="none" stroke="${P.stem}" stroke-width=".6"/>`;
+    for (const it of items){
+      inner += `<circle cx="${n1(it.x)}" cy="${n1(it.y)}" r="${n1(it.r)}" fill="${it.c}" stroke="rgba(52,30,18,.85)" stroke-width=".6"/>`;
+      inner += `<circle cx="${n1(it.x - it.r * .35)}" cy="${n1(it.y - it.r * .38)}" r="${n1(it.r * .28)}" fill="rgba(255,238,222,.62)"/>`;
+      inner += `<path d="M${n1(it.x - it.r * .25)} ${n1(it.y + it.r * .7)}l${n1(it.r * .5)} 0M${n1(it.x)} ${n1(it.y + it.r * .45)}l0 ${n1(it.r * .5)}" stroke="rgba(52,30,18,.7)" stroke-width=".45"/>`;
+    }
+    const t0 = tm(b.d) + unfurl * .7;
+    plant += `<g transform="translate(${n1(bx)} ${n1(by)})"><g class="gf" style="--d:${t0.toFixed(3)}s;--u:.8s">${inner}</g></g>`;
+    total = Math.max(total, t0 + .8);
+  }
+  // seed clocks
+  for (const h of g.heads){
+    const Lr = clamp(h.sz * s * .52, 18, 46), n = 40;
+    let inner = `<circle r="${n1(Lr * .1)}" fill="#8a6a3c" stroke="rgba(62,44,26,.8)" stroke-width=".5"/>`;
+    for (let i = 0; i < n; i++){
+      const a = i / n * Math.PI * 2 + R.f(-.05, .05), L = Lr * R.f(.86, 1.02), ca = Math.cos(a), sa = Math.sin(a);
+      const ex = ca * L, ey = sa * L;
+      inner += `<path d="M${n1(ca * Lr * .12)} ${n1(sa * Lr * .12)}L${n1(ca * Lr * .26)} ${n1(sa * Lr * .26)}" stroke="#5c4424" stroke-width="1.3" stroke-linecap="round"/>`;
+      inner += `<path d="M${n1(ca * Lr * .26)} ${n1(sa * Lr * .26)}L${n1(ex)} ${n1(ey)}" stroke="rgba(74,54,34,.55)" stroke-width=".35"/>`;
+      let tuft = '';
+      for (let j = -2; j <= 2; j++){ const b2 = a + j * .28; tuft += `M${n1(ex)} ${n1(ey)}l${n1(Math.cos(b2) * Lr * .16)} ${n1(Math.sin(b2) * Lr * .16)}`; }
+      inner += `<path d="${tuft}" stroke="rgba(74,54,34,.42)" stroke-width=".3" fill="none"/>`;
+    }
+    const t0 = tm(h.d) + unfurl * .6;
+    plant += `<g transform="translate(${n1(X(h.x))} ${n1(Y(h.y))})"><g class="gf" style="--d:${t0.toFixed(3)}s;--u:1s">${inner}</g></g>`;
+    total = Math.max(total, t0 + 1);
+  }
+
+  /* furniture: tape, label, stamp, scale, packet */
+  let furn = '';
+  const fast = speedMode === 'fast';
+  const tapeT = fast ? total * .62 : total + .25;
+  const labT = fast ? .12 : tapeT + .35;
+  const main = g.segs.filter((q) => q.w * P.wUnit > 1.3 && q.dep <= 1 && q.len * s > 10);
+  const picks = [];
+  if (main.length){
+    const maxD = Math.max(...main.map((q) => q.d0));
+    for (const frac of [.14, .46]){
+      let best = null, bd = 1e9;
+      for (const q of main){ const dd = Math.abs(q.d0 - maxD * frac); if (dd < bd){ bd = dd; best = q; } }
+      if (best && !picks.includes(best)) picks.push(best);
+    }
+  }
+  if (P.habit === 'rosula' || P.habit === 'umbella'){
+    const big = g.leaves.slice().sort((a, b) => b.sz - a.sz)[0];
+    if (big) picks.push({ leaf: big });
+  }
+  picks.slice(0, 3).forEach((q, i) => {
+    let x, y, a;
+    if (q.leaf){
+      const la = q.leaf.h * DEG, L = q.leaf.sz * .55;
+      x = X(q.leaf.x + Math.cos(la) * L); y = Y(q.leaf.y + Math.sin(la) * L); a = -q.leaf.h + 90;
+    } else {
+      x = X((q.x1 + q.x2) / 2); y = Y((q.y1 + q.y2) / 2); a = -q.h + 90;
+    }
+    a += R.f(-14, 14);
+    furn += tapeMarkup(x, y, a, R.f(58, 76), R.f(15, 19), tapeT + i * .12, R);
+  });
+
+  const upc = R.f(10, 23); // sheet units per centimetre
+  const heightCm = Math.round((bh * s) / upc);
+  furn += labelMarkup(sp, labT);
+  furn += stampMarkup(sp, fast ? .3 : labT + .45, R);
+  furn += scaleMarkup(upc, fast ? .2 : labT + .15);
+  const pMaxX = X(maxX), pMinY = Y(maxY);
+  if ((pMaxX < 432 || pMinY > 190) && R.ch(.75)) furn += packetMarkup(P, fast ? .25 : labT + .25, R);
+  if (R.ch(.5)) furn += slipMarkup(sp, fast ? .35 : labT + .1, R);
+  total = Math.max(total, tapeT + .6, labT + 1);
+  return { plant, furn, total, heightCm };
+}
+
+function drawRoots(bx, by, P, R, speed){
+  let svg = `<g fill="none" stroke="#6e5436" stroke-linecap="round" stroke-linejoin="round">`;
+  let end = 0;
+  const seg = (x1, y1, x2, y2, w, d0, len) => {
+    const t0 = d0 / speed, dur = Math.max(.01, len / speed);
+    svg += `<path class="st" pathLength="1" d="M${n1(x1)} ${n1(y1)}L${n1(x2)} ${n1(y2)}" stroke-width="${n1(Math.max(.35, w))}" style="--d:${t0.toFixed(3)}s;--t:${dur.toFixed(3)}s"/>`;
+    end = Math.max(end, t0 + dur);
+  };
+  const ok = (x, y) => y < 752 && !(x > 314 && y > 676) && x > 28 && x < 572;
+  const branch = (x, y, a, len, w, dep, dist) => {
+    const steps = R.i(4, 7);
+    let px = x, py = y;
+    for (let i = 0; i < steps; i++){
+      a += R.f(-.35, .35); a += (Math.PI / 2 - a) * .12;
+      const l = len / steps, nx = px + Math.cos(a) * l, ny = py + Math.sin(a) * l;
+      if (!ok(nx, ny)) break;
+      const ww = w * (1 - i / steps * .6);
+      seg(px, py, nx, ny, ww, dist, l);
+      if (dep < 2 && R.ch(.33)) branch(nx, ny, a + R.sg() * R.f(.4, 1.1), len * .5, ww * .6, dep + 1, dist + l);
+      px = nx; py = ny; dist += l;
+    }
+  };
+  if (P.roots === 'taproot'){
+    let x = bx, y = by, a = Math.PI / 2 + R.f(-.15, .15), w = 7.5, dist = 0;
+    const steps = 9, len = R.f(72, 96);
+    for (let i = 0; i < steps; i++){
+      a += R.f(-.18, .18); a += (Math.PI / 2 - a) * .2;
+      const l = len / steps, nx = x + Math.cos(a) * l, ny = y + Math.sin(a) * l;
+      if (!ok(nx, ny)) break;
+      seg(x, y, nx, ny, w, dist, l);
+      if (i > 1 && R.ch(.55)) branch(nx, ny, a + R.sg() * R.f(.7, 1.2), R.f(18, 34), .8, 1, dist + l);
+      x = nx; y = ny; dist += l; w *= .8;
+    }
+  } else if (P.roots === 'rhizome'){
+    const x0 = bx - R.f(50, 70), x1 = bx + R.f(40, 60);
+    let dist = 0, px = x0, py = by + 4;
+    for (let i = 1; i <= 8; i++){
+      const nx = x0 + (x1 - x0) * i / 8, ny = by + 4 + Math.sin(i * 1.3) * 2.5;
+      seg(px, py, nx, ny, 6.2, dist, nx - px);
+      px = nx; py = ny; dist += (x1 - x0) / 8;
+    }
+    for (let i = 0; i < 16; i++){
+      const x = x0 + (x1 - x0) * (i + .5) / 16;
+      svg += `<path d="M${n1(x)} ${n1(by + 1)}l${n1(R.f(-3, 3))} ${n1(R.f(-6, -3))}" stroke="#7a5a32" stroke-width=".7"/>`;
+    }
+    for (let i = 0; i < 7; i++) branch(x0 + (x1 - x0) * R.f(.05, .95), by + 6, Math.PI / 2 + R.f(-.8, .8), R.f(26, 48), 1, 1, 10);
+  } else if (P.roots === 'woody'){
+    for (let i = 0; i < 4; i++) branch(bx + R.f(-3, 3), by, Math.PI / 2 + R.f(-1, 1), R.f(40, 70), 3.2, 0, 0);
+  } else {
+    const n = R.i(6, 9);
+    for (let i = 0; i < n; i++) branch(bx + R.f(-5, 5), by, Math.PI / 2 + R.f(-1.1, 1.1), R.f(30, 58), 1.3, 1, 0);
+  }
+  svg += '</g>';
+  // crumbs of soil clinging to the roots
+  for (let i = 0; i < 9; i++){
+    const x = bx + R.f(-40, 40), y = by + R.f(6, 40);
+    if (!ok(x, y)) continue;
+    svg += `<ellipse cx="${n1(x)}" cy="${n1(y)}" rx="${n1(R.f(.8, 2.2))}" ry="${n1(R.f(.6, 1.6))}" fill="rgba(110,82,48,.45)"/>`;
+  }
+  return { svg, end };
+}
+
+function tapeMarkup(x, y, a, L, W, t, R){
+  const pts = [];
+  const teeth = 4, h = W / 2, l = L / 2;
+  pts.push([-l, -h]);
+  pts.push([l, -h]);
+  for (let i = 1; i <= teeth * 2; i++) pts.push([l + (i % 2 ? R.f(1.6, 3.2) : 0), -h + W * i / (teeth * 2)]);
+  pts.push([-l, h]);
+  for (let i = teeth * 2 - 1; i >= 1; i--) pts.push([-l - (i % 2 ? R.f(1.6, 3.2) : 0), -h + W * i / (teeth * 2)]);
+  const d = polyPath(pts);
+  return `<g transform="translate(${n1(x)} ${n1(y)}) rotate(${n1(a)})"><g class="tape" style="--d:${t.toFixed(2)}s">` +
+    `<path d="${d}" transform="translate(1.2 1.8)" fill="rgba(60,40,20,.13)"/>` +
+    `<path d="${d}" fill="rgba(234,222,190,.8)" stroke="rgba(150,122,80,.35)" stroke-width=".6"/>` +
+    `<path d="M${n1(-l + 4)} ${n1(-h + 3.5)}H${n1(l - 6)}M${n1(-l + 8)} ${n1(h - 4)}H${n1(l - 3)}" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>` +
+    `</g></g>`;
+}
+
+function labelMarkup(sp, t){
+  const name = sp.genus + ' ' + sp.epithet;
+  const fs = Math.min(23, 226 / (name.length * .47));
+  const date = `${sp.day}.${ROMAN[sp.month - 1]}.${sp.year}`;
+  const loc = sp.locality.length > 30 ? sp.locality.slice(0, 29) + '…' : sp.locality;
+  return `<g transform="translate(318 686)"><g class="ink-late" style="--d:${t.toFixed(2)}s">` +
+    `<rect x="2.5" y="3" width="252" height="132" fill="rgba(74,54,34,.12)"/>` +
+    `<rect width="252" height="132" fill="#f9f3e3" stroke="#4a3622" stroke-width="1"/>` +
+    `<rect x="5" y="5" width="242" height="122" fill="none" stroke="#4a3622" stroke-width=".45"/>` +
+    `<text x="126" y="22" text-anchor="middle" class="t-caps">HERBARIUM IMAGINARIUM</text>` +
+    `<path d="M20 29H232" stroke="#4a3622" stroke-width=".5"/><path d="M104 32h44" stroke="#9e2f28" stroke-width="1"/>` +
+    `<text x="126" y="${n1(56 + (23 - fs) * .3)}" text-anchor="middle" class="t-name" style="font-size:${fs.toFixed(1)}px">${name}</text>` +
+    `<text x="126" y="72" text-anchor="middle" class="t-sm">${sp.family} &#183; ${sp.author}</text>` +
+    `<text x="14" y="93" class="t-sm">Loc.</text><text x="42" y="93" class="t-hand">${escapeXML(loc)}</text>` +
+    `<path d="M40 96H240" stroke="rgba(74,54,34,.35)" stroke-width=".5" stroke-dasharray="1.5 2"/>` +
+    `<text x="14" y="111" class="t-sm">Coll.</text><text x="42" y="111" class="t-hand">${escapeXML(sp.collector)}</text>` +
+    `<text x="240" y="111" text-anchor="end" class="t-hand">${date}</text>` +
+    `<path d="M40 114H240" stroke="rgba(74,54,34,.35)" stroke-width=".5" stroke-dasharray="1.5 2"/>` +
+    `<text x="14" y="127" class="t-sm">No.</text><text x="40" y="127" class="t-hand" style="fill:#9e2f28">${sp.no}</text>` +
+    `<text x="240" y="127" text-anchor="end" class="t-sm" style="font-style:italic">flora incognita</text>` +
+    `</g></g>`;
+}
+function stampMarkup(sp, t, R){
+  const rot = R.f(-18, 8);
+  return `<g transform="translate(88 776) rotate(${n1(rot)})"><g class="stamp" style="--d:${t.toFixed(2)}s" opacity=".62">` +
+    `<circle r="34" fill="none" stroke="#9e2f28" stroke-width="2.2" stroke-dasharray="46 1.5 30 2 60 1"/>` +
+    `<circle r="28.5" fill="none" stroke="#9e2f28" stroke-width=".8"/>` +
+    `<text y="-9" text-anchor="middle" class="t-stamp">HERB.</text>` +
+    `<text y="4" text-anchor="middle" class="t-stamp">IMAG.</text>` +
+    `<path d="M-18 9H18" stroke="#9e2f28" stroke-width=".7"/>` +
+    `<text y="21" text-anchor="middle" class="t-stamp" style="font-size:8.5px">CAB. VII</text>` +
+    `</g></g>`;
+}
+function scaleMarkup(upc, t){
+  const w = upc; // one centimetre per segment
+  const n = w * 5 > 110 ? 3 : 5;
+  let s = `<g transform="translate(142 800)"><g class="ink-late" style="--d:${t.toFixed(2)}s">`;
+  for (let i = 0; i < n; i++) s += `<rect x="${n1(i * w)}" y="0" width="${n1(w)}" height="5" fill="${i % 2 ? '#f9f3e3' : '#4a3622'}" stroke="#4a3622" stroke-width=".6"/>`;
+  s += `<text x="0" y="18" class="t-sm" style="font-size:10px">0</text><text x="${n1(n * w)}" y="18" text-anchor="end" class="t-sm" style="font-size:10px">${n} cm</text></g></g>`;
+  return s;
+}
+function packetMarkup(P, t, R){
+  const rot = R.f(-5, 6);
+  let seeds = '';
+  for (let i = 0; i < 5; i++){
+    const x = R.f(-6, 34), y = R.f(78, 96);
+    seeds += `<ellipse cx="${n1(x)}" cy="${n1(y)}" rx="3.2" ry="2.1" transform="rotate(${n1(R.f(0, 180))} ${n1(x)} ${n1(y)})" fill="${P.berry}" stroke="rgba(52,30,18,.8)" stroke-width=".5"/>`;
+  }
+  return `<g transform="translate(446 60) rotate(${n1(rot)})"><g class="ink-late" style="--d:${t.toFixed(2)}s">` +
+    `<rect x="2" y="3" width="100" height="72" fill="rgba(74,54,34,.12)"/>` +
+    `<path d="M0 0H100V72H0Z" fill="#efe3c6" stroke="#4a3622" stroke-width=".8"/>` +
+    `<path d="M0 0L50 30L100 0M0 72L38 40M100 72L62 40" fill="none" stroke="rgba(74,54,34,.45)" stroke-width=".6"/>` +
+    `<text x="50" y="60" text-anchor="middle" class="t-hand" style="font-size:13px">semina</text>` +
+    seeds + `</g></g>`;
+}
+function slipMarkup(sp, t, R){
+  const who = R.pick(['E. Ashgrove, 1903', 'P. Hollowbrook, 1911', 'W. Lanternby, 1907', 'O. Marrowby, 1902']);
+  const verdict = R.pick(['surely imaginary', 'nova sp.? — doubtful', 'not as described', 'conf. — with reservations']);
+  const txt = `Det. ${who}: ‘${verdict}’`, w = Math.min(252, txt.length * 5.35 + 18);
+  return `<g transform="translate(${n1(570 - w)} 656) rotate(${n1(R.f(-2, 1.5))})"><g class="ink-late" style="--d:${t.toFixed(2)}s">` +
+    `<rect width="${n1(w)}" height="22" fill="#fbf7ea" stroke="rgba(74,54,34,.55)" stroke-width=".6"/>` +
+    `<text x="9" y="15" class="t-slip">${txt}</text></g></g>`;
+}
+function escapeXML(s){ return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+/* ------------------------------------------------------------------
+   Cabinet state and rendering
+------------------------------------------------------------------ */
+const grid = $('#grid'), indexEl = $('#index');
+const specimens = [];
+let collectedCount = 0;
+
+function sheetHTML(sp){
+  return `<div class="sheet" style="--fox:${sp.fox}"><svg class="plant" viewBox="0 0 600 840" aria-hidden="true" focusable="false">${sp.plantSVG}</svg><svg class="furn" viewBox="0 0 600 840" aria-hidden="true" focusable="false">${sp.furnSVG}</svg></div>`;
+}
+function cardEl(sp, growing){
+  const fig = document.createElement('figure');
+  fig.className = 'card' + (growing && !reduceMotion ? ' grow' : '');
+  fig.setAttribute('role', 'listitem');
+  fig.style.setProperty('--rot', sp.rot.toFixed(2) + 'deg');
+  fig.innerHTML = sheetHTML(sp) +
+    `<figcaption><span class="no">No. ${sp.no}</span><i>${sp.genus} ${sp.epithet}</i></figcaption>` +
+    `<button type="button" class="examine" aria-label="Examine specimen number ${sp.no}, ${sp.genus} ${sp.epithet}"></button>`;
+  fig.querySelector('.examine').addEventListener('click', () => openLightbox(specimens.indexOf(sp)));
+  sp.el = fig;
+  if (growing && !reduceMotion){
+    sp.growTimer = setTimeout(() => fig.classList.remove('grow'), (sp.total + .6) * 1000);
+  }
+  return fig;
+}
+const WORDS = ['none yet','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
+function renderIndex(fresh){
+  indexEl.innerHTML = '';
+  specimens.forEach((sp, i) => {
+    const li = document.createElement('li');
+    if (fresh && i === 0) li.className = 'fresh';
+    li.innerHTML = `<button type="button"><span class="ix-no">${sp.no}</span><i>${sp.genus} ${sp.epithet}</i></button>`;
+    li.querySelector('button').addEventListener('click', () => openLightbox(i));
+    indexEl.appendChild(li);
+  });
+  $('#lg-new').textContent = collectedCount < WORDS.length ? WORDS[collectedCount] : String(collectedCount);
+  const last = specimens.reduce((a, b) => (b.no > a.no ? b : a), specimens[0]);
+  $('#lg-last').textContent = 'No. ' + last.no;
+}
+
+function initialDrawer(){
+  const order = HABITS.slice();
+  const r = Math.random;
+  for (let i = order.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  order.forEach((h) => {
+    const sp = makeSpecimen(h, 'fast');
+    specimens.push(sp);
+  });
+  specimens.forEach((sp, i) => {
+    const el = cardEl(sp, true);
+    el.style.setProperty('--stagger', i);
+    grid.appendChild(el);
+  });
+  renderIndex(false);
+}
+
+let lastHabit = null;
+function collect(){
+  let habit;
+  do { habit = HABITS[Math.floor(Math.random() * HABITS.length)]; } while (habit === lastHabit || habit === (specimens[0] && specimens[0].habit));
+  lastHabit = habit;
+  const firstRects = new Map();
+  specimens.forEach((sp) => firstRects.set(sp, sp.el.getBoundingClientRect()));
+  const sp = makeSpecimen(habit, 'slow');
+  const el = cardEl(sp, true);
+  // the oldest sheet is filed away
+  const old = specimens.length >= 6 ? specimens.pop() : null;
+  if (old){
+    const r = old.el.getBoundingClientRect();
+    const ghost = old.el.cloneNode(true);
+    ghost.classList.remove('grow');
+    Object.assign(ghost.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', margin: '0', zIndex: '5', pointerEvents: 'none' });
+    document.body.appendChild(ghost);
+    old.el.remove();
+    clearTimeout(old.growTimer);
+    if (!reduceMotion){
+      const an = ghost.animate([{ opacity: 1, transform: `rotate(${old.rot}deg)` }, { opacity: 0, transform: `translateY(40px) rotate(${old.rot + 5}deg) scale(.94)` }], { duration: 650, easing: 'cubic-bezier(.4,0,.6,1)' });
+      an.onfinish = () => ghost.remove();
+    } else ghost.remove();
+  }
+  specimens.unshift(sp);
+  grid.prepend(el);
+  collectedCount++;
+  if (!reduceMotion){
+    el.classList.add('enter');
+    setTimeout(() => el.classList.remove('enter'), 900);
+    specimens.slice(1).forEach((s2) => {
+      const a = firstRects.get(s2);
+      if (!a) return;
+      const b = s2.el.getBoundingClientRect();
+      const dx = a.left - b.left, dy = a.top - b.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      s2.el.animate([{ transform: `translate(${dx}px,${dy}px) rotate(${s2.rot}deg)` }, { transform: `rotate(${s2.rot}deg)` }], { duration: 620, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    });
+  }
+  renderIndex(true);
+  $('#drawer-note').textContent = `No. ${sp.no} mounted just now`;
+  const rr = el.getBoundingClientRect();
+  if (rr.top < 0 || rr.bottom > window.innerHeight) el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+}
+
+/* pressing */
+const pressBtn = $('#press'), lbPress = $('#lb-press');
+function setPressed(on, animate){
+  document.body.classList.toggle('is-pressed', on);
+  pressBtn.setAttribute('aria-pressed', String(on));
+  lbPress.setAttribute('aria-pressed', String(on));
+  $('#press-label').textContent = on ? 'Release the press' : 'Press the sheets';
+  lbPress.textContent = on ? 'Release' : 'Press';
+  if (animate && !reduceMotion){
+    document.body.classList.remove('pressing');
+    void document.body.offsetWidth;
+    document.body.classList.add('pressing');
+    setTimeout(() => document.body.classList.remove('pressing'), 800);
+  }
+  try { localStorage.setItem('herbarium-pressed', on ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+}
+pressBtn.addEventListener('click', () => setPressed(pressBtn.getAttribute('aria-pressed') !== 'true', true));
+lbPress.addEventListener('click', () => setPressed(lbPress.getAttribute('aria-pressed') !== 'true', true));
+$('#collect').addEventListener('click', collect);
+
+/* ------------------------------------------------------------------
+   Lightbox and loupe
+------------------------------------------------------------------ */
+const lb = $('#lb'), lbSheet = $('#lb-sheet'), loupe = $('#loupe'), loupeView = $('#loupe-view');
+let lbIndex = -1, lastFocus = null, loupeClone = null;
+const ZOOM = 2.6;
+
+function fillNotes(sp){
+  $('#lb-no').textContent = `Specimen No. ${sp.no}`;
+  $('#lb-title').innerHTML = `<i>${sp.genus} ${sp.epithet}</i> <span class="lb-auth">${sp.author}</span>`;
+  $('#lb-vern').textContent = `“${sp.vern}” — ${sp.family}`;
+  const P = sp.P;
+  const leafWord = { lanceolate: 'lanceolate', ovate: 'ovate', cordate: 'cordate', linear: 'linear', lobed: 'lobed', pinnatifid: 'deeply pinnatifid', orbicular: 'orbicular', spathulate: 'spathulate', oblong: 'oblong pinnules' }[P.leafShape];
+  const margin = P.serr ? 'serrate' : 'entire';
+  const flowers = sp.habit === 'filix' ? 'none — sori beneath the pinnules' :
+    sp.habit === 'umbella' ? `minute, ${P.fcol.name}, in compound umbels` :
+    P.flowerType === 'bell' ? `nodding bells, ${P.fcol.name}` :
+    sp.habit === 'rosula' ? `radiate heads, ${P.fcol.name}` : `${P.petals}-merous, ${P.fcol.name}`;
+  const rows = [
+    ['Habit', HABIT_TEXT[sp.habit]],
+    ['Leaves', sp.habit === 'filix' ? 'fronds pinnate; ' + leafWord : `${leafWord}, ${margin}`],
+    ['Flowers', flowers],
+    ['Height', `c. ${sp.heightCm} cm as mounted`],
+    ['Collected', `${sp.day} ${['March','April','May','June','July','August','September'][sp.month - 3]} ${sp.year}`],
+    ['Locality', sp.locality],
+    ['Collector', sp.collector]
+  ];
+  $('#lb-data').innerHTML = rows.map((r) => `<dt>${r[0]}</dt><dd>${escapeXML(r[1])}</dd>`).join('');
+  $('#lb-desc').textContent = `${sp.whimsy} Grown for this cabinet from seed ${sp.seed.toString(36)}; no second sheet is known.`;
+}
+function showInLightbox(i){
+  const sp = specimens[i];
+  if (!sp) return;
+  lbIndex = i;
+  lbSheet.innerHTML = sheetHTML(sp);
+  lbSheet.setAttribute('aria-label', `Enlarged sheet of ${sp.genus} ${sp.epithet}`);
+  fillNotes(sp);
+  buildLoupe();
+}
+function buildLoupe(){
+  const sp = specimens[lbIndex];
+  if (!sp) return;
+  loupeView.innerHTML = sheetHTML(sp);
+  loupeClone = loupeView.firstElementChild;
+  sizeLoupe();
+}
+function sizeLoupe(){
+  if (!loupeClone) return;
+  const r = lbSheet.getBoundingClientRect();
+  loupeClone.style.width = r.width + 'px';
+  loupeClone.style.height = r.height + 'px';
+}
+function openLightbox(i){
+  if (i < 0) return;
+  lastFocus = document.activeElement;
+  lb.hidden = false;
+  document.body.style.overflow = 'hidden';
+  showInLightbox(i);
+  requestAnimationFrame(() => { lb.classList.add('open'); sizeLoupe(); });
+  $('#lb-close').focus({ preventScroll: true });
+}
+function closeLightbox(){
+  lb.classList.remove('open');
+  loupe.classList.remove('on');
+  document.body.style.overflow = '';
+  setTimeout(() => { lb.hidden = true; lbSheet.innerHTML = ''; loupeView.innerHTML = ''; loupeClone = null; }, reduceMotion ? 0 : 300);
+  lbIndex = -1;
+  if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+}
+function step(dir){
+  if (lbIndex < 0) return;
+  showInLightbox((lbIndex + dir + specimens.length) % specimens.length);
+}
+$('#lb-close').addEventListener('click', closeLightbox);
+$('#lb-prev').addEventListener('click', () => step(-1));
+$('#lb-next').addEventListener('click', () => step(1));
+lb.addEventListener('click', (e) => { if (e.target === lb) closeLightbox(); });
+
+let loupeTouchId = null;
+function moveLoupe(e){
+  const r = lbSheet.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  if (px < 0 || py < 0 || px > r.width || py > r.height){ loupe.classList.remove('on'); lbSheet.classList.remove('looking'); return; }
+  const lift = e.pointerType === 'touch' ? 130 : 0;
+  loupe.style.translate = `${e.clientX}px ${e.clientY - lift}px`;
+  const R0 = (230 - 16) / 2;
+  loupeView.style.transform = `translate(${R0 - px * ZOOM}px,${R0 - py * ZOOM}px) scale(${ZOOM})`;
+  loupe.classList.add('on');
+  lbSheet.classList.add('looking');
+}
+lbSheet.addEventListener('pointermove', (e) => { if (e.pointerType === 'touch' && loupeTouchId !== e.pointerId) return; moveLoupe(e); });
+lbSheet.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'touch'){ loupeTouchId = e.pointerId; try { lbSheet.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } }
+  moveLoupe(e);
+});
+const hideLoupe = (e) => {
+  if (e && e.pointerType === 'touch' && e.pointerId !== loupeTouchId) return;
+  loupeTouchId = null;
+  loupe.classList.remove('on'); lbSheet.classList.remove('looking');
+};
+lbSheet.addEventListener('pointerup', (e) => { if (e.pointerType === 'touch') hideLoupe(e); });
+lbSheet.addEventListener('pointercancel', hideLoupe);
+lbSheet.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') hideLoupe(e); });
+
+/* keyboard */
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const open = lbIndex >= 0;
+  if (open){
+    if (e.key === 'Escape'){ e.preventDefault(); closeLightbox(); return; }
+    if (e.key === 'ArrowRight'){ e.preventDefault(); step(1); return; }
+    if (e.key === 'ArrowLeft'){ e.preventDefault(); step(-1); return; }
+    if (e.key === 'Tab'){
+      const f = Array.from(lb.querySelectorAll('button'));
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
+  }
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.key === 'n' || e.key === 'N'){ if (!open) collect(); }
+  else if (e.key === 'p' || e.key === 'P'){ setPressed(pressBtn.getAttribute('aria-pressed') !== 'true', true); }
+});
+
+let rsT = 0;
+window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(sizeLoupe, 80); });
+
+/* go */
+initialDrawer();
+let startPressed = false;
+try { startPressed = localStorage.getItem('herbarium-pressed') === '1'; } catch (e) { /* storage unavailable */ }
+if (startPressed) setPressed(true, false);
+})();
+</script>
+</body>
+</html>

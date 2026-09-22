@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selene — Tide &amp; Moon Clock</title>
+<meta name="description" content="Selene, a poetic tide and moon clock: today's moon phase rendered procedurally with terminator, craters, maria and earthshine, a 24-hour tide dial and a moonlit sea that rises and falls with an illustrative semi-diurnal tide.">
+<style>
+:root{
+  --abyss:#050b18;
+  --navy:#0b1d3a;
+  --navy-2:#13315c;
+  --navy-3:#1d4e89;
+  --silver:#c9d6e3;
+  --silver-dim:rgba(201,214,227,.62);
+  --silver-faint:rgba(201,214,227,.22);
+  --moonlight:#f2ead6;
+  --serif:"Cormorant Garamond","Cormorant","EB Garamond",Garamond,"Hoefler Text",Baskerville,"Nimbus Roman","Times New Roman",serif;
+  --ui:1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--abyss)}
+body{
+  min-height:100vh;color:var(--silver);font-family:var(--serif);font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(ellipse 90% 70% at 50% 34%,#12294d 0%,#0b1d3a 38%,#07122a 70%,#050b18 100%) fixed;
+}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:1px solid var(--silver);outline-offset:4px}
+.smc{font-variant:small-caps;letter-spacing:.16em;text-transform:lowercase}
+#sky{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.twinkle{position:fixed;width:2px;height:2px;border-radius:50%;background:#e8f0fa;box-shadow:0 0 6px 1px rgba(232,240,250,.7);animation:tw 4s ease-in-out infinite;pointer-events:none}
+@keyframes tw{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1)}}
+
+.scene{position:relative;min-height:100vh;min-height:100svh;height:100vh;min-height:720px;overflow:hidden}
+.ui{transition:opacity 1.6s ease,filter 1.6s ease}
+body.calm .ui{opacity:.3}
+body.calm .ui:hover,body.calm .ui:focus-within{opacity:.85}
+body.calm .scrub{opacity:1;background:rgba(5,11,24,.62)}
+.scrub > *{transition:opacity 1.6s ease}
+body.calm .scrub > *{opacity:.35}
+body.calm .scrub:hover > *,body.calm .scrub:focus-within > *{opacity:.9}
+body.calm #moon{filter:brightness(.86)}
+#moon{transition:filter 1.6s ease}
+
+/* ---------- header ---------- */
+.top{position:absolute;left:clamp(18px,4.5vw,64px);right:clamp(18px,4.5vw,64px);top:clamp(18px,3.4vh,34px);display:flex;justify-content:space-between;align-items:flex-start;z-index:5}
+.title svg{display:block;width:clamp(170px,17vw,250px);height:auto;overflow:visible}
+.title p{margin:8px 0 0 4px;font-size:15px;color:var(--silver-dim)}
+.calm-btn{display:inline-flex;align-items:center;gap:10px;background:rgba(5,11,24,.3);border:1px solid var(--silver-faint);border-radius:30px;padding:8px 16px 8px 12px;cursor:pointer;font-size:16px;transition:border-color .4s,background-color .4s}
+.calm-btn:hover{border-color:var(--silver-dim)}
+.calm-btn svg{width:18px;height:18px}
+.calm-btn[aria-pressed="true"]{background:rgba(201,214,227,.1)}
+
+/* ---------- dial ---------- */
+.clock{position:absolute;left:50%;top:calc(50% - 14vh);transform:translate(-50%,-50%);width:min(64vh,560px);aspect-ratio:1/1;z-index:2}
+.dial{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.dial text{font-family:var(--serif)}
+.moon-wrap{position:absolute;left:50%;top:50%;width:50%;aspect-ratio:1/1;transform:translate(-50%,-50%);border-radius:50%}
+.moon-wrap::before{content:"";position:absolute;inset:-34%;border-radius:50%;background:radial-gradient(circle,rgba(242,234,214,var(--glow,.25)) 0%,rgba(201,214,227,calc(var(--glow,.25) * .35)) 30%,rgba(201,214,227,0) 64%);pointer-events:none;transition:opacity 1s}
+#moon{position:relative;display:block;width:100%;height:100%}
+
+/* ---------- panels ---------- */
+.panel{position:absolute;top:calc(50% - 14vh);transform:translateY(-50%);width:clamp(220px,21vw,300px);z-index:3}
+.panel.luna{left:clamp(18px,5.5vw,96px)}
+.panel.mare{right:clamp(18px,5.5vw,96px);text-align:right}
+.panel h2{margin:0 0 14px;font-weight:400;font-size:15px;color:var(--silver-dim);display:flex;align-items:center;gap:12px}
+.panel.mare h2{justify-content:flex-end}
+.panel h2::after{content:"";flex:0 0 46px;height:1px;background:var(--silver-faint)}
+.panel.mare h2::after{order:-1}
+.phase-name{margin:0;font-size:clamp(34px,3.2vw,48px);line-height:1.02;font-style:italic;font-weight:300;color:var(--moonlight)}
+.big{margin:16px 0 0;font-size:clamp(46px,4.4vw,66px);line-height:1;font-weight:300;color:var(--moonlight);font-variant-numeric:lining-nums}
+.big small{font-size:.36em;margin-left:6px;color:var(--silver-dim);vertical-align:.9em}
+.bigcap{margin:6px 0 0;font-size:14px;color:var(--silver-dim)}
+.rows{margin:18px 0 0;padding:0;list-style:none;border-top:1px solid var(--silver-faint)}
+.rows li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px solid var(--silver-faint);font-size:17px}
+.rows li span:first-child{color:var(--silver-dim);font-size:15px}
+.rows li b{font-weight:400;font-variant-numeric:lining-nums tabular-nums;color:#e6edf4}
+.caveat{margin:10px 0 0;font-size:13.5px;font-style:italic;color:var(--silver-dim)}
+
+/* ---------- sea ---------- */
+.sea{position:absolute;left:0;right:0;bottom:0;height:34vh;min-height:230px;z-index:1}
+.sea svg,.sea canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sea canvas{pointer-events:none}
+
+/* ---------- scrubber ---------- */
+.scrub{
+  position:absolute;left:50%;bottom:clamp(14px,3vh,30px);transform:translateX(-50%);z-index:4;width:min(720px,calc(100% - 32px));
+  padding:14px 22px 16px;border-radius:18px;background:rgba(5,11,24,.46);border:1px solid var(--silver-faint);
+  box-shadow:0 20px 50px rgba(0,0,0,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)
+}
+.scrub-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.scrub-date{margin:0;font-size:20px;color:var(--moonlight)}
+.scrub-off{font-size:15px;color:var(--silver-dim);font-variant-numeric:lining-nums}
+.scrub-btns{display:flex;gap:8px}
+.sbtn{border:1px solid var(--silver-faint);background:transparent;border-radius:20px;padding:4px 13px;cursor:pointer;font-size:15px;transition:border-color .3s,background-color .3s}
+.sbtn:hover{border-color:var(--silver-dim);background:rgba(201,214,227,.07)}
+.sbtn[aria-pressed="true"]{background:rgba(201,214,227,.14)}
+.track{position:relative;margin-top:8px;height:48px}
+.phases{position:absolute;left:9px;right:9px;top:0;height:20px}
+.phases svg{position:absolute;top:0;width:16px;height:16px;transform:translateX(-50%);overflow:visible}
+input[type=range]{position:absolute;left:0;right:0;bottom:0;width:100%;height:24px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,rgba(201,214,227,.12),rgba(201,214,227,.55) 50%,rgba(201,214,227,.12))}
+input[type=range]::-moz-range-track{height:1px;background:rgba(201,214,227,.4)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:radial-gradient(circle at 38% 35%,#fff,#dfe6ee 45%,#9fb0c2);box-shadow:0 0 0 4px rgba(201,214,227,.12),0 0 16px rgba(242,234,214,.6)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:radial-gradient(circle at 38% 35%,#fff,#dfe6ee 45%,#9fb0c2);box-shadow:0 0 16px rgba(242,234,214,.6)}
+.ticks{position:absolute;left:9px;right:9px;bottom:0;height:24px;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(201,214,227,.3) 0 1px,transparent 1px calc((100% - 1px) / 60));-webkit-mask:linear-gradient(transparent 44%,#000 44% 56%,transparent 56%);mask:linear-gradient(transparent 40%,#000 40% 60%,transparent 60%)}
+
+.notes{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:40px clamp(18px,5vw,64px) 60px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;color:var(--silver-dim);font-size:15.5px;line-height:1.6}
+.notes h3{margin:0 0 8px;font-weight:400;font-size:15px;color:var(--silver)}
+.notes p{margin:0}
+
+/* ---------- responsive ---------- */
+@media (max-width:1100px){
+  .panel{width:clamp(200px,24vw,260px)}
+  .clock{width:min(52vw,58vh,520px)}
+}
+@media (max-width:820px){
+  .scene{height:auto;min-height:0;display:flex;flex-direction:column;overflow:visible}
+  .top{position:relative;left:auto;right:auto;top:auto;padding:16px 16px 0}
+  .title svg{width:150px}
+  .title p{font-size:13.5px;margin-top:4px}
+  .calm-btn{padding:6px 12px 6px 9px;font-size:14.5px}
+  .clock{position:relative;left:auto;top:auto;transform:none;width:min(84vw,440px);margin:2px auto 0}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:4px 16px 0}
+  .bigcap{font-size:11.5px;margin-top:2px;letter-spacing:.1em}
+  .panel{position:static;transform:none;width:auto}
+  .panel h2{margin-bottom:6px;font-size:13.5px}
+  .panel h2::after{flex-basis:18px}
+  .phase-name{font-size:25px}
+  .big{font-size:34px;margin-top:6px}
+  .rows{margin-top:8px}
+  .rows li{font-size:14px;padding:5px 0}
+  .rows li span:first-child{font-size:13px}
+  .rows .opt{display:none}
+  .caveat{font-size:12px;margin-top:6px}
+  .sea{position:relative;height:236px;min-height:0;margin-top:6px}
+  .scrub{bottom:12px;padding:10px 14px 12px}
+  .scrub-date{font-size:17px}
+  .notes{grid-template-columns:1fr;gap:20px;padding-top:28px}
+}
+@media (max-width:380px){
+  .panels{gap:12px}
+  .rows li{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){
+  .twinkle{animation:none;opacity:.5}
+}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<main class="scene" id="scene">
+  <header class="top ui">
+    <div class="title">
+      <h1 style="margin:0">
+        <svg viewBox="0 0 250 58" role="img" aria-label="Selene">
+          <defs>
+            <linearGradient id="tg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f2ead6"/><stop offset="1" stop-color="#c9d6e3"/></linearGradient>
+          </defs>
+          <text x="2" y="48" font-family="Cormorant Garamond,Cormorant,EB Garamond,Garamond,Baskerville,Nimbus Roman,Times New Roman,serif" font-size="54" letter-spacing="13" fill="none" stroke="url(#tg)" stroke-width=".9">SELENE</text>
+          <path d="M4 56H246" stroke="#c9d6e3" stroke-width=".5" opacity=".4"/>
+        </svg>
+      </h1>
+      <p class="smc">Tide &amp; Moon Clock</p>
+    </div>
+    <button type="button" class="calm-btn smc" id="calmBtn" aria-pressed="false" aria-label="Calm night mode: dim the interface">
+      <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M12.5 2.2A7 7 0 1 0 15.8 12 5.6 5.6 0 0 1 12.5 2.2Z" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>
+      <span>calm</span>
+    </button>
+  </header>
+
+  <section class="clock" aria-label="The moon inside a 24-hour tide dial">
+    <svg class="dial ui" id="dial" viewBox="-300 -300 600 600" role="img" aria-labelledby="dialDesc">
+      <desc id="dialDesc">A 24-hour dial with midnight at the top. A wavering ring shows the illustrative tide through the day, with high and low water marked, and a pointer shows the current time.</desc>
+      <defs>
+        <radialGradient id="tideFill" cx="0" cy="0" r="240" gradientUnits="userSpaceOnUse">
+          <stop offset=".78" stop-color="#c9d6e3" stop-opacity="0"/><stop offset=".93" stop-color="#c9d6e3" stop-opacity=".22"/><stop offset="1" stop-color="#c9d6e3" stop-opacity=".05"/>
+        </radialGradient>
+      </defs>
+      <g id="dialStatic"></g>
+      <path id="tideArea" fill="url(#tideFill)" stroke="none"/>
+      <path id="tideLine" fill="none" stroke="#c9d6e3" stroke-width="1.1" opacity=".85"/>
+      <g id="tideMarks"></g>
+      <g id="nowHand">
+        <path d="M-1 -196L1 -196L.7 -247H-.7Z" fill="#f2ead6" opacity=".75"/>
+        <path d="M0 -246L-5 -258H5Z" fill="#f2ead6"/>
+        <circle cx="0" cy="-258" r="10" fill="none" stroke="#f2ead6" stroke-width=".6" opacity=".45"/>
+      </g>
+    </svg>
+    <div class="moon-wrap" id="moonWrap">
+      <canvas id="moon" role="img" aria-label="The moon at its current phase"></canvas>
+    </div>
+  </section>
+
+  <div class="panels">
+    <section class="panel luna ui" aria-labelledby="lunaH">
+      <h2 class="smc" id="lunaH">Luna</h2>
+      <p class="phase-name" id="phaseName">Waxing Gibbous</p>
+      <p class="big"><span id="illum">0</span><small>%</small></p>
+      <p class="bigcap smc">of the disc illuminated</p>
+      <ul class="rows">
+        <li class="opt"><span class="smc">age</span><b id="ageOut">0.0 days</b></li>
+        <li><span class="smc" id="nextALbl">full moon</span><b id="nextA">in —</b></li>
+        <li><span class="smc" id="nextBLbl">new moon</span><b id="nextB">in —</b></li>
+      </ul>
+    </section>
+    <section class="panel mare ui" aria-labelledby="mareH">
+      <h2 class="smc" id="mareH">Mare</h2>
+      <p class="phase-name" id="tideState">Rising</p>
+      <p class="big"><span id="tidePct">0</span><small>%</small></p>
+      <p class="bigcap smc">of the tidal range</p>
+      <ul class="rows">
+        <li class="opt"><span class="smc">range</span><b id="rangeOut">spring</b></li>
+        <li><span class="smc">next high</span><b id="nextHigh">--:--</b></li>
+        <li><span class="smc">next low</span><b id="nextLow">--:--</b></li>
+      </ul>
+      <p class="caveat">Illustrative &mdash; not for navigation.</p>
+    </section>
+  </div>
+
+  <div class="sea" id="sea">
+    <svg id="waves" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="w0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d4e89"/><stop offset="1" stop-color="#0f2c55"/></linearGradient>
+        <linearGradient id="w1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#13315c"/><stop offset="1" stop-color="#0c2447"/></linearGradient>
+        <linearGradient id="w2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f2a50"/><stop offset="1" stop-color="#0b1d3a"/></linearGradient>
+        <linearGradient id="w3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1d3a"/><stop offset="1" stop-color="#050b18"/></linearGradient>
+        <linearGradient id="crest" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#c9d6e3" stop-opacity=".05"/><stop offset=".5" stop-color="#c9d6e3" stop-opacity=".75"/><stop offset="1" stop-color="#c9d6e3" stop-opacity=".05"/>
+        </linearGradient>
+        <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9d6e3" stop-opacity="0"/><stop offset=".3" stop-color="#c9d6e3" stop-opacity=".1"/><stop offset="1" stop-color="#c9d6e3" stop-opacity="0"/></linearGradient>
+        <linearGradient id="staffG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6f7e8f"/><stop offset=".45" stop-color="#d9e2ea"/><stop offset="1" stop-color="#5a6878"/></linearGradient>
+      </defs>
+      <rect id="hazeRect" x="0" y="0" width="100" height="60" fill="url(#haze)"/>
+      <path id="wave0" fill="url(#w0)"/><path id="crest0" fill="none" stroke="url(#crest)" stroke-width=".8"/>
+      <path id="wave1" fill="url(#w1)"/><path id="crest1" fill="none" stroke="url(#crest)" stroke-width="1"/>
+      <g id="staff"></g>
+      <path id="wave2" fill="url(#w2)"/><path id="crest2" fill="none" stroke="url(#crest)" stroke-width="1.2"/>
+      <path id="wave3" fill="url(#w3)"/><path id="crest3" fill="none" stroke="url(#crest)" stroke-width="1.3"/>
+    </svg>
+    <canvas id="glitter" aria-hidden="true"></canvas>
+    <div class="scrub ui" role="group" aria-labelledby="scrubLbl">
+      <div class="scrub-head">
+        <p class="scrub-date" id="scrubLbl"><span id="dateOut">Today</span> <span class="scrub-off" id="offOut">today</span></p>
+        <div class="scrub-btns">
+          <button type="button" class="sbtn smc" id="playBtn" aria-pressed="false" aria-label="Play a lunation: sweep through the month">play</button>
+          <button type="button" class="sbtn smc" id="todayBtn">today</button>
+        </div>
+      </div>
+      <div class="track">
+        <div class="phases" id="phaseIcons" aria-hidden="true"></div>
+        <div class="ticks" aria-hidden="true"></div>
+        <input type="range" id="scrubber" min="-30" max="30" step="1" value="0" aria-label="Travel in time, thirty days either side of today" aria-valuetext="today">
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="notes ui" aria-label="About the clock">
+  <div><h3 class="smc">The moon</h3><p>The phase is reckoned from the mean synodic month of 29.53059 days, counted from the new moon of 6 January 2000 at 18:14 UTC. The real moon runs up to roughly half a day ahead of or behind this mean. The disc is drawn as seen from the northern hemisphere.</p></div>
+  <div><h3 class="smc">The tide</h3><p>The tide is a simplified semi-diurnal model: two highs and two lows every lunar day of about 24 h 50 m, with high water set at the moon’s passage and spring tides near new and full moon. It is illustrative only and <em>not for navigation</em>.</p></div>
+  <div><h3 class="smc">The surface</h3><p>Maria, craters, rays and relief are generated procedurally and lit by the sun’s angle for the chosen date. Earthshine, sunlight bounced back from the Earth, faintly lifts the night side of a young or old moon.</p></div>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = s => document.querySelector(s);
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduce = mq.matches;
+  const TAU = Math.PI * 2, DAY = 86400000, HOUR = 3600000;
+  const SYN = 29.530588853;
+  const REF = Date.UTC(2000, 0, 6, 18, 14);
+  const M2 = 12.4206012 * HOUR;
+  const T0 = new Date(2000, 0, 6, 12, 0).getTime(); // high water at the moon's passage near local noon on the reference day
+  const mk = (tag, a, p) => { const n = document.createElementNS(NS, tag); for (const k in a) n.setAttribute(k, a[k]); if (p) p.appendChild(n); return n; };
+  const f1 = v => v.toFixed(1), f2 = v => v.toFixed(2);
+  const pad = n => String(n).padStart(2, '0');
+  const hm = d => pad(d.getHours()) + ':' + pad(d.getMinutes());
+
+  /* ---------- astronomy (mean) ---------- */
+  const ageAt = ms => { const d = (ms - REF) / DAY; return ((d % SYN) + SYN) % SYN; };
+  const phaseAngle = ms => ageAt(ms) / SYN * TAU;
+  const illumAt = ms => (1 - Math.cos(phaseAngle(ms))) / 2;
+  function phaseName(age) {
+    const q = SYN / 4;
+    if (age < 1 || age > SYN - 1) return 'New Moon';
+    if (Math.abs(age - q) < 1) return 'First Quarter';
+    if (Math.abs(age - 2 * q) < 1) return 'Full Moon';
+    if (Math.abs(age - 3 * q) < 1) return 'Last Quarter';
+    if (age < q) return 'Waxing Crescent';
+    if (age < 2 * q) return 'Waxing Gibbous';
+    if (age < 3 * q) return 'Waning Gibbous';
+    return 'Waning Crescent';
+  }
+  const ampAt = ms => 0.86 + 0.14 * Math.cos(2 * phaseAngle(ms));
+  const tideAt = ms => ampAt(ms) * Math.cos(TAU * (ms - T0) / M2);
+  const tideSlope = ms => -Math.sin(TAU * (ms - T0) / M2);
+  function nextExtreme(ms, low) {
+    const n = Math.ceil((ms - T0) / M2 - (low ? 0.5 : 0));
+    return T0 + (n + (low ? 0.5 : 0)) * M2;
+  }
+  function dur(days) {
+    const d = Math.floor(days), h = Math.floor((days - d) * 24);
+    return d > 0 ? 'in ' + d + ' d ' + h + ' h' : 'in ' + h + ' h ' + Math.floor(((days - d) * 24 - h) * 60) + ' m';
+  }
+
+  /* ---------- sky ---------- */
+  const sky = $('#sky'), sctx = sky.getContext('2d');
+  function drawSky() {
+    const dpr = Math.min(2, devicePixelRatio || 1), w = innerWidth, h = innerHeight;
+    sky.width = Math.round(w * dpr); sky.height = Math.round(h * dpr);
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    sctx.clearRect(0, 0, w, h);
+    let s = 7;
+    const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    const n = Math.round(w * h / 3600);
+    for (let i = 0; i < n; i++) {
+      const x = r() * w, y = r() * h * 0.78, m = Math.pow(r(), 3);
+      sctx.globalAlpha = (0.15 + m * 0.75) * (1 - y / (h * 0.9));
+      sctx.fillStyle = m > 0.7 ? '#fff4e0' : (r() > 0.5 ? '#dbe7f5' : '#ffffff');
+      sctx.beginPath(); sctx.arc(x, y, 0.35 + m * 1.1, 0, TAU); sctx.fill();
+    }
+    sctx.globalAlpha = 1;
+  }
+  (function twinkles() {
+    let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 16; i++) {
+      const t = document.createElement('i');
+      t.className = 'twinkle'; t.setAttribute('aria-hidden', 'true');
+      t.style.left = (r() * 100).toFixed(1) + 'vw'; t.style.top = (r() * 55).toFixed(1) + 'vh';
+      t.style.animationDelay = (-r() * 4).toFixed(2) + 's'; t.style.animationDuration = (3 + r() * 4).toFixed(2) + 's';
+      document.body.appendChild(t);
+    }
+  })();
+
+  /* ---------- procedural moon ---------- */
+  const moonCanvas = $('#moon'), mctx = moonCanvas.getContext('2d');
+  const tex = document.createElement('canvas'), tctx = tex.getContext('2d');
+  let S = 0, NX, NY, NZ, ALB, EDGE, VZ, img;
+  const perm = new Uint8Array(512);
+  (function () { let s = 1969; const r = () => (s = (s * 48271) % 2147483647) / 2147483647; const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) perm[i] = p[i & 255]; })();
+  const fade = t => t * t * (3 - 2 * t);
+  function vnoise(x, y, z) {
+    const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+    const xf = x - xi, yf = y - yi, zf = z - zi;
+    const X = xi & 255, Y = yi & 255, Z = zi & 255;
+    const h = (a, b, c) => perm[perm[perm[a] + b] + c] / 255;
+    const u = fade(xf), v = fade(yf), w = fade(zf);
+    const x1 = X + 1 & 255, y1 = Y + 1 & 255, z1 = Z + 1 & 255;
+    const a = h(X, Y, Z) + (h(x1, Y, Z) - h(X, Y, Z)) * u;
+    const b = h(X, y1, Z) + (h(x1, y1, Z) - h(X, y1, Z)) * u;
+    const c = h(X, Y, z1) + (h(x1, Y, z1) - h(X, Y, z1)) * u;
+    const d = h(X, y1, z1) + (h(x1, y1, z1) - h(X, y1, z1)) * u;
+    const e = a + (b - a) * v, f = c + (d - c) * v;
+    return e + (f - e) * w;
+  }
+  function fbm(x, y, z, oct) { let s = 0, a = 0.5, f = 1, n = 0; for (let i = 0; i < oct; i++) { s += a * vnoise(x * f, y * f, z * f); n += a; a *= 0.5; f *= 2.03; } return s / n; }
+  // near-side maria as projected blobs (u right, v up): [u, v, rx, ry, weight]
+  const MARIA = [
+    [-0.60, 0.08, 0.28, 0.46, 1.0], [-0.30, 0.46, 0.25, 0.21, 1.0], [0.20, 0.41, 0.15, 0.14, 1.0],
+    [0.38, 0.11, 0.22, 0.17, 1.0], [0.72, 0.29, 0.10, 0.12, 1.0], [0.60, -0.13, 0.12, 0.18, .9],
+    [0.40, -0.28, 0.09, 0.09, .85], [-0.17, -0.34, 0.20, 0.14, .85], [-0.52, -0.39, 0.10, 0.10, .9],
+    [0.02, 0.73, 0.42, 0.07, .7], [0.06, 0.24, 0.08, 0.07, .8], [-0.36, -0.13, 0.14, 0.12, .6], [0.10, 0.05, 0.08, 0.10, .5]
+  ];
+  // named craters: [u, v, radius, rayStrength, floorDark]
+  const CRATERS = [
+    [-0.14, -0.70, 0.045, 1.0, 0], [-0.33, 0.17, 0.050, 0.8, 0], [-0.62, 0.13, 0.028, 0.6, 0], [-0.72, 0.39, 0.024, 0.5, -0.1],
+    [-0.08, 0.80, 0.050, 0, 0.18], [-0.92, -0.08, 0.060, 0, 0.2], [0.86, -0.15, 0.050, 0.2, 0], [0.26, -0.58, 0.040, 0, 0.02],
+    [-0.02, -0.18, 0.055, 0, 0.05], [0.52, 0.60, 0.035, 0, 0.04], [-0.46, -0.62, 0.050, 0, 0.03]
+  ];
+  function buildMoon(size) {
+    S = size;
+    tex.width = tex.height = S;
+    img = tctx.createImageData(S, S);
+    const N = S * S;
+    NX = new Float32Array(N); NY = new Float32Array(N); NZ = new Float32Array(N); ALB = new Float32Array(N); EDGE = new Float32Array(N); VZ = new Float32Array(N);
+    const H = new Float32Array(N);
+    const R = S / 2;
+    for (let y = 0; y < S; y++) {
+      for (let x = 0; x < S; x++) {
+        const i = y * S + x;
+        const u = (x + 0.5 - R) / R, v = -(y + 0.5 - R) / R;
+        const r2 = u * u + v * v;
+        const rr = Math.sqrt(r2);
+        EDGE[i] = Math.max(0, Math.min(1, (1 - rr) * R + 0.5));
+        if (EDGE[i] <= 0) continue;
+        const z = Math.sqrt(Math.max(0, 1 - Math.min(1, r2)));
+        VZ[i] = z;
+        const px = u * 3.1, py = v * 3.1, pz = z * 3.1;
+        // maria mask with ragged, noise-warped shores
+        const wx = u + (fbm(px + 11, py, pz, 4) - 0.5) * 0.26, wy = v + (fbm(px, py + 7, pz, 4) - 0.5) * 0.26;
+        let keep = 1;
+        for (let m = 0; m < MARIA.length; m++) {
+          const M = MARIA[m], dx = (wx - M[0]) / (M[2] * 1.22), dy = (wy - M[1]) / (M[3] * 1.22);
+          keep *= 1 - M[4] * Math.exp(-(dx * dx + dy * dy) * 1.5);
+        }
+        const mare = Math.min(1, Math.max(0, (1 - keep - 0.22) / 0.34));
+        const detail = fbm(px * 5.2, py * 5.2, pz * 5.2, 4);
+        const broad = fbm(px * 1.3 + 3, py * 1.3, pz * 1.3, 3);
+        let a = 0.80 + (broad - 0.5) * 0.18 + (detail - 0.5) * 0.12;
+        const ma = 0.42 + (broad - 0.5) * 0.14 + (detail - 0.5) * 0.05;
+        a = a * (1 - mare) + ma * mare;
+        ALB[i] = a;
+        H[i] = (detail - 0.5) * (1 - mare * 0.8) * R * 0.035 + (fbm(px * 14, py * 14, pz * 14, 2) - 0.5) * R * 0.012 * (1 - mare);
+      }
+    }
+    // craters: named plus a seeded scatter (fewer on the smooth maria)
+    let s = 4242; const rnd = () => (s = (s * 48271) % 2147483647) / 2147483647;
+    const list = CRATERS.slice();
+    for (let k = 0; k < 130; k++) {
+      const a = rnd() * TAU, d = Math.sqrt(rnd()) * 0.97, u = Math.cos(a) * d, v = Math.sin(a) * d;
+      const r = 0.008 + Math.pow(rnd(), 3.2) * 0.05;
+      const ix = Math.round((u + 1) * R), iy = Math.round((1 - v) * R);
+      const idx = Math.min(N - 1, Math.max(0, iy * S + ix));
+      if (ALB[idx] < 0.6 && rnd() < 0.75) continue;
+      list.push([u, v, r, rnd() < 0.05 ? 0.3 : 0, 0]);
+    }
+    for (const [cu, cv, cr, ray, dark] of list) {
+      const cz = Math.sqrt(Math.max(0, 1 - cu * cu - cv * cv));
+      const ext = cr * (ray ? 9 : 1.9);
+      const x0 = Math.max(0, Math.floor((cu - ext + 1) * R)), x1 = Math.min(S - 1, Math.ceil((cu + ext + 1) * R));
+      const y0 = Math.max(0, Math.floor((1 - cv - ext) * R)), y1 = Math.min(S - 1, Math.ceil((1 - cv + ext) * R));
+      const rpx = cr * R;
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          const i = y * S + x;
+          if (EDGE[i] <= 0) continue;
+          const u = (x + 0.5 - R) / R, v = -(y + 0.5 - R) / R, z = VZ[i];
+          const dot = Math.max(-1, Math.min(1, u * cu + v * cv + z * cz));
+          const ang = Math.acos(dot), d = ang / cr;
+          if (d < 1.9) {
+            if (d < 0.9) { H[i] -= rpx * 0.24 * (1 - d * d / 0.81); ALB[i] -= 0.012 + dark * (1 - d / 0.9 * 0.3); }
+            const rim = Math.exp(-Math.pow((d - 0.98) / 0.13, 2));
+            H[i] += rpx * 0.08 * rim;
+            ALB[i] += (ray ? 0.07 : 0.025) * rim + (ray && d > 1 ? 0.04 * (1.9 - d) : 0);
+          }
+          if (ray && d < 9) {
+            const az = Math.atan2(v - cv, u - cu);
+            let rs = 0;
+            for (let q = 0; q < 9; q++) { const t = az - (q * 0.73 + cu * 3.1); const c = Math.cos(t); rs += Math.pow(Math.max(0, c), 90); }
+            ALB[i] += ray * 0.16 * Math.min(1, rs) * (1 - d / 9) * (d > 1 ? 1 : 0);
+          }
+        }
+      }
+    }
+    // normals from the relief
+    for (let y = 1; y < S - 1; y++) {
+      for (let x = 1; x < S - 1; x++) {
+        const i = y * S + x;
+        if (EDGE[i] <= 0) continue;
+        const u = (x + 0.5 - R) / R, v = -(y + 0.5 - R) / R, z = VZ[i];
+        const gx = (H[i + 1] - H[i - 1]) * 0.5, gy = (H[i - S] - H[i + S]) * 0.5;
+        let nx = u - gx * 0.9, ny = v - gy * 0.9, nz = z + 0.0001;
+        const l = Math.hypot(nx, ny, nz);
+        NX[i] = nx / l; NY[i] = ny / l; NZ[i] = nz / l;
+        ALB[i] = Math.max(0.2, Math.min(1.05, ALB[i]));
+      }
+    }
+  }
+  let litPhase = -1;
+  function lightMoon(phi) {
+    const Lx = Math.sin(phi), Lz = -Math.cos(phi);
+    const es = 0.045 + 0.11 * Math.pow((1 + Math.cos(phi)) / 2, 2);
+    const d = img.data, N = S * S;
+    for (let i = 0; i < N; i++) {
+      const e = EDGE[i], o = i * 4;
+      if (e <= 0) { d[o + 3] = 0; continue; }
+      const nx = NX[i], nz = NZ[i] || VZ[i];
+      const mu0 = nx * Lx + nz * Lz, mu = Math.max(0.05, VZ[i]);
+      const t = Math.min(1, Math.max(0, (mu0 + 0.012) / 0.07));
+      const sm = t * t * (3 - 2 * t);
+      const ls = mu0 > 0 ? 2 * mu0 / (mu0 + mu) : 0;
+      const a = ALB[i];
+      const lit = Math.min(1.25, a * ls * sm * 1.02);
+      const earth = a * es * (1 - sm) * (0.6 + 0.4 * VZ[i]);
+      let r = lit * 1.0 + earth * 0.62, g = lit * 0.975 + earth * 0.72, b = lit * 0.92 + earth * 0.9;
+      d[o] = Math.min(255, Math.pow(r, 0.82) * 250);
+      d[o + 1] = Math.min(255, Math.pow(g, 0.82) * 250);
+      d[o + 2] = Math.min(255, Math.pow(b, 0.82) * 250);
+      d[o + 3] = Math.round(e * 255);
+    }
+    tctx.putImageData(img, 0, 0);
+    mctx.clearRect(0, 0, moonCanvas.width, moonCanvas.height);
+    mctx.imageSmoothingQuality = 'high';
+    mctx.drawImage(tex, 0, 0, moonCanvas.width, moonCanvas.height);
+  }
+  function sizeMoon() {
+    const css = moonCanvas.getBoundingClientRect().width || 300;
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    moonCanvas.width = moonCanvas.height = Math.round(css * dpr);
+    const want = Math.max(220, Math.min(560, Math.round(css * dpr)));
+    if (Math.abs(want - S) > 24) buildMoon(want);
+    litPhase = -1;
+  }
+
+  /* ---------- dial ---------- */
+  const RT = 216, AMP = 15;
+  (function buildDial() {
+    const g = $('#dialStatic');
+    mk('circle', { r:286, fill:'none', stroke:'#c9d6e3', 'stroke-width':'.6', opacity:'.35' }, g);
+    mk('circle', { r:258, fill:'none', stroke:'#c9d6e3', 'stroke-width':'.8', opacity:'.6' }, g);
+    mk('circle', { r:RT, fill:'none', stroke:'#c9d6e3', 'stroke-width':'.5', opacity:'.25', 'stroke-dasharray':'2 5' }, g);
+    let minor = '', major = '';
+    for (let q = 0; q < 96; q++) {
+      const a = q / 96 * TAU, big = q % 4 === 0;
+      const r0 = 258, r1 = big ? (q % 12 === 0 ? 246 : 250) : 254;
+      const s = 'M' + f2(Math.sin(a) * r0) + ' ' + f2(-Math.cos(a) * r0) + 'L' + f2(Math.sin(a) * r1) + ' ' + f2(-Math.cos(a) * r1);
+      if (big) major += s; else minor += s;
+    }
+    mk('path', { d:minor, stroke:'#c9d6e3', 'stroke-width':'.5', opacity:'.4' }, g);
+    mk('path', { d:major, stroke:'#c9d6e3', 'stroke-width':'1', opacity:'.8' }, g);
+    for (let h = 0; h < 24; h++) {
+      const a = h / 24 * TAU, r = 272;
+      const t = mk('text', { x:f2(Math.sin(a) * r), y:f2(-Math.cos(a) * r + 4), 'text-anchor':'middle', 'font-size': h % 6 === 0 ? 15 : 11.5, fill:'#c9d6e3', opacity: h % 3 === 0 ? '.95' : '.45' }, g);
+      t.textContent = pad(h);
+    }
+    [['midnight', 0], ['noon', 12]].forEach(([w, h]) => {
+      const t = mk('text', { x:0, y: h ? 240 : -232, 'text-anchor':'middle', 'font-size':'11', 'letter-spacing':'2.5', fill:'#c9d6e3', opacity:'.5', 'font-style':'italic' }, g);
+      t.textContent = w;
+    });
+  })();
+  function drawTideRing(dayStart) {
+    let d = '', area = '';
+    const N = 240;
+    for (let i = 0; i <= N; i++) {
+      const f = i / N, a = f * TAU;
+      const h = tideAt(dayStart + f * DAY);
+      const r = RT + AMP * h;
+      const x = Math.sin(a) * r, y = -Math.cos(a) * r;
+      d += (i ? 'L' : 'M') + f2(x) + ' ' + f2(y);
+    }
+    $('#tideLine').setAttribute('d', d + 'Z');
+    area = d + 'Z' + 'M0 ' + (-(RT - AMP - 6)) + 'A' + (RT - AMP - 6) + ' ' + (RT - AMP - 6) + ' 0 1 0 0 ' + (RT - AMP - 6) + 'A' + (RT - AMP - 6) + ' ' + (RT - AMP - 6) + ' 0 1 0 0 ' + (-(RT - AMP - 6)) + 'Z';
+    $('#tideArea').setAttribute('d', area);
+    $('#tideArea').setAttribute('fill-rule', 'evenodd');
+    const marks = $('#tideMarks'); marks.textContent = '';
+    const k0 = Math.ceil((dayStart - T0) / (M2 / 2));
+    for (let k = k0; ; k++) {
+      const T = T0 + k * M2 / 2;
+      if (T >= dayStart + DAY) break;
+      const high = k % 2 === 0;
+      const f = (T - dayStart) / DAY, a = f * TAU;
+      const r = RT + AMP * tideAt(T);
+      mk('circle', { cx:f2(Math.sin(a) * r), cy:f2(-Math.cos(a) * r), r: high ? 3.6 : 2.6, fill: high ? '#f2ead6' : 'none', stroke:'#f2ead6', 'stroke-width':'1' }, marks);
+      const lr = 176, lx = Math.sin(a) * lr, ly = -Math.cos(a) * lr;
+      const lbl = mk('text', { x:f2(lx), y:f2(ly - 2), 'text-anchor':'middle', fill:'#f2ead6', opacity: high ? '.95' : '.62' }, marks);
+      const t1 = mk('tspan', { x:f2(lx), 'font-size':'9.5', 'font-style':'italic', 'letter-spacing':'1.5' }, lbl); t1.textContent = high ? 'high' : 'low';
+      const t2 = mk('tspan', { x:f2(lx), dy:'11', 'font-size':'11.5', 'letter-spacing':'.5' }, lbl); t2.textContent = hm(new Date(T));
+    }
+  }
+
+  /* ---------- scrubber phase icons ---------- */
+  function phasePath(k, waxing, r) {
+    const rx = Math.abs(1 - 2 * k) * r;
+    const sweepT = k < 0.5 ? 0 : 1;
+    const d = 'M0 ' + (-r) + 'A' + r + ' ' + r + ' 0 0 1 0 ' + r + 'A' + f2(rx) + ' ' + r + ' 0 0 ' + sweepT + ' 0 ' + (-r) + 'Z';
+    return { d, flip: !waxing };
+  }
+  function buildIcons() {
+    const box = $('#phaseIcons'); box.textContent = '';
+    const now = Date.now();
+    for (let off = -30; off <= 30; off += 5) {
+      const ms = now + off * DAY, age = ageAt(ms), k = illumAt(ms), wax = age < SYN / 2;
+      const s = mk('svg', { viewBox:'-9 -9 18 18' });
+      s.style.left = ((off + 30) / 60 * 100) + '%';
+      mk('circle', { r:7, fill:'#0b1d3a', stroke:'#c9d6e3', 'stroke-width':'.6', opacity:'.9' }, s);
+      const p = phasePath(k, wax, 7);
+      mk('path', { d:p.d, fill:'#f2ead6', transform: p.flip ? 'scale(-1 1)' : '' }, s);
+      box.appendChild(s);
+    }
+  }
+
+  /* ---------- sea ---------- */
+  const sea = $('#sea'), wavesSvg = $('#waves'), glit = $('#glitter'), gctx = glit.getContext('2d');
+  let W = 800, Hs = 260, dprG = 1, moonX = 400;
+  const LAYERS = [
+    { base:.13, amps:[4, 2.4, 1.3], lens:[420, 190, 88], spd:[.22, -.36, .7], el:'#wave0', cr:'#crest0' },
+    { base:.30, amps:[7, 3.6, 1.8], lens:[520, 240, 110], spd:[-.3, .45, -.8], el:'#wave1', cr:'#crest1' },
+    { base:.50, amps:[10, 5, 2.4], lens:[640, 300, 130], spd:[.36, -.52, .95], el:'#wave2', cr:'#crest2' },
+    { base:.72, amps:[14, 6.5, 3], lens:[820, 360, 150], spd:[-.42, .6, -1.1], el:'#wave3', cr:'#crest3' }
+  ];
+  LAYERS.forEach(L => { L.path = $(L.el); L.crest = $(L.cr); L.ph = [Math.random() * TAU, Math.random() * TAU, Math.random() * TAU]; });
+  let tideLevel = 0, tideShown = 0;
+  function layoutSea() {
+    const b = sea.getBoundingClientRect();
+    W = Math.max(320, Math.round(b.width)); Hs = Math.max(160, Math.round(b.height));
+    wavesSvg.setAttribute('viewBox', '0 0 ' + W + ' ' + Hs);
+    dprG = Math.min(2, devicePixelRatio || 1);
+    glit.width = Math.round(W * dprG); glit.height = Math.round(Hs * dprG);
+    const hz = $('#hazeRect'); hz.setAttribute('width', W); hz.setAttribute('height', Math.round(Hs * 0.45));
+    const mb = $('#moonWrap').getBoundingClientRect();
+    moonX = mb.left + mb.width / 2 - b.left;
+    buildStaff();
+  }
+  function buildStaff() {
+    const g = $('#staff'); g.textContent = '';
+    const x = Math.round(W * (W < 600 ? 0.9 : 0.86));
+    const top = Hs * 0.04, bot = Hs * 0.8;
+    mk('rect', { x:x - 5, y:f1(top), width:10, height:f1(bot - top), rx:2, fill:'url(#staffG)', opacity:'.85' }, g);
+    for (let i = 0; i <= 10; i++) {
+      const y = top + 10 + i * (bot - top - 20) / 10;
+      mk('line', { x1:x - 5, x2: i % 5 === 0 ? x + 11 : x + 6, y1:f1(y), y2:f1(y), stroke:'#c9d6e3', 'stroke-width': i % 5 === 0 ? 1.1 : .6, opacity:'.8' }, g);
+      if (i % 5 === 0) { const t = mk('text', { x:x + 15, y:f1(y + 3.5), 'font-size':'11', fill:'#c9d6e3', opacity:'.75', 'font-family':'Cormorant Garamond,Garamond,Baskerville,Nimbus Roman,serif', 'font-style':'italic' }, g); t.textContent = ['hw', 'mw', 'lw'][i / 5]; }
+    }
+    mk('circle', { cx:x, cy:f1(top), r:3.2, fill:'#d9e2ea' }, g);
+  }
+  function wavePath(L, t, lift) {
+    const pts = [];
+    const step = Math.max(10, W / 90);
+    for (let x = -step; x <= W + step; x += step) {
+      let y = L.base * Hs - lift;
+      for (let k = 0; k < 3; k++) y += L.amps[k] * Math.sin(x / L.lens[k] * TAU + t * L.spd[k] * TAU / 3 + L.ph[k]);
+      pts.push([x, y]);
+    }
+    let d = 'M' + f1(pts[0][0]) + ' ' + f1(pts[0][1]);
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+      d += 'Q' + f1(x0) + ' ' + f1(y0) + ' ' + f1((x0 + x1) / 2) + ' ' + f1((y0 + y1) / 2);
+    }
+    const crest = d;
+    d += 'L' + (W + step) + ' ' + Hs + 'L' + (-step) + ' ' + Hs + 'Z';
+    return [d, crest, pts];
+  }
+  // glitter path & hover sparkles
+  const GL = [];
+  (function () { let s = 3; const r = () => (s = (s * 16807) % 2147483647) / 2147483647; for (let i = 0; i < 260; i++) GL.push({ yf: Math.pow(r(), 1.5), g: (r() + r() + r() - 1.5) / 1.5, w: 3 + r() * 14, sp: 1 + r() * 4, ph: r() * TAU }); })();
+  const SP = []; for (let i = 0; i < 90; i++) SP.push({ life: 0, x: 0, y: 0, s: 0, max: 1 });
+  let spI = 0, pointer = null, lastSpawn = 0;
+  sea.addEventListener('pointermove', e => {
+    const b = sea.getBoundingClientRect();
+    pointer = { x: e.clientX - b.left, y: e.clientY - b.top };
+  });
+  sea.addEventListener('pointerleave', () => { pointer = null; });
+  function spawn(x, y) {
+    const p = SP[spI++ % SP.length];
+    p.x = x + (Math.random() - 0.5) * 70; p.y = y + (Math.random() - 0.5) * 40; p.s = 1.5 + Math.random() * 4.5; p.max = 0.5 + Math.random() * 0.8; p.life = p.max;
+  }
+  function drawGlitter(t, dt, waterTop, illum) {
+    gctx.setTransform(dprG, 0, 0, dprG, 0, 0);
+    gctx.clearRect(0, 0, W, Hs);
+    gctx.globalCompositeOperation = 'lighter';
+    // horizon glow
+    const hg = gctx.createRadialGradient(moonX, waterTop, 2, moonX, waterTop, Math.max(120, W * 0.22));
+    hg.addColorStop(0, 'rgba(242,234,214,' + (0.16 * illum + 0.02).toFixed(3) + ')'); hg.addColorStop(1, 'rgba(242,234,214,0)');
+    gctx.fillStyle = hg; gctx.fillRect(0, 0, W, Hs);
+    // the moon's path on the water
+    for (const g of GL) {
+      const y = waterTop + 4 + g.yf * (Hs - waterTop - 4);
+      const spread = 12 + (y - waterTop) * 0.55;
+      const x = moonX + g.g * spread;
+      const f = reduce ? 0.6 : 0.5 + 0.5 * Math.sin(t * g.sp + g.ph);
+      const a = Math.pow(f, 3) * (0.25 + 0.75 * illum) * (1 - g.yf * 0.5);
+      if (a < 0.02) continue;
+      gctx.fillStyle = 'rgba(232,238,245,' + a.toFixed(3) + ')';
+      gctx.fillRect(x - g.w * (0.5 + g.yf), y, g.w * (1 + g.yf * 2), 1 + g.yf * 1.4);
+    }
+    // sparkles
+    if (pointer && !reduce && t - lastSpawn > 0.03) { lastSpawn = t; spawn(pointer.x, pointer.y); spawn(pointer.x, pointer.y); }
+    for (const p of SP) {
+      if (p.life <= 0) continue;
+      p.life -= dt;
+      const k = Math.max(0, p.life / p.max), a = Math.sin(k * Math.PI);
+      const s = p.s * (0.4 + a);
+      gctx.fillStyle = 'rgba(236,243,250,' + (a * 0.95).toFixed(3) + ')';
+      gctx.beginPath();
+      gctx.moveTo(p.x, p.y - s * 1.8); gctx.lineTo(p.x + s * 0.28, p.y - s * 0.28); gctx.lineTo(p.x + s * 1.8, p.y); gctx.lineTo(p.x + s * 0.28, p.y + s * 0.28);
+      gctx.lineTo(p.x, p.y + s * 1.8); gctx.lineTo(p.x - s * 0.28, p.y + s * 0.28); gctx.lineTo(p.x - s * 1.8, p.y); gctx.lineTo(p.x - s * 0.28, p.y - s * 0.28);
+      gctx.closePath(); gctx.fill();
+    }
+    gctx.globalCompositeOperation = 'source-over';
+  }
+
+  /* ---------- state & readouts ---------- */
+  const scrubber = $('#scrubber');
+  let offTarget = 0, offShown = 0, playing = false, playDir = 1;
+  const fmtDate = d => d.toLocaleDateString('en-GB', innerWidth < 560 ? { weekday:'short', day:'numeric', month:'short', year:'numeric' } : { weekday:'long', day:'numeric', month:'long', year:'numeric' }).replace(',', '');
+  let lastDayKey = '', lastMin = -1;
+  function update(now, force) {
+    const ms = now + offShown * DAY;
+    const age = ageAt(ms), phi = age / SYN * TAU, k = (1 - Math.cos(phi)) / 2;
+    if (force || Math.abs(phi - litPhase) > 0.0025) { litPhase = phi; lightMoon(phi); }
+    $('#moonWrap').style.setProperty('--glow', f2(0.1 + 0.34 * k));
+    const d = new Date(ms);
+    const dayKey = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+    const minute = Math.floor(ms / 60000);
+    if (force || dayKey !== lastDayKey || minute !== lastMin) {
+      lastMin = minute;
+      $('#phaseName').textContent = phaseName(age);
+      $('#illum').textContent = Math.round(k * 100);
+      $('#ageOut').textContent = age.toFixed(1) + ' days';
+      const toFull = ((SYN / 2 - age) % SYN + SYN) % SYN, toNew = SYN - age;
+      const fullFirst = toFull < toNew;
+      $('#nextALbl').textContent = fullFirst ? 'full moon' : 'new moon';
+      $('#nextA').textContent = dur(fullFirst ? toFull : toNew);
+      $('#nextBLbl').textContent = fullFirst ? 'new moon' : 'full moon';
+      $('#nextB').textContent = dur(fullFirst ? toNew : toFull);
+      const hN = nextExtreme(ms, false), lN = nextExtreme(ms, true);
+      const sameDay = t => new Date(t).getDate() === d.getDate() ? '' : ' +1';
+      $('#nextHigh').textContent = hm(new Date(hN)) + sameDay(hN);
+      $('#nextLow').textContent = hm(new Date(lN)) + sameDay(lN);
+      const amp = ampAt(ms);
+      $('#rangeOut').textContent = amp > 0.95 ? 'spring tides' : amp < 0.77 ? 'neap tides' : 'moderate';
+      const h = tideAt(ms), slope = tideSlope(ms);
+      $('#tidePct').textContent = Math.round((h / amp + 1) / 2 * 100);
+      const rel = h / amp;
+      $('#tideState').textContent = rel > 0.93 ? 'High water' : rel < -0.93 ? 'Low water' : slope > 0 ? 'Rising' : 'Falling';
+      if (force || dayKey !== lastDayKey) {
+        lastDayKey = dayKey;
+        const ds = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        drawTideRing(ds);
+        $('#dateOut').textContent = fmtDate(d);
+      }
+      const hrs = d.getHours() + d.getMinutes() / 60;
+      $('#nowHand').setAttribute('transform', 'rotate(' + f2(hrs / 24 * 360) + ')');
+      const o = Math.round(offShown);
+      $('#offOut').textContent = o === 0 ? 'today' : (o > 0 ? '+' : '−') + Math.abs(o) + (Math.abs(o) === 1 ? ' day' : ' days');
+      scrubber.setAttribute('aria-valuetext', fmtDate(d) + ', ' + phaseName(age) + ', ' + Math.round(k * 100) + ' percent illuminated');
+    }
+    tideLevel = tideAt(ms);
+    return k;
+  }
+
+  scrubber.addEventListener('input', () => { offTarget = +scrubber.value; stopPlay(); });
+  $('#todayBtn').addEventListener('click', () => { offTarget = 0; scrubber.value = 0; stopPlay(); });
+  const playBtn = $('#playBtn');
+  function stopPlay() { playing = false; playBtn.setAttribute('aria-pressed', 'false'); playBtn.textContent = 'play'; }
+  playBtn.addEventListener('click', () => {
+    playing = !playing;
+    playBtn.setAttribute('aria-pressed', String(playing));
+    playBtn.textContent = playing ? 'pause' : 'play';
+    if (playing && offTarget >= 29.5) offTarget = -30;
+    playDir = 1;
+  });
+  const calmBtn = $('#calmBtn');
+  calmBtn.addEventListener('click', () => {
+    const on = !document.body.classList.contains('calm');
+    document.body.classList.toggle('calm', on);
+    calmBtn.setAttribute('aria-pressed', String(on));
+    try { localStorage.setItem('selene-calm', on ? '1' : '0'); } catch (_) {}
+  });
+  try { if (localStorage.getItem('selene-calm') === '1') { document.body.classList.add('calm'); calmBtn.setAttribute('aria-pressed', 'true'); } } catch (_) {}
+
+  /* ---------- loop ---------- */
+  let last = performance.now(), illum = 0.5;
+  function frame(tnow) {
+    const dt = Math.min(0.1, (tnow - last) / 1000); last = tnow;
+    const t = tnow / 1000;
+    if (playing) {
+      offTarget += dt * 2.2 * playDir;
+      if (offTarget > 30) { offTarget = 30; stopPlay(); }
+      scrubber.value = Math.round(offTarget);
+    }
+    const k = reduce ? 1 : 1 - Math.exp(-dt * (playing ? 12 : 6));
+    offShown += (offTarget - offShown) * k;
+    if (Math.abs(offTarget - offShown) < 0.001) offShown = offTarget;
+    illum = update(Date.now(), false);
+    tideShown += (tideLevel - tideShown) * (1 - Math.exp(-dt * 2));
+    const lift = tideShown * Hs * 0.1;
+    const tt = reduce ? 0 : t;
+    let waterTop = Hs;
+    LAYERS.forEach((L, i) => {
+      const [d, crest, pts] = wavePath(L, tt, lift * (0.6 + i * 0.14));
+      L.path.setAttribute('d', d); L.crest.setAttribute('d', crest);
+      if (i === 0) waterTop = Math.min(...pts.map(p => p[1]));
+    });
+    drawGlitter(t, dt, waterTop, illum);
+    requestAnimationFrame(frame);
+  }
+
+  function relayout() {
+    drawSky();
+    sizeMoon();
+    layoutSea();
+    update(Date.now(), true);
+  }
+  let rT = 0;
+  addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(relayout, 120); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) last = performance.now(); });
+  mq.addEventListener && mq.addEventListener('change', e => { reduce = e.matches; });
+
+  drawSky();
+  sizeMoon();
+  layoutSea();
+  buildIcons();
+  illum = update(Date.now(), true);
+  tideShown = tideLevel;
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

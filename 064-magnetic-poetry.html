@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fridge Verse — Magnetic Poetry</title>
+<meta name="description" content="Fridge Verse: a tactile magnetic-poetry toy. Drag about 125 word magnets around an enamel fridge door, shake them loose, switch theme packs and copy the poem you arrange.">
+<style>
+:root{
+  --enamel:#eef0f2;
+  --tile:#fffdf7;
+  --pink:#f9d8df;
+  --mint:#d3efe1;
+  --butter:#fbeebd;
+  --ink:#232323;
+  --ui-ink:#3a3f45;
+  --round:"Nunito","Quicksand","Varela Round","Arial Rounded MT Bold","Hiragino Maru Gothic ProN","URW Gothic","Avenir Next","Segoe UI",sans-serif;
+  --tile-serif:Georgia,"Times New Roman","Nimbus Roman","Liberation Serif",serif;
+  --tfs:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100vh;font-family:var(--round);color:var(--ui-ink);overflow-x:hidden;
+  background:
+    linear-gradient(rgba(255,255,255,.35) 1px,transparent 1px) 0 0/64px 32px,
+    linear-gradient(90deg,rgba(150,140,120,.22) 1px,transparent 1px) 0 0/64px 64px,
+    linear-gradient(90deg,rgba(150,140,120,.22) 1px,transparent 1px) 32px 32px/64px 64px,
+    linear-gradient(rgba(150,140,120,.25) 1px,transparent 1px) 0 0/64px 32px,
+    linear-gradient(180deg,#e7ecdf,#dfe5d6);
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid #5a8fd6;outline-offset:3px}
+
+.kitchen{padding:14px clamp(10px,2.4vw,34px) 0;min-height:100vh}
+.fridge{
+  position:relative;height:calc(100vh - 14px);min-height:720px;border-radius:30px 30px 0 0;display:flex;flex-direction:column;
+  background:linear-gradient(90deg,#d9dde1,#f4f5f7 3%,#eef0f2 50%,#e6e9ec 97%,#cfd4d9);
+  box-shadow:0 30px 60px rgba(60,70,50,.28),0 2px 0 rgba(255,255,255,.8) inset,0 0 0 1px rgba(90,100,110,.18);
+  padding:0 10px;
+}
+.fridge::after{content:"";position:absolute;left:-8px;right:-8px;bottom:0;height:40px;background:linear-gradient(transparent,rgba(60,70,50,.12));pointer-events:none;border-radius:0}
+
+/* ---------- freezer strip with toolbar ---------- */
+.freezer{position:relative;height:104px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 clamp(16px,2vw,30px);
+  border-radius:24px 24px 6px 6px;background:var(--door-bg);background-size:auto;margin:0 -2px}
+.seam{height:7px;margin:0 -10px;background:linear-gradient(#b9bfc5,#8b9299 45%,#f7f8f9 60%,#dfe2e6);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{width:40px;height:40px;flex:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.2))}
+.brand h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em;color:#2e3338;line-height:1}
+.brand p{margin:4px 0 0;font-size:13px;color:#737b83;font-weight:600}
+.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.btns{display:flex;align-items:center;gap:10px}
+.packs{display:flex;gap:6px;padding:5px;border-radius:40px;background:rgba(255,255,255,.55);box-shadow:inset 0 1px 3px rgba(0,0,0,.12)}
+.pack{
+  display:inline-flex;align-items:center;gap:7px;border:0;cursor:pointer;border-radius:30px;padding:8px 14px 8px 10px;font-weight:700;font-size:14px;
+  background:transparent;color:#59616a;transition:background-color .25s,color .25s,box-shadow .25s,transform .15s
+}
+.pack i{width:13px;height:13px;border-radius:50%;background:var(--c);box-shadow:inset 0 -2px 2px rgba(0,0,0,.18),inset 0 2px 2px rgba(255,255,255,.6)}
+.pack:hover{color:#2e3338}
+.pack[aria-pressed="true"]{background:#fff;color:#2e3338;box-shadow:0 2px 6px rgba(0,0,0,.14)}
+.pack:active{transform:scale(.96)}
+.tbtn{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:0;border-radius:30px;padding:10px 16px;font-weight:800;font-size:14px;color:#fff;
+  background:linear-gradient(180deg,#f06a5d,#d9483c);box-shadow:0 4px 0 #a8342b,0 8px 14px rgba(160,50,40,.3);transition:transform .12s,box-shadow .12s
+}
+.tbtn:hover{filter:brightness(1.05)}
+.tbtn:active{transform:translateY(3px);box-shadow:0 1px 0 #a8342b,0 3px 6px rgba(160,50,40,.3)}
+.tbtn svg{width:18px;height:18px}
+.ibtn{width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;background:#fff;color:#4a5158;box-shadow:0 2px 6px rgba(0,0,0,.14);transition:transform .15s}
+.ibtn:active{transform:scale(.94)}
+.ibtn svg{width:19px;height:19px}
+.ibtn .off{display:none}
+.ibtn[aria-pressed="false"] .on{display:none}
+.ibtn[aria-pressed="false"] .off{display:block}
+
+/* ---------- the door ---------- */
+.door{
+  position:relative;flex:1 1 auto;min-height:0;margin:0 -2px;border-radius:6px 6px 0 0;overflow:hidden;
+  background:var(--door-bg);touch-action:pan-y
+}
+:root{--door-bg:linear-gradient(180deg,#f4f5f7,#eef0f2 38%,#e4e7eb)}
+.door::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.55) 42%,rgba(255,255,255,0) 54%),radial-gradient(ellipse at 20% 0%,rgba(255,255,255,.5),transparent 60%);pointer-events:none}
+.noise{position:absolute;inset:0;pointer-events:none;opacity:.9;mix-blend-mode:multiply}
+.door.shaking{animation:shake .62s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shake{
+  10%,90%{transform:translate(-2px,1px) rotate(-.15deg)}
+  20%,80%{transform:translate(4px,-1px) rotate(.2deg)}
+  30%,50%,70%{transform:translate(-6px,2px) rotate(-.3deg)}
+  40%,60%{transform:translate(6px,-2px) rotate(.3deg)}
+}
+
+/* handle */
+.handle{position:absolute;right:26px;top:calc(104px + 7px + 4%);height:48%;width:30px;z-index:600;pointer-events:none}
+.handle .bar{position:absolute;left:4px;right:0;top:22px;bottom:22px;border-radius:14px;
+  background:linear-gradient(90deg,#7b838b 0%,#f9fafb 17%,#c8cdd2 33%,#6c737a 52%,#dfe3e7 72%,#f7f8f9 84%,#8d949b 100%);
+  box-shadow:-10px 14px 18px rgba(40,50,60,.22),inset 0 0 0 1px rgba(60,66,72,.25)}
+.handle .bar::after{content:"";position:absolute;left:34%;top:6%;bottom:6%;width:3px;border-radius:3px;background:linear-gradient(rgba(255,255,255,0),#fff 30%,#fff 70%,rgba(255,255,255,0));opacity:.85}
+.handle .foot{position:absolute;left:0;width:26px;height:34px;border-radius:8px;background:linear-gradient(90deg,#8d949b,#eef0f2 40%,#9aa1a8);box-shadow:-4px 6px 8px rgba(40,50,60,.2)}
+.handle .foot.t{top:0}.handle .foot.b{bottom:0}
+
+/* ---------- magnets ---------- */
+.tile{
+  position:absolute;left:0;top:0;z-index:2;user-select:none;-webkit-user-select:none;touch-action:none;cursor:grab;white-space:nowrap;
+  padding:4px 9px 5px;font-family:var(--tile-serif);font-size:var(--tfs);line-height:1.15;color:var(--ink);letter-spacing:.01em;
+  background:linear-gradient(180deg,#fffefb,var(--tile) 60%,#f6f2e6);border-radius:1.5px;
+  box-shadow:0 1px 0 #d9d3c2,0 1.5px 1px rgba(0,0,0,.2),0 3px 5px rgba(0,0,0,.08);
+  transform:translate3d(var(--x,0),var(--y,0),0) rotate(var(--r,0deg)) scale(var(--s,1));
+  transition:box-shadow .22s ease;will-change:transform
+}
+.tile.pink{background:linear-gradient(180deg,#fde8ec,var(--pink))}
+.tile.mint{background:linear-gradient(180deg,#e7f8f0,var(--mint))}
+.tile.butter{background:linear-gradient(180deg,#fff7da,var(--butter))}
+.tile.suffix{font-style:italic;padding:4px 6px 5px;color:#4a4a4a}
+.tile.punct{padding:4px 8px 5px;font-weight:700}
+.tile.lift{cursor:grabbing;box-shadow:0 1px 0 #d9d3c2,0 14px 18px rgba(0,0,0,.22),0 28px 40px rgba(0,0,0,.14)}
+.tile.drop{transition:transform .32s cubic-bezier(.3,1.7,.45,1),box-shadow .3s ease}
+.tile.enter{transition:transform .5s cubic-bezier(.2,1.2,.4,1),opacity .35s ease}
+.tile.leave{transition:transform .35s ease-in,opacity .3s ease-in;opacity:0}
+.tile.in-poem{box-shadow:0 1px 0 #d9d3c2,0 1.5px 1px rgba(0,0,0,.2),0 3px 5px rgba(0,0,0,.08),0 0 0 1.5px rgba(90,143,214,.0)}
+.tile:focus-visible{outline:2px solid #5a8fd6;outline-offset:2px}
+
+.deco{position:absolute;left:0;top:0;z-index:3;touch-action:none;cursor:grab;user-select:none;transform:translate3d(var(--x,0),var(--y,0),0) rotate(var(--r,0deg)) scale(var(--s,1));transition:filter .2s}
+.deco.lift{cursor:grabbing;filter:drop-shadow(0 18px 16px rgba(0,0,0,.25))}
+.deco.drop{transition:transform .32s cubic-bezier(.3,1.7,.45,1),filter .3s}
+.polaroid{width:170px;padding:10px 10px 36px;background:#fdfcf8;box-shadow:0 2px 3px rgba(0,0,0,.16),0 10px 22px rgba(0,0,0,.12);border-radius:2px}
+.polaroid svg.photo{display:block;width:150px;height:150px}
+.polaroid .cap{position:absolute;left:0;right:0;bottom:9px;text-align:center;font-family:"Segoe Print","Bradley Hand","Comic Sans MS","Z003","URW Chancery L",cursive;font-size:17px;color:#3d4d7a;transform:rotate(-2deg)}
+.polaroid .pin{position:absolute;left:50%;top:-10px;width:26px;height:26px;margin-left:-13px;border-radius:50%;
+  background:radial-gradient(circle at 36% 32%,#ffb3a8 0,#e8473b 38%,#a92419 100%);box-shadow:0 3px 4px rgba(0,0,0,.3),inset 0 -2px 3px rgba(0,0,0,.2)}
+.fruit svg{display:block;filter:drop-shadow(0 4px 3px rgba(0,0,0,.22))}
+
+/* ---------- poem card ---------- */
+.card{
+  position:absolute;right:94px;bottom:26px;width:340px;z-index:550;padding:30px 22px 18px 50px;transform:rotate(1.2deg);
+  background:
+    linear-gradient(90deg,transparent 36px,rgba(226,98,98,.55) 36px,rgba(226,98,98,.55) 37.5px,transparent 37.5px),
+    repeating-linear-gradient(180deg,transparent 0 25px,rgba(90,143,214,.28) 25px 26px),
+    linear-gradient(180deg,#fffef9,#fbf8ee);
+  background-position:0 0,0 18px,0 0;
+  box-shadow:0 2px 3px rgba(0,0,0,.14),0 12px 26px rgba(0,0,0,.12);border-radius:2px
+}
+.card .pin{position:absolute;left:50%;top:-12px;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:radial-gradient(circle at 36% 32%,#b9e0ff 0,#4d8fd9 40%,#24579c 100%);box-shadow:0 3px 4px rgba(0,0,0,.3)}
+.card h2{margin:0;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#8a929a;font-weight:800;line-height:26px}
+.poem{margin:0;min-height:78px;max-height:210px;overflow:auto;font-family:var(--tile-serif);font-style:italic;font-size:18px;line-height:26px;color:#2b3440;white-space:pre-wrap}
+.poem.empty{color:#9aa1a8;font-size:15.5px}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.copy{border:0;cursor:pointer;border-radius:20px;padding:8px 14px;font-weight:800;font-size:13.5px;background:#2e3338;color:#fff;display:inline-flex;gap:7px;align-items:center;transition:transform .12s,background-color .2s}
+.copy:hover{background:#454c53}
+.copy:active{transform:scale(.96)}
+.copy svg{width:15px;height:15px}
+.status{font-size:12.5px;color:#7a828a;font-weight:700;min-height:1em}
+.fold{display:none;position:absolute;right:10px;top:8px;width:32px;height:32px;border:0;border-radius:50%;background:rgba(46,51,56,.08);cursor:pointer;place-items:center;color:#4a5158}
+.fold svg{width:14px;height:14px;transition:transform .3s}
+.card.folded .fold svg{transform:rotate(180deg)}
+.card.folded .poem{display:none}
+.hint{position:absolute;left:24px;bottom:20px;z-index:1;font-size:13px;font-weight:700;color:rgba(70,78,86,.55);pointer-events:none}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .freezer{height:auto;min-height:104px;flex-direction:column;align-items:stretch;justify-content:center;padding:12px 14px;gap:10px}
+  .tools{justify-content:space-between;flex-wrap:nowrap}
+  .packs{overflow-x:auto;scrollbar-width:none}
+  .card{width:300px}
+}
+@media (max-width:640px){
+  :root{--tfs:14.5px}
+  .freezer{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand btns" "packs packs";gap:10px 8px;align-items:center}
+  .brand{grid-area:brand}
+  .tools{display:contents}
+  .packs{grid-area:packs;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  .pack{justify-content:center}
+  .freezer .btns{grid-area:btns;gap:6px}
+  .kitchen{padding:8px 6px 0}
+  .fridge::after{left:-4px;right:-4px}
+  .seam{margin:0 -6px}
+  .fridge{height:auto;min-height:0;border-radius:22px 22px 0 0;padding:0 6px}
+  .freezer{border-radius:18px 18px 4px 4px;padding:10px 10px 12px}
+  .brand svg{width:30px;height:30px}
+  .brand h1{font-size:19px}
+  .brand p{font-size:11.5px}
+  .pack{padding:7px 10px 7px 8px;font-size:12.5px;gap:5px}
+  .pack i{width:10px;height:10px}
+  .tbtn{padding:9px 12px;font-size:13px}
+  .tbtn span{display:none}
+  .ibtn{width:36px;height:36px}
+  .door{flex:none;height:1480px}
+  .handle{right:12px;width:20px;top:180px;height:360px}
+  .handle .foot{width:18px}
+  .polaroid{width:118px;padding:7px 7px 26px}
+  .polaroid svg.photo{width:104px;height:104px}
+  .polaroid .cap{font-size:13px;bottom:6px}
+  .card{position:fixed;left:10px;right:10px;bottom:10px;width:auto;transform:none;padding:12px 14px 10px 44px;max-height:34vh;background-position:0 0,0 6px,0 0}
+  .card h2{line-height:22px;font-size:11.5px}
+  .fold{display:grid}
+  .card.folded .card-foot{margin-top:4px}
+  .poem{font-size:15.5px;line-height:26px;min-height:26px;max-height:calc(34vh - 90px)}
+  .hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .door.shaking{animation:none}
+  .tile.drop,.tile.enter,.deco.drop{transition:none}
+}
+</style>
+</head>
+<body>
+<main class="kitchen">
+  <div class="fridge" id="fridge">
+    <header class="freezer">
+      <div class="brand">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M9 6h8v16a3 3 0 0 0 6 0V6h8v16a11 11 0 0 1-22 0Z" fill="#e5483c"/>
+          <path d="M9 6h8v6H9zM23 6h8v6h-8z" fill="#d7dbe0"/>
+          <path d="M11 9h4M25 9h4" stroke="#fff" stroke-width="1.2" opacity=".8"/>
+          <path d="M12 18c0 5 3 9 8 9" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".45"/>
+        </svg>
+        <div><h1>Fridge Verse</h1><p>magnetic poetry for the kitchen door</p></div>
+      </div>
+      <div class="tools">
+        <div class="packs" role="group" aria-label="Theme pack">
+          <button type="button" class="pack" data-pack="love" aria-pressed="true" style="--c:#f2a1b1"><i></i>Love</button>
+          <button type="button" class="pack" data-pack="ocean" aria-pressed="false" style="--c:#7fb6e8"><i></i>Ocean</button>
+          <button type="button" class="pack" data-pack="space" aria-pressed="false" style="--c:#6f6ac9"><i></i>Space</button>
+          <button type="button" class="pack" data-pack="kitchen" aria-pressed="false" style="--c:#f3d36b"><i></i>Kitchen</button>
+        </div>
+        <div class="btns">
+        <button type="button" class="tbtn" id="shakeBtn" aria-label="Shake the fridge door to scatter the magnets">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0M4 10c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0M4 14c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Shake</span></button>
+        <button type="button" class="ibtn" id="resetBtn" aria-label="Tidy: lay the magnets out afresh">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 1 0 2-4.5M4 3v3.5h3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="ibtn" id="soundBtn" aria-pressed="true" aria-label="Magnet sounds">
+          <svg class="on" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8h3l4-3.5v11L6 12H3z" fill="currentColor"/><path d="M13 7.3c1.2 1.5 1.2 3.9 0 5.4M15.2 5.3c2.3 2.7 2.3 6.7 0 9.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="off" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8h3l4-3.5v11L6 12H3z" fill="currentColor"/><path d="M13 7.5l4.5 5M17.5 7.5l-4.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+    </header>
+    <div class="seam" aria-hidden="true"></div>
+    <section class="door" id="door" aria-label="Fridge door covered in word magnets. Drag magnets, or focus one and use the arrow keys to move it.">
+      <canvas class="noise" id="noise" aria-hidden="true"></canvas>
+      <p class="hint" aria-hidden="true">drag the words &middot; line them up &middot; your poem appears on the card</p>
+
+      <div class="deco polaroid" id="polaroid" data-deco="polaroid" aria-hidden="true">
+        <span class="pin"></span>
+        <svg class="photo" viewBox="0 0 150 150">
+          <defs>
+            <linearGradient id="psky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f86c4"/><stop offset=".45" stop-color="#f3a79a"/><stop offset=".62" stop-color="#ffd59a"/></linearGradient>
+            <linearGradient id="psea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d8fbf"/><stop offset="1" stop-color="#34507f"/></linearGradient>
+            <radialGradient id="pvig" cx=".5" cy=".5" r=".72"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#3b2a1a" stop-opacity=".45"/></radialGradient>
+          </defs>
+          <rect width="150" height="150" fill="url(#psky)"/>
+          <circle cx="92" cy="86" r="17" fill="#fff1c9"/>
+          <rect y="92" width="150" height="58" fill="url(#psea)"/>
+          <path d="M80 97h24M84 102h16M78 107h28M86 113h12M82 120h20" stroke="#ffe7b0" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+          <path d="M0 132c20-8 40-10 60-6s46 6 90-2V150H0Z" fill="#e9cf9e"/>
+          <path d="M34 60l4 3 4-3M48 52l3 2 3-2" fill="none" stroke="#4c4466" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M28 104l10-26v27Z" fill="#fffaf0"/><path d="M26 106h16l-3 4H29Z" fill="#b5553f"/>
+          <path d="M104 138c3-6 6-6 9 0" stroke="#5a4633" stroke-width="2" fill="none"/>
+          <circle cx="108.5" cy="131" r="3" fill="#5a4633"/>
+          <rect width="150" height="150" fill="url(#pvig)"/>
+          <rect width="150" height="150" fill="#ffb070" opacity=".08"/>
+        </svg>
+        <span class="cap">the sea, august</span>
+      </div>
+
+      <div class="deco fruit" id="berry" data-deco="berry" aria-hidden="true">
+        <svg width="66" height="74" viewBox="0 0 66 74">
+          <defs>
+            <radialGradient id="berryG" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#ff7a82"/><stop offset=".55" stop-color="#e2323f"/><stop offset="1" stop-color="#9c0f1f"/></radialGradient>
+          </defs>
+          <path d="M33 72C17 64 5 46 6 30c1-10 9-15 17-15 5 0 8 2 10 2s5-2 10-2c8 0 16 5 17 15 1 16-11 34-27 42Z" fill="url(#berryG)"/>
+          <g fill="#ffe58a" id="seeds"></g>
+          <path d="M33 20c-4-8-11-10-17-8 5 1 9 4 11 8-7-2-13 0-16 5 6-1 12 0 17 2-3 3-3 7-1 10 2-3 5-5 6-8 1 3 4 5 6 8 2-3 2-7-1-10 5-2 11-3 17-2-3-5-9-7-16-5 2-4 6-7 11-8-6-2-13 0-17 8Z" fill="#4f9e4a" stroke="#357a33" stroke-width=".8"/>
+          <path d="M33 20V6" stroke="#357a33" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="20" cy="35" rx="5" ry="9" fill="#fff" opacity=".35" transform="rotate(20 20 35)"/>
+        </svg>
+      </div>
+      <div class="deco fruit" id="lemon" data-deco="lemon" aria-hidden="true">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="30" fill="#f2c230"/>
+          <circle cx="32" cy="32" r="26.5" fill="#fff6c4"/>
+          <circle cx="32" cy="32" r="24" fill="#ffe56b"/>
+          <g id="lemonSeg" fill="#fff3a6" stroke="#fffbe2" stroke-width="1.6"></g>
+          <circle cx="32" cy="32" r="3" fill="#fffbe2"/>
+          <path d="M14 18a24 24 0 0 1 20-10" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".55"/>
+        </svg>
+      </div>
+
+    </section>
+    <div class="handle" aria-hidden="true"><span class="foot t"></span><span class="bar"></span><span class="foot b"></span></div>
+    <aside class="card" id="card" aria-labelledby="cardH">
+      <span class="pin" aria-hidden="true"></span>
+      <h2 id="cardH">On the door</h2>
+      <button type="button" class="fold" id="foldBtn" aria-expanded="true" aria-controls="poem" aria-label="Fold or unfold the poem card"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <p class="poem" id="poem" aria-live="polite"></p>
+      <div class="card-foot">
+        <span class="status" id="status" role="status"></span>
+        <button type="button" class="copy" id="copyBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="8.5" height="9" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 11V3.6C3 2.7 3.7 2 4.6 2H10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Copy poem</button>
+      </div>
+    </aside>
+  </div>
+</main>
+<textarea class="sr" id="clipFallback" aria-hidden="true" tabindex="-1"></textarea>
+
+<script>
+(() => {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduce = mq.matches;
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} }
+  };
+
+  /* ---------- vocabulary ---------- */
+  const BASE = ['the','the','a','a','an','I','I','you','you','we','my','your','our','me','us','it','is','is','are','was','be','and','and','but','or','of','of','in','on','to','to','with','like','as','all','not','no','only','still','always','never','when','if','so','this','what','how','here','there','again',
+    '-s','-s','-s','-ing','-ing','-ed','-ed','-er','-ly','-est','time','light','night','day','dream','soft','slow','sweet','deep','blue','gold','whisper','sing','fall','hold','wait','want','remember','forget','tomorrow','morning','heart',',','.','?'];
+  const PACKS = {
+    love:['kiss','lips','rose','honey','ache','tender','longing','embrace','blush','darling','velvet','promise','secret','moonlit','ribbon','petal','dance','linger','forever','yours','mine','touch','skin','breathe','sigh','flutter','bloom','candle','wine','letter','silk','warm','shy','glow','adore','beloved','stolen','melt','tangle','gentle'],
+    ocean:['tide','salt','wave','shell','foam','drift','harbor','sail','anchor','gull','coral','current','shore','pearl','siren','storm','horizon','whale','kelp','lighthouse','moon','drown','swim','sand','driftwood','sea','ship','voyage','wander','glass','spray','mist','silver','rock','undertow','reef','fathom','lull','cove','echo'],
+    space:['star','orbit','comet','nebula','void','galaxy','planet','moon','gravity','rocket','dust','cosmic','eclipse','silence','satellite','meteor','dark','infinite','astronaut','drift','pulse','signal','radio','crater','constellation','spin','float','zero','launch','vast','cold','ember','supernova','halo','ring','Saturn','telescope','celestial','weightless','spark'],
+    kitchen:['butter','toast','bread','honey','lemon','salt','pepper','spoon','kettle','simmer','boil','stir','sugar','crumb','jam','fork','egg','flour','oven','bake','crust','pie','soup','tea','cup','milk','cream','garlic','peel','slice','bitter','sour','spice','cinnamon','dough','rise','melt','crisp','recipe','feast']
+  };
+  const STARTERS = {
+    love:[['I','remember','your','velvet','whisper'],['like','a','slow','candle'],['in','the','morning']],
+    ocean:[['the','tide','hold','-s'],['our','salt','-ed','dream','-s'],['like','a','silver','shell']],
+    space:[['we','orbit','a','cold','star'],['still','dream','-ing','of'],['gold','light']],
+    kitchen:[['honey','on','toast'],['is','all','I','want'],['this','morning']]
+  };
+
+  /* ---------- door texture: faint metallic noise ---------- */
+  const noise = $('#noise');
+  function paintNoise() {
+    const door = $('#door');
+    const w = door.clientWidth, h = door.clientHeight, dpr = Math.min(2, devicePixelRatio || 1);
+    noise.width = Math.round(w * dpr / 2); noise.height = Math.round(h * dpr / 2);
+    noise.style.width = w + 'px'; noise.style.height = h + 'px';
+    const c = noise.getContext('2d');
+    const img = c.createImageData(noise.width, noise.height), d = img.data;
+    let s = 99;
+    for (let i = 0; i < d.length; i += 4) {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      const v = 200 + (s % 56);
+      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 18 + (s >> 8) % 22;
+    }
+    c.putImageData(img, 0, 0);
+    // faint horizontal brushing
+    c.globalAlpha = 0.05;
+    for (let y = 0; y < noise.height; y += 2) { c.fillStyle = (y * 7919) % 5 ? '#ffffff' : '#9aa1a8'; c.fillRect(0, y, noise.width, 1); }
+    c.globalAlpha = 1;
+  }
+
+  /* ---------- decorations: seeds & lemon segments ---------- */
+  (function () {
+    const NS = 'http://www.w3.org/2000/svg';
+    const seeds = $('#seeds');
+    [[20,30],[30,27],[42,29],[50,34],[14,40],[25,40],[37,39],[48,44],[20,50],[31,50],[42,51],[26,60],[37,61],[32,69]].forEach(([x, y], i) => {
+      const e = document.createElementNS(NS, 'ellipse');
+      e.setAttribute('cx', x); e.setAttribute('cy', y); e.setAttribute('rx', 1.3); e.setAttribute('ry', 2.1);
+      e.setAttribute('transform', 'rotate(' + ((x - 33) * 1.2) + ' ' + x + ' ' + y + ')');
+      seeds.appendChild(e);
+    });
+    const seg = $('#lemonSeg');
+    for (let k = 0; k < 9; k++) {
+      const a0 = k / 9 * Math.PI * 2 + 0.06, a1 = (k + 1) / 9 * Math.PI * 2 - 0.06;
+      const p = document.createElementNS(NS, 'path');
+      const r = 21.5, ri = 4.5;
+      p.setAttribute('d', 'M' + (32 + ri * Math.cos(a0)).toFixed(2) + ' ' + (32 + ri * Math.sin(a0)).toFixed(2) + 'L' + (32 + r * Math.cos(a0)).toFixed(2) + ' ' + (32 + r * Math.sin(a0)).toFixed(2) + 'A' + r + ' ' + r + ' 0 0 1 ' + (32 + r * Math.cos(a1)).toFixed(2) + ' ' + (32 + r * Math.sin(a1)).toFixed(2) + 'Z');
+      seg.appendChild(p);
+    }
+  })();
+
+  /* ---------- sound ---------- */
+  let actx = null, soundOn = true;
+  const soundBtn = $('#soundBtn');
+  function audio() {
+    if (!soundOn) return null;
+    if (!actx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; actx = new AC(); }
+    if (actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+  function clack(vol = 1, pitch = 1) {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime + 0.002;
+    const len = Math.floor(a.sampleRate * 0.03), buf = a.createBuffer(1, len, a.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+    const src = a.createBufferSource(); src.buffer = buf;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2100 * pitch; bp.Q.value = 1.4;
+    const g = a.createGain(); g.gain.value = 0.32 * vol;
+    src.connect(bp); bp.connect(g); g.connect(a.destination); src.start(t);
+    const o = a.createOscillator(); o.frequency.setValueAtTime(190 * pitch, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.06);
+    const og = a.createGain(); og.gain.setValueAtTime(0.22 * vol, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+    o.connect(og); og.connect(a.destination); o.start(t); o.stop(t + 0.09);
+  }
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    store.set('fv-sound', soundOn);
+    if (soundOn) clack(0.8);
+  });
+  if (store.get('fv-sound') === false) { soundOn = false; soundBtn.setAttribute('aria-pressed', 'false'); }
+
+  /* ---------- tiles ---------- */
+  const door = $('#door');
+  let W = 1000, H = 700, zTop = 10;
+  let theme = 'love';
+  let tiles = [];
+  const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+  function makeTile(word, id) {
+    const el = document.createElement('div');
+    el.className = 'tile';
+    const h = hash(id + word);
+    if (word[0] === '-') el.classList.add('suffix');
+    else if (/^[,.?!]$/.test(word)) el.classList.add('punct');
+    else if (h % 11 === 0) el.classList.add('pink');
+    else if (h % 11 === 1) el.classList.add('mint');
+    else if (h % 11 === 2) el.classList.add('butter');
+    el.textContent = word;
+    el.tabIndex = 0;
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', 'Magnet: ' + (word === ',' ? 'comma' : word === '.' ? 'full stop' : word === '?' ? 'question mark' : word));
+    el.dataset.id = id;
+    const t = { el, word, id, x: 0, y: 0, r: 0, w: 0, h: 0, vx: 0, vy: 0, vr: 0 };
+    el._t = t;
+    return t;
+  }
+  function apply(t, s) {
+    t.el.style.setProperty('--x', t.x.toFixed(1) + 'px');
+    t.el.style.setProperty('--y', t.y.toFixed(1) + 'px');
+    t.el.style.setProperty('--r', t.r.toFixed(2) + 'deg');
+    t.el.style.setProperty('--s', s || 1);
+  }
+
+  /* ---------- decorations as draggable magnets ---------- */
+  const decos = $$('.deco').map(el => ({ el, id: el.dataset.deco, x: 0, y: 0, r: 0, w: 0, h: 0, deco: true }));
+  decos.forEach(d => { el_t(d); });
+  function el_t(d) { d.el._t = d; }
+  function defaultDecos() {
+    const mobile = W < 600;
+    const P = { polaroid: mobile ? [W - 178, 24, 4] : [W - 330, 30, 3.5], berry: mobile ? [W * 0.55, 430, -8] : [W * 0.46, 36, -10], lemon: mobile ? [W * 0.3, 720, 12] : [W * 0.06, H - 120, 14] };
+    decos.forEach(d => { const p = P[d.id]; d.x = p[0]; d.y = p[1]; d.r = p[2]; });
+  }
+
+  /* ---------- layout ---------- */
+  function reserved() {
+    const out = [];
+    const cardEl = $('#card');
+    const db = door.getBoundingClientRect();
+    if (getComputedStyle(cardEl).position !== 'fixed') {
+      const cb = cardEl.getBoundingClientRect();
+      out.push({ x: cb.left - db.left - 16, y: cb.top - db.top - 20, w: cb.width + 32, h: cb.height + 40 });
+    }
+    decos.forEach(d => out.push({ x: d.x - 10, y: d.y - 14, w: d.w + 20, h: d.h + 24 }));
+    const handleW = W < 600 ? 40 : 76;
+    out.push({ x: W - handleW, y: 0, w: handleW, h: H });
+    return out;
+  }
+  const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  function layout(list, starter) {
+    seed = hash(theme) % 100000 + 11;
+    const mobile = W < 600;
+    const res = reserved();
+    const used = new Set();
+    // starter poem, set neatly as if by hand
+    const sx = mobile ? 18 : Math.round(W * 0.07), sy = mobile ? 250 : Math.round(H * 0.46);
+    const lineH = (list[0] ? list[0].h : 28) + (mobile ? 9 : 11);
+    const limit = W - (mobile ? 190 : 120);
+    const placed = [];
+    let li = 0, maxX = sx;
+    starter.forEach(line => {
+      let x = sx + li * (mobile ? 12 : 26);
+      line.forEach((w, wi) => {
+        const t = list.find(q => q.word === w && !used.has(q));
+        if (!t) return;
+        const glue = w[0] === '-' || /^[,.?]$/.test(w);
+        if (!glue && wi > 0 && x + t.w > limit + (mobile ? 150 : 0)) { li++; x = sx + li * (mobile ? 12 : 26) + 18; }
+        used.add(t);
+        t.x = x; t.y = sy + li * lineH + (rnd() - 0.5) * 3; t.r = (rnd() - 0.5) * 3;
+        x += t.w + (glue ? 1 : 5 + rnd() * 4);
+        maxX = Math.max(maxX, x);
+        placed.push(t);
+      });
+      li++;
+    });
+    const poemBox = { x: sx - 30, y: sy - 34, w: maxX - sx + 70, h: lineH * li + 64 };
+    res.push(poemBox);
+    // scatter the rest in loose, staggered rows that never read as lines
+    const rest = list.filter(t => !used.has(t));
+    for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+    const pitch = (rest[0] ? rest[0].h : 28) + (mobile ? 12 : 16);
+    let row = 0, k = 0;
+    const top = 18, left = mobile ? 12 : 22;
+    while (k < rest.length && row < 80) {
+      const y0 = top + row * pitch;
+      if (y0 > H - pitch) break;
+      let x = left + rnd() * (mobile ? 30 : 60);
+      while (k < rest.length) {
+        const t = rest[k];
+        const box = { x, y: y0 + (rnd() - 0.5) * (mobile ? 9 : 14), w: t.w, h: t.h };
+        if (x + t.w > W - 10) break;
+        if (res.some(r => hit(box, r)) || placed.some(p => hit(box, { x: p.x - 4, y: p.y - 4, w: p.w + 8, h: p.h + 8 }))) { x += 18 + rnd() * 20; continue; }
+        t.x = box.x; t.y = box.y; t.r = (rnd() - 0.5) * 8;
+        placed.push(t); k++;
+        x += t.w + (mobile ? 27 : 36) + rnd() * (mobile ? 16 : 44);
+      }
+      row++;
+    }
+    for (; k < rest.length; k++) {
+      const t = rest[k];
+      for (let tries = 0; tries < 80; tries++) {
+        const box = { x: 12 + rnd() * (W - t.w - (mobile ? 56 : 100)), y: 16 + rnd() * (H - t.h - 40), w: t.w, h: t.h };
+        t.x = box.x; t.y = box.y;
+        if (!res.some(r => hit(box, r)) && !placed.some(p => hit({ x: box.x - 30, y: box.y - 6, w: box.w + 60, h: box.h + 12 }, p))) break;
+      }
+      t.r = (rnd() - 0.5) * 10; placed.push(t);
+    }
+  }
+
+  // phone and desktop doors keep separate arrangements: a poem laid out on one would crowd the other
+  const form = () => (W < 600 ? '-m' : '-d');
+  function savedKey(th) { return 'fv-layout-' + th + form(); }
+  function save() {
+    const pos = {};
+    tiles.forEach(t => { pos[t.id] = [+(t.x / W).toFixed(4), +(t.y / H).toFixed(4), +t.r.toFixed(2)]; });
+    store.set(savedKey(theme), pos);
+    const dp = {};
+    decos.forEach(d => { dp[d.id] = [+(d.x / W).toFixed(4), +(d.y / H).toFixed(4), +d.r.toFixed(2)]; });
+    store.set('fv-decos' + form(), dp);
+    store.set('fv-theme', theme);
+  }
+  function loadDecos() {
+    defaultDecos();
+    const ds = store.get('fv-decos' + form());
+    if (ds) decos.forEach(d => { const p = ds[d.id]; if (p) { d.x = p[0] * W; d.y = p[1] * H; d.r = p[2]; } });
+    decos.forEach(d => apply(d));
+  }
+  function measure(list) { list.forEach(t => { t.w = t.el.offsetWidth; t.h = t.el.offsetHeight; }); }
+  function measureDecos() { decos.forEach(d => { d.w = d.el.offsetWidth; d.h = d.el.offsetHeight; }); }
+
+  function buildTheme(th, animate) {
+    const old = tiles;
+    theme = th;
+    $$('.pack').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pack === th)));
+    const words = BASE.map((w, i) => [w, 'b' + i]).concat(PACKS[th].map((w, i) => [w, th + i]));
+    const list = words.map(([w, id]) => makeTile(w, id));
+    list.forEach(t => { t.el.style.visibility = 'hidden'; door.appendChild(t.el); });
+    measure(list);
+    const saved = store.get(savedKey(th));
+    if (saved && list.every(t => saved[t.id])) {
+      list.forEach(t => { const p = saved[t.id]; t.x = p[0] * W; t.y = p[1] * H; t.r = p[2]; });
+    } else layout(list, STARTERS[th]);
+    tiles = list;
+    const dur = animate && !reduce;
+    if (old.length) {
+      old.forEach((t, i) => {
+        if (!dur) { t.el.remove(); return; }
+        setTimeout(() => { t.el.classList.add('leave'); apply(t, 0.6); }, i * 3);
+        setTimeout(() => t.el.remove(), 420 + i * 3);
+      });
+    }
+    list.forEach((t, i) => {
+      t.el.style.zIndex = 2;
+      if (dur) {
+        // the model already holds the final spot; only the painted transform starts high and loose
+        t.el.style.setProperty('--x', t.x.toFixed(1) + 'px');
+        t.el.style.setProperty('--y', (t.y - 40 - rnd() * 40).toFixed(1) + 'px');
+        t.el.style.setProperty('--r', (t.r + (rnd() - 0.5) * 20).toFixed(2) + 'deg');
+        t.el.style.setProperty('--s', 1.25);
+        t.el.style.opacity = '0';
+        setTimeout(() => {
+          t.el.style.visibility = ''; t.el.classList.add('enter');
+          t.el.style.opacity = '1'; apply(t, 1);
+          setTimeout(() => t.el.classList.remove('enter'), 520);
+        }, 260 + i * 6);
+      } else { t.el.style.visibility = ''; apply(t); }
+      bindDrag(t);
+    });
+    setTimeout(() => { detect(); save(); }, dur ? 900 : 0);
+    if (dur) setTimeout(() => clack(0.5, 1.2), 300);
+  }
+
+  /* ---------- dragging ---------- */
+  let drag = null;
+  function bindDrag(t) {
+    t.el.addEventListener('pointerdown', e => startDrag(e, t));
+    t.el.addEventListener('keydown', e => keyMove(e, t));
+  }
+  decos.forEach(d => d.el.addEventListener('pointerdown', e => startDrag(e, d)));
+  function startDrag(e, t) {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    audio();
+    const db = door.getBoundingClientRect();
+    drag = { t, id: e.pointerId, ox: e.clientX - db.left - t.x, oy: e.clientY - db.top - t.y, lx: e.clientX, lt: performance.now(), vx: 0, tilt: 0, r0: t.r, moved: false, sx: e.clientX, sy: e.clientY };
+    try { t.el.setPointerCapture(e.pointerId); } catch (_) {}
+    t.el.classList.remove('drop');
+    t.el.classList.add('lift');
+    t.el.style.zIndex = ++zTop + 100;
+    apply(t, t.deco ? 1.04 : 1.09);
+    clack(0.35, 1.5);
+  }
+  function onMove(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const t = drag.t, db = door.getBoundingClientRect();
+    const now = performance.now(), dt = Math.max(1, now - drag.lt);
+    drag.vx = drag.vx * 0.7 + ((e.clientX - drag.lx) / dt) * 0.3;
+    drag.lx = e.clientX; drag.lt = now;
+    if (Math.abs(e.clientX - drag.sx) + Math.abs(e.clientY - drag.sy) > 3) drag.moved = true;
+    t.x = Math.max(-t.w * 0.4, Math.min(W - t.w * 0.6, e.clientX - db.left - drag.ox));
+    t.y = Math.max(-t.h * 0.4, Math.min(H - t.h * 0.6, e.clientY - db.top - drag.oy));
+    drag.tilt += (Math.max(-12, Math.min(12, drag.vx * 9)) - drag.tilt) * 0.35;
+    t.r = drag.r0 + drag.tilt;
+    apply(t, t.deco ? 1.04 : 1.09);
+  }
+  function onUp(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const t = drag.t;
+    t.el.classList.remove('lift');
+    t.el.classList.add('drop');
+    t.r = drag.moved ? (t.deco ? drag.r0 * 0.6 + (Math.random() - 0.5) * 4 : (Math.random() - 0.5) * 5) : drag.r0;
+    apply(t, 1);
+    setTimeout(() => t.el.classList.remove('drop'), 360);
+    clack(1, t.deco ? 0.8 : 1);
+    drag = null;
+    detect(); save();
+  }
+  addEventListener('pointermove', onMove, { passive: true });
+  addEventListener('pointerup', onUp);
+  addEventListener('pointercancel', onUp);
+  let keyTimer = 0;
+  function keyMove(e, t) {
+    const step = e.shiftKey ? 24 : 6;
+    const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    t.x = Math.max(0, Math.min(W - t.w, t.x + d[0])); t.y = Math.max(0, Math.min(H - t.h, t.y + d[1]));
+    t.el.style.zIndex = ++zTop + 100;
+    apply(t);
+    clearTimeout(keyTimer); keyTimer = setTimeout(() => { detect(); save(); clack(0.6); }, 250);
+  }
+
+  /* ---------- shake: magnets knocked loose ---------- */
+  let shaking = false;
+  $('#shakeBtn').addEventListener('click', () => {
+    if (shaking) return;
+    door.classList.remove('shaking'); void door.offsetWidth; door.classList.add('shaking');
+    if (reduce) {
+      seed = (Date.now() % 100000) + 3;
+      tiles.forEach(t => { t.x = 20 + Math.random() * (W - t.w - 100); t.y = 20 + Math.random() * (H - t.h - 40); t.r = (Math.random() - 0.5) * 10; apply(t); });
+      detect(); save(); return;
+    }
+    shaking = true;
+    tiles.forEach(t => {
+      t.vx = (Math.random() - 0.5) * 1300; t.vy = (Math.random() - 0.62) * 1000; t.vr = (Math.random() - 0.5) * 540;
+    });
+    let n = 0; const rattle = setInterval(() => { clack(0.25 + Math.random() * 0.3, 0.8 + Math.random() * 0.8); if (++n > 9) clearInterval(rattle); }, 70);
+    const start = performance.now(); let last = start;
+    const card = $('#card');
+    const cardFixed = getComputedStyle(card).position === 'fixed';
+    const db = door.getBoundingClientRect(), cb = card.getBoundingClientRect();
+    const cr = cardFixed ? null : { x: cb.left - db.left, y: cb.top - db.top, w: cb.width, h: cb.height };
+    const edgeR = W - (W < 600 ? 34 : 70);
+    function step(now) {
+      const dt = Math.min(0.033, (now - last) / 1000); last = now;
+      const el = (now - start) / 1000;
+      const damp = Math.exp(-dt * 3.2);
+      tiles.forEach(t => {
+        t.vy += (el < 0.9 ? 380 : 120) * dt;
+        t.vx *= damp; t.vy *= damp; t.vr *= damp;
+        t.x += t.vx * dt; t.y += t.vy * dt; t.r += t.vr * dt;
+        if (t.x < 4) { t.x = 4; t.vx = Math.abs(t.vx) * 0.5; }
+        if (t.x + t.w > edgeR) { t.x = edgeR - t.w; t.vx = -Math.abs(t.vx) * 0.5; }
+        if (t.y < 4) { t.y = 4; t.vy = Math.abs(t.vy) * 0.5; }
+        if (t.y + t.h > H - 6) { t.y = H - 6 - t.h; t.vy = -Math.abs(t.vy) * 0.35; }
+        if (cr) {
+          const cx = t.x + t.w / 2, cy = t.y + t.h / 2;
+          if (cx > cr.x - 8 && cx < cr.x + cr.w + 8 && cy > cr.y - 8 && cy < cr.y + cr.h + 8) { t.y = cr.y - 10 - t.h; t.vy = -Math.abs(t.vy) * 0.4; }
+        }
+        t.r = Math.max(-14, Math.min(14, t.r));
+        apply(t);
+      });
+      if (el < 1.9) requestAnimationFrame(step);
+      else { shaking = false; tiles.forEach(t => { t.r = Math.max(-7, Math.min(7, t.r)); apply(t); }); detect(); save(); }
+    }
+    requestAnimationFrame(step);
+  });
+
+  /* ---------- the poem detector ---------- */
+  function joinWord(prev, w) {
+    if (/^[,.?!]$/.test(w)) return prev + w;
+    if (w[0] !== '-') return prev + ' ' + w;
+    const suf = w.slice(1);
+    const m = prev.match(/(\S*)$/), base = m ? m[1] : '';
+    let stem = base, out;
+    if (!base) return prev + suf;
+    if (suf === 's') out = /(s|sh|ch|x|z)$/.test(base) ? base + 'es' : /[^aeiou]y$/.test(base) ? base.slice(0, -1) + 'ies' : base + 's';
+    else if (/^[aeiouy]/.test(suf)) {
+      if (/[^aeiou]y$/.test(base) && suf !== 'ing') stem = base.slice(0, -1) + 'i';
+      else if (/[^e]e$/.test(base)) stem = base.slice(0, -1);
+      else if (/^[^aeiouy]*[aeiou][bdfgklmnprtv]$/i.test(base)) stem = base + base.slice(-1);
+      out = stem + suf;
+    } else out = base + suf;
+    return prev.slice(0, prev.length - base.length) + out;
+  }
+  const poemEl = $('#poem');
+  let poemText = '';
+  function detect() {
+    const items = tiles.map(t => ({ t, x: t.x, y: t.y, w: t.w, h: t.h, cy: t.y + t.h / 2, next: null, prev: null, score: 0 }));
+    if (!items.length) return;
+    const th = items.map(i => i.h).sort((a, b) => a - b)[items.length >> 1];
+    const gapMax = Math.max(22, th * 0.85);
+    // each magnet links to the nearest magnet sitting just to its right on the same baseline
+    for (const a of items) {
+      let best = null, bs = Infinity;
+      for (const b of items) {
+        if (b === a || b.x <= a.x) continue;
+        const gap = b.x - (a.x + a.w), dy = Math.abs(b.cy - a.cy);
+        if (gap < -0.5 * Math.min(a.w, b.w) || gap > gapMax || dy > th * 0.45) continue;
+        const s = Math.max(0, gap) + dy * 2.5;
+        if (s < bs) { bs = s; best = b; }
+      }
+      if (best) {
+        if (best.prev && best.prev.score <= bs) continue;
+        if (best.prev) best.prev.next = null;
+        a.next = best; a.score = bs; best.prev = a;
+      }
+    }
+    const segs = [];
+    items.forEach(it => {
+      if (it.prev || !it.next) return;
+      const s = []; let c = it;
+      while (c && s.length < 40) { s.push(c); c = c.next; }
+      if (s.length > 1) segs.push(s);
+    });
+    segs.forEach(s => { s.cy = s.reduce((a, q) => a + q.cy, 0) / s.length; s.x0 = s[0].x; s.x1 = s[s.length - 1].x + s[s.length - 1].w; });
+    segs.sort((a, b) => a.cy - b.cy);
+    // chain lines into stanzas (each line a little below the last, overlapping it); keep the richest
+    const chains = [];
+    segs.forEach(s => {
+      const c = chains.find(ch => { const l = ch[ch.length - 1]; const dy = s.cy - l.cy; return dy > th * 0.5 && dy < th * 2.4 && s.x0 < l.x1 + 40 && s.x1 > l.x0 - 40; });
+      if (c) c.push(s); else chains.push([s]);
+    });
+    tiles.forEach(t => t.el.classList.remove('in-poem'));
+    let best = null, bestN = 0;
+    chains.forEach(c => { const n = c.reduce((a, s) => a + s.length, 0); if (n > bestN) { bestN = n; best = c; } });
+    if (!best) {
+      poemText = '';
+      $('#status').textContent = '';
+      poemEl.classList.add('empty');
+      poemEl.textContent = 'Line up two or more magnets, left to right, and your poem will appear here.';
+      return;
+    }
+    const lines = best.map(s => s.reduce((acc, q) => acc === '' ? q.t.word.replace(/^-/, '') : joinWord(acc, q.t.word), ''));
+    lines[0] = lines[0].charAt(0).toUpperCase() + lines[0].slice(1);
+    poemText = lines.join('\n');
+    poemEl.classList.remove('empty');
+    poemEl.textContent = poemText;
+    best.forEach(s => s.forEach(q => q.t.el.classList.add('in-poem')));
+    $('#status').textContent = bestN + ' magnets';
+  }
+
+  /* ---------- copy ---------- */
+  $('#copyBtn').addEventListener('click', async () => {
+    const st = $('#status');
+    if (!poemText) { st.textContent = 'Nothing to copy yet'; return; }
+    const text = poemText + '\n\n(from Fridge Verse)';
+    let ok = false;
+    try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); ok = true; } } catch (_) {}
+    if (!ok) {
+      try { const ta = $('#clipFallback'); ta.value = text; ta.select(); ok = document.execCommand('copy'); } catch (_) {}
+    }
+    if (!ok) {
+      const r = document.createRange(); r.selectNodeContents(poemEl);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      st.textContent = 'Selected: press Ctrl+C';
+    } else st.textContent = 'Copied ✓';
+    clack(0.6, 1.3);
+  });
+
+  const foldBtn = $('#foldBtn');
+  foldBtn.addEventListener('click', () => {
+    const folded = $('#card').classList.toggle('folded');
+    foldBtn.setAttribute('aria-expanded', String(!folded));
+  });
+
+  /* ---------- controls ---------- */
+  $$('.pack').forEach(b => b.addEventListener('click', () => { if (b.dataset.pack !== theme) buildTheme(b.dataset.pack, true); }));
+  $('#resetBtn').addEventListener('click', () => {
+    store.set(savedKey(theme), null);
+    defaultDecos(); decos.forEach(d => apply(d));
+    buildTheme(theme, true);
+  });
+
+  /* ---------- sizing ---------- */
+  function sizeDoor() {
+    const oldW = W, oldH = H;
+    W = door.clientWidth; H = door.clientHeight;
+    return [oldW, oldH];
+  }
+  let rt = 0;
+  addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      const [ow, oh] = sizeDoor();
+      if (!ow || !oh || (ow === W && oh === H)) return;
+      paintNoise();
+      measureDecos();
+      if ((ow < 600) !== (W < 600)) { loadDecos(); buildTheme(theme, false); return; }
+      measure(tiles);
+      tiles.forEach(t => { t.x = t.x / ow * W; t.y = t.y / oh * H; t.x = Math.min(t.x, W - t.w - 4); apply(t); });
+      decos.forEach(d => { d.x = Math.min(d.x / ow * W, W - d.w - 10); d.y = d.y / oh * H; apply(d); });
+      detect();
+    }, 120);
+  });
+  mq.addEventListener && mq.addEventListener('change', e => { reduce = e.matches; });
+
+  /* ---------- start ---------- */
+  sizeDoor();
+  paintNoise();
+  measureDecos();
+  loadDecos();
+  const t0 = store.get('fv-theme');
+  buildTheme(PACKS[t0] ? t0 : 'love', false);})();
+</script>
+</body>
+</html>

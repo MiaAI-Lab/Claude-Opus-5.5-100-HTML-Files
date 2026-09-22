@@ -1,0 +1,38 @@
+TITLE: QUANTA Terminal
+FILE: 060-trading-terminal.html
+
+=== PROMPT (exact prompt used) ===
+Build "QUANTA Terminal", a dark, premium trading dashboard with clearly fictional tickers and simulated data (labelled "Simulated market"). Near-black ground (#0b0e11), panel surfaces #12161c, gains emerald #16c784, losses crimson #ea3943, gold accent #f0b90b, hairline borders. Layout: a scrolling ticker tape at the top; a main candlestick chart (canvas) with volume bars, moving averages, a crosshair with OHLC tooltip, time-range tabs and smooth panning/zooming; a live order book with depth bars that flicker as orders update; a recent-trades feed; a watchlist with sparklines; a portfolio allocation donut; and a buy/sell ticket with validation and a confirmation toast. Data evolves in real time via a random walk with volatility clustering. Typography: tabular numerals, a clean sans, monospace for prices; prices flash green/red on change. Responsive: panels reflow into tabs on mobile. Smooth and crisp at high DPI.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A dark, dense, professional trading terminal for a clearly fictional market. Near-black ground (#0b0e11), hairline-bordered panel surfaces (#12161c), emerald gains, crimson losses and a gold accent (#f0b90b). A slim header carries the QUANTA hex mark, a pulsing "Simulated market" badge, live equity and a UTC clock. Beneath it, an edge-faded ticker tape scrolls all ten instruments. The workspace is a six-panel grid: a live order book with depth bars (left), the candlestick chart (centre), a watchlist with sparklines (right), a portfolio donut, a split buy/sell ticket and a recent-trades feed (bottom row). All instruments (Axolotl Mining, Zephyrine Air, Nimbus Nine…) and the "Quanta Dollar" quote currency are invented, and a footer states that everything is simulated in the browser. On tablets the grid reflows into two columns. On phones it becomes a sticky tab bar (Chart / Book / Trades / Trade / Markets / Wallet) showing one panel at a time.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A DPR-aware canvas candlestick chart (max 2×): pixel-snapped wicks and bodies, a volume pane, MA7/25/99 overlays, a nice-number price grid, adaptive time labels, a faint instrument watermark and a soft gold glow. A dashed last-price line with an axis tag and a pulsing dot marks the live candle. The y-range eases between views.
+- Crosshair with dashed guides, price and time axis labels, and a floating OHLC / change / volume tooltip card. A TradingView-style OHLC legend and live MA values sit above the plot.
+- Market data: a GARCH(1,1)-style random walk (volatility clustering plus occasional shocks) drives every instrument. Candle history is generated per timeframe at about 3% daily volatility and bent so the candle 24 h ago opens at the instrument's 24 h open, keeping the stats consistent. Sparklines are Brownian bridges from the 24 h open to the live price.
+- The order book uses pre-built rows updated in place, cumulative depth bars with eased widths, and a flicker animation on changed sizes. A spread row shows the last price with a direction arrow.
+- Price-change flashes (green/red background fades) on the header price, watchlist, tape and book. Alternating animation classes retrigger them without layout thrash.
+- An SVG donut built from stroke-dasharray arcs with gaps, hover emphasis and a live total-equity centre. Custom diamond-thumb range sliders with 25% tick marks and a filled track. Gradient buy/sell buttons, and toasts with a countdown bar.
+- Typography: a system sans for UI and a monospace stack with tabular numerals for every price, amount and time.
+
+=== INTERACTION MODEL ===
+- Chart: drag to pan (with inertia), scroll wheel or pinch to zoom around the cursor, and double-click or the reset button to recentre. The zoom +/- buttons, arrow keys, + / − and 0 also work when the chart has focus. Time-range tabs (1m, 5m, 15m, 1H, 4H, 1D) regenerate the history, and MA legend chips toggle each average.
+- Order book: view toggle (both / bids / asks). Clicking any price level loads it into both ticket price fields (switching to Limit if needed).
+- Watchlist: a live filter search box. Clicking an instrument switches the whole terminal (chart, book, trades, ticket symbols and balances).
+- Ticket: Limit / Market tabs, price steppers, and amount, total and percentage slider fields that stay in sync. Validation covers price, a ±10% limit band, amount > 0, a 10 QD minimum, insufficient QD and insufficient holdings, with inline errors and field highlights. A valid order fills instantly (simulated), updates cash, holdings and the donut, adds a gold ◆ row to the trades feed and shows a confirmation toast.
+- Portfolio: hovering a donut segment or legend row highlights it. The header shows today's simulated P/L.
+- Phones: the tab bar switches panels, and choosing a watchlist item or book level jumps to the relevant tab. The tape pauses on hover. Reduced motion slows the tape and removes flashes. The market loop runs on requestAnimationFrame, so it pauses in hidden tabs.

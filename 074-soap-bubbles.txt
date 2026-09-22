@@ -1,0 +1,39 @@
+TITLE: Iridescence — Soap Bubbles
+FILE: 074-soap-bubbles.html
+
+=== PROMPT (exact prompt used) ===
+Create "Iridescence — Soap Bubbles". A soft, bright sky (#dbeafe → #fef3f2 gradient with faint drifting clouds). Bubbles of varied sizes float upward and drift on a gentle wind, wobbling as their shape oscillates; each is rendered with thin-film interference colours — swirling bands of magenta, gold, cyan and green on a mostly transparent sphere — plus a bright window-shaped specular highlight and a smaller secondary one, with the swirl animating over time (canvas gradients and noise-driven hue shifts). Bubbles collide softly. Interaction: clicking/tapping a bubble pops it — it bursts into a ring of tiny droplets and a quick shimmering film fragment, with a soft "pop" (Web Audio, after the first gesture); dragging blows a new bubble from a wand (it grows with drag distance and detaches on release); wind direction follows pointer movement. A tiny, elegant "bubbles popped" counter. Typography: an airy light sans title that is itself slightly iridescent.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Iridescence is a light, airy scene: a pale sky that fades from powder blue (#dbeafe) to blush (#fef3f2) with a warm sun bloom in one corner and faint clouds drifting across. Soap bubbles of many sizes rise slowly and drift on a gentle wind, wobbling as they go; one large "hero" bubble anchors the opening frame. Each bubble is mostly transparent, with swirling bands of magenta, gold, cyan and green that strengthen toward the rim, a bright four-pane window reflection in the upper left and a smaller glint lower right. The bands keep turning slowly over time. The title "iridescence" is set in an ultralight, widely spaced sans filled with a slowly sliding pastel-iridescent gradient. A tiny counter of bubbles popped, with a spinning rainbow ring, sits in the top corner, and soft glassy pills hold the hints, a wind vane, Blow and Sound.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Physically motivated thin-film textures: reflectance sin²(2π·n·d·cosθt/λ) with n = 1.33, sampled at paired red, green and blue wavelengths, computed per pixel at startup into five 256×256 sprites (two at boot, the rest over later frames)
+- Film thickness from a gravity gradient (thin crown, thick base) plus a domain-warped, radially twisted simplex swirl; a "black film" fade where the film is thinnest, Fresnel-weighted alpha so the centre stays clear and the rim glows, and a faint sky reflection in the upper half
+- Two film layers per bubble, counter-rotating and cross-fading at their own rates, so the bands appear to swirl
+- Quadrupole shape wobble (squash and stretch along a turning axis) driven by a damped oscillator that collisions and air kick; smaller bubbles wobble faster
+- Pre-rendered highlight sprites: a softly blurred four-pane window reflection and radial glints, placed with skew transforms
+- Procedural cloud sprites built from soft radial puffs with a cool shaded underside, drifting with parallax on a separate sky canvas
+- Soft pairwise collisions with mass-weighted separation and impulse, buoyant lift, and noise-driven turbulence
+- Pop effect: a ring of tinted droplets with gravity and highlights, curling iridescent film fragments stroked with gradient arcs, and a fading flash ring
+- The wand (lavender ring and handle, with film inside the ring) is drawn on canvas, and the new bubble inflates out of the ring along the drag direction
+- DPR-aware canvases; the pastel gradient title is animated with background-clip text
+
+=== INTERACTION MODEL ===
+- Click or tap a bubble to pop it, with a synthesized "pop" (a band-passed noise burst plus a falling sine blip, lower for bigger bubbles) and a bump of the popped counter (kept in guarded localStorage)
+- Press on empty sky and drag to blow a bubble from a wand: it grows with the drag distance and detaches on release, carrying the flick velocity; a quick tap releases a small bubble
+- Moving the pointer steers the wind (direction and strength shown by the wind vane), which then relaxes back to a light breeze
+- "Blow" button and keys B, Space or Enter blow a bubble; P pops the largest; the arrow keys push the wind
+- Visible Sound/Muted toggle; audio starts only after a gesture; animation pauses while the tab is hidden; reduced motion slows drift, swirl and wobble and shows fewer bubbles

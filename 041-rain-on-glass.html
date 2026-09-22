@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Midnight Window — rain on glass</title>
+<meta name="description" content="Midnight Window: rain running down a fogged night window over blurred city lights. Wipe the condensation away, change the rain, switch to a forest, and listen to synthesized rain.">
+<meta name="theme-color" content="#0a0f1f">
+<style>
+:root{
+  --night:#0a0f1f;
+  --amber:#ffb347;
+  --red:#ff4b4b;
+  --teal:#3fd0c9;
+  --ink:#f3ede4;
+  --ink-2:rgba(243,237,228,.72);
+  --ink-3:rgba(243,237,228,.48);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",P052,"URW Palladio L",Georgia,serif;
+  --sans:"Avenir Next","Segoe UI","Helvetica Neue","Nimbus Sans","Liberation Sans",Arial,sans-serif;
+  --glide:cubic-bezier(.22,.8,.24,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--night);color:var(--ink);font-family:var(--serif);overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+main{position:fixed;inset:0}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:none}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 120% 90% at 50% 45%,rgba(0,0,0,0) 55%,rgba(2,4,10,.55) 100%),linear-gradient(180deg,rgba(2,4,10,.35),rgba(2,4,10,0) 18%,rgba(2,4,10,0) 70%,rgba(2,4,10,.45))}
+.frame{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04),inset 0 0 120px rgba(0,0,0,.35)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.brand{position:absolute;left:clamp(18px,3vw,40px);top:clamp(16px,3vh,32px);margin:0;display:flex;flex-direction:column;gap:3px;pointer-events:none;text-shadow:0 1px 12px rgba(0,0,0,.6)}
+.brand em{font-size:clamp(17px,1.5vw,21px);font-weight:400;letter-spacing:.01em;color:var(--ink)}
+.brand span{font-family:var(--sans);font-size:10.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-3)}
+.clock{position:absolute;right:clamp(18px,3vw,40px);top:clamp(18px,3vh,34px);margin:0;font-family:var(--sans);font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-3);pointer-events:none}
+
+.caption{position:absolute;left:clamp(18px,3vw,44px);bottom:clamp(22px,4.4vh,46px);margin:0;max-width:min(560px,80vw);font-weight:300;font-size:clamp(19px,1.9vw,27px);line-height:1.35;letter-spacing:.005em;color:rgba(248,243,235,.9);text-shadow:0 2px 18px rgba(0,0,0,.75),0 0 2px rgba(0,0,0,.4);pointer-events:none}
+.caption .time{font-variant-numeric:tabular-nums;color:#ffe2b8}
+.caption .place{display:inline-block;transition:opacity .9s var(--glide),filter .9s var(--glide)}
+.caption .place.swap{opacity:0;filter:blur(6px)}
+
+.hint{position:absolute;left:50%;top:clamp(62px,11vh,110px);transform:translateX(-50%);margin:0;padding:9px 18px;border-radius:999px;font-family:var(--sans);font-size:12.5px;letter-spacing:.08em;color:var(--ink-2);background:rgba(8,12,26,.42);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);white-space:nowrap;pointer-events:none;transition:opacity 1.2s var(--glide),transform 1.2s var(--glide)}
+.hint.gone{opacity:0;transform:translate(-50%,-8px)}
+
+.panel{position:absolute;right:clamp(14px,2.6vw,36px);bottom:clamp(16px,3.6vh,38px);display:flex;align-items:center;gap:6px;padding:7px;border-radius:18px;background:rgba(8,12,26,.5);-webkit-backdrop-filter:blur(12px) saturate(140%);backdrop-filter:blur(12px) saturate(140%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),0 18px 50px -20px rgba(0,0,0,.8);font-family:var(--sans)}
+.ctl{display:flex;align-items:center;gap:12px;padding:0 12px 0 10px;height:40px;border-radius:12px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.ctl output{min-width:2.4em;font-size:12px;letter-spacing:.04em;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:clamp(96px,10vw,150px);height:22px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(90deg,var(--amber) 0 var(--fill,55%),rgba(255,255,255,.2) var(--fill,55%) 100%)}
+input[type=range]::-moz-range-track{height:2px;border-radius:2px;background:rgba(255,255,255,.2)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--amber)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:#fff4e3;box-shadow:0 0 0 4px rgba(255,179,71,.25),0 0 14px rgba(255,179,71,.8)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:#fff4e3;box-shadow:0 0 0 4px rgba(255,179,71,.25),0 0 14px rgba(255,179,71,.8)}
+input[type=range]:focus-visible{outline:none}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(255,179,71,.6),0 0 14px rgba(255,179,71,.9)}
+.seg{position:relative;display:flex;height:40px;padding:3px;border-radius:12px;background:rgba(255,255,255,.05)}
+.seg-pill{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:9px;background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.14);transition:transform .6s cubic-bezier(.34,1.5,.5,1)}
+.seg[data-scene="forest"] .seg-pill{transform:translateX(100%)}
+.seg button{position:relative;z-index:1;flex:1;min-width:64px;border:0;background:none;color:var(--ink-3);font:inherit;font-size:11px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border-radius:9px;transition:color .4s}
+.seg button[aria-pressed="true"]{color:var(--ink)}
+.icon-btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 12px;border:0;border-radius:12px;background:rgba(255,255,255,.05);color:var(--ink-2);font:inherit;font-size:11px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .3s,color .3s}
+.icon-btn:hover{background:rgba(255,255,255,.11);color:var(--ink)}
+.icon-btn svg{width:18px;height:18px;flex:none}
+#sound[aria-pressed="true"]{color:var(--ink);background:rgba(255,179,71,.14);box-shadow:inset 0 0 0 1px rgba(255,179,71,.35)}
+#sound .waves{opacity:.3;transition:opacity .3s}
+#sound[aria-pressed="true"] .waves{opacity:1}
+#sound .slash{transition:opacity .3s}
+#sound[aria-pressed="true"] .slash{opacity:0}
+
+.brush{position:fixed;left:0;top:0;width:88px;height:88px;margin:-44px 0 0 -44px;border-radius:50%;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 0 24px rgba(255,255,255,.08);opacity:0;transition:opacity .4s,width .25s,height .25s,margin .25s;z-index:5}
+.brush.on{opacity:1}
+.brush.down{width:76px;height:76px;margin:-38px 0 0 -38px;background:rgba(255,255,255,.04)}
+
+@media (max-width:720px){
+  .panel{left:12px;right:12px;bottom:12px;flex-wrap:wrap;justify-content:space-between;gap:6px}
+  .ctl{flex:1 1 100%;justify-content:space-between;padding:0 10px}
+  input[type=range]{flex:1;width:auto}
+  .seg{flex:1 1 auto}
+  .seg button{min-width:0;padding:0 8px}
+  .icon-btn{padding:0 11px}
+  .icon-btn .lbl{display:none}
+  .caption{bottom:auto;top:clamp(84px,14vh,120px);left:20px;right:20px;max-width:none;font-size:21px}
+  .hint{top:auto;bottom:128px;font-size:11.5px}
+  .clock{display:none}
+  #view{cursor:default}
+}
+@media (hover:none){.brush{display:none}#view{cursor:default}}
+@media (prefers-reduced-motion:reduce){
+  .caption .place,.hint,.seg-pill{transition:none}
+}
+</style>
+</head>
+<body>
+<main>
+  <canvas id="view" role="img" aria-label="Rain running down a fogged window at night, with blurred city lights behind the glass"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="frame" aria-hidden="true"></div>
+  <h1 class="brand"><em>Midnight Window</em><span>rain on glass</span></h1>
+  <p class="clock" id="clockDate" aria-hidden="true"></p>
+  <p class="caption" aria-live="off"><span id="capLead">It&rsquo;s <span class="time" id="capTime">00:47</span>.</span> <span class="place" id="capPlace">The city is still awake.</span></p>
+  <p class="hint" id="hint">Drag across the glass to wipe away the fog</p>
+  <section class="panel" aria-label="Window controls">
+    <label class="ctl" for="rain">Rain <input type="range" id="rain" min="0" max="100" value="55" aria-valuetext="55 percent"><output id="rainOut" for="rain">55</output></label>
+    <div class="seg" id="scene" data-scene="city" role="group" aria-label="Scene behind the glass">
+      <span class="seg-pill" aria-hidden="true"></span>
+      <button type="button" data-scene="city" aria-pressed="true">City</button>
+      <button type="button" data-scene="forest" aria-pressed="false">Forest</button>
+    </div>
+    <button type="button" class="icon-btn" id="wipe" aria-label="Wipe the glass">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 13c3-5 7-7 14-8M3 16c4-3 8-4 14-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="lbl">Wipe</span>
+    </button>
+    <button type="button" class="icon-btn" id="sound" aria-pressed="false" aria-label="Rain sound">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8h3l4-3.5v11L6 12H3z" fill="currentColor"/><path class="waves" d="M13 7.2c1.2 1.4 1.2 4.2 0 5.6M15.2 5.2c2.3 2.6 2.3 7 0 9.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="slash" d="M13 13.5 18 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="lbl">Sound</span>
+    </button>
+  </section>
+  <div class="brush" id="brush" aria-hidden="true"></div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = mq.matches;
+  if (mq.addEventListener) mq.addEventListener('change', e => { reduced = e.matches; });
+
+  const view = $('#view');
+  const vx = view.getContext('2d');
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+
+  let W = 0, H = 0, DPR = 1, BW = 2, BH = 2, FW = 2, FH = 2;
+  const BGS = 2, FOGS = 4;
+  const bg = mk(2, 2), bgx = bg.getContext('2d');
+  const tiny = mk(2, 2), tnx = tiny.getContext('2d');
+  const fogBg = mk(2, 2), fbx = fogBg.getContext('2d');
+  const fogMask = mk(2, 2), fmx = fogMask.getContext('2d');
+  const fogComp = mk(2, 2), fcx = fogComp.getContext('2d');
+  const beads = mk(2, 2), bdx = beads.getContext('2d');
+  const baseCity = mk(2, 2), baseForest = mk(2, 2);
+
+  /* ── seeded random for a stable scene ── */
+  function mulberry(a) {
+    return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+
+  /* ── sprites ── */
+  function bokehSprite(rgb) {
+    const s = 128, c = mk(s, s), x = c.getContext('2d'), R = s / 2;
+    const col = a => 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')';
+    const g = x.createRadialGradient(R, R, 0, R, R, R);
+    g.addColorStop(0, col(.5));
+    g.addColorStop(.62, col(.56));
+    g.addColorStop(.84, col(.78));
+    g.addColorStop(.9, col(.62));
+    g.addColorStop(.97, col(.12));
+    g.addColorStop(1, col(0));
+    x.fillStyle = g;
+    x.beginPath(); x.arc(R, R, R, 0, 6.2832); x.fill();
+    const h = x.createRadialGradient(R * .8, R * .78, 0, R, R, R);
+    h.addColorStop(0, 'rgba(255,255,255,.14)');
+    h.addColorStop(.5, 'rgba(255,255,255,.03)');
+    h.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = h;
+    x.fill();
+    return c;
+  }
+  const PAL = {
+    amber: [255, 179, 71], red: [255, 75, 75], teal: [63, 208, 201], white: [255, 243, 224], warm: [255, 217, 160],
+    leaf: [111, 220, 140], lime: [184, 240, 122], jade: [63, 191, 135], pale: [226, 247, 160], moss: [70, 150, 90]
+  };
+  const SPR = {};
+  Object.keys(PAL).forEach(k => { SPR[k] = bokehSprite(PAL[k]); });
+
+  const dropSprite = (() => {
+    const s = 96, c = mk(s, s), x = c.getContext('2d'), R = s / 2;
+    x.save();
+    x.beginPath(); x.arc(R, R, R, 0, 6.2832); x.clip();
+    let g = x.createRadialGradient(R, R * 1.04, R * .15, R, R, R);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(.66, 'rgba(0,0,0,.04)');
+    g.addColorStop(.86, 'rgba(0,0,0,.2)');
+    g.addColorStop(1, 'rgba(0,0,0,.5)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    g = x.createLinearGradient(0, 0, 0, s);
+    g.addColorStop(0, 'rgba(0,0,0,.18)');
+    g.addColorStop(.45, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    g = x.createRadialGradient(R, R * 1.62, R * .1, R, R * 1.5, R * .9);
+    g.addColorStop(0, 'rgba(255,250,240,.34)');
+    g.addColorStop(1, 'rgba(255,250,240,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    x.restore();
+    g = x.createRadialGradient(R * .66, R * .52, 0, R * .66, R * .52, R * .24);
+    g.addColorStop(0, 'rgba(255,255,255,.95)');
+    g.addColorStop(.4, 'rgba(255,255,255,.45)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    x.strokeStyle = 'rgba(255,255,255,.1)';
+    x.lineWidth = 1.5;
+    x.beginPath(); x.arc(R, R, R - 1.2, .15 * Math.PI, .85 * Math.PI); x.stroke();
+    return c;
+  })();
+  const beadSprite = (() => {
+    const s = 24, c = mk(s, s), x = c.getContext('2d'), R = s / 2;
+    let g = x.createRadialGradient(R, R, 0, R, R, R);
+    g.addColorStop(0, 'rgba(200,210,235,.06)');
+    g.addColorStop(.6, 'rgba(150,160,190,.05)');
+    g.addColorStop(.82, 'rgba(0,0,0,.36)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    g = x.createRadialGradient(R * .72, R * .64, 0, R * .72, R * .64, R * .36);
+    g.addColorStop(0, 'rgba(255,255,255,.62)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    g = x.createRadialGradient(R, R * 1.4, 0, R, R * 1.4, R * .5);
+    g.addColorStop(0, 'rgba(255,240,220,.28)');
+    g.addColorStop(1, 'rgba(255,240,220,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    return c;
+  })();
+  const brushSprite = (() => {
+    const s = 64, c = mk(s, s), x = c.getContext('2d'), R = s / 2;
+    const g = x.createRadialGradient(R, R, 0, R, R, R);
+    g.addColorStop(0, 'rgba(0,0,0,1)');
+    g.addColorStop(.55, 'rgba(0,0,0,.92)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    return c;
+  })();
+  const noiseTile = (() => {
+    const s = 96, c = mk(s, s), x = c.getContext('2d');
+    const im = x.createImageData(s, s);
+    for (let i = 0; i < im.data.length; i += 4) {
+      const on = Math.random() < .05;
+      im.data[i] = im.data[i + 1] = im.data[i + 2] = 225;
+      im.data[i + 3] = on ? 20 + Math.random() * 50 : Math.random() * 12;
+    }
+    x.putImageData(im, 0, 0);
+    return c;
+  })();
+  let noisePat = null;
+
+  /* ── scenes: static blurred bases + bokeh lists ── */
+  function paintBase(target, kind) {
+    const t = mk(Math.max(8, Math.ceil(BW / 7)), Math.max(8, Math.ceil(BH / 7)));
+    const x = t.getContext('2d'), w = t.width, h = t.height;
+    const rnd = mulberry(kind === 'city' ? 47 : 1183);
+    let g = x.createLinearGradient(0, 0, 0, h);
+    if (kind === 'city') {
+      g.addColorStop(0, '#04060e'); g.addColorStop(.45, '#0a0f1f'); g.addColorStop(.78, '#161528'); g.addColorStop(1, '#1d1622');
+    } else {
+      g.addColorStop(0, '#020806'); g.addColorStop(.5, '#06140e'); g.addColorStop(.82, '#0b2018'); g.addColorStop(1, '#0d2419');
+    }
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    if (kind === 'city') {
+      for (let i = 0; i < 22; i++) {
+        const bw = w * (.04 + rnd() * .09), bh = h * (.25 + rnd() * .5), bx = rnd() * w;
+        x.fillStyle = 'rgba(' + (16 + rnd() * 10 | 0) + ',' + (22 + rnd() * 12 | 0) + ',' + (44 + rnd() * 16 | 0) + ',' + (.5 + rnd() * .4) + ')';
+        x.fillRect(bx, h * .62 - bh, bw, bh + h);
+      }
+      g = x.createRadialGradient(w * .45, h * 1.05, 0, w * .45, h * 1.05, w * .7);
+      g.addColorStop(0, 'rgba(255,150,70,.28)'); g.addColorStop(.5, 'rgba(160,70,80,.1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+      x.fillStyle = 'rgba(6,8,16,.7)';
+      x.fillRect(0, h * .86, w, h * .14);
+    } else {
+      g = x.createRadialGradient(w * .55, h * .4, 0, w * .55, h * .4, w * .6);
+      g.addColorStop(0, 'rgba(90,170,120,.16)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 16; i++) {
+        const tw = w * (.015 + rnd() * .05), tx = rnd() * w;
+        x.fillStyle = 'rgba(1,5,3,' + (.45 + rnd() * .5) + ')';
+        x.fillRect(tx, 0, tw, h);
+      }
+      g = x.createLinearGradient(0, h * .6, 0, h);
+      g.addColorStop(0, 'rgba(120,180,150,0)'); g.addColorStop(1, 'rgba(120,180,150,.12)');
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+    }
+    target.width = BW; target.height = BH;
+    const c = target.getContext('2d');
+    c.imageSmoothingEnabled = true;
+    c.imageSmoothingQuality = 'high';
+    c.drawImage(t, 0, 0, w, h, 0, 0, BW, BH);
+  }
+
+  function buildCity() {
+    const r = mulberry(1987), L = [];
+    const add = (x, y, rad, col, a, v, tw, flick) => L.push({ x, y, r: rad, col, a, v: v || 0, tw: tw || 0, ph: r() * 6.283, flick: !!flick, lvl: 1, on: 1 });
+    for (let i = 0; i < 54; i++) add(r(), .06 + r() * .46, .007 + r() * .013, ['warm', 'amber', 'white', 'warm'][i % 4], .3 + r() * .4, 0, .15 + r() * .35, r() < .35);
+    for (let i = 0; i < 10; i++) { const u = i / 9; add(.02 + u * .52 + (r() - .5) * .03, .6 - u * .1, .11 * (1 - u * .72), 'amber', .52, 0, .04); }
+    for (let i = 0; i < 7; i++) { const u = i / 6; add(.98 - u * .36, .58 - u * .08, .09 * (1 - u * .7), 'amber', .42, 0, .04); }
+    for (let i = 0; i < 12; i++) {
+      const x = r(), y = .7 + r() * .13, rad = .018 + r() * .03, v = -(.006 + r() * .012);
+      add(x, y, rad, 'red', .75, v, .03); add(x + rad * 1.1, y, rad, 'red', .75, v, .03);
+    }
+    for (let i = 0; i < 6; i++) add(r(), .8 + r() * .12, .06 + r() * .06, 'white', .36, .005 + r() * .01, .03);
+    add(.7, .3, .055, 'teal', .6, 0, .5, true); add(.745, .33, .04, 'teal', .55, 0, .5, true); add(.66, .34, .03, 'teal', .5, 0, .6);
+    for (let j = 0; j < 6; j++) add(.86, .12 + j * .052, .026, 'teal', .62, 0, .45);
+    add(.31, .22, .035, 'teal', .45, 0, .8, true);
+    add(.24, .64, .36, 'amber', .1, 0, 0); add(.78, .8, .3, 'red', .07, 0, 0); add(.78, .28, .24, 'teal', .07, 0, 0); add(.52, .92, .4, 'warm', .06, 0, 0);
+    return L;
+  }
+  function buildForest() {
+    const r = mulberry(577), L = [];
+    const add = (x, y, rad, col, a, v, tw) => L.push({ x, y, r: rad, col, a, v: v || 0, tw: tw || 0, ph: r() * 6.283, flick: false, lvl: 1, on: 1 });
+    const cols = ['leaf', 'lime', 'jade', 'pale', 'moss', 'leaf', 'jade'];
+    for (let i = 0; i < 64; i++) add(r(), r() * .9, .012 + Math.pow(r(), 2.2) * .09, cols[i % cols.length], .25 + r() * .4, (r() - .5) * .004, .2 + r() * .5);
+    for (let i = 0; i < 9; i++) add(r(), .5 + r() * .4, .004 + r() * .006, 'pale', .9, (r() - .5) * .01, 1.2);
+    add(.3, .35, .4, 'jade', .07, 0, 0); add(.75, .6, .35, 'leaf', .06, 0, 0); add(.6, .15, .25, 'teal', .05, 0, 0);
+    return L;
+  }
+  const CITY = buildCity(), FOREST = buildForest();
+
+  /* ── drops ── */
+  const MAXD = 900;
+  const pool = [];
+  for (let i = 0; i < MAXD; i++) pool.push({ x: 0, y: 0, r: 0, vy: 0, t: 0, seed: 0, moving: false, dead: true, trail: 0, stick: 0 });
+  let drops = [];
+  function spawnDrop(x, y, r, moving) {
+    let d = null;
+    for (let i = 0; i < pool.length; i++) if (pool[i].dead) { d = pool[i]; break; }
+    if (!d) return null;
+    d.x = x; d.y = y; d.r = r; d.vy = 0; d.t = 0; d.seed = Math.random() * 100; d.moving = !!moving; d.dead = false;
+    d.trail = 10 + Math.random() * 20; d.stick = Math.random();
+    drops.push(d);
+    return d;
+  }
+
+  let intensity = .55, sceneMix = 0, sceneTarget = 0, simT = 0;
+  let actx = null, master = null, rainGain = null, bodyGain = null, soundOn = false, tickTimer = 0, noiseBuf = null;
+  const RSLIDE = 8.4, RMAX = 22;
+
+  function sprinkleBeads(n) {
+    bdx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    bdx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < n; i++) {
+      const r = .6 + Math.pow(Math.random(), 2.4) * 2.6;
+      bdx.globalAlpha = .3 + Math.random() * .45;
+      bdx.drawImage(beadSprite, Math.random() * W - r, Math.random() * H - r, r * 2, r * 2);
+    }
+    bdx.globalAlpha = 1;
+  }
+  function clearAt(x, y, r, fogToo) {
+    bdx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    bdx.globalCompositeOperation = 'destination-out';
+    bdx.drawImage(brushSprite, x - r, y - r, r * 2, r * 2);
+    if (fogToo) {
+      fmx.globalCompositeOperation = 'destination-out';
+      const fr = r / FOGS * fogToo;
+      fmx.drawImage(brushSprite, x / FOGS - fr, y / FOGS - fr, fr * 2, fr * 2);
+    }
+  }
+
+  function addRain(dt) {
+    const area = W * H / 1e6;
+    const rate = (3 + 46 * intensity * intensity + 10 * intensity) * area;
+    let n = rate * dt;
+    while (n > 0) {
+      if (n < 1 && Math.random() > n) break;
+      n -= 1;
+      const r = 1.6 + Math.pow(Math.random(), 3.4) * 7.2;
+      const x = Math.random() * W, y = Math.random() * H * .96;
+      let merged = false;
+      for (let i = 0; i < drops.length; i++) {
+        const o = drops[i];
+        if (o.dead) continue;
+        const dx = o.x - x, dy = o.y - y, rr = o.r + r;
+        if (dx * dx + dy * dy < rr * rr * .5) { o.r = Math.min(RMAX, Math.sqrt(o.r * o.r + r * r)); merged = true; break; }
+      }
+      if (!merged) spawnDrop(x, y, r, false);
+    }
+    const bn = (18 + 150 * intensity) * area * dt;
+    let k = Math.floor(bn) + (Math.random() < bn % 1 ? 1 : 0);
+    if (k) sprinkleBeads(k);
+  }
+
+  function updateDrops(dt) {
+    const gMul = reduced ? .45 : 1;
+    for (let i = 0; i < drops.length; i++) {
+      const d = drops[i];
+      if (d.dead) continue;
+      d.t += dt;
+      if (!d.moving) {
+        if (d.r > RSLIDE && Math.random() < dt * (d.r - RSLIDE) * .2) { d.moving = true; d.vy = 0; }
+        continue;
+      }
+      const sizeF = Math.min(1, (d.r - 3) / 15);
+      const vmax = (50 + 300 * sizeF) * gMul;
+      d.stick -= dt;
+      if (d.stick <= 0) { d.stick = .12 + Math.random() * .7; if (Math.random() < .28) d.vy *= .12; }
+      d.vy = Math.min(vmax, d.vy + (180 + 520 * sizeF) * gMul * dt);
+      const lat = (Math.sin(d.t * 2.7 + d.seed) * 16 + Math.sin(d.t * 7.1 + d.seed * 1.7) * 6) * (d.vy / 260);
+      const px = d.x, py = d.y;
+      d.x += lat * dt;
+      d.y += d.vy * dt;
+      const moved = d.y - py;
+      const tw = .5 + .16 * Math.sin(d.t * 9 + d.seed) + .08 * Math.sin(d.t * 23 + d.seed * 3);
+      clearAt(d.x, d.y, d.r * .95, tw);
+      if (moved > d.r * .5) {
+        const steps = Math.ceil(moved / (d.r * .5));
+        for (let s = 1; s < steps; s++) clearAt(px + (d.x - px) * s / steps, py + moved * s / steps, d.r * .95, tw);
+      }
+      d.trail -= moved;
+      if (d.trail <= 0) {
+        d.trail = 7 + Math.random() * 22;
+        const tr = d.r * (.16 + Math.random() * .2);
+        if (tr > 1.1) {
+          spawnDrop(d.x + (Math.random() - .5) * d.r * .35, d.y - d.r * .8, tr, false);
+          d.r = Math.sqrt(Math.max(1, d.r * d.r - tr * tr * .55));
+        }
+      }
+      if (d.r < 3.2) { d.moving = false; d.vy = 0; }
+      for (let j = 0; j < drops.length; j++) {
+        const o = drops[j];
+        if (o === d || o.dead) continue;
+        const dx = o.x - d.x, dy = o.y - d.y, rr = (o.r + d.r) * .72;
+        if (dx > rr || dx < -rr || dy > rr || dy < -rr) continue;
+        if (dx * dx + dy * dy < rr * rr) {
+          d.r = Math.min(RMAX, Math.sqrt(d.r * d.r + o.r * o.r));
+          d.vy += 20;
+          o.dead = true;
+        }
+      }
+      if (d.y - d.r > H + 4) d.dead = true;
+    }
+    let w = 0;
+    for (let i = 0; i < drops.length; i++) if (!drops[i].dead) drops[w++] = drops[i];
+    drops.length = w;
+  }
+
+  /* ── wiping ── */
+  function wipe(x, y, r) {
+    clearAt(x, y, r * 1.08, 1.02);
+    const rr = r * .9;
+    for (let i = 0; i < drops.length; i++) {
+      const d = drops[i];
+      const dx = d.x - x, dy = d.y - y;
+      if (dx * dx + dy * dy < rr * rr) d.dead = true;
+    }
+  }
+  function wipeLine(x0, y0, x1, y1, r) {
+    const dist = Math.hypot(x1 - x0, y1 - y0);
+    const n = Math.max(1, Math.ceil(dist / (r * .3)));
+    for (let i = 1; i <= n; i++) wipe(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, r);
+  }
+  const brushR = () => Math.max(34, Math.min(62, Math.min(W, H) * .07));
+
+  /* ── lightning ── */
+  let pulses = [], nextBolt = 9 + Math.random() * 10, boltX = .5, flash = 0;
+  function lightning() {
+    boltX = .15 + Math.random() * .7;
+    const t = simT;
+    pulses = [{ t, a: .8 }, { t: t + .11, a: .45 }, { t: t + .3 + Math.random() * .2, a: .7 }];
+    if (soundOn) thunder(1.4 + Math.random() * 2.6, .6 + Math.random() * .4);
+  }
+
+  /* ── render ── */
+  let skyGrad = null, flashGrad = null, hazeGrad = null;
+  function renderBackground(dt) {
+    bgx.setTransform(1, 0, 0, 1, 0, 0);
+    bgx.globalCompositeOperation = 'source-over';
+    bgx.globalAlpha = 1;
+    bgx.drawImage(baseCity, 0, 0);
+    if (sceneMix > .001) { bgx.globalAlpha = sceneMix; bgx.drawImage(baseForest, 0, 0); bgx.globalAlpha = 1; }
+    bgx.globalCompositeOperation = 'lighter';
+    const drift = reduced ? .25 : 1;
+    const drawSet = (L, weight) => {
+      if (weight < .002) return;
+      for (let i = 0; i < L.length; i++) {
+        const b = L[i];
+        if (b.v) { b.x += b.v * dt * drift; if (b.x < -.15) b.x += 1.3; if (b.x > 1.15) b.x -= 1.3; }
+        if (b.flick && Math.random() < dt * .05) b.on = b.on ? 0 : 1;
+        b.lvl += ((b.on ? 1 : .08) - b.lvl) * Math.min(1, dt * 2.5);
+        const tw = 1 - b.tw * .5 * (.5 + .5 * Math.sin(simT * (.6 + b.tw) + b.ph));
+        const R = b.r * BH * (1 + .04 * Math.sin(simT * .3 + b.ph));
+        bgx.globalAlpha = Math.min(1, b.a * tw * b.lvl * weight);
+        bgx.drawImage(SPR[b.col], b.x * BW - R, b.y * BH - R, R * 2, R * 2);
+      }
+    };
+    drawSet(CITY, 1 - sceneMix);
+    drawSet(FOREST, sceneMix);
+    flash = 0;
+    for (const p of pulses) if (simT >= p.t) flash += p.a * Math.exp(-(simT - p.t) * 8);
+    if (flash > .01) {
+      bgx.globalAlpha = Math.min(1, flash * .55);
+      bgx.fillStyle = flashGrad;
+      bgx.fillRect(0, 0, BW, BH);
+      bgx.globalAlpha = Math.min(1, flash * .5);
+      const R = BH * .9;
+      const g = bgx.createRadialGradient(boltX * BW, 0, 0, boltX * BW, 0, R);
+      g.addColorStop(0, 'rgba(200,215,255,.8)'); g.addColorStop(1, 'rgba(200,215,255,0)');
+      bgx.fillStyle = g; bgx.fillRect(0, 0, BW, BH);
+    }
+    bgx.globalAlpha = 1;
+    bgx.globalCompositeOperation = 'source-over';
+  }
+  function renderFog(dt) {
+    fmx.globalCompositeOperation = 'source-over';
+    fmx.fillStyle = 'rgba(0,0,0,' + Math.min(1, dt * .06).toFixed(5) + ')';
+    fmx.fillRect(0, 0, FW, FH);
+    tnx.globalCompositeOperation = 'copy';
+    tnx.drawImage(bg, 0, 0, BW, BH, 0, 0, tiny.width, tiny.height);
+    fbx.globalCompositeOperation = 'copy';
+    fbx.globalAlpha = 1;
+    fbx.drawImage(tiny, 0, 0, tiny.width, tiny.height, 0, 0, FW, FH);
+    fbx.globalCompositeOperation = 'lighter';
+    fbx.globalAlpha = .55;
+    fbx.drawImage(tiny, 0, 0, tiny.width, tiny.height, -FW * .03, -FH * .03, FW * 1.06, FH * 1.06);
+    fbx.globalCompositeOperation = 'source-over';
+    fbx.globalAlpha = 1;
+    fbx.fillStyle = hazeGrad;
+    fbx.fillRect(0, 0, FW, FH);
+    if (noisePat) { fbx.globalAlpha = .45; fbx.fillStyle = noisePat; fbx.fillRect(0, 0, FW, FH); fbx.globalAlpha = 1; }
+    fcx.globalCompositeOperation = 'copy';
+    fcx.drawImage(fogBg, 0, 0);
+    fcx.globalCompositeOperation = 'destination-in';
+    fcx.drawImage(fogMask, 0, 0);
+    fcx.globalCompositeOperation = 'source-over';
+  }
+  const pm = (typeof DOMMatrix !== 'undefined') ? new DOMMatrix() : null;
+  const K = .62;
+  function renderView(dt) {
+    bdx.setTransform(1, 0, 0, 1, 0, 0);
+    bdx.globalCompositeOperation = 'destination-out';
+    bdx.fillStyle = 'rgba(0,0,0,' + Math.min(1, dt * .035).toFixed(5) + ')';
+    bdx.fillRect(0, 0, beads.width, beads.height);
+    bdx.globalCompositeOperation = 'source-over';
+
+    vx.setTransform(1, 0, 0, 1, 0, 0);
+    vx.globalCompositeOperation = 'source-over';
+    vx.globalAlpha = 1;
+    vx.imageSmoothingEnabled = true;
+    vx.imageSmoothingQuality = 'high';
+    vx.drawImage(bg, 0, 0, BW, BH, 0, 0, view.width, view.height);
+    vx.globalAlpha = .93;
+    vx.drawImage(fogComp, 0, 0, FW, FH, 0, 0, view.width, view.height);
+    vx.globalAlpha = 1;
+    vx.drawImage(beads, 0, 0);
+
+    vx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const pat = pm ? vx.createPattern(bg, 'repeat') : null;
+    const inv = 1 / K;
+    for (let i = 0; i < drops.length; i++) {
+      const d = drops[i];
+      const stretch = d.moving ? Math.min(1.22, 1 + d.vy / 900) : 1;
+      const rx = d.r / Math.sqrt(stretch), ry = d.r * stretch;
+      if (pat && d.r > 2) {
+        pm.a = -BGS * inv; pm.b = 0; pm.c = 0; pm.d = -BGS * inv / stretch;
+        pm.e = d.x * (1 + inv); pm.f = d.y * (1 + inv / stretch);
+        pat.setTransform(pm);
+        vx.fillStyle = pat;
+        vx.beginPath();
+        vx.ellipse(d.x, d.y, rx, ry, 0, 0, 6.2832);
+        vx.fill();
+      }
+      vx.drawImage(dropSprite, d.x - rx, d.y - ry, rx * 2, ry * 2);
+    }
+  }
+
+  /* ── sizing ── */
+  let oldW = 0, oldH = 0;
+  function resize() {
+    const nW = innerWidth, nH = innerHeight;
+    const keep = FW > 2 ? mk(FW, FH) : null;
+    if (keep) keep.getContext('2d').drawImage(fogMask, 0, 0);
+    W = nW; H = nH;
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    view.width = Math.round(W * DPR); view.height = Math.round(H * DPR);
+    BW = Math.ceil(W / BGS); BH = Math.ceil(H / BGS);
+    bg.width = BW; bg.height = BH;
+    FW = Math.ceil(W / FOGS); FH = Math.ceil(H / FOGS);
+    fogBg.width = FW; fogBg.height = FH;
+    fogComp.width = FW; fogComp.height = FH;
+    fogMask.width = FW; fogMask.height = FH;
+    tiny.width = Math.max(8, Math.ceil(W / 26)); tiny.height = Math.max(8, Math.ceil(H / 26));
+    beads.width = view.width; beads.height = view.height;
+    paintBase(baseCity, 'city');
+    paintBase(baseForest, 'forest');
+    flashGrad = bgx.createLinearGradient(0, 0, 0, BH);
+    flashGrad.addColorStop(0, 'rgba(190,205,255,1)');
+    flashGrad.addColorStop(.6, 'rgba(150,160,210,.35)');
+    flashGrad.addColorStop(1, 'rgba(120,120,170,.1)');
+    hazeGrad = fbx.createLinearGradient(0, 0, 0, FH);
+    hazeGrad.addColorStop(0, 'rgba(120,135,170,.13)');
+    hazeGrad.addColorStop(1, 'rgba(150,130,140,.1)');
+    noisePat = fbx.createPattern(noiseTile, 'repeat');
+    if (keep) {
+      fmx.drawImage(keep, 0, 0, keep.width, keep.height, 0, 0, FW, FH);
+    } else {
+      fmx.fillStyle = 'rgba(0,0,0,.94)';
+      fmx.fillRect(0, 0, FW, FH);
+    }
+    if (oldW) {
+      const sx = W / oldW, sy = H / oldH;
+      for (const d of drops) { d.x *= sx; d.y *= sy; }
+    }
+    oldW = W; oldH = H;
+    sprinkleBeads(Math.round(W * H / 520));
+  }
+
+  /* ── first frame: pre-wiped swoosh + a few seconds of rain ── */
+  function seed() {
+    const r = brushR() * 1.05;
+    const narrow = W < 720;
+    const passes = narrow
+      ? [[.06, .44, .94, .5], [.9, .56, .1, .6]]
+      : [[.12, .5, .88, .47], [.84, .56, .2, .6]];
+    passes.forEach((p, k) => {
+      const pts = 70;
+      let px = W * p[0], py = H * p[1];
+      for (let i = 1; i <= pts; i++) {
+        const u = i / pts;
+        const x = W * (p[0] + (p[2] - p[0]) * u);
+        const y = H * (p[1] + (p[3] - p[1]) * u + .025 * Math.sin(u * Math.PI * 2 + k));
+        const taper = Math.sin(Math.min(1, u * 1.15 + .08) * Math.PI) * .35 + .65;
+        wipeLine(px, py, x, y, r * taper);
+        px = x; py = y;
+      }
+    });
+    const area = W * H / 1e6;
+    for (let i = 0; i < 130 * area + 30; i++) {
+      const rr = 1.8 + Math.pow(Math.random(), 2.8) * 8.5;
+      spawnDrop(Math.random() * W, Math.random() * H, rr, false);
+    }
+    for (let i = 0; i < 70; i++) { simT += 1 / 60; addRain(1 / 60); updateDrops(1 / 60); }
+  }
+
+  /* ── controls ── */
+  const rain = $('#rain'), rainOut = $('#rainOut');
+  function setRain() {
+    intensity = rain.value / 100;
+    rainOut.textContent = rain.value;
+    rain.setAttribute('aria-valuetext', rain.value + ' percent');
+    rain.style.setProperty('--fill', rain.value + '%');
+    if (rainGain && actx) {
+      rainGain.gain.setTargetAtTime(.05 + .5 * intensity, actx.currentTime, .3);
+      bodyGain.gain.setTargetAtTime(.04 + .28 * intensity, actx.currentTime, .3);
+    }
+  }
+  rain.addEventListener('input', setRain);
+  setRain();
+
+  const sceneEl = $('#scene'), place = $('#capPlace');
+  const PLACE = { city: 'The city is still awake.', forest: 'The forest is still listening.' };
+  sceneEl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    const s = b.dataset.scene;
+    if (sceneEl.dataset.scene === s) return;
+    sceneEl.dataset.scene = s;
+    sceneTarget = s === 'forest' ? 1 : 0;
+    sceneEl.querySelectorAll('button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    place.classList.add('swap');
+    setTimeout(() => { place.textContent = PLACE[s]; place.classList.remove('swap'); }, reduced ? 0 : 450);
+    view.setAttribute('aria-label', s === 'forest'
+      ? 'Rain running down a fogged window at night, with blurred green forest lights behind the glass'
+      : 'Rain running down a fogged window at night, with blurred city lights behind the glass');
+  }));
+
+  const capTime = $('#capTime'), clockDate = $('#clockDate');
+  function tick() {
+    const d = new Date();
+    capTime.textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    clockDate.textContent = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+  tick();
+  setInterval(tick, 10000);
+
+  const hint = $('#hint');
+  let hinted = false;
+  const dismissHint = () => { if (!hinted) { hinted = true; hint.classList.add('gone'); } };
+  setTimeout(dismissHint, 9000);
+
+  /* pointer wiping */
+  const brush = $('#brush');
+  let wiping = null;
+  view.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    wiping = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    try { view.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    wipe(e.clientX, e.clientY, brushR());
+    brush.classList.add('down');
+    dismissHint();
+  });
+  view.addEventListener('pointermove', e => {
+    if (e.pointerType === 'mouse') {
+      brush.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+      brush.classList.add('on');
+    }
+    if (!wiping || wiping.id !== e.pointerId) return;
+    wipeLine(wiping.x, wiping.y, e.clientX, e.clientY, brushR());
+    wiping.x = e.clientX; wiping.y = e.clientY;
+  });
+  const endWipe = e => { if (wiping && wiping.id === e.pointerId) wiping = null; brush.classList.remove('down'); };
+  view.addEventListener('pointerup', endWipe);
+  view.addEventListener('pointercancel', endWipe);
+  view.addEventListener('pointerleave', () => brush.classList.remove('on'));
+  view.addEventListener('dblclick', e => {
+    fmx.globalCompositeOperation = 'source-over';
+    const r = brushR() * 1.8 / FOGS;
+    for (let i = 0; i < 3; i++) fmx.drawImage(brushSprite, e.clientX / FOGS - r, e.clientY / FOGS - r, r * 2, r * 2);
+  });
+
+  /* wipe button: an animated sweep for keyboard and touch users */
+  let sweep = null;
+  $('#wipe').addEventListener('click', () => {
+    sweep = { t: 0, dur: reduced ? .01 : 1.1, lx: null, ly: null, dir: Math.random() < .5 ? 1 : -1, y0: .3 + Math.random() * .35 };
+    dismissHint();
+  });
+  function runSweep(dt) {
+    if (!sweep) return;
+    sweep.t += dt;
+    const p = Math.min(1, sweep.t / sweep.dur);
+    const e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+    const u = sweep.dir > 0 ? e : 1 - e;
+    const x = W * (-.05 + 1.1 * u), y = H * (sweep.y0 + .1 * Math.sin(u * Math.PI));
+    const r = brushR() * 1.35;
+    if (sweep.lx == null) wipe(x, y, r); else wipeLine(sweep.lx, sweep.ly, x, y, r);
+    sweep.lx = x; sweep.ly = y;
+    if (p >= 1) sweep = null;
+  }
+
+  /* ── sound: filtered noise + droplet ticks + distant thunder ── */
+  const soundBtn = $('#sound');
+  function initAudio() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    actx = new AC();
+    master = actx.createGain();
+    master.gain.value = 0;
+    const comp = actx.createDynamicsCompressor();
+    master.connect(comp).connect(actx.destination);
+    const len = actx.sampleRate * 3;
+    noiseBuf = actx.createBuffer(2, len, actx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = noiseBuf.getChannelData(ch);
+      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    }
+    const hiss = actx.createBufferSource(); hiss.buffer = noiseBuf; hiss.loop = true;
+    const hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 500;
+    const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6500;
+    rainGain = actx.createGain(); rainGain.gain.value = .05 + .5 * intensity;
+    hiss.connect(hp).connect(lp).connect(rainGain).connect(master);
+    const body = actx.createBufferSource(); body.buffer = noiseBuf; body.loop = true;
+    const blp = actx.createBiquadFilter(); blp.type = 'lowpass'; blp.frequency.value = 380;
+    bodyGain = actx.createGain(); bodyGain.gain.value = .04 + .28 * intensity;
+    body.connect(blp).connect(bodyGain).connect(master);
+    hiss.start(); body.start(0, 1.37);
+    return true;
+  }
+  function plink(when) {
+    const o = actx.createOscillator(), g = actx.createGain();
+    const pan = actx.createStereoPanner ? actx.createStereoPanner() : null;
+    const f = 1500 + Math.random() * 3600;
+    o.type = 'sine';
+    o.frequency.setValueAtTime(f, when);
+    o.frequency.exponentialRampToValueAtTime(f * .55, when + .05);
+    const v = .012 + Math.random() * .03;
+    g.gain.setValueAtTime(.0001, when);
+    g.gain.exponentialRampToValueAtTime(v, when + .003);
+    g.gain.exponentialRampToValueAtTime(.0001, when + .03 + Math.random() * .05);
+    if (pan) { pan.pan.value = Math.random() * 1.6 - .8; o.connect(g).connect(pan).connect(master); } else o.connect(g).connect(master);
+    o.start(when); o.stop(when + .12);
+  }
+  function tap(when) {
+    const s = actx.createBufferSource(); s.buffer = noiseBuf;
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2000 + Math.random() * 4000; bp.Q.value = 3;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(.0001, when);
+    g.gain.exponentialRampToValueAtTime(.05 + Math.random() * .06, when + .002);
+    g.gain.exponentialRampToValueAtTime(.0001, when + .025);
+    s.connect(bp).connect(g).connect(master);
+    s.start(when, Math.random() * 2, .05);
+  }
+  function scheduleTicks() {
+    if (!actx || !soundOn) return;
+    const now = actx.currentTime;
+    const rate = 4 + 38 * intensity;
+    let t = 0;
+    while (true) {
+      t += -Math.log(1 - Math.random()) / rate;
+      if (t > .1) break;
+      if (Math.random() < .45) plink(now + .05 + t); else tap(now + .05 + t);
+    }
+  }
+  function thunder(delay, strength) {
+    if (!actx || !soundOn) return;
+    const when = actx.currentTime + delay;
+    const s = actx.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+    const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(260, when); lp.frequency.exponentialRampToValueAtTime(90, when + 5);
+    const g = actx.createGain();
+    g.gain.setValueAtTime(.0001, when);
+    g.gain.exponentialRampToValueAtTime(.55 * strength, when + .35);
+    g.gain.setTargetAtTime(.3 * strength, when + .6, .4);
+    g.gain.exponentialRampToValueAtTime(.0001, when + 5.5);
+    s.connect(lp).connect(g).connect(master);
+    s.start(when); s.stop(when + 6);
+  }
+  soundBtn.addEventListener('click', () => {
+    if (!actx && !initAudio()) return;
+    if (actx.state === 'suspended') actx.resume();
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    master.gain.setTargetAtTime(soundOn ? .85 : 0, actx.currentTime, .4);
+    clearInterval(tickTimer);
+    if (soundOn) tickTimer = setInterval(scheduleTicks, 100);
+  });
+
+  /* ── loop ── */
+  let raf = 0, last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    simT += dt;
+    sceneMix += (sceneTarget - sceneMix) * Math.min(1, dt * (reduced ? 6 : 1.6));
+    if (!reduced) {
+      nextBolt -= dt;
+      if (nextBolt <= 0) { nextBolt = 14 + Math.random() * 26; lightning(); }
+    }
+    addRain(dt);
+    updateDrops(dt);
+    runSweep(dt);
+    renderBackground(dt);
+    renderFog(dt);
+    renderView(dt);
+    raf = requestAnimationFrame(frame);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      cancelAnimationFrame(raf); raf = 0;
+      if (actx && soundOn) actx.suspend();
+    } else {
+      if (actx && soundOn) actx.resume();
+      if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+    }
+  });
+  let rsT = 0;
+  addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(resize, 80); });
+
+  resize();
+  seed();  raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

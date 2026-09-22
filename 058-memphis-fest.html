@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RADICAL SHAPES — Milano Design Fest '86</title>
+<meta name="description" content="RADICAL SHAPES, the fictional Milano Design Fest '86: a Memphis-inspired festival of loud laminates, totem lamps and furniture that refuses to behave. Countdown, lineup, schedule, venue map and tickets.">
+<meta name="theme-color" content="#ffd23f">
+<style>
+:root{
+  --ink:#111;
+  --pink:#ff90b3;
+  --teal:#2ec4b6;
+  --yellow:#ffd23f;
+  --lilac:#b388eb;
+  --red:#ef476f;
+  --paper:#ffffff;
+  /* pattern inks (rotated by the shuffler) */
+  --pa:#111;--pb:#ff90b3;--pc:#2ec4b6;--pd:#ffd23f;--pe:#b388eb;--pf:#ef476f;
+  --geo:"Futura","Futura PT","Century Gothic","URW Gothic","Avant Garde","Avenir Next","Trebuchet MS",sans-serif;
+  --body:"Avenir Next","Avenir","Segoe UI","Helvetica Neue","Nimbus Sans",Arial,sans-serif;
+  --mono:"Menlo","Consolas","DejaVu Sans Mono","Nimbus Mono PS","Courier New",monospace;
+  --gut:clamp(16px,4vw,56px);
+  --max:1240px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;overflow-x:hidden}
+a{color:inherit}
+img,svg{display:block}
+.wrap{width:100%;max-width:var(--max);margin:0 auto;padding:0 var(--gut)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+:focus-visible{outline:3px dashed var(--ink);outline-offset:4px}
+.pat{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.pat rect{transition:opacity .25s ease}
+.shuffling .pat rect{opacity:0}
+
+/* pattern inks */
+.pa{fill:var(--pa)}.pb{fill:var(--pb)}.pc{fill:var(--pc)}.pd{fill:var(--pd)}.pe{fill:var(--pe)}.pf{fill:var(--pf)}
+.sa{fill:none;stroke:var(--pa)}.sb{fill:none;stroke:var(--pb)}.sc{fill:none;stroke:var(--pc)}.sd{fill:none;stroke:var(--pd)}.se{fill:none;stroke:var(--pe)}.sf{fill:none;stroke:var(--pf)}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border:3px solid var(--ink);border-radius:0;background:var(--pink);color:var(--ink);
+  font-family:var(--geo);font-weight:800;font-size:17px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:pointer;
+  box-shadow:6px 6px 0 var(--ink);transition:transform .15s ease,box-shadow .15s ease,background-color .2s ease}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
+.btn:active{transform:translate(4px,4px);box-shadow:2px 2px 0 var(--ink)}
+.btn.y{background:var(--yellow)}.btn.t{background:var(--teal)}.btn.l{background:var(--lilac)}.btn.w{background:#fff}
+.btn svg{width:20px;height:20px}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:0;z-index:50;background:#fff;border-bottom:3px solid var(--ink)}
+.nav .wrap{display:flex;align-items:center;gap:18px;height:66px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--geo);font-weight:800;font-size:18px;letter-spacing:.04em;white-space:nowrap}
+.brand svg{width:38px;height:38px}
+.nav ul{display:flex;gap:4px;margin:0 0 0 auto;padding:0;list-style:none}
+.nav ul a{display:block;padding:8px 12px;font-family:var(--geo);font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;border:2px solid transparent}
+.nav ul a:hover{border-color:var(--ink);background:var(--yellow)}
+.shuffle{padding:9px 14px;font-size:14px;box-shadow:4px 4px 0 var(--ink);background:var(--teal)}
+.shuffle:hover{box-shadow:6px 6px 0 var(--ink)}
+.shuffle svg{transition:transform .5s cubic-bezier(.3,1.6,.5,1)}
+.shuffle.spin svg{transform:rotate(360deg)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;min-height:calc(100vh - 66px);min-height:calc(100svh - 66px);border-bottom:3px solid var(--ink);cursor:crosshair;
+  background-color:#fff;background-image:linear-gradient(rgba(17,17,17,.07) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(17,17,17,.07) 1.5px,transparent 1.5px);background-size:48px 48px}
+.hero-grid{position:relative;z-index:3;display:grid;grid-template-columns:repeat(12,1fr);gap:0 20px;align-items:center;min-height:inherit;padding-top:clamp(40px,7vh,90px);padding-bottom:clamp(60px,9vh,110px);pointer-events:none}
+.hero-grid a,.hero-grid button,.hero-grid .word i{pointer-events:auto}
+.block{position:absolute;z-index:1;overflow:hidden;border:3px solid var(--ink)}
+.block.b1{left:3%;top:14%;width:56%;height:62%;background:#fff6d6;transform:rotate(-4deg);box-shadow:14px 14px 0 var(--ink)}
+.block.b2{right:-6vw;top:-14vw;width:34vw;height:34vw;border-radius:50%;background:var(--teal)}
+.block.b3{left:-2%;right:-2%;bottom:-3px;height:46px;background:#fff;border-width:3px 0 0}
+.shapes{position:absolute;inset:0;z-index:2;pointer-events:none}
+.shape{position:absolute;left:0;top:0;will-change:transform}
+.shape svg{overflow:visible}
+.shape.pop>svg{animation:popIn .55s cubic-bezier(.3,1.7,.5,1) both}
+.shape.bye>svg{animation:popOut .35s ease-in both}
+@keyframes popIn{from{transform:scale(0) rotate(-40deg)}to{transform:none}}
+@keyframes popOut{to{transform:scale(0) rotate(40deg);opacity:0}}
+.confetti{position:absolute;z-index:4;width:10px;height:10px;pointer-events:none;animation:conf .7s cubic-bezier(.2,.7,.4,1) forwards}
+@keyframes conf{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+
+.title-wrap{grid-column:1 / span 8;position:relative;transform:rotate(-4deg);padding-left:clamp(10px,3vw,40px)}
+.title{margin:0;font-family:var(--geo);font-weight:900;text-transform:uppercase;line-height:.84;letter-spacing:-.015em;font-size:clamp(62px,11.4vw,176px)}
+.word{display:block;white-space:nowrap}
+.word i{display:inline-block;font-style:normal;-webkit-text-stroke:.045em var(--ink);paint-order:stroke fill;transition:transform .25s cubic-bezier(.3,1.8,.5,1)}
+.word i:hover{transform:translateY(-.08em) rotate(-7deg)}
+.w1 i{color:var(--pink);text-shadow:.05em .05em 0 var(--teal),.1em .1em 0 var(--ink)}
+.w2{margin-left:.55em}
+.w2 i{color:var(--yellow);text-shadow:.05em .05em 0 var(--red),.1em .1em 0 var(--ink)}
+.w1 i:nth-child(3n+2){transform:translateY(.03em) rotate(3deg)}
+.w2 i:nth-child(2n){transform:translateY(-.03em) rotate(-3deg)}
+.ribbon{display:inline-flex;align-items:center;gap:12px;margin:clamp(22px,3vw,38px) 0 0 clamp(0px,6vw,90px);padding:10px 20px 11px;background:var(--ink);color:var(--yellow);transform:rotate(3deg);
+  font-family:var(--geo);font-weight:800;font-size:clamp(17px,2vw,28px);letter-spacing:.08em;text-transform:uppercase;box-shadow:8px 8px 0 var(--lilac)}
+.ribbon b{color:var(--pink);font-weight:900}
+.ribbon svg{width:28px;height:28px}
+.info{grid-column:9 / span 4;position:relative;padding:22px 22px 24px;background:#fff;border:3px solid var(--ink);box-shadow:10px 10px 0 var(--red);transform:rotate(2deg);pointer-events:auto;cursor:default}
+.info .dates{margin:0;font-family:var(--geo);font-weight:900;font-size:clamp(34px,3.6vw,52px);line-height:.95;letter-spacing:-.01em}
+.info .dates span{color:var(--red)}
+.info .where{margin:10px 0 0;font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.info p.lede{margin:14px 0 18px;font-size:16px;line-height:1.5}
+.info .ctas{display:flex;flex-wrap:wrap;gap:14px}
+.info .tape{position:absolute;left:50%;top:-16px;width:110px;height:28px;margin-left:-55px;background:rgba(255,210,63,.85);border:2px solid var(--ink);transform:rotate(-6deg)}
+.hint{position:absolute;z-index:4;left:var(--gut);bottom:62px;margin:0;padding:6px 10px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:#fff;border:2px solid var(--ink);pointer-events:none}
+
+/* ---------- section scaffolding ---------- */
+section.band{position:relative;border-bottom:3px solid var(--ink)}
+.sec-head{display:grid;grid-template-columns:repeat(12,1fr);gap:20px;align-items:end;margin-bottom:clamp(28px,4vw,54px)}
+.sec-head h2{grid-column:1 / span 7;margin:0;font-family:var(--geo);font-weight:900;font-size:clamp(40px,6.4vw,92px);line-height:.9;letter-spacing:-.01em;text-transform:uppercase}
+.sec-head h2 em{font-style:normal;-webkit-text-stroke:.04em var(--ink);paint-order:stroke fill;color:var(--c,var(--pink));text-shadow:.06em .06em 0 var(--ink)}
+.sec-head p{grid-column:8 / span 5;margin:0;font-size:17px}
+.kicker{display:inline-block;margin-bottom:14px;padding:4px 10px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;background:var(--ink);color:#fff}
+.teeth{position:absolute;left:0;width:100%;height:18px;pointer-events:none}
+.teeth.top{top:-18px}.teeth.bot{bottom:-18px;transform:scaleY(-1)}
+
+/* ---------- countdown ---------- */
+.count{background:var(--ink);color:#fff;padding:clamp(56px,8vw,110px) 0;margin-top:18px}
+.count .sec-head h2{color:#fff}
+.count .sec-head p{color:#e9e2ff}
+.clock{display:flex;flex-wrap:wrap;gap:clamp(14px,2.4vw,34px);align-items:flex-start}
+.unit{display:flex;flex-direction:column;gap:12px}
+.unit .digits{display:flex;gap:8px}
+.unit .ulabel{font-family:var(--mono);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--yellow)}
+.sep{align-self:center;margin-top:-24px;font-family:var(--geo);font-weight:900;font-size:clamp(40px,6vw,80px);color:var(--pink)}
+.flip{position:relative;display:block;width:clamp(40px,5.9vw,90px);height:clamp(58px,8.3vw,126px);perspective:600px;font-family:var(--geo);font-weight:900;font-size:clamp(42px,6.4vw,98px);line-height:1;color:var(--ink);
+  filter:drop-shadow(6px 6px 0 var(--pink))}
+.flip .half,.flip .face{position:absolute;left:0;right:0;height:50%;overflow:hidden;background:var(--yellow);border:3px solid var(--ink)}
+.flip .top,.flip .front{top:0;border-bottom-width:1.5px;border-radius:10px 10px 0 0}
+.flip .bottom,.flip .back{bottom:0;border-top-width:1.5px;border-radius:0 0 10px 10px;background:#ffe27d}
+.flip .half span,.flip .face span{position:absolute;left:0;right:0;height:200%;display:flex;align-items:center;justify-content:center}
+.flip .top span,.flip .front span{top:0}
+.flip .bottom span,.flip .back span{bottom:0}
+.flip .leaf{position:absolute;left:0;right:0;top:0;height:50%;transform-origin:50% 100%;transform-style:preserve-3d;z-index:2;visibility:hidden}
+.flip .leaf .face{height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flip .leaf .back{top:0;bottom:auto;transform:rotateX(180deg)}
+.flip.go .leaf{visibility:visible;animation:leaf .62s cubic-bezier(.45,.05,.55,.95) forwards}
+@keyframes leaf{from{transform:rotateX(0)}to{transform:rotateX(-180deg)}}
+.flip::after{content:"";position:absolute;left:-5px;right:-5px;top:50%;height:3px;margin-top:-1.5px;background:var(--ink);z-index:3}
+.opens{margin:clamp(26px,4vw,40px) 0 0;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;font-family:var(--mono);font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:#d8cff5}
+.opens strong{color:#fff;font-weight:700}
+.count .deco{position:absolute;right:var(--gut);top:clamp(40px,6vw,80px);width:clamp(90px,14vw,190px)}
+
+/* ---------- lineup ---------- */
+.lineup{padding:clamp(64px,7vw,104px) 0;background:#fff}
+.lineup .bg{position:absolute;inset:0;opacity:.18}
+.cards{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(22px,3vw,40px)}
+.card{position:relative;display:flex;flex-direction:column;background:#fff;border:3px solid var(--ink);box-shadow:10px 10px 0 var(--sh,var(--ink));transform:rotate(var(--rot,0deg));transition:box-shadow .2s ease}
+.card:hover,.card:focus-within{animation:wobble .7s cubic-bezier(.36,.07,.19,.97) both;box-shadow:14px 14px 0 var(--sh,var(--ink))}
+@keyframes wobble{0%{transform:rotate(var(--rot,0deg))}18%{transform:rotate(calc(var(--rot,0deg) - 3.5deg)) translateY(-6px)}36%{transform:rotate(calc(var(--rot,0deg) + 3deg)) translateY(-8px)}54%{transform:rotate(calc(var(--rot,0deg) - 2deg)) translateY(-6px)}72%{transform:rotate(calc(var(--rot,0deg) + 1deg)) translateY(-5px)}100%{transform:rotate(var(--rot,0deg)) translateY(-5px)}}
+.card .head{position:relative;height:150px;border-bottom:3px solid var(--ink);background:var(--hb,var(--yellow))}
+.card .avatar{position:absolute;left:18px;bottom:-40px;width:104px;height:104px;z-index:2}
+.card .num{position:absolute;right:12px;top:10px;z-index:2;padding:2px 8px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;background:#fff;border:2px solid var(--ink)}
+.card .body{padding:52px 20px 22px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card h3{margin:0;font-family:var(--geo);font-weight:900;font-size:27px;line-height:1.05;letter-spacing:-.005em}
+.tag{align-self:flex-start;padding:3px 9px;font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;border:2px solid var(--ink);background:var(--tb,var(--pink))}
+.card blockquote{margin:6px 0 0;font-size:16px;line-height:1.45}
+.card .slot{margin-top:auto;padding-top:12px;border-top:2px dashed var(--ink);font-family:var(--mono);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+.fine{margin:clamp(28px,4vw,44px) 0 0;font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+
+/* ---------- schedule ---------- */
+.sched{padding:clamp(64px,7vw,104px) 0;background:var(--lilac)}
+.sched .bg{position:absolute;inset:0;opacity:.22}
+.sched-grid{position:relative;display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+.sched-side{grid-column:1 / span 4;align-self:start;position:sticky;top:96px}
+.day-theme{margin:0;padding:20px;background:#fff;border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink)}
+.day-theme b{display:block;font-family:var(--geo);font-weight:900;font-size:34px;line-height:1;text-transform:uppercase}
+.day-theme span{display:block;margin-top:8px;font-size:15px}
+.day-theme svg{width:100%;height:auto;margin-top:14px}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.tab{padding:8px 12px;border:3px solid var(--ink);background:#fff;cursor:pointer;font-family:var(--geo);font-weight:800;font-size:15px;letter-spacing:.06em;text-transform:uppercase;box-shadow:4px 4px 0 var(--ink);transition:transform .15s ease,box-shadow .15s ease,background-color .2s ease}
+.tab small{display:block;font-family:var(--mono);font-weight:400;font-size:11px;letter-spacing:.1em}
+.tab:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+.tab[aria-selected="true"]{background:var(--yellow);transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.sched-main{grid-column:5 / span 8}
+.timeline{position:relative;margin:0;padding:0 0 0 40px;list-style:none}
+.timeline::before{content:"";position:absolute;left:12px;top:6px;bottom:6px;width:4px;background:var(--ink)}
+.ev{position:relative;display:grid;grid-template-columns:92px 1fr;gap:18px;margin-bottom:16px;padding:16px 18px;background:#fff;border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);animation:evIn .45s cubic-bezier(.3,1.5,.5,1) both}
+.ev::before{content:"";position:absolute;left:-38px;top:20px;width:18px;height:18px;background:var(--dot,var(--pink));border:3px solid var(--ink);border-radius:var(--dr,50%);transform:rotate(var(--dt,0deg))}
+@keyframes evIn{from{opacity:0;transform:translateX(24px) rotate(1.5deg)}}
+.ev time{font-family:var(--geo);font-weight:900;font-size:26px;line-height:1}
+.ev h3{margin:0 0 6px;font-family:var(--geo);font-weight:800;font-size:20px;line-height:1.15}
+.ev p{margin:0;font-size:15px}
+.ev .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pill{padding:2px 8px;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;border:2px solid var(--ink);background:var(--pc2,#fff)}
+
+/* ---------- map ---------- */
+.mapsec{padding:clamp(64px,7vw,104px) 0;background:var(--teal)}
+.map-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px;align-items:start}
+.map-box{grid-column:1 / span 8;position:relative;background:#fff;border:3px solid var(--ink);box-shadow:12px 12px 0 var(--ink)}
+.map-box svg{width:100%;height:auto}
+.venue{cursor:pointer;outline:none}
+.venue .lift{transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.venue:hover .lift,.venue:focus-visible .lift,.venue.sel .lift{transform:translate(-4px,-5px)}
+.venue:focus-visible .ring,.venue.sel .ring{opacity:1}
+.venue .ring{opacity:0;fill:none;stroke:var(--ink);stroke-width:3;stroke-dasharray:8 6;transition:opacity .2s}
+.map-label{font-family:var(--geo);font-weight:800;font-size:17px;letter-spacing:.04em;text-transform:uppercase;paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round}
+.map-small{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.map-info{grid-column:9 / span 4;position:sticky;top:96px;padding:22px;background:#fff;border:3px solid var(--ink);box-shadow:10px 10px 0 var(--pink)}
+.map-info h3{margin:6px 0 8px;font-family:var(--geo);font-weight:900;font-size:30px;line-height:1;text-transform:uppercase}
+.map-info p{margin:0 0 12px;font-size:15.5px}
+.map-info ul{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-family:var(--mono);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+.map-info li::before{content:"▲ ";color:var(--red)}
+.swatch{display:inline-block;width:22px;height:22px;vertical-align:-5px;margin-right:8px;border:3px solid var(--ink);background:var(--sw,var(--pink))}
+
+/* ---------- tickets ---------- */
+.tix{padding:clamp(64px,7vw,104px) 0;background:var(--pink)}
+.tix .bg{position:absolute;inset:0;opacity:.35}
+.tickets{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(22px,3vw,40px);align-items:center}
+.ticket{position:relative;display:flex;flex-direction:column;background:#fff;border:3px solid var(--ink);box-shadow:10px 10px 0 var(--ink);transform:rotate(var(--rot,0deg));transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
+.ticket:hover{transform:rotate(0deg) translateY(-6px)}
+.ticket.star{--rot:0deg;transform:scale(1.04)}
+.ticket.star:hover{transform:scale(1.06) translateY(-6px)}
+.ticket .stub{position:relative;height:92px;border-bottom:3px dashed var(--ink);overflow:hidden;background:var(--sb,var(--yellow))}
+.ticket .stub .tier{position:absolute;left:16px;bottom:12px;z-index:2;padding:4px 10px;background:#fff;border:3px solid var(--ink);font-family:var(--geo);font-weight:900;font-size:20px;letter-spacing:.06em;text-transform:uppercase}
+.ticket .notch{position:absolute;top:81px;width:24px;height:24px;border-radius:50%;background:var(--pink);border:3px solid var(--ink);z-index:3}
+.ticket .notch.l{left:-14px;clip-path:inset(0 0 0 50%)}.ticket .notch.r{right:-14px;clip-path:inset(0 50% 0 0)}
+.ticket .tb{padding:22px 22px 24px;display:flex;flex-direction:column;gap:12px;flex:1}
+.price{margin:0;font-family:var(--geo);font-weight:900;font-size:62px;line-height:.9;letter-spacing:-.02em}
+.price sup{font-size:.42em;vertical-align:.95em;margin-right:2px}
+.price small{font-family:var(--mono);font-weight:400;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-left:6px}
+.ticket ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:15.5px}
+.ticket li{display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:start}
+.ticket li::before{content:"";width:12px;height:12px;margin-top:6px;background:var(--lb,var(--teal));border:2px solid var(--ink);transform:rotate(45deg)}
+.ticket .btn{margin-top:auto;justify-content:center}
+.badge{position:absolute;right:-18px;top:-22px;z-index:4;display:grid;place-items:center;width:92px;height:92px;border-radius:50%;background:var(--red);color:#fff;border:3px solid var(--ink);font-family:var(--geo);font-weight:900;font-size:14px;line-height:1.05;text-align:center;text-transform:uppercase;transform:rotate(14deg);box-shadow:4px 4px 0 var(--ink)}
+
+/* ---------- footer ---------- */
+footer{position:relative;background:var(--ink);color:#fff;padding:56px 0 40px;overflow:hidden}
+footer .strip{position:absolute;left:0;right:0;top:0;height:34px;background:#fff}
+footer .wrap{position:relative;display:grid;grid-template-columns:repeat(12,1fr);gap:20px;padding-top:24px}
+footer .big{grid-column:1 / span 7;margin:0;font-family:var(--geo);font-weight:900;font-size:clamp(40px,6vw,84px);line-height:.9;text-transform:uppercase;color:var(--yellow);text-shadow:.05em .05em 0 var(--red)}
+footer .small{grid-column:8 / span 5;margin:0;font-size:15px;color:#ddd}
+footer .small a{color:var(--pink)}
+
+.toast{position:fixed;left:50%;bottom:24px;z-index:80;max-width:min(92vw,520px);padding:14px 18px;background:var(--yellow);border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);font-family:var(--geo);font-weight:700;font-size:16px;transform:translate(-50%,160%) rotate(-2deg);transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
+.toast.on{transform:translate(-50%,0) rotate(-2deg)}
+
+.reveal{opacity:0;transform:translateY(34px) rotate(1.5deg);transition:opacity .6s ease,transform .7s cubic-bezier(.3,1.4,.5,1)}
+.reveal.in{opacity:1;transform:none}
+.card.reveal.in{transform:rotate(var(--rot,0deg))}
+.ticket.reveal.in{transform:rotate(var(--rot,0deg))}
+.ticket.star.reveal.in{transform:scale(1.04)}
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+
+/* ---------- responsive ---------- */
+@media (max-width:1020px){
+  .nav ul{display:none}
+  .nav .shuffle{margin-left:auto}
+  .title-wrap{grid-column:1 / -1}
+  .info{grid-column:2 / span 10;margin-top:44px}
+  .block.b1{width:84%;height:44%;top:8%}
+  .sec-head h2,.sec-head p{grid-column:1 / -1}
+  .cards,.tickets{grid-template-columns:repeat(2,1fr)}
+  .sched-side{grid-column:1 / -1;position:static}
+  .day-theme svg{display:none}
+  .day-theme b{font-size:26px}
+  .sched-main{grid-column:1 / -1}
+  .map-box,.map-info{grid-column:1 / -1}
+  .map-info{position:static}
+  footer .big,footer .small{grid-column:1 / -1}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  .brand span{display:none}
+  .hero-grid{padding-top:34px;padding-bottom:84px}
+  .title-wrap{padding-left:0}
+  .title{font-size:clamp(50px,17.5vw,110px)}
+  .w2{margin-left:.35em}
+  .ribbon{margin-left:0;font-size:15px}
+  .info{grid-column:1 / -1;margin:40px 4px 0}
+  .block.b1{left:-4%;width:100%;height:36%;top:5%}
+  .block.b2{width:52vw;height:52vw;right:-18vw;top:-20vw}
+  .cards,.tickets{grid-template-columns:1fr}
+  .ticket.star,.ticket.star:hover{transform:none}
+  .ticket.star.reveal.in{transform:none}
+  .ev{grid-template-columns:1fr;gap:6px}
+  .timeline{padding-left:34px}
+  .ev::before{left:-32px}
+  .timeline::before{left:9px}
+  .unit .digits{gap:5px}
+  .sep{display:none}
+  .count .deco{display:none}
+  .hint{bottom:58px}
+  .badge{right:-6px}
+}
+@media (prefers-reduced-motion:reduce){
+  .card:hover,.card:focus-within{animation:none}
+  .reveal{opacity:1;transform:none;transition:none}
+  .flip.go .leaf{animation-duration:.01s}
+  .ev{animation:none}
+  .shape.pop>svg,.shape.bye>svg{animation-duration:.01s}
+}
+</style>
+</head>
+<body>
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="p-terrazzo" width="160" height="160" patternUnits="userSpaceOnUse">
+      <path class="pa" d="M12 18l16-7 7 13-14 6z"/><path class="pb" d="M58 8l20 4-6 15-17-4z"/><path class="pc" d="M104 22l13-10 10 12-15 8z"/>
+      <path class="pd" d="M140 48l12 6-5 13-13-5z"/><path class="pe" d="M30 60l18 3-3 16-16-6z"/><path class="pf" d="M84 58l10-9 12 10-11 10z"/>
+      <path class="pa" d="M120 92l9 2-2 8-9-2z"/><path class="pb" d="M16 108l14-4 5 11-15 5z"/><path class="pc" d="M62 120l17 5-7 14-13-8z"/>
+      <path class="pd" d="M106 134l16-5 4 13-17 4z"/><path class="pe" d="M140 140l10-7 8 9-10 7z"/><path class="pf" d="M44 146l8 3-3 8-8-4z"/>
+      <path class="pa" d="M88 96l5 1-1 5-5-1z"/><path class="pa" d="M8 80l5 2-2 5-5-2z"/><path class="pf" d="M150 110l5 2-2 5-5-2z"/>
+      <circle class="pa" cx="72" cy="36" r="2"/><circle class="pa" cx="132" cy="70" r="2.2"/><circle class="pa" cx="40" cy="92" r="1.8"/><circle class="pa" cx="92" cy="150" r="2"/>
+    </pattern>
+    <pattern id="p-confetti" width="120" height="120" patternUnits="userSpaceOnUse">
+      <rect class="pb" x="10" y="12" width="16" height="6" transform="rotate(28 18 15)"/><rect class="pc" x="62" y="20" width="16" height="6" transform="rotate(-36 70 23)"/>
+      <rect class="pd" x="92" y="64" width="16" height="6" transform="rotate(64 100 67)"/><rect class="pe" x="24" y="78" width="16" height="6" transform="rotate(-12 32 81)"/>
+      <rect class="pf" x="70" y="100" width="16" height="6" transform="rotate(44 78 103)"/>
+      <circle class="pa" cx="46" cy="48" r="4"/><circle class="pb" cx="104" cy="16" r="4"/><circle class="pc" cx="12" cy="104" r="4"/>
+      <path class="sa" stroke-width="3" stroke-linecap="round" d="M36 30q5-7 10 0t10 0"/><path class="sa" stroke-width="3" stroke-linecap="round" d="M80 50q5 7 10 0t10 0"/><path class="sa" stroke-width="3" stroke-linecap="round" d="M44 108q5-7 10 0t10 0"/>
+    </pattern>
+    <pattern id="p-squiggle" width="80" height="44" patternUnits="userSpaceOnUse">
+      <path class="sa" stroke-width="4" stroke-linecap="round" d="M0 11c10-10 10 10 20 0s10-10 20 0 10 10 20 0 10-10 20 0"/>
+      <path class="sa" stroke-width="4" stroke-linecap="round" d="M-20 33c10-10 10 10 20 0s10-10 20 0 10 10 20 0 10-10 20 0 10 10 20 0"/>
+    </pattern>
+    <pattern id="p-zigzag" width="40" height="26" patternUnits="userSpaceOnUse">
+      <path class="sa" stroke-width="4.5" stroke-linejoin="miter" d="M-10 20L0 7 10 20 20 7 30 20 40 7 50 20"/>
+    </pattern>
+    <pattern id="p-dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle class="pa" cx="6.5" cy="6.5" r="3.6"/><circle class="pa" cx="19.5" cy="19.5" r="3.6"/>
+    </pattern>
+    <pattern id="p-stripes" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect class="pa" width="8" height="22"/>
+    </pattern>
+    <pattern id="p-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path class="sa" stroke-width="2" d="M0 .5H30M.5 0V30"/>
+    </pattern>
+    <pattern id="p-tri" width="64" height="56" patternUnits="userSpaceOnUse">
+      <path class="pd" d="M8 46L22 20 36 46z"/><circle class="pa" cx="22" cy="30" r="2"/><circle class="pa" cx="17" cy="39" r="2"/><circle class="pa" cx="27" cy="39" r="2"/>
+      <path class="pe" d="M40 18L52 0 64 18z"/><path class="pf" d="M44 54l8-12 8 12z"/>
+    </pattern>
+    <pattern id="p-waves" width="56" height="30" patternUnits="userSpaceOnUse">
+      <path class="sa" stroke-width="3.5" d="M2 28a12 12 0 0 1 24 0M30 28a12 12 0 0 1 24 0"/>
+      <path class="sf" stroke-width="3.5" d="M8 28a6 6 0 0 1 12 0M36 28a6 6 0 0 1 12 0"/>
+    </pattern>
+    <pattern id="p-teeth" width="28" height="18" patternUnits="userSpaceOnUse">
+      <path fill="#111" d="M0 18L14 0 28 18z"/>
+    </pattern>
+  </defs>
+</svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Radical Shapes, back to top">
+      <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false"><circle cx="15" cy="16" r="12" fill="#ff90b3" stroke="#111" stroke-width="2.5"/><path d="M20 36L30 14 39 36z" fill="#ffd23f" stroke="#111" stroke-width="2.5" stroke-linejoin="round"/><path d="M4 33q4-5 8 0t8 0" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <span>RADICAL SHAPES</span>
+    </a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#countdown">Countdown</a></li>
+        <li><a href="#lineup">Lineup</a></li>
+        <li><a href="#schedule">Schedule</a></li>
+        <li><a href="#map">Map</a></li>
+        <li><a href="#tickets">Tickets</a></li>
+      </ul>
+    </nav>
+    <button type="button" class="btn shuffle" id="shuffle" aria-label="Shuffle every background pattern">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="#111" stroke-width="2.4" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" fill="#fff"/></g><g fill="#111"><circle cx="8" cy="8" r="1.8"/><circle cx="16" cy="8" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="8" cy="16" r="1.8"/><circle cx="16" cy="16" r="1.8"/></g></svg>
+      <span>Shuffle</span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" id="hero" aria-labelledby="heroTitle">
+    <div class="block b1"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-terrazzo"/></svg></div>
+    <div class="block b2"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-dots"/></svg></div>
+    <div class="block b3"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-squiggle"/></svg></div>
+    <div class="shapes" id="shapes" aria-hidden="true"></div>
+
+    <div class="wrap hero-grid">
+      <div class="title-wrap">
+        <h1 class="title" id="heroTitle"><span class="sr-only">Radical Shapes</span>
+          <span class="word w1" aria-hidden="true"><i>R</i><i>A</i><i>D</i><i>I</i><i>C</i><i>A</i><i>L</i></span>
+          <span class="word w2" aria-hidden="true"><i>S</i><i>H</i><i>A</i><i>P</i><i>E</i><i>S</i></span>
+        </h1>
+        <p class="ribbon">
+          <svg viewBox="0 0 28 28" aria-hidden="true" focusable="false"><path d="M3 22L14 4l11 18z" fill="#ffd23f" stroke="#ffd23f" stroke-width="2" stroke-linejoin="round"/><circle cx="14" cy="16" r="2.4" fill="#111"/></svg>
+          Milano Design Fest <b>'86</b>
+        </p>
+      </div>
+      <aside class="info" aria-label="Festival at a glance">
+        <span class="tape" aria-hidden="true"></span>
+        <p class="dates">14—18 <span>Aprile</span></p>
+        <p class="where">Isola Radicale · Milano · 6 venues</p>
+        <p class="lede">Five days of loud laminates, totem lamps, crooked bookshelves and furniture that refuses to behave. Bring sunglasses; the patterns are bright.</p>
+        <div class="ctas">
+          <a class="btn" href="#tickets">Get tickets</a>
+          <a class="btn w" href="#lineup">Lineup</a>
+        </div>
+      </aside>
+    </div>
+    <p class="hint" id="hint">Click anywhere to drop a shape · push them around</p>
+  </section>
+
+  <section class="band count" id="countdown" aria-labelledby="countTitle">
+    <svg class="teeth top" aria-hidden="true" focusable="false"><rect width="100%" height="18" fill="url(#p-teeth)"/></svg>
+    <svg class="deco" viewBox="0 0 190 190" aria-hidden="true" focusable="false"><circle cx="95" cy="95" r="80" fill="none" stroke="#ffd23f" stroke-width="18" stroke-dasharray="4 14"/><path d="M50 120a45 45 0 0 1 90 0z" fill="#ff90b3" stroke="#fff" stroke-width="4"/><path d="M40 150l20-18 20 18 20-18 20 18 20-18 20 18" fill="none" stroke="#2ec4b6" stroke-width="7"/></svg>
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="countTitle"><span class="kicker">01 · Countdown</span><br>Doors open <em style="--c:var(--yellow)">in</em></h2>
+        <p>The confetti cannon is loaded, the laminate is still drying and somebody has painted the ceiling turquoise. Opening night starts on the stroke of six.</p>
+      </div>
+      <div class="clock" id="clock" role="timer" aria-live="off" aria-label="Time until the festival opens">
+        <div class="unit"><div class="digits" data-unit="d"></div><span class="ulabel">Days</span></div>
+        <span class="sep" aria-hidden="true">:</span>
+        <div class="unit"><div class="digits" data-unit="h"></div><span class="ulabel">Hours</span></div>
+        <span class="sep" aria-hidden="true">:</span>
+        <div class="unit"><div class="digits" data-unit="m"></div><span class="ulabel">Minutes</span></div>
+        <span class="sep" aria-hidden="true">:</span>
+        <div class="unit"><div class="digits" data-unit="s"></div><span class="ulabel">Seconds</span></div>
+      </div>
+      <p class="opens"><span>Opening night</span><strong id="openDate">14 April · 18:00</strong><span>Milan time · Cortile Giallo</span></p>
+    </div>
+    <svg class="teeth bot" aria-hidden="true" focusable="false"><rect width="100%" height="18" fill="url(#p-teeth)"/></svg>
+  </section>
+
+  <section class="band lineup" id="lineup" aria-labelledby="lineupTitle">
+    <svg class="pat bg" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-confetti"/></svg>
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="lineupTitle"><span class="kicker">02 · Lineup</span><br>Six loud <em style="--c:var(--pink)">minds</em></h2>
+        <p>Designers who think a table can have a sense of humour. Each one gives a talk, hosts a room and is contractually obliged to wear at least one pattern.</p>
+      </div>
+      <div class="cards">
+        <article class="card reveal" style="--rot:-1.5deg;--sh:var(--pink);--hb:var(--yellow);--tb:var(--pink)">
+          <div class="head"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-zigzag"/></svg><span class="num">No. 01</span>
+            <svg class="avatar" viewBox="0 0 104 104" aria-hidden="true" focusable="false"><circle cx="52" cy="52" r="46" fill="#ff90b3" stroke="#111" stroke-width="4"/><rect x="30" y="30" width="44" height="44" fill="#2ec4b6" stroke="#111" stroke-width="4" transform="rotate(12 52 52)"/><circle cx="52" cy="52" r="10" fill="#111"/></svg></div>
+          <div class="body"><h3>Lia Ferracane</h3><span class="tag">Furniture</span>
+            <blockquote>“A sideboard should make you laugh before it holds your plates.”</blockquote>
+            <p class="slot">Talk · Laminates That Laugh · Day 1, 15:00</p></div>
+        </article>
+        <article class="card reveal" style="--rot:1deg;--sh:var(--teal);--hb:var(--lilac);--tb:var(--yellow)">
+          <div class="head"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-confetti"/></svg><span class="num">No. 02</span>
+            <svg class="avatar" viewBox="0 0 104 104" aria-hidden="true" focusable="false"><rect x="38" y="10" width="28" height="84" fill="#ffd23f" stroke="#111" stroke-width="4"/><ellipse cx="52" cy="10" rx="14" ry="6" fill="#fff" stroke="#111" stroke-width="4"/><path d="M12 94h80" stroke="#111" stroke-width="6"/><circle cx="52" cy="46" r="18" fill="#ef476f" stroke="#111" stroke-width="4"/></svg></div>
+          <div class="body"><h3>Dario Bonfiglio</h3><span class="tag">Lighting</span>
+            <blockquote>“My lamps are totems. They switch on and immediately start telling stories.”</blockquote>
+            <p class="slot">Demo · Lighting the Totems · Day 3, 17:00</p></div>
+        </article>
+        <article class="card reveal" style="--rot:-.5deg;--sh:var(--yellow);--hb:var(--teal);--tb:var(--lilac)">
+          <div class="head"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-stripes"/></svg><span class="num">No. 03</span>
+            <svg class="avatar" viewBox="0 0 104 104" aria-hidden="true" focusable="false"><path d="M8 96a44 44 0 0 1 88 0z" fill="#b388eb" stroke="#111" stroke-width="4"/><path d="M8 40c11-14 11 14 22 0s11 14 22 0 11 14 22 0 11 14 22 0" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/><circle cx="52" cy="78" r="9" fill="#ffd23f" stroke="#111" stroke-width="4"/></svg></div>
+          <div class="body"><h3>Mimì Castellazzi</h3><span class="tag">Textiles</span>
+            <blockquote>“Pattern is weather. Some rooms need a thunderstorm of dots.”</blockquote>
+            <p class="slot">Lunch talk · Pattern as Weather · Day 2, 13:00</p></div>
+        </article>
+        <article class="card reveal" style="--rot:1.5deg;--sh:var(--lilac);--hb:var(--pink);--tb:var(--teal)">
+          <div class="head"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-squiggle"/></svg><span class="num">No. 04</span>
+            <svg class="avatar" viewBox="0 0 104 104" aria-hidden="true" focusable="false"><path d="M20 94L34 30h36l14 64z" fill="#2ec4b6" stroke="#111" stroke-width="4" stroke-linejoin="round"/><ellipse cx="52" cy="30" rx="18" ry="7" fill="#fff" stroke="#111" stroke-width="4"/><path d="M30 62h44M26 78h52" stroke="#111" stroke-width="4"/><circle cx="52" cy="12" r="8" fill="#ff90b3" stroke="#111" stroke-width="4"/></svg></div>
+          <div class="body"><h3>Otto Pellegrini-Kuo</h3><span class="tag">Ceramics</span>
+            <blockquote>“Every vase I make is slightly offended by symmetry.”</blockquote>
+            <p class="slot">Workshop · Wonky Vessels · Day 3, 10:30</p></div>
+        </article>
+        <article class="card reveal" style="--rot:-1deg;--sh:var(--red);--hb:#fff;--tb:var(--yellow)">
+          <div class="head"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-dots"/></svg><span class="num">No. 05</span>
+            <svg class="avatar" viewBox="0 0 104 104" aria-hidden="true" focusable="false"><rect x="10" y="14" width="64" height="80" fill="#fff" stroke="#111" stroke-width="4" transform="rotate(-8 42 54)"/><rect x="30" y="10" width="64" height="80" fill="#ffd23f" stroke="#111" stroke-width="4" transform="rotate(6 62 50)"/><path d="M44 38l28 4-6 26z" fill="#ef476f" stroke="#111" stroke-width="4" stroke-linejoin="round"/></svg></div>
+          <div class="body"><h3>Sole Anzani</h3><span class="tag">Graphics</span>
+            <blockquote>“One hundred posters, zero right angles, and I am only slightly sorry.”</blockquote>
+            <p class="slot">Exhibition walk · Day 2, 16:30</p></div>
+        </article>
+        <article class="card reveal" style="--rot:1deg;--sh:var(--teal);--hb:var(--yellow);--tb:var(--red)">
+          <div class="head"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-tri"/></svg><span class="num">No. 06</span>
+            <svg class="avatar" viewBox="0 0 104 104" aria-hidden="true" focusable="false"><rect x="10" y="50" width="84" height="44" fill="#ff90b3" stroke="#111" stroke-width="4"/><path d="M10 50L52 12 94 50z" fill="#2ec4b6" stroke="#111" stroke-width="4" stroke-linejoin="round"/><path d="M40 94V70a12 12 0 0 1 24 0v24" fill="#111"/><circle cx="76" cy="30" r="8" fill="#ffd23f" stroke="#111" stroke-width="4"/></svg></div>
+          <div class="body"><h3>Gianni Sbarra</h3><span class="tag">Architecture</span>
+            <blockquote>“Build the pavilion in primary colours, then argue with it.”</blockquote>
+            <p class="slot">Walk · Pavilions in Primaries · Day 4, 11:00</p></div>
+        </article>
+      </div>
+      <p class="fine">All designers, quotes and events on this page are fictional.</p>
+    </div>
+  </section>
+
+  <section class="band sched" id="schedule" aria-labelledby="schedTitle">
+    <svg class="pat bg" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-grid"/></svg>
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="schedTitle"><span class="kicker">03 · Schedule</span><br>Five days, <em style="--c:var(--yellow)">zero</em> right angles</h2>
+        <p>Talks at the turquoise drum, workshops in the black shed, parties on the lilac roof. Pick a day to see what is on.</p>
+      </div>
+      <div class="sched-grid">
+        <div class="sched-side">
+          <p class="day-theme" id="dayTheme"><b>Opening</b><span>Doors, drums and the great unboxing of the totem.</span></p>
+        </div>
+        <div class="sched-main">
+          <div class="tabs" role="tablist" aria-label="Festival days" id="tabs"></div>
+          <ol class="timeline" id="timeline" role="tabpanel" aria-live="polite"></ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band mapsec" id="map" aria-labelledby="mapTitle">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="mapTitle"><span class="kicker">04 · Venue map</span><br>Isola <em style="--c:var(--yellow)">Radicale</em></h2>
+        <p>A small, entirely made-up district of pavilions, courtyards and one very popular gelato hatch. Tap a block to see what lives there.</p>
+      </div>
+      <div class="map-grid">
+        <div class="map-box">
+          <svg viewBox="0 0 1000 640" role="group" aria-label="Illustrated map of the six festival venues" id="mapSvg">
+            <rect width="1000" height="640" fill="#fffaf0"/>
+            <!-- streets -->
+            <g fill="#e9e4f6" stroke="#111" stroke-width="3">
+              <rect x="-10" y="286" width="1020" height="54"/>
+              <rect x="444" y="-10" width="54" height="660"/>
+              <rect x="720" y="340" width="44" height="310"/>
+            </g>
+            <g fill="none" stroke="#111" stroke-width="3" stroke-dasharray="16 12"><path d="M0 313H1000M471 0V640"/></g>
+            <g fill="#fff" stroke="#111" stroke-width="2"><rect x="424" y="292" width="10" height="42"/><rect x="508" y="292" width="10" height="42"/><rect x="408" y="292" width="10" height="42"/><rect x="524" y="292" width="10" height="42"/></g>
+            <!-- canal -->
+            <path d="M-10 560C160 520 260 610 420 572S640 520 720 560" fill="none" stroke="#111" stroke-width="44" stroke-linecap="butt"/>
+            <path d="M-10 560C160 520 260 610 420 572S640 520 720 560" fill="none" stroke="#2ec4b6" stroke-width="36"/>
+            <path d="M40 556q10-8 20 0t20 0M200 566q10-8 20 0t20 0M360 574q10-8 20 0t20 0M560 552q10-8 20 0t20 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <text class="map-small" x="230" y="620">Canale dei Colori</text>
+            <!-- trees -->
+            <g stroke="#111" stroke-width="3">
+              <path d="M90 250v20M150 250v20M870 250v20M930 250v20M972 470v20M600 620v-20" />
+              <circle cx="90" cy="244" r="14" fill="#2ec4b6"/><circle cx="150" cy="240" r="16" fill="#b388eb"/><circle cx="870" cy="244" r="14" fill="#ffd23f"/><circle cx="930" cy="240" r="16" fill="#2ec4b6"/><circle cx="972" cy="466" r="14" fill="#b388eb"/><circle cx="600" cy="596" r="12" fill="#ffd23f"/>
+            </g>
+
+            <g class="venue" data-v="rosa" tabindex="0" role="button" aria-label="Padiglione Rosa">
+              <g class="lift"><rect x="56" y="54" width="300" height="180" fill="#111"/>
+              <rect x="48" y="44" width="300" height="180" fill="#ff90b3" stroke="#111" stroke-width="4"/>
+              <path d="M48 44l30-26 30 26 30-26 30 26 30-26 30 26 30-26 30 26 30-26 30 26" fill="#ff90b3" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+              <rect x="66" y="150" width="264" height="56" fill="url(#p-dots)" stroke="#111" stroke-width="3"/>
+              <text class="map-label" x="70" y="110">Padiglione Rosa</text></g>
+              <rect class="ring" x="34" y="4" width="330" height="236" rx="8"/>
+            </g>
+            <g class="venue" data-v="turchese" tabindex="0" role="button" aria-label="Sala Turchese">
+              <g class="lift"><ellipse cx="706" cy="150" rx="118" ry="100" fill="#111"/>
+              <ellipse cx="698" cy="140" rx="118" ry="100" fill="#2ec4b6" stroke="#111" stroke-width="4"/>
+              <ellipse cx="698" cy="140" rx="70" ry="58" fill="#fff" stroke="#111" stroke-width="4"/>
+              <path d="M650 150q12-12 24 0t24 0 24 0" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+              <text class="map-label" x="698" y="230" text-anchor="middle">Sala Turchese</text></g>
+              <ellipse class="ring" cx="698" cy="140" rx="134" ry="116"/>
+            </g>
+            <g class="venue" data-v="giallo" tabindex="0" role="button" aria-label="Cortile Giallo">
+              <g class="lift"><rect x="68" y="376" width="300" height="140" fill="#111"/>
+              <rect x="60" y="366" width="300" height="140" fill="#ffd23f" stroke="#111" stroke-width="4"/>
+              <rect x="140" y="396" width="140" height="80" fill="url(#p-grid)" stroke="#111" stroke-width="4"/>
+              <circle cx="210" cy="436" r="16" fill="#ef476f" stroke="#111" stroke-width="4"/>
+              <text class="map-label" x="82" y="392">Cortile Giallo</text></g>
+              <rect class="ring" x="44" y="350" width="332" height="172" rx="8"/>
+            </g>
+            <g class="venue" data-v="lilla" tabindex="0" role="button" aria-label="Terrazza Lilla">
+              <g class="lift"><path d="M558 368h150v70h-60v96h-90z" fill="#111" transform="translate(8 10)"/>
+              <path d="M558 368h150v70h-60v96h-90z" fill="#b388eb" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M572 452h60M572 470h60M572 488h60M572 506h60" stroke="#111" stroke-width="3"/>
+              <text class="map-label" x="566" y="400">Terrazza</text><text class="map-label" x="566" y="424">Lilla</text></g>
+              <rect class="ring" x="544" y="354" width="178" height="194" rx="8"/>
+            </g>
+            <g class="venue" data-v="nera" tabindex="0" role="button" aria-label="Officina Nera">
+              <g class="lift"><rect x="786" y="362" width="170" height="92" fill="#111"/>
+              <rect x="780" y="354" width="170" height="92" fill="#111" stroke="#111" stroke-width="4"/>
+              <rect x="780" y="354" width="170" height="92" fill="url(#p-confetti)" opacity=".85"/>
+              <text class="map-label" x="794" y="410" style="fill:#fff;stroke:#111">Officina Nera</text></g>
+              <rect class="ring" x="766" y="340" width="198" height="120" rx="8"/>
+            </g>
+            <g class="venue" data-v="cubo" tabindex="0" role="button" aria-label="Cinema Cubo">
+              <g class="lift"><path d="M800 520l60-30 60 30v64l-60 30-60-30z" fill="#111" transform="translate(7 8)"/>
+              <path d="M800 520l60-30 60 30-60 30z" fill="#ff90b3" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M800 520l60 30v64l-60-30z" fill="#ef476f" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M860 550l60-30v64l-60 30z" fill="#ffd23f" stroke="#111" stroke-width="4" stroke-linejoin="round"/>
+              <text class="map-label" x="778" y="478">Cinema Cubo</text></g>
+              <rect class="ring" x="772" y="452" width="176" height="176" rx="8"/>
+            </g>
+            <!-- tram + info + gelato (not venues) -->
+            <g stroke="#111" stroke-width="3">
+              <circle cx="560" cy="262" r="22" fill="#111"/><text x="560" y="269" text-anchor="middle" fill="#ffd23f" style="font-family:var(--geo);font-weight:900;font-size:19px" stroke="none">86</text>
+              <path d="M396 250l20-34 20 34z" fill="#ffd23f" stroke-linejoin="round"/><text x="416" y="245" text-anchor="middle" style="font-family:var(--geo);font-weight:900;font-size:16px" stroke="none">i</text>
+              <path d="M540 628a22 22 0 0 1 44 0z" fill="#ff90b3"/>
+            </g>
+            <text class="map-small" x="590" y="258">Tram 86</text>
+            <text class="map-small" x="592" y="636">Gelato</text>
+          </svg>
+        </div>
+        <aside class="map-info" id="mapInfo" aria-live="polite">
+          <span class="kicker">Tap a block</span>
+          <h3 id="vName"><span class="swatch" id="vSwatch"></span>Padiglione Rosa</h3>
+          <p id="vDesc">The main exhibition hall, with a zig-zag roof you can spot from the tram. Inside: “Terrazzo, Uncut” and a hundred posters with no right angles.</p>
+          <ul id="vList"><li>Exhibitions · daily 10:00–20:00</li><li>Awards night · Day 5</li><li>Step-free entrance on the north side</li></ul>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="band tix" id="tickets" aria-labelledby="tixTitle">
+    <svg class="pat bg" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-terrazzo"/></svg>
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="tixTitle"><span class="kicker">05 · Tickets</span><br>Pick your <em style="--c:var(--yellow)">shape</em></h2>
+        <p>Prices are in imaginary euros for an imaginary festival. Every tier includes free entry to the gelato queue and unlimited access to the squiggle wall.</p>
+      </div>
+      <div class="tickets">
+        <article class="ticket reveal" style="--rot:-2deg;--sb:var(--teal);--lb:var(--yellow)">
+          <div class="stub"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-waves"/></svg><span class="tier">Giorno</span></div>
+          <span class="notch l" aria-hidden="true"></span><span class="notch r" aria-hidden="true"></span>
+          <div class="tb">
+            <p class="price"><sup>€</sup>18<small>one day</small></p>
+            <ul><li>Any single day of your choice</li><li>All six venues and exhibitions</li><li>Talks when seats remain</li></ul>
+            <button type="button" class="btn t" data-tier="Giorno">Reserve</button>
+          </div>
+        </article>
+        <article class="ticket star reveal" style="--sb:var(--yellow);--lb:var(--pink)">
+          <span class="badge" aria-hidden="true">Most<br>radical</span>
+          <div class="stub"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-zigzag"/></svg><span class="tier">Tutto</span></div>
+          <span class="notch l" aria-hidden="true"></span><span class="notch r" aria-hidden="true"></span>
+          <div class="tb">
+            <p class="price"><sup>€</sup>48<small>five days</small></p>
+            <ul><li>All five days, all venues</li><li>Reserved seats at every talk</li><li>Opening party on the lilac roof</li><li>A fold-out map printed in six colours</li></ul>
+            <button type="button" class="btn" data-tier="Tutto">Reserve</button>
+          </div>
+        </article>
+        <article class="ticket reveal" style="--rot:2deg;--sb:var(--lilac);--lb:var(--red)">
+          <div class="stub"><svg class="pat" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-tri"/></svg><span class="tier">Mecenate</span></div>
+          <span class="notch l" aria-hidden="true"></span><span class="notch r" aria-hidden="true"></span>
+          <div class="tb">
+            <p class="price"><sup>€</sup>120<small>patron</small></p>
+            <ul><li>Everything in Tutto</li><li>One workshop of your choice</li><li>Dinner with the designers</li><li>A hand-poured terrazzo coaster</li></ul>
+            <button type="button" class="btn l" data-tier="Mecenate">Reserve</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <svg class="strip" aria-hidden="true" focusable="false"><rect width="100%" height="100%" data-pat="p-squiggle"/></svg>
+  <div class="wrap">
+    <p class="big">Stay<br>radical.</p>
+    <p class="small">RADICAL SHAPES — Milano Design Fest '86 is a fictional festival, imagined as a lost edition of a design week that never happened. No tickets are sold and no designer on this page exists. Drawn entirely in shapes: no photographs, no fonts downloaded, no right angles harmed. <a href="#top">Back to the top ↑</a></p>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)');
+let reduce = reduceMQ.matches;
+reduceMQ.addEventListener && reduceMQ.addEventListener('change', e => { reduce = e.matches; });
+const rnd = (a,b) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const C = {ink:'#111',pink:'#ff90b3',teal:'#2ec4b6',yellow:'#ffd23f',lilac:'#b388eb',red:'#ef476f'};
+const HUES = [C.pink,C.teal,C.yellow,C.lilac,C.red];
+
+/* ================= patterns & the shuffler ================= */
+const PATS = ['p-terrazzo','p-confetti','p-squiggle','p-zigzag','p-dots','p-stripes','p-grid','p-tri','p-waves'];
+const patRects = Array.from(document.querySelectorAll('rect[data-pat]'));
+patRects.forEach(r => r.setAttribute('fill', `url(#${r.dataset.pat})`));
+const inkSets = [
+  ['#111','#ff90b3','#2ec4b6','#ffd23f','#b388eb','#ef476f'],
+  ['#111','#2ec4b6','#ffd23f','#ef476f','#ff90b3','#b388eb'],
+  ['#ef476f','#111','#b388eb','#2ec4b6','#ffd23f','#ff90b3'],
+  ['#2ec4b6','#ef476f','#111','#b388eb','#ff90b3','#ffd23f'],
+  ['#b388eb','#ffd23f','#ff90b3','#111','#2ec4b6','#ef476f']
+];
+let inkIdx = 0;
+const shuffleBtn = $('shuffle');
+function shufflePatterns(){
+  document.body.classList.add('shuffling');
+  shuffleBtn.classList.remove('spin'); void shuffleBtn.offsetWidth; shuffleBtn.classList.add('spin');
+  setTimeout(() => {
+    patRects.forEach(r => {
+      let p; do { p = pick(PATS); } while (p === r.dataset.pat);
+      r.dataset.pat = p; r.setAttribute('fill', `url(#${p})`);
+    });
+    inkIdx = (inkIdx + 1 + Math.floor(Math.random()*(inkSets.length-1))) % inkSets.length;
+    const s = inkSets[inkIdx], root = document.documentElement.style;
+    ['--pa','--pb','--pc','--pd','--pe','--pf'].forEach((v,i) => root.setProperty(v, s[i]));
+    document.body.classList.remove('shuffling');
+  }, reduce ? 0 : 240);
+  toast('Patterns shuffled — the whole page just changed outfits.');
+}
+shuffleBtn.addEventListener('click', shufflePatterns);
+window.addEventListener('keydown', e => {
+  if ((e.key === 's' || e.key === 'S') && !e.metaKey && !e.ctrlKey && !e.altKey && !/INPUT|TEXTAREA/.test(e.target.tagName)) shufflePatterns();
+});
+
+/* ================= Memphis shape library (drawn as inline SVG) ================= */
+const SHAPES = {
+  cylinder:(c)=>`<svg viewBox="0 0 100 140" width="100%" height="100%"><rect x="12" y="20" width="76" height="104" fill="${c}" stroke="#111" stroke-width="5"/><path d="M12 44h76M12 64h76M12 84h76M12 104h76" stroke="#111" stroke-width="5"/><ellipse cx="50" cy="124" rx="38" ry="12" fill="${c}" stroke="#111" stroke-width="5"/><rect x="14.5" y="100" width="71" height="22" fill="${c}"/><path d="M12 104h76" stroke="#111" stroke-width="5"/><ellipse cx="50" cy="20" rx="38" ry="12" fill="#fff" stroke="#111" stroke-width="5"/></svg>`,
+  zigzag:(c)=>`<svg viewBox="0 0 160 60" width="100%" height="100%"><path d="M6 48L26 12 46 48 66 12 86 48 106 12 126 48 146 12" fill="none" stroke="#111" stroke-width="20" stroke-linejoin="miter" stroke-linecap="square"/><path d="M6 48L26 12 46 48 66 12 86 48 106 12 126 48 146 12" fill="none" stroke="${c}" stroke-width="10" stroke-linejoin="miter" stroke-linecap="square"/></svg>`,
+  dotTri:(c)=>`<svg viewBox="0 0 120 110" width="100%" height="100%"><path d="M8 102L60 8l52 94z" fill="${c}" stroke="#111" stroke-width="5" stroke-linejoin="round"/><path d="M8 102L60 8l52 94z" fill="url(#p-dots)" opacity=".9"/></svg>`,
+  halfMoon:(c)=>`<svg viewBox="0 0 140 76" width="100%" height="100%"><path d="M6 70a64 64 0 0 1 128 0z" fill="${c}" stroke="#111" stroke-width="5" stroke-linejoin="round"/><path d="M34 70a36 36 0 0 1 72 0" fill="none" stroke="#111" stroke-width="5"/><path d="M52 70a18 18 0 0 1 36 0z" fill="#fff" stroke="#111" stroke-width="5"/></svg>`,
+  sphere:(c)=>`<svg viewBox="0 0 110 110" width="100%" height="100%"><circle cx="55" cy="55" r="48" fill="${c}" stroke="#111" stroke-width="5"/><path d="M14 72h82M20 84h70M30 95h50" stroke="#111" stroke-width="5"/><circle cx="38" cy="36" r="9" fill="#fff" stroke="#111" stroke-width="4"/></svg>`,
+  squiggle:(c)=>`<svg viewBox="0 0 170 50" width="100%" height="100%"><path d="M8 25c12-24 24 24 36 0s24 24 36 0 24 24 36 0 24 24 36 0" fill="none" stroke="#111" stroke-width="15" stroke-linecap="round"/><path d="M8 25c12-24 24 24 36 0s24 24 36 0 24 24 36 0 24 24 36 0" fill="none" stroke="${c}" stroke-width="6" stroke-linecap="round"/></svg>`,
+  gridSq:(c)=>`<svg viewBox="0 0 110 110" width="100%" height="100%"><rect x="12" y="12" width="90" height="90" fill="#111"/><rect x="6" y="6" width="90" height="90" fill="#fff" stroke="#111" stroke-width="5"/><path d="M6 24h90M6 42h90M6 60h90M6 78h90M24 6v90M42 6v90M60 6v90M78 6v90" stroke="#111" stroke-width="2.5"/><rect x="42" y="42" width="18" height="18" fill="${c}"/></svg>`,
+  ring:(c)=>`<svg viewBox="0 0 110 110" width="100%" height="100%"><circle cx="55" cy="55" r="40" fill="none" stroke="#111" stroke-width="30"/><circle cx="55" cy="55" r="40" fill="none" stroke="${c}" stroke-width="20"/><circle cx="55" cy="55" r="40" fill="none" stroke="#111" stroke-width="3" stroke-dasharray="3 9"/></svg>`,
+  column:(c)=>`<svg viewBox="0 0 90 170" width="100%" height="100%"><rect x="22" y="56" width="46" height="100" fill="${c}" stroke="#111" stroke-width="5"/><path d="M22 76l46 14M22 96l46 14M22 116l46 14" stroke="#111" stroke-width="4"/><ellipse cx="45" cy="56" rx="23" ry="8" fill="#fff" stroke="#111" stroke-width="5"/><rect x="10" y="150" width="70" height="16" fill="#111"/><circle cx="45" cy="28" r="22" fill="#ffd23f" stroke="#111" stroke-width="5"/></svg>`,
+  bolt:(c)=>`<svg viewBox="0 0 90 140" width="100%" height="100%"><path d="M54 4L10 78h30l-12 58 52-84H48z" fill="${c}" stroke="#111" stroke-width="5" stroke-linejoin="round"/></svg>`,
+  arch:(c)=>`<svg viewBox="0 0 150 82" width="100%" height="100%"><path d="M6 78a69 69 0 0 1 138 0" fill="none" stroke="#111" stroke-width="16"/><path d="M6 78a69 69 0 0 1 138 0" fill="none" stroke="${c}" stroke-width="9"/><path d="M34 78a41 41 0 0 1 82 0" fill="none" stroke="#111" stroke-width="16"/><path d="M34 78a41 41 0 0 1 82 0" fill="none" stroke="#ffd23f" stroke-width="9"/><path d="M60 78a15 15 0 0 1 30 0z" fill="#111"/></svg>`,
+  plus:(c)=>`<svg viewBox="0 0 80 80" width="100%" height="100%"><path d="M28 4h24v24h24v24H52v24H28V52H4V28h24z" fill="${c}" stroke="#111" stroke-width="5" stroke-linejoin="round"/></svg>`,
+  wedge:(c)=>`<svg viewBox="0 0 110 110" width="100%" height="100%"><path d="M8 102V8a94 94 0 0 1 94 94z" fill="${c}" stroke="#111" stroke-width="5" stroke-linejoin="round"/><path d="M8 102V8a94 94 0 0 1 94 94z" fill="url(#p-stripes)" opacity=".5"/></svg>`
+};
+const SHAPE_ASPECT = {cylinder:.72,zigzag:2.66,dotTri:1.09,halfMoon:1.84,sphere:1,squiggle:3.4,gridSq:1,ring:1,column:.53,bolt:.64,arch:1.83,plus:1,wedge:1};
+
+/* home layouts (fractions of the hero box) for wide and narrow screens */
+const LAYOUT_WIDE = [
+  ['cylinder',.035,.2,110,C.teal],['zigzag',.44,.1,170,C.red],['sphere',.63,.16,104,C.pink],['squiggle',.83,.1,170,C.lilac],
+  ['halfMoon',.03,.66,150,C.lilac],['dotTri',.43,.84,112,C.yellow],['gridSq',.14,.86,100,C.pink],['ring',.94,.52,96,C.yellow],
+  ['bolt',.64,.84,74,C.red],['arch',.8,.9,150,C.teal],['plus',.56,.5,58,C.yellow],['column',.95,.28,72,C.pink]
+];
+const LAYOUT_NARROW = [
+  ['sphere',.84,.06,70,C.pink],['zigzag',.3,.03,104,C.red],['cylinder',.07,.36,58,C.teal],['halfMoon',.88,.44,86,C.lilac],
+  ['dotTri',.1,.93,72,C.yellow],['ring',.9,.93,62,C.yellow],['squiggle',.5,.965,116,C.lilac],['plus',.86,.26,40,C.yellow]
+];
+
+const hero = $('hero'), shapesEl = $('shapes');
+let bodies = [], heroW = 0, heroH = 0, heroRect = null;
+function makeBody(kind, fx, fy, size, color, spawned){
+  const el = document.createElement('div');
+  el.className = 'shape' + (spawned ? ' pop' : '');
+  const w = size, h = size / SHAPE_ASPECT[kind];
+  el.style.width = w + 'px'; el.style.height = h + 'px';
+  el.innerHTML = SHAPES[kind](color);
+  shapesEl.appendChild(el);
+  const b = {el, kind, fx, fy, w, h, x:fx*heroW, y:fy*heroH, ox:0, oy:0, vx:0, vy:0,
+    ang:rnd(-20,20), spin:rnd(4,11)*(Math.random()<.5?-1:1), ph:Math.random()*6.28, bob:rnd(5,11), spawned:!!spawned, wob:0};
+  if (spawned){ b.vx = rnd(-240,240); b.vy = rnd(-320,-120); }
+  bodies.push(b);
+  return b;
+}
+function layoutHero(){
+  const r = hero.getBoundingClientRect(); heroW = r.width; heroH = r.height;
+  const narrow = heroW < 700;
+  const scale = narrow ? Math.min(1.25, heroW/390) : Math.min(1.25, Math.max(.75, heroW/1300));
+  bodies.filter(b=>!b.spawned).forEach(b=>b.el.remove());
+  bodies = bodies.filter(b=>b.spawned);
+  bodies.forEach(b => { b.x = b.fx*heroW; b.y = b.fy*heroH; });
+  (narrow ? LAYOUT_NARROW : LAYOUT_WIDE).forEach(([k,fx,fy,s,c]) => makeBody(k, fx, fy, s*scale, c, false));
+}
+
+/* pointer: shapes shy away from the cursor */
+let ptr = {x:-9999, y:-9999, on:false, vx:0, vy:0, lx:0, ly:0};
+hero.addEventListener('pointermove', e => {
+  const r = hero.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  ptr.vx = x - ptr.x; ptr.vy = y - ptr.y; ptr.x = x; ptr.y = y; ptr.on = true;
+});
+hero.addEventListener('pointerleave', () => { ptr.on = false; ptr.x = ptr.y = -9999; });
+hero.addEventListener('pointerdown', e => {
+  const r = hero.getBoundingClientRect(); ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; ptr.on = true;
+});
+hero.addEventListener('click', e => {
+  if (e.target.closest('a,button,.info')) return;
+  const r = hero.getBoundingClientRect();
+  spawnAt(e.clientX - r.left, e.clientY - r.top);
+});
+function spawnAt(x, y){
+  const kinds = Object.keys(SHAPES), kind = pick(kinds);
+  const size = rnd(56, 110) * (heroW < 700 ? .75 : 1);
+  const b = makeBody(kind, x/heroW, y/heroH, size, pick(HUES), true);
+  b.x = x; b.y = y;
+  const spawned = bodies.filter(q => q.spawned);
+  if (spawned.length > 18){
+    const old = spawned[0]; old.el.classList.remove('pop'); old.el.classList.add('bye');
+    bodies = bodies.filter(q => q !== old); setTimeout(() => old.el.remove(), 400);
+  }
+  if (!reduce){
+    for (let i = 0; i < 12; i++){
+      const c = document.createElement('span'); c.className = 'confetti';
+      const a = Math.random()*Math.PI*2, d = rnd(40,110);
+      c.style.left = (x-5)+'px'; c.style.top = (y-5)+'px';
+      c.style.background = pick(HUES.concat(['#111']));
+      c.style.borderRadius = Math.random()<.4 ? '50%' : '0';
+      c.style.setProperty('--dx', Math.cos(a)*d+'px'); c.style.setProperty('--dy', Math.sin(a)*d+'px'); c.style.setProperty('--r', rnd(-360,360)+'deg');
+      hero.appendChild(c); setTimeout(() => c.remove(), 750);
+    }
+  }
+  $('hint').style.opacity = '0';
+}
+
+let last = performance.now(), raf = 0, t = 0, heroVisible = true;
+function step(now){
+  raf = requestAnimationFrame(step);
+  const dt = Math.min(.04, (now-last)/1000); last = now; t += dt;
+  if (!heroVisible) return;
+  const R = Math.max(120, Math.min(heroW, heroH)*.22);
+  for (const b of bodies){
+    const cx = b.x + b.ox, cy = b.y + b.oy;
+    let ax = -b.ox*16 - b.vx*3.2, ay = -b.oy*16 - b.vy*3.2;
+    if (ptr.on){
+      const dx = cx - ptr.x, dy = cy - ptr.y, d = Math.hypot(dx,dy) || 1, reach = R + Math.max(b.w,b.h)*.35;
+      if (d < reach){
+        const f = (1 - d/reach); const k = 5200*f*f + 30*Math.hypot(ptr.vx,ptr.vy)*f;
+        ax += dx/d*k; ay += dy/d*k; b.wob = Math.min(1, b.wob + f*dt*6);
+      }
+    }
+    if (b.spawned && b.fresh !== false){ b.fresh = false; }
+    b.vx += ax*dt; b.vy += ay*dt; b.ox += b.vx*dt; b.oy += b.vy*dt;
+    b.wob *= Math.exp(-dt*3);
+    if (!reduce) b.ang += b.spin*dt;
+    const bob = reduce ? 0 : Math.sin(t*1.1 + b.ph)*b.bob;
+    const sq = 1 + Math.sin(t*18 + b.ph)*.06*b.wob;
+    b.el.style.transform = `translate3d(${(cx - b.w/2).toFixed(1)}px,${(cy - b.h/2 + bob).toFixed(1)}px,0) rotate(${(reduce ? b.ang : b.ang).toFixed(1)}deg) scale(${sq.toFixed(3)},${(2-sq).toFixed(3)})`;
+  }
+  ptr.vx *= .8; ptr.vy *= .8;
+}
+function startLoop(){ if (!raf){ last = performance.now(); raf = requestAnimationFrame(step); } }
+function stopLoop(){ cancelAnimationFrame(raf); raf = 0; }
+document.addEventListener('visibilitychange', () => document.hidden ? stopLoop() : startLoop());
+if ('IntersectionObserver' in window){
+  new IntersectionObserver(es => { heroVisible = es[0].isIntersecting; }, {threshold:0}).observe(hero);
+}
+
+/* ================= flip-digit countdown ================= */
+function makeFlip(){
+  const el = document.createElement('span'); el.className = 'flip';
+  el.innerHTML = '<span class="half top"><span>0</span></span><span class="half bottom"><span>0</span></span><span class="leaf"><span class="face front"><span>0</span></span><span class="face back"><span>0</span></span></span>';
+  el._v = '0';
+  el._parts = {top:el.querySelector('.top span'), bottom:el.querySelector('.bottom span'), front:el.querySelector('.front span'), back:el.querySelector('.back span')};
+  el.addEventListener('animationend', () => { el.classList.remove('go'); el._parts.bottom.textContent = el._v; el._parts.front.textContent = el._v; });
+  return el;
+}
+function setFlip(el, v, animate){
+  if (el._v === v) return;
+  const p = el._parts, old = el._v; el._v = v;
+  if (!animate || reduce){ p.top.textContent = p.bottom.textContent = p.front.textContent = p.back.textContent = v; return; }
+  p.front.textContent = old; p.back.textContent = v; p.top.textContent = v; p.bottom.textContent = old;
+  el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+}
+const unitEls = {}; const flips = {};
+document.querySelectorAll('.digits').forEach(d => {
+  const u = d.dataset.unit, n = u === 'd' ? 3 : 2; unitEls[u] = d; flips[u] = [];
+  for (let i = 0; i < n; i++){ const f = makeFlip(); d.appendChild(f); flips[u].push(f); }
+});
+function nextOpening(now){
+  const y = new Date(now).getUTCFullYear();
+  for (const yr of [y, y+1]){
+    const start = Date.UTC(yr, 3, 14, 16, 0, 0); // 18:00 in Milan (CEST, UTC+2)
+    if (now < start + 5*864e5) return start;
+  }
+  return Date.UTC(y+1, 3, 14, 16);
+}
+let target = nextOpening(Date.now());
+try{
+  const opts = {weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'Europe/Rome'};
+  $('openDate').textContent = new Date(target).toLocaleDateString('en-GB', opts) + ' · 18:00';
+}catch(e){ $('openDate').textContent = new Date(target).toUTCString().slice(0,16) + ' · 18:00'; }
+let firstTick = true;
+function tick(){
+  let ms = Math.max(0, target - Date.now());
+  const s = Math.floor(ms/1000), d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), sec = s%60;
+  const vals = {d:String(Math.min(999,d)).padStart(3,'0'), h:String(h).padStart(2,'0'), m:String(m).padStart(2,'0'), s:String(sec).padStart(2,'0')};
+  for (const u in vals){ vals[u].split('').forEach((ch,i) => setFlip(flips[u][i], ch, !firstTick)); }
+  $('clock').setAttribute('aria-label', ms > 0 ? `${d} days, ${h} hours, ${m} minutes until the festival opens` : 'The festival is open');
+  firstTick = false;
+}
+tick(); setInterval(tick, 1000);
+
+/* ================= schedule ================= */
+const DAYS = [
+  {theme:'Opening', line:'Doors, drums and the great unboxing of the totem.', shape:'sphere', color:C.pink, ev:[
+    ['11:00','Terrazzo, Uncut','Press preview of the main show: forty surfaces that look like a party froze mid-dance.','Padiglione Rosa','Exhibition',C.pink],
+    ['15:00','Laminates That Laugh','Lia Ferracane on why a sideboard should have a punchline.','Sala Turchese','Talk',C.teal],
+    ['18:00','The Great Unboxing','Opening ceremony. A four-metre totem lamp is unwrapped, switched on and applauded.','Cortile Giallo','Ceremony',C.yellow],
+    ['21:30','Squiggle Disco','Dancing under a ceiling of black-and-white squiggles until the neighbours complain.','Terrazza Lilla','Party',C.lilac]]},
+  {theme:'Colour', line:'A day for turquoise arguments and pink conclusions.', shape:'halfMoon', color:C.teal, ev:[
+    ['10:00','The Shelf That Refuses','Workshop: build a small bookshelf with no two angles alike.','Officina Nera','Workshop',C.red],
+    ['13:00','Pattern as Weather','Mimì Castellazzi and a forecast of dots, dashes and scattered squiggles.','Sala Turchese','Talk',C.teal],
+    ['16:30','100 Posters, 0 Right Angles','Sole Anzani walks the poster wall and explains each crooked decision.','Padiglione Rosa','Walk',C.pink],
+    ['20:00','Plastic Utopias','Six short films about homes that are too colourful to exist.','Cinema Cubo','Screening',C.yellow]]},
+  {theme:'Objects', line:'Vases with opinions, lamps with personalities.', shape:'column', color:C.yellow, ev:[
+    ['10:30','Wonky Vessels','Otto Pellegrini-Kuo teaches you to throw a vase that leans on purpose.','Officina Nera','Workshop',C.red],
+    ['14:00','May a Chair Be Funny?','Panel debate. The chair on stage has been invited to respond.','Sala Turchese','Panel',C.teal],
+    ['17:00','Lighting the Totems','Dario Bonfiglio switches on twelve lamps, one colour at a time.','Cortile Giallo','Demo',C.yellow],
+    ['22:00','Neon Terrazzo Night','A party lit only by the lamps from the afternoon demo.','Terrazza Lilla','Party',C.lilac]]},
+  {theme:'Architecture', line:'Pavilions in primary colours, and the grid beneath them.', shape:'arch', color:C.lilac, ev:[
+    ['11:00','Pavilions in Primaries','Gianni Sbarra leads a walk from the tram stop to every pavilion.','Tram 86 stop','Walk',C.pink],
+    ['15:00','The Grid Under the Chaos','Why every loud layout needs a quiet grid holding it up.','Sala Turchese','Talk',C.teal],
+    ['18:30','Radical Flea','A market of prints, offcuts, oddities and furniture prototypes.','Cortile Giallo','Market',C.yellow]]},
+  {theme:'Finale', line:'Brunch, prizes and a parade of impossible furniture.', shape:'ring', color:C.red, ev:[
+    ['12:00','Pastel & Pastries','A long brunch on the roof, served on terrazzo trays.','Terrazza Lilla','Brunch',C.lilac],
+    ['16:00','The Golden Squiggle','Awards for the loudest, bravest and most gloriously useless objects of the week.','Padiglione Rosa','Awards',C.pink],
+    ['20:00','Parade of Impossible Furniture','Everything that was shown this week, carried through the streets. Join in.','All venues','Closing',C.red]]}
+];
+const tabsEl = $('tabs'), tl = $('timeline'), theme = $('dayTheme');
+const dotShapes = [['50%','0deg'],['0','45deg'],['0','0deg'],['50% 50% 0 0','0deg'],['0','12deg']];
+function dayLabel(i){
+  const dt = new Date(target + i*864e5);
+  let wd = 'Day ' + (i+1);
+  try{ wd = dt.toLocaleDateString('en-GB', {weekday:'short', timeZone:'Europe/Rome'}); }catch(e){}
+  return {top:wd + ' ' + (14+i), sub:'Day ' + (i+1)};
+}
+DAYS.forEach((d,i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'tab'; b.setAttribute('role','tab'); b.id = 'tab'+i;
+  b.setAttribute('aria-controls','timeline');
+  const L = dayLabel(i); b.innerHTML = `${L.top}<small>${d.theme}</small>`; b.setAttribute('aria-label', `${L.top}, ${L.sub}: ${d.theme}`);
+  b.addEventListener('click', () => showDay(i, true));
+  b.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ e.preventDefault(); const n = (i + (e.key === 'ArrowRight' ? 1 : DAYS.length-1)) % DAYS.length; showDay(n, true); $('tab'+n).focus(); }
+  });
+  tabsEl.appendChild(b);
+});
+function showDay(i){
+  DAYS.forEach((_,k) => { const t = $('tab'+k); t.setAttribute('aria-selected', String(k===i)); t.tabIndex = k===i ? 0 : -1; });
+  tl.setAttribute('aria-labelledby','tab'+i);
+  const d = DAYS[i];
+  theme.innerHTML = `<b>${d.theme}</b><span>${d.line}</span><svg viewBox="0 0 300 120" aria-hidden="true" focusable="false"><rect x="0" y="0" width="300" height="120" fill="${d.color}" stroke="#111" stroke-width="6"/><rect x="0" y="0" width="300" height="120" fill="url(#p-squiggle)" opacity=".35"/><g transform="translate(150 62) scale(.9)"><g transform="translate(-55 -50)">${SHAPES[d.shape]('#fff').replace('width="100%" height="100%"','width="110" height="100"')}</g></g></svg>`;
+  tl.innerHTML = d.ev.map((e,k) => {
+    const [dr,dt] = dotShapes[(i+k)%dotShapes.length];
+    return `<li class="ev" style="--dot:${e[5]};--dr:${dr};--dt:${dt};animation-delay:${k*70}ms"><time>${e[0]}</time><div><h3>${e[1]}</h3><p>${e[2]}</p><div class="meta"><span class="pill" style="--pc2:${e[5]}">${e[4]}</span><span class="pill">${e[3]}</span></div></div></li>`;
+  }).join('');
+}
+showDay(0);
+
+/* ================= venue map ================= */
+const VENUES = {
+  rosa:{name:'Padiglione Rosa', sw:C.pink, desc:'The main exhibition hall, with a zig-zag roof you can spot from the tram. Inside: “Terrazzo, Uncut” and a hundred posters with no right angles.', list:['Exhibitions · daily 10:00–20:00','Awards night · Day 5','Step-free entrance on the north side']},
+  turchese:{name:'Sala Turchese', sw:C.teal, desc:'A round, drum-shaped auditorium where every talk and panel happens. The seats are arranged like a slice of cake.', list:['Talks · daily from 13:00','220 seats, first come first served','Hearing loop fitted']},
+  giallo:{name:'Cortile Giallo', sw:C.yellow, desc:'A sunny courtyard with a checkered floor and a red fountain. Opening ceremony, the lamp demo and the Radical Flea market.', list:['Opening · Day 1, 18:00','Market · Day 4, 18:30','Open air, bring a jacket']},
+  lilla:{name:'Terrazza Lilla', sw:C.lilac, desc:'An L-shaped roof terrace with striped awnings. The parties, the brunch and the best view of the canal.', list:['Parties · Days 1 and 3','Brunch · Day 5, 12:00','Lift access from the courtyard']},
+  nera:{name:'Officina Nera', sw:'#111', desc:'A black workshop shed full of clamps, glazes and confetti-coloured offcuts. All hands-on workshops take place here.', list:['Workshops · Days 2 and 3','Aprons provided','Booking needed (Tutto and Mecenate)']},
+  cubo:{name:'Cinema Cubo', sw:C.red, desc:'A tiny three-colour cube cinema with forty velvet seats and one very loud projector.', list:['Screenings · Day 2, 20:00','40 seats','Popcorn in six colours']}
+};
+const venueEls = Array.from(document.querySelectorAll('.venue'));
+function selectVenue(key){
+  const v = VENUES[key]; if (!v) return;
+  venueEls.forEach(g => g.classList.toggle('sel', g.dataset.v === key));
+  $('vName').innerHTML = `<span class="swatch" style="--sw:${v.sw}"></span>${v.name}`;
+  $('vDesc').textContent = v.desc;
+  $('vList').innerHTML = v.list.map(x => `<li>${x}</li>`).join('');
+}
+venueEls.forEach(g => {
+  g.addEventListener('click', () => selectVenue(g.dataset.v));
+  g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); selectVenue(g.dataset.v); } });
+});
+selectVenue('rosa');
+
+/* ================= tickets & toast ================= */
+const toastEl = $('toast'); let toastT = 0;
+function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('on'), 2800); }
+document.querySelectorAll('[data-tier]').forEach(b => b.addEventListener('click', () => {
+  toast(`“${b.dataset.tier}” reserved in spirit! This festival is fictional, so no money changes hands.`);
+}));
+
+/* ================= reveal on scroll ================= */
+const reveals = document.querySelectorAll('.reveal');
+if ('IntersectionObserver' in window && !reduce){
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.15, rootMargin:'0px 0px -40px 0px'});
+  reveals.forEach((el,i) => { el.style.transitionDelay = (i%3)*90 + 'ms'; io.observe(el); });
+} else reveals.forEach(el => el.classList.add('in'));
+
+/* ================= boot ================= */
+if (matchMedia('(hover: none)').matches) $('hint').textContent = 'Tap anywhere to drop a shape · drag to push them';
+let rT = 0;
+window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(layoutHero, 150); });
+layoutHero();
+startLoop();
+})();
+</script>
+</body>
+</html>

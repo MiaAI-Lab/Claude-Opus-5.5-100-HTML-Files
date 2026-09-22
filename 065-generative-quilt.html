@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patchwork — A Generative Quilt</title>
+<meta name="description" content="Every visit pieces a new quilt from traditional blocks — Log Cabin, Flying Geese, Ohio Star and more — in gingham, calico, polka dots, stripes and chambray. Hang it on the line to watch it wave.">
+<meta name="theme-color" content="#efe4d0">
+<style>
+  :root {
+    --barn: #9e2a2b;
+    --mustard: #e09f3e;
+    --denim: #335c67;
+    --cream: #fff3b0;
+    --sage: #9fb8ad;
+    --linen: #efe4d0;
+    --linen-2: #e6d8bf;
+    --ink: #3d2b22;
+    --ink-2: #6b5446;
+    --ink-3: #9a8472;
+    --thread: #c0392b;
+    --serif: "Bookman Old Style", "URW Bookman", "URW Bookman L", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --text: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", P052, Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: var(--ink);
+    font-family: var(--text);
+    background-color: var(--linen);
+    background-image:
+      radial-gradient(120% 90% at 50% 40%, rgba(255, 255, 255, .35), rgba(120, 84, 46, .12)),
+      repeating-linear-gradient(0deg, rgba(120, 88, 50, .045) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(120, 88, 50, .04) 0 1px, transparent 1px 4px);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0 34px;
+    min-height: 100vh;
+    padding: 26px clamp(18px, 3vw, 48px) 28px;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+  header.masthead { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-start; gap: 18px; margin-bottom: 14px; }
+  .title-wrap { position: relative; }
+  h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(40px, 5vw, 66px);
+    letter-spacing: -.01em;
+    line-height: 1;
+    color: #7a2324;
+  }
+  .stitch-line { display: block; width: 100%; height: 16px; margin-top: 6px; overflow: visible; }
+  .tagline { margin: 6px 0 0; font-size: 16px; font-style: italic; color: var(--ink-2); }
+  .spool { width: 58px; height: 58px; flex: none; }
+
+  /* ---------- the stage ---------- */
+  .stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    border-radius: 10px;
+  }
+  #quilt { display: block; max-width: 100%; height: auto; overflow: visible; outline: none; }
+  #quilt .block { cursor: pointer; transition: transform .28s cubic-bezier(.3, 1.5, .5, 1); outline: none; }
+  #quilt .block:hover, #quilt .block:focus-visible { transform: translate(-3px, -6px); filter: url(#lift); }
+  #quilt .block:focus-visible .focus-ring { opacity: 1; }
+  #quilt .block.pop { animation: pop .5s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes pop { 0% { transform: translate(-3px, -6px) scale(.92); } 60% { transform: translate(-3px, -6px) scale(1.03); } 100% { transform: translate(-3px, -6px) scale(1); } }
+  .focus-ring { opacity: 0; transition: opacity .2s ease; pointer-events: none; }
+  .stage.draped #quilt { display: none; }
+  #drape { display: none; width: 100%; height: 100%; border-radius: 10px; }
+  .stage.draped #drape { display: block; }
+  .stage.draped {
+    background: linear-gradient(180deg, #bcdbe6 0%, #dcebe8 55%, #e8e4c9 78%, #b7c79a 100%);
+    box-shadow: inset 0 0 0 1px rgba(61, 43, 34, .1), 0 18px 40px -26px rgba(61, 43, 34, .6);
+  }
+
+  .tag {
+    position: fixed;
+    z-index: 20;
+    pointer-events: none;
+    background: #fffaf0;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 7px 14px 8px 22px;
+    border-radius: 3px 10px 10px 3px;
+    box-shadow: 0 8px 18px -8px rgba(61, 43, 34, .55);
+    opacity: 0;
+    transform: translate(14px, -50%) rotate(-3deg);
+    transition: opacity .15s ease;
+    white-space: nowrap;
+  }
+  .tag::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
+    border-radius: 50%;
+    background: var(--linen-2);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, .3);
+  }
+  .tag::after {
+    content: "";
+    position: absolute;
+    inset: 3px 4px 3px 17px;
+    border: 1.5px dashed rgba(158, 42, 43, .55);
+    border-radius: 2px 7px 7px 2px;
+  }
+  .tag small { display: block; font-family: var(--text); font-weight: 400; font-style: italic; font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+  .tag.show { opacity: 1; }
+
+  /* ---------- the sewn-on label ---------- */
+  .label {
+    align-self: start;
+    position: relative;
+    background:
+      repeating-linear-gradient(0deg, rgba(120, 88, 50, .04) 0 1px, transparent 1px 3px),
+      #fbf5e6;
+    border-radius: 6px;
+    padding: 26px 26px 24px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 20px 40px -24px rgba(61, 43, 34, .55), 0 2px 6px rgba(61, 43, 34, .12);
+    transform: rotate(-.8deg);
+    margin-top: 6px;
+  }
+  .label::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border: 2px dashed rgba(158, 42, 43, .5);
+    border-radius: 3px;
+    pointer-events: none;
+  }
+  .label .kicker { margin: 0; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); }
+  .label h2 {
+    margin: 6px 0 4px;
+    font-family: var(--serif);
+    font-size: 30px;
+    line-height: 1.08;
+    color: var(--ink);
+  }
+  .label .meta { margin: 0 0 14px; font-size: 14px; color: var(--ink-2); font-style: italic; }
+  .blocks-list { list-style: none; margin: 0 0 18px; padding: 12px 0 0; border-top: 1.5px dashed rgba(61, 43, 34, .18); display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; }
+  .blocks-list li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .blocks-list svg { width: 22px; height: 22px; flex: none; border-radius: 2px; box-shadow: 0 0 0 1px rgba(61, 43, 34, .2); }
+  .blocks-list b { font-weight: 400; color: var(--ink-3); font-size: 12.5px; margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  .stitch-btn {
+    appearance: none;
+    border: 0;
+    width: 100%;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff8e8;
+    background: var(--barn);
+    padding: 15px 18px;
+    border-radius: 8px;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #6d1c1d, 0 14px 22px -12px rgba(61, 43, 34, .7);
+    transition: transform .15s ease, box-shadow .15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .stitch-btn::after { content: ""; position: absolute; inset: 5px; border: 1.5px dashed rgba(255, 243, 176, .7); border-radius: 5px; pointer-events: none; }
+  .stitch-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #6d1c1d, 0 18px 24px -12px rgba(61, 43, 34, .7); }
+  .stitch-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #6d1c1d, 0 6px 12px -8px rgba(61, 43, 34, .7); }
+  .stitch-btn svg { width: 22px; height: 22px; }
+
+  .ctl-h { margin: 20px 0 8px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); font-weight: 400; }
+  .palettes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pal {
+    appearance: none;
+    font: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    background: #fffdf6;
+    border: 1.5px solid rgba(61, 43, 34, .16);
+    border-radius: 7px;
+    padding: 7px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: border-color .2s ease, transform .2s ease;
+  }
+  .pal:hover { transform: translateY(-1px); border-color: rgba(158, 42, 43, .5); }
+  .pal[aria-pressed="true"] { border: 1.5px dashed var(--barn); background: #fff7e2; }
+  .pal .chips { display: flex; gap: 3px; }
+  .pal .chips i { width: 16px; height: 16px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .soft-btn {
+    appearance: none;
+    font: inherit;
+    font-size: 14.5px;
+    color: var(--ink);
+    background: #fffdf6;
+    border: 1.5px solid rgba(61, 43, 34, .2);
+    border-radius: 7px;
+    padding: 10px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .soft-btn:hover { background: #fff6dc; border-color: rgba(158, 42, 43, .5); }
+  .soft-btn[aria-pressed="true"] { background: var(--denim); color: #f4efe4; border-color: var(--denim); }
+  .soft-btn svg { width: 18px; height: 18px; }
+  .hint { margin: 14px 0 0; font-size: 13px; line-height: 1.55; color: var(--ink-3); font-style: italic; }
+
+  :focus-visible { outline: 2.5px dashed var(--barn); outline-offset: 3px; }
+  #quilt .block:focus-visible { outline: none; }
+  .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  @media (max-width: 900px) {
+    .page { grid-template-columns: 1fr; padding: 18px 16px 30px; }
+    .stage { margin-bottom: 22px; }
+    .label { transform: none; }
+    .spool { width: 44px; height: 44px; }
+    .tagline { font-size: 14.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div class="title-wrap">
+      <h1>Patchwork</h1>
+      <svg class="stitch-line" viewBox="0 0 300 16" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M2 8 Q 40 2 78 8 T 154 8 T 230 8 T 298 8" fill="none" stroke="#e09f3e" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 7"/>
+        <path d="M2 11 Q 40 5 78 11 T 154 11 T 230 11 T 298 11" fill="none" stroke="#9e2a2b" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="4 12" stroke-dashoffset="-5" opacity=".7"/>
+      </svg>
+      <p class="tagline">A generative quilt, pieced fresh for every visit.</p>
+    </div>
+    <svg class="spool" viewBox="0 0 60 60" aria-hidden="true">
+      <rect x="14" y="8" width="32" height="6" rx="2" fill="#c49a6c"/>
+      <rect x="14" y="46" width="32" height="6" rx="2" fill="#b0855a"/>
+      <rect x="17" y="14" width="26" height="32" fill="#9e2a2b"/>
+      <g stroke="#7a2324" stroke-width="1.2" opacity=".7"><path d="M17 18h26M17 22h26M17 26h26M17 30h26M17 34h26M17 38h26M17 42h26"/></g>
+      <path d="M43 30 C 52 32, 54 44, 46 50 S 34 58, 30 56" fill="none" stroke="#9e2a2b" stroke-width="1.4"/>
+      <path d="M50 4 L 27 57" stroke="#8a8f98" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="48.6" cy="7.4" rx="1" ry="2.4" transform="rotate(23 48.6 7.4)" fill="#efe4d0"/>
+    </svg>
+  </header>
+
+  <main class="stage" id="stage" aria-label="The quilt">
+    <svg id="quilt" xmlns="http://www.w3.org/2000/svg" focusable="false" role="group" aria-label="Generated quilt. Each block is a button; activate one to change its pattern."></svg>
+    <canvas id="drape" aria-label="The quilt hanging on a washing line, waving in the wind" role="img"></canvas>
+  </main>
+
+  <aside class="label" aria-label="Quilt label and controls">
+    <p class="kicker">This quilt is called</p>
+    <h2 id="qname">Bramble Porch</h2>
+    <p class="meta" id="qmeta">No. 0142 &middot; 4 &times; 5 blocks &middot; 66 &times; 80 in</p>
+    <ul class="blocks-list" id="blocks-list" aria-label="Blocks in this quilt"></ul>
+    <button type="button" class="stitch-btn" id="stitch">
+      <svg viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 19L17 5"/><ellipse cx="18.2" cy="3.8" rx="1.2" ry="2.3" transform="rotate(45 18.2 3.8)"/><path d="M18 5c3 3 1 7-3 8s-8 1-9 5" stroke-dasharray="2 2.4"/></svg>
+      Stitch a new quilt
+    </button>
+    <p class="ctl-h" id="pal-h">Fabrics</p>
+    <div class="palettes" role="group" aria-labelledby="pal-h" id="palettes"></div>
+    <div class="row">
+      <button type="button" class="soft-btn" id="drape-btn" aria-pressed="false">
+        <svg viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 3.5Q9 6 17 3.5"/><path d="M3.5 4.5v9.5q2.2-1.4 4.2 0t4.4 0 2.4-.4V4.6"/><path d="M5.5 3.2v2.6M12.5 3.2v2.6" stroke-width="2"/></svg>
+        <span id="drape-lbl">Drape on line</span>
+      </button>
+      <button type="button" class="soft-btn" id="download">
+        <svg viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2.5v9M5.5 8L9 11.5 12.5 8M3 14.5h12"/></svg>
+        Save PNG
+      </button>
+    </div>
+    <p class="hint">Hover a block to lift it and read its name; click to re-piece it as another pattern. Blocks are keyboard buttons too.</p>
+  </aside>
+</div>
+<div class="tag" id="tag" aria-hidden="true"></div>
+<p class="sr-only" id="status" aria-live="polite"></p>
+
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('quilt');
+  const stage = document.getElementById('stage');
+  const drapeC = document.getElementById('drape');
+  const dctx = drapeC.getContext('2d');
+  const tagEl = document.getElementById('tag');
+  const statusEl = document.getElementById('status');
+  const listEl = document.getElementById('blocks-list');
+  const nameEl = document.getElementById('qname'), metaEl = document.getElementById('qmeta');
+  const drapeBtn = document.getElementById('drape-btn'), drapeLbl = document.getElementById('drape-lbl');
+  const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = reduceMQ.matches;
+
+  /* ---------------- seeded randomness ---------------- */
+  let rs = 1;
+  function srand(s) { rs = s >>> 0 || 1; }
+  function rand() {
+    rs = (rs + 0x6D2B79F5) >>> 0;
+    let t = rs;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  const pick = (a) => a[Math.floor(rand() * a.length)];
+  const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
+  function el(name, attrs, parent) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function hexRGB(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function lum(h) { const [r, g, b] = hexRGB(h); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; }
+  function mix(a, b, t) { const A = hexRGB(a), B = hexRGB(b); return '#' + [0, 1, 2].map(i => Math.round(A[i] + (B[i] - A[i]) * t).toString(16).padStart(2, '0')).join(''); }
+
+  /* ================================================================
+     Palettes and fabrics
+     ================================================================ */
+  const PALETTES = {
+    farmhouse: { name: 'Farmhouse', cols: ['#9e2a2b', '#e09f3e', '#335c67', '#fff3b0', '#9fb8ad', '#f6ecd9', '#5e1b1d'] },
+    indigo: { name: 'Indigo', cols: ['#1b2f4b', '#335c67', '#4f7ca8', '#a9c6de', '#f3efe4', '#e2ebf1', '#c44536'] },
+    sunset: { name: 'Sunset', cols: ['#9e2a2b', '#d1553a', '#e98a3f', '#f2c14e', '#fff3b0', '#fbe6d4', '#5b2a4a'] },
+    scandi: { name: 'Scandinavian', cols: ['#f4f1ea', '#e3dccf', '#c9d6df', '#52616b', '#b5838d', '#a3b18a', '#7a4b4f'] }
+  };
+  let palKey = 'farmhouse';
+
+  // each fabric: { id, kind, base, ink, tone: 'light'|'mid'|'dark' }
+  let fabrics = [];
+  function makeFabrics() {
+    const cols = PALETTES[palKey].cols.slice();
+    const lights = cols.filter(c => lum(c) > 0.78);
+    const darks = cols.filter(c => lum(c) < 0.42);
+    const mids = cols.filter(c => lum(c) >= 0.42 && lum(c) <= 0.78);
+    const anyDark = darks.length ? darks : mids;
+    const anyLight = lights.length ? lights : mids;
+    const out = [];
+    const add = (kind, base, ink, tone) => out.push({ id: 'fab-' + out.length, kind, base, ink, tone });
+    // lights: muslin, gingham, dots, calico
+    for (const L of anyLight) {
+      add('muslin', L, mix(L, '#6b5446', 0.25), 'light');
+      add(pick(['gingham', 'dots', 'calico', 'calico']), L, pick(anyDark.concat(mids)), 'light');
+    }
+    // mids: calico, stripes, solid
+    for (const M of mids) {
+      add(pick(['calico', 'stripes', 'dots']), M, pick(anyLight), 'mid');
+      if (rand() < 0.6) add(pick(['solid', 'gingham']), M, mix(M, '#ffffff', 0.55), 'mid');
+    }
+    // darks: chambray, dots, calico, gingham
+    for (const D of darks) {
+      add(pick(['chambray', 'calico', 'dots']), D, pick(anyLight), 'dark');
+      add(pick(['gingham', 'stripes', 'solid', 'chambray']), D, pick(anyLight.concat(mids)), 'dark');
+    }
+    fabrics = out;
+  }
+
+  function buildPatterns(defs) {
+    for (const f of fabrics) {
+      const p = el('pattern', { id: f.id, patternUnits: 'userSpaceOnUse' }, defs);
+      const b = f.base, k = f.ink;
+      if (f.kind === 'gingham') {
+        const s = 10;
+        p.setAttribute('width', s); p.setAttribute('height', s);
+        el('rect', { width: s, height: s, fill: b }, p);
+        el('rect', { width: s, height: s / 2, fill: k, 'fill-opacity': 0.42 }, p);
+        el('rect', { width: s / 2, height: s, fill: k, 'fill-opacity': 0.42 }, p);
+        el('path', { d: 'M0 .5H10M0 5.5H10', stroke: '#fff', 'stroke-opacity': 0.12, 'stroke-width': 0.6 }, p);
+      } else if (f.kind === 'dots') {
+        const s = 11;
+        p.setAttribute('width', s); p.setAttribute('height', s);
+        el('rect', { width: s, height: s, fill: b }, p);
+        el('circle', { cx: 2.75, cy: 2.75, r: 1.55, fill: k }, p);
+        el('circle', { cx: 8.25, cy: 8.25, r: 1.55, fill: k }, p);
+      } else if (f.kind === 'stripes') {
+        const s = 9;
+        p.setAttribute('width', s); p.setAttribute('height', s);
+        p.setAttribute('patternTransform', 'rotate(' + (rand() < 0.5 ? 0 : 45) + ')');
+        el('rect', { width: s, height: s, fill: b }, p);
+        el('rect', { width: 2.6, height: s, fill: k, 'fill-opacity': 0.85 }, p);
+        el('rect', { x: 5, width: 0.8, height: s, fill: k, 'fill-opacity': 0.55 }, p);
+      } else if (f.kind === 'calico') {
+        const s = 18;
+        p.setAttribute('width', s); p.setAttribute('height', s);
+        el('rect', { width: s, height: s, fill: b }, p);
+        const flower = (cx, cy, r) => {
+          for (let i = 0; i < 5; i++) {
+            const a = i / 5 * Math.PI * 2;
+            el('circle', { cx: cx + Math.cos(a) * r, cy: cy + Math.sin(a) * r, r: r * 0.72, fill: k }, p);
+          }
+          el('circle', { cx, cy, r: r * 0.55, fill: mix(k, '#e09f3e', 0.5) }, p);
+        };
+        flower(4.5, 4.5, 1.5);
+        flower(13.5, 12.5, 1.3);
+        el('ellipse', { cx: 11, cy: 4, rx: 1.8, ry: 0.8, fill: mix(k, b, 0.35), transform: 'rotate(-35 11 4)' }, p);
+        el('ellipse', { cx: 5, cy: 14, rx: 1.8, ry: 0.8, fill: mix(k, b, 0.35), transform: 'rotate(30 5 14)' }, p);
+        el('circle', { cx: 16, cy: 2, r: 0.7, fill: k }, p);
+        el('circle', { cx: 9, cy: 16, r: 0.6, fill: k }, p);
+      } else if (f.kind === 'chambray') {
+        const s = 4;
+        p.setAttribute('width', s); p.setAttribute('height', s);
+        el('rect', { width: s, height: s, fill: b }, p);
+        el('path', { d: 'M0 .5H4M0 2.5H4', stroke: '#ffffff', 'stroke-opacity': 0.16, 'stroke-width': 0.9 }, p);
+        el('path', { d: 'M1 0V4M3 0V4', stroke: '#000000', 'stroke-opacity': 0.1, 'stroke-width': 0.8 }, p);
+      } else if (f.kind === 'muslin') {
+        const s = 12;
+        p.setAttribute('width', s); p.setAttribute('height', s);
+        el('rect', { width: s, height: s, fill: b }, p);
+        for (let i = 0; i < 5; i++) el('circle', { cx: (i * 5.3 + 1) % s, cy: (i * 7.1 + 2) % s, r: 0.45, fill: k, 'fill-opacity': 0.5 }, p);
+      } else {
+        const s = 6;
+        p.setAttribute('width', s); p.setAttribute('height', s);
+        el('rect', { width: s, height: s, fill: b }, p);
+        el('path', { d: 'M0 1H6M0 4H6', stroke: '#000', 'stroke-opacity': 0.04, 'stroke-width': 0.8 }, p);
+      }
+    }
+  }
+
+  /* ================================================================
+     Traditional blocks, drawn in the unit square
+     roles: bg (light), a (dark), b (accent), c (medium)
+     ================================================================ */
+  const R = (x0, y0, x1, y1, role) => ({ pts: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], role });
+  const T = (p0, p1, p2, role) => ({ pts: [p0, p1, p2], role });
+  function hst(x, y, s, flip, r1, r2) {
+    // half-square triangle: two triangles split by a diagonal
+    return flip
+      ? [T([x, y], [x + s, y], [x + s, y + s], r1), T([x, y], [x + s, y + s], [x, y + s], r2)]
+      : [T([x, y], [x + s, y], [x, y + s], r1), T([x + s, y], [x + s, y + s], [x, y + s], r2)];
+  }
+  const BLOCKS = {
+    'Log Cabin': (v) => {
+      const out = [];
+      let x0 = 0.375, y0 = 0.375, x1 = 0.625, y1 = 0.625;
+      out.push(R(x0, y0, x1, y1, 'b'));
+      const w = 0.125;
+      for (let r = 0; r < 3; r++) {
+        const L = r % 2 ? 'bg' : 'c', D = r % 2 ? 'a' : 'a2';
+        out.push(R(x0, y0 - w, x1, y0, L)); y0 -= w;
+        out.push(R(x1, y0, x1 + w, y1, L)); x1 += w;
+        out.push(R(x0, y1, x1, y1 + w, D)); y1 += w;
+        out.push(R(x0 - w, y0, x0, y1, D)); x0 -= w;
+      }
+      return out;
+    },
+    'Flying Geese': (v) => {
+      const out = [];
+      const n = 4, h = 1 / n;
+      for (let i = 0; i < n; i++) {
+        const y = i * h;
+        out.push(T([0, y + h], [0.5, y], [1, y + h], i % 2 ? 'a' : 'b'));
+        out.push(T([0, y], [0.5, y], [0, y + h], 'bg'));
+        out.push(T([0.5, y], [1, y], [1, y + h], 'bg'));
+      }
+      return out;
+    },
+    'Half-Square Triangles': (v) => {
+      const out = [];
+      const n = 3, s = 1 / n;
+      const style = v % 3;
+      for (let j = 0; j < n; j++) {
+        for (let i = 0; i < n; i++) {
+          const flip = style === 0 ? false : style === 1 ? (i + j) % 2 === 1 : i >= j;
+          const dark = (i + j) % 2 && style === 2 ? 'b' : 'a';
+          out.push(...hst(i * s, j * s, s, flip, dark, 'bg'));
+        }
+      }
+      return out;
+    },
+    'Nine Patch': (v) => {
+      const out = [];
+      const s = 1 / 3;
+      for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) {
+        const role = (i + j) % 2 === 0 ? (i === 1 && j === 1 ? 'b' : 'a') : 'bg';
+        out.push(R(i * s, j * s, (i + 1) * s, (j + 1) * s, role));
+      }
+      return out;
+    },
+    'Pinwheel': (v) => {
+      const out = [];
+      const blades = [
+        [[0, 0], [0.5, 0], [0.5, 0.5]], [[1, 0], [1, 0.5], [0.5, 0.5]],
+        [[1, 1], [0.5, 1], [0.5, 0.5]], [[0, 1], [0, 0.5], [0.5, 0.5]]
+      ];
+      const skies = [
+        [[0, 0], [0.5, 0.5], [0, 0.5]], [[1, 0], [0.5, 0.5], [0.5, 0]],
+        [[1, 1], [0.5, 0.5], [1, 0.5]], [[0, 1], [0.5, 0.5], [0.5, 1]]
+      ];
+      for (let q = 0; q < 4; q++) {
+        out.push(T(blades[q][0], blades[q][1], blades[q][2], q % 2 ? 'a' : 'b'));
+        out.push(T(skies[q][0], skies[q][1], skies[q][2], 'bg'));
+      }
+      return out;
+    },
+    'Churn Dash': (v) => {
+      const out = [];
+      const s = 1 / 3, h = s / 2;
+      // corners: the dark half faces the centre
+      out.push(T([0, 0], [s, 0], [0, s], 'bg'), T([s, 0], [s, s], [0, s], 'a'));
+      out.push(T([1, 0], [1, s], [1 - s, 0], 'bg'), T([1 - s, 0], [1, s], [1 - s, s], 'a'));
+      out.push(T([0, 1], [0, 1 - s], [s, 1], 'bg'), T([0, 1 - s], [s, 1 - s], [s, 1], 'a'));
+      out.push(T([1, 1], [1 - s, 1], [1, 1 - s], 'bg'), T([1 - s, 1], [1 - s, 1 - s], [1, 1 - s], 'a'));
+      // bars: the dark half toward the centre
+      out.push(R(s, 0, 2 * s, h, 'bg'), R(s, h, 2 * s, s, 'a'));
+      out.push(R(s, 1 - h, 2 * s, 1, 'bg'), R(s, 1 - s, 2 * s, 1 - h, 'a'));
+      out.push(R(0, s, h, 2 * s, 'bg'), R(h, s, s, 2 * s, 'a'));
+      out.push(R(1 - h, s, 1, 2 * s, 'bg'), R(1 - s, s, 1 - h, 2 * s, 'a'));
+      out.push(R(s, s, 2 * s, 2 * s, v % 2 ? 'bg' : 'c'));
+      return out;
+    },
+    'Ohio Star': (v) => {
+      const out = [];
+      const s = 1 / 3;
+      for (const [i, j] of [[0, 0], [2, 0], [0, 2], [2, 2]]) out.push(R(i * s, j * s, (i + 1) * s, (j + 1) * s, 'bg'));
+      out.push(R(s, s, 2 * s, 2 * s, 'b'));
+      // quarter-square triangle units: two star points on each
+      const qst = (x, y, horizontal) => {
+        const c = [x + s / 2, y + s / 2];
+        const tl = [x, y], tr = [x + s, y], br = [x + s, y + s], bl = [x, y + s];
+        const top = T(tl, tr, c, horizontal ? 'bg' : 'a'), bot = T(bl, br, c, horizontal ? 'c' : 'a');
+        const left = T(tl, bl, c, horizontal ? 'a' : 'bg'), right = T(tr, br, c, horizontal ? 'a' : 'c');
+        return [top, bot, left, right];
+      };
+      const top = qst(s, 0, true);
+      const bottom = qst(s, 2 * s, true).map(p => (p.role === 'bg' ? { pts: p.pts, role: 'c' } : p.role === 'c' ? { pts: p.pts, role: 'bg' } : p));
+      const left = qst(0, s, false);
+      const right = qst(2 * s, s, false).map(p => (p.role === 'bg' ? { pts: p.pts, role: 'c' } : p.role === 'c' ? { pts: p.pts, role: 'bg' } : p));
+      out.push(...top, ...bottom, ...left, ...right);
+      return out;
+    }
+  };
+  const BLOCK_NAMES = Object.keys(BLOCKS);
+  const BLOCK_NOTES = {
+    'Log Cabin': 'a light side and a dark side around a hearth',
+    'Flying Geese': 'a skein of triangles heading north',
+    'Half-Square Triangles': 'squares split on the diagonal',
+    'Nine Patch': 'the first block many quilters learn',
+    'Pinwheel': 'four triangles turning in the breeze',
+    'Churn Dash': 'named for the butter churn’s plunger',
+    'Ohio Star': 'eight points around a centre square'
+  };
+
+  /* inset a convex polygon (for stitching just inside each patch) */
+  function inset(pts, d) {
+    const n = pts.length;
+    // orientation
+    let area = 0;
+    for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; }
+    const sgn = area > 0 ? 1 : -1;
+    const lines = [];
+    for (let i = 0; i < n; i++) {
+      const a = pts[i], b = pts[(i + 1) % n];
+      let nx = b[1] - a[1], ny = a[0] - b[0];
+      const L = Math.hypot(nx, ny) || 1;
+      nx = nx / L * sgn; ny = ny / L * sgn;
+      // inward normal is -n for positive orientation in y-down space
+      lines.push([a[0] - nx * d, a[1] - ny * d, b[0] - nx * d, b[1] - ny * d]);
+    }
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const l1 = lines[(i + n - 1) % n], l2 = lines[i];
+      const x1 = l1[0], y1 = l1[1], x2 = l1[2], y2 = l1[3], x3 = l2[0], y3 = l2[1], x4 = l2[2], y4 = l2[3];
+      const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+      if (Math.abs(den) < 1e-9) { out.push([x3, y3]); continue; }
+      const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
+      out.push([x1 + t * (x2 - x1), y1 + t * (y2 - y1)]);
+    }
+    return out;
+  }
+  const dPoly = (pts) => 'M' + pts.map(p => p[0].toFixed(2) + ' ' + p[1].toFixed(2)).join('L') + 'Z';
+
+  /* ================================================================
+     Quilt state
+     ================================================================ */
+  let quiltSeed = (Date.now() % 1e9) | 0;
+  let cols = 4, rows = 5, B = 120;
+  let blocks = [];     // { type, v, roles: {bg,a,a2,b,c} }
+  let quiltName = '', quiltNo = 0;
+  let geom = null;
+
+  const ADJ = ['Bramble', 'Harvest', 'Lantern', 'Clover', 'Juniper', 'Orchard', 'Kettle', 'Prairie', 'Sunday', 'Hollow', 'Meadow', 'Hearth', 'Thimble', 'Honey'];
+  const NOUN = ['Porch', 'Crossing', 'Lullaby', 'Supper', 'Garden', 'Morning', 'Road', 'Barn', 'Chorus', 'Fields', 'Picnic', 'Letters', 'Hayloft', 'Tea'];
+
+  function newQuilt(s) {
+    quiltSeed = s;
+    srand(s);
+    quiltName = pick(ADJ) + ' ' + pick(NOUN);
+    quiltNo = 1 + Math.floor(rand() * 9998);
+    srand(s * 7 + 11);
+    blocks = [];
+    // a quilt favours two or three blocks, with the odd surprise
+    const favs = [pick(BLOCK_NAMES), pick(BLOCK_NAMES), pick(BLOCK_NAMES)];
+    for (let k = 0; k < 42; k++) {
+      const type = rand() < 0.72 ? favs[k % 3 === 2 && rand() < 0.5 ? 2 : k % 2] : pick(BLOCK_NAMES);
+      blocks.push({ type, v: Math.floor(rand() * 1000), rr: rand() });
+    }
+    assignFabrics();
+  }
+  function assignFabrics() {
+    srand(quiltSeed * 13 + (palKey.charCodeAt(0) * 101));
+    makeFabrics();
+    const L = fabrics.filter(f => f.tone === 'light'), M = fabrics.filter(f => f.tone === 'mid'), D = fabrics.filter(f => f.tone === 'dark');
+    const orL = L.length ? L : M, orD = D.length ? D : M, orM = M.length ? M : D;
+    geomFabrics = {
+      sash: pick(orL), stone: pick(orD.concat(orM)), border: pick(orD.concat(orM)), binding: pick(orD), inner: pick(orM)
+    };
+    for (const b of blocks) {
+      b.roles = { bg: pick(orL), a: pick(orD), a2: pick(orD.concat(orM)), b: pick(orM.concat(orD)), c: pick(orM.concat(orL)) };
+      if (b.roles.b === b.roles.a) b.roles.b = pick(orM);
+    }
+  }
+  let geomFabrics = {};
+
+  /* ================================================================
+     Layout and SVG construction
+     ================================================================ */
+  function computeLayout() {
+    const narrow = window.innerWidth < 900;
+    cols = narrow ? 3 : 4;
+    rows = narrow ? 4 : 5;
+    const rect = stage.getBoundingClientRect();
+    const availW = Math.max(260, rect.width - (narrow ? 0 : 20));
+    const availH = narrow ? availW * 1.5 : Math.max(420, window.innerHeight - stage.getBoundingClientRect().top - 36);
+    const sash = 0.15, border = 0.36, bind = 0.1;
+    const unitsW = cols + (cols + 1) * sash + 2 * border + 2 * bind;
+    const unitsH = rows + (rows + 1) * sash + 2 * border + 2 * bind;
+    B = Math.floor(Math.min(availW / unitsW, availH / unitsH));
+    geom = { sash: sash * B, border: border * B, bind: bind * B, W: Math.round(unitsW * B), H: Math.round(unitsH * B) };
+  }
+
+  let blockEls = [];
+  function build() {
+    svg.replaceChildren();
+    const W = geom.W, H = geom.H;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', H);
+    const defs = el('defs', {}, svg);
+    buildPatterns(defs);
+    // puffy shading for each patch (object bounding box)
+    const puff = el('radialGradient', { id: 'puff', cx: '0.42', cy: '0.38', r: '0.75' }, defs);
+    el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': '0.26' }, puff);
+    el('stop', { offset: '0.45', 'stop-color': '#ffffff', 'stop-opacity': '0.04' }, puff);
+    el('stop', { offset: '0.8', 'stop-color': '#3d2b22', 'stop-opacity': '0.12' }, puff);
+    el('stop', { offset: '1', 'stop-color': '#3d2b22', 'stop-opacity': '0.3' }, puff);
+    const weave = el('pattern', { id: 'weave', width: 3, height: 3, patternUnits: 'userSpaceOnUse' }, defs);
+    el('path', { d: 'M0 .5H3', stroke: '#fff', 'stroke-opacity': 0.09, 'stroke-width': 0.8 }, weave);
+    el('path', { d: 'M1.5 0V3', stroke: '#000', 'stroke-opacity': 0.05, 'stroke-width': 0.8 }, weave);
+    const lift = el('filter', { id: 'lift', x: '-20%', y: '-20%', width: '150%', height: '150%' }, defs);
+    el('feDropShadow', { dx: 4, dy: 8, stdDeviation: 5, 'flood-color': '#3d2b22', 'flood-opacity': 0.38 }, lift);
+    const soft = el('filter', { id: 'qshadow', x: '-10%', y: '-10%', width: '125%', height: '125%' }, defs);
+    el('feGaussianBlur', { stdDeviation: Math.max(6, B * 0.12) }, soft);
+
+    // soft shadow under the whole quilt
+    el('rect', { x: geom.bind + 6, y: geom.bind + 14, width: W - geom.bind * 2, height: H - geom.bind * 2, rx: 10, fill: '#3d2b22', 'fill-opacity': 0.35, filter: 'url(#qshadow)' }, svg);
+
+    // binding with a gentle wave along every edge
+    const wave = (x0, y0, x1, y1, amp, n) => {
+      let d = '';
+      for (let i = 1; i <= n; i++) {
+        const t = i / n, tm = (i - 0.5) / n;
+        const mx = x0 + (x1 - x0) * tm, my = y0 + (y1 - y0) * tm;
+        const nx = -(y1 - y0), ny = x1 - x0, L = Math.hypot(nx, ny);
+        const o = (i % 2 ? 1 : -1) * amp;
+        d += 'Q' + (mx + nx / L * o).toFixed(1) + ' ' + (my + ny / L * o).toFixed(1) + ' ' + (x0 + (x1 - x0) * t).toFixed(1) + ' ' + (y0 + (y1 - y0) * t).toFixed(1);
+      }
+      return d;
+    };
+    const bw = geom.bind, amp = bw * 0.28;
+    const nW = Math.max(6, Math.round(W / (B * 0.4))), nH = Math.max(6, Math.round(H / (B * 0.4)));
+    const outline = 'M' + bw * 0.5 + ' ' + bw * 0.5 + wave(bw * 0.5, bw * 0.5, W - bw * 0.5, bw * 0.5, amp, nW) + wave(W - bw * 0.5, bw * 0.5, W - bw * 0.5, H - bw * 0.5, amp, nH) +
+      wave(W - bw * 0.5, H - bw * 0.5, bw * 0.5, H - bw * 0.5, amp, nW) + wave(bw * 0.5, H - bw * 0.5, bw * 0.5, bw * 0.5, amp, nH) + 'Z';
+    el('path', { d: outline, fill: 'url(#' + geomFabrics.binding.id + ')' }, svg);
+    el('path', { d: outline, fill: 'url(#puff)' }, svg);
+    // border fabric
+    const bx = bw, by = bw, bW = W - bw * 2, bH = H - bw * 2;
+    el('rect', { x: bx, y: by, width: bW, height: bH, fill: 'url(#' + geomFabrics.border.id + ')' }, svg);
+    el('rect', { x: bx, y: by, width: bW, height: bH, fill: 'url(#puff)', opacity: 0.8 }, svg);
+    el('rect', { x: bx + 4, y: by + 4, width: bW - 8, height: bH - 8, fill: 'none', stroke: 'rgba(255,248,225,0.8)', 'stroke-width': 1.1, 'stroke-dasharray': '4 3.2' }, svg);
+    el('path', { d: outline, fill: 'none', stroke: 'rgba(255,248,225,0.75)', 'stroke-width': 1, 'stroke-dasharray': '3 3', transform: 'translate(' + (W / 2) + ' ' + (H / 2) + ') scale(' + ((W - bw * 0.9) / W).toFixed(4) + ' ' + ((H - bw * 0.9) / H).toFixed(4) + ') translate(' + (-W / 2) + ' ' + (-H / 2) + ')' }, svg);
+    // sashing field
+    const fx = bw + geom.border, fy = bw + geom.border;
+    const fW = W - 2 * fx, fH = H - 2 * fy;
+    el('rect', { x: fx, y: fy, width: fW, height: fH, fill: 'url(#' + geomFabrics.sash.id + ')' }, svg);
+    el('rect', { x: fx, y: fy, width: fW, height: fH, fill: 'none', stroke: 'rgba(61,43,34,0.35)', 'stroke-width': 1.2 }, svg);
+    // cornerstones and sashing stitches
+    const S = geom.sash;
+    const stitches = el('g', { fill: 'none', stroke: 'rgba(107,84,70,0.55)', 'stroke-width': 0.9, 'stroke-dasharray': '3 2.6' }, svg);
+    for (let j = 0; j <= rows; j++) {
+      for (let i = 0; i <= cols; i++) {
+        const cx = fx + i * (B + S), cy = fy + j * (B + S);
+        el('rect', { x: cx, y: cy, width: S, height: S, fill: 'url(#' + geomFabrics.stone.id + ')' }, svg);
+        el('rect', { x: cx, y: cy, width: S, height: S, fill: 'url(#puff)' }, svg);
+        if (i < cols) el('path', { d: 'M' + (cx + S + 3) + ' ' + (cy + S / 2) + 'H' + (cx + S + B - 3) }, stitches);
+        if (j < rows) el('path', { d: 'M' + (cx + S / 2) + ' ' + (cy + S + 3) + 'V' + (cy + S + B - 3) }, stitches);
+      }
+    }
+    // blocks
+    const blocksG = el('g', {}, svg);
+    blockEls = [];
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
+        const idx = j * cols + i;
+        const x = fx + S + i * (B + S), y = fy + S + j * (B + S);
+        const g = el('g', { class: 'block', tabindex: '0', role: 'button', 'data-i': idx }, blocksG);
+        g.dataset.x = x; g.dataset.y = y;
+        drawBlock(g, idx, x, y);
+        blockEls.push(g);
+      }
+    }
+    // a whisper of woven texture over everything
+    el('rect', { x: 0, y: 0, width: W, height: H, fill: 'url(#weave)', 'pointer-events': 'none' }, svg);
+    updateLabel();
+  }
+
+  function drawBlock(g, idx, x, y) {
+    g.replaceChildren();
+    const b = blocks[idx];
+    const patches = BLOCKS[b.type](b.v);
+    g.setAttribute('aria-label', b.type + ' block. Activate to change its pattern.');
+    const title = el('title', {}, g);
+    title.textContent = b.type;
+    // rotate some blocks a quarter turn for variety
+    const rot = Math.floor(b.rr * 4);
+    const tf = (p) => {
+      let u = p[0], v = p[1];
+      for (let r = 0; r < rot; r++) { const t = u; u = 1 - v; v = t; }
+      return [x + u * B, y + v * B];
+    };
+    const stitchG = [];
+    for (const p of patches) {
+      const pts = p.pts.map(tf);
+      const fab = b.roles[p.role] || b.roles.bg;
+      const d = dPoly(pts);
+      el('path', { d, fill: 'url(#' + fab.id + ')' }, g);
+      el('path', { d, fill: 'url(#puff)' }, g);
+      el('path', { d, fill: 'none', stroke: 'rgba(61,43,34,0.32)', 'stroke-width': 0.8 }, g);
+      stitchG.push([inset(pts, Math.max(2.4, B * 0.028)), fab.tone === 'light' ? 'rgba(122,35,36,0.55)' : 'rgba(255,248,225,0.8)']);
+    }
+    for (const [pts, col] of stitchG) el('path', { d: dPoly(pts), fill: 'none', stroke: col, 'stroke-width': 0.9, 'stroke-dasharray': '3 2.4', 'stroke-linecap': 'round' }, g);
+    el('rect', { class: 'focus-ring', x: x - 3, y: y - 3, width: B + 6, height: B + 6, fill: 'none', stroke: '#9e2a2b', 'stroke-width': 2.5, 'stroke-dasharray': '6 4', rx: 3 }, g);
+  }
+
+  /* ---------------- the label card ---------------- */
+  function miniIcon(type) {
+    const s = document.createElementNS(NS, 'svg');
+    s.setAttribute('viewBox', '0 0 1 1');
+    s.setAttribute('aria-hidden', 'true');
+    const cols = PALETTES[palKey].cols;
+    const sorted = cols.slice().sort((a, b) => lum(b) - lum(a));
+    const roleCol = { bg: sorted[0], c: sorted[2], b: sorted[3], a: sorted[sorted.length - 1], a2: sorted[sorted.length - 2] };
+    for (const p of BLOCKS[type](1)) el('path', { d: dPoly(p.pts), fill: roleCol[p.role] || sorted[0] }, s);
+    return s;
+  }
+  function updateLabel() {
+    nameEl.textContent = quiltName;
+    const inW = cols * 12 + (cols + 1) * 2 + 2 * 4, inH = rows * 12 + (rows + 1) * 2 + 2 * 4;
+    metaEl.textContent = 'No. ' + String(quiltNo).padStart(4, '0') + ' · ' + cols + ' × ' + rows + ' blocks · ' + inW + ' × ' + inH + ' in';
+    const counts = {};
+    for (let k = 0; k < cols * rows; k++) counts[blocks[k].type] = (counts[blocks[k].type] || 0) + 1;
+    listEl.replaceChildren();
+    for (const name of BLOCK_NAMES) {
+      if (!counts[name]) continue;
+      const li = document.createElement('li');
+      li.appendChild(miniIcon(name));
+      const span = document.createElement('span');
+      span.textContent = name === 'Half-Square Triangles' ? 'Half-Squares' : name;
+      li.appendChild(span);
+      const b = document.createElement('b');
+      b.textContent = '×' + counts[name];
+      li.appendChild(b);
+      listEl.appendChild(li);
+    }
+  }
+
+  /* ================================================================
+     Interaction on blocks
+     ================================================================ */
+  function blockFromEvent(e) { const t = e.target.closest && e.target.closest('.block'); return t && svg.contains(t) ? t : null; }
+  function showTag(g, x, y) {
+    const b = blocks[+g.dataset.i];
+    tagEl.replaceChildren();
+    tagEl.appendChild(document.createTextNode(b.type));
+    const sm = document.createElement('small');
+    sm.textContent = BLOCK_NOTES[b.type];
+    tagEl.appendChild(sm);
+    tagEl.style.left = x + 'px';
+    tagEl.style.top = y + 'px';
+    tagEl.classList.add('show');
+  }
+  svg.addEventListener('pointermove', (e) => {
+    const g = blockFromEvent(e);
+    if (g && e.pointerType === 'mouse') showTag(g, e.clientX, e.clientY);
+    else tagEl.classList.remove('show');
+  });
+  svg.addEventListener('pointerleave', () => tagEl.classList.remove('show'));
+  function cycle(g, viaKey) {
+    const i = +g.dataset.i;
+    const b = blocks[i];
+    b.type = BLOCK_NAMES[(BLOCK_NAMES.indexOf(b.type) + 1) % BLOCK_NAMES.length];
+    b.v++;
+    drawBlock(g, i, +g.dataset.x, +g.dataset.y);
+    g.classList.remove('pop');
+    void g.getBoundingClientRect();
+    g.classList.add('pop');
+    updateLabel();
+    announce('Re-pieced as ' + b.type + '.');
+    if (!viaKey) { const r = g.getBoundingClientRect(); showTag(g, r.left + r.width * 0.7, r.top + r.height * 0.3); }
+    drapeDirty = true;
+  }
+  svg.addEventListener('click', (e) => { const g = blockFromEvent(e); if (g) cycle(g, false); });
+  svg.addEventListener('keydown', (e) => {
+    const g = blockFromEvent(e);
+    if (!g) return;
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycle(g, true); }
+    const i = +g.dataset.i;
+    const move = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols }[e.key];
+    if (move !== undefined) {
+      e.preventDefault();
+      const n = i + move;
+      if (n >= 0 && n < blockEls.length) blockEls[n].focus();
+    }
+  });
+  svg.addEventListener('focusin', (e) => {
+    const g = blockFromEvent(e);
+    if (g) announce(blocks[+g.dataset.i].type + ' block, row ' + (Math.floor(+g.dataset.i / cols) + 1) + ', column ' + (+g.dataset.i % cols + 1) + '.');
+  });
+
+  function announce(m) { statusEl.textContent = m; }
+
+  /* ================================================================
+     Controls
+     ================================================================ */
+  const palWrap = document.getElementById('palettes');
+  for (const k of Object.keys(PALETTES)) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pal';
+    b.dataset.pal = k;
+    b.setAttribute('aria-pressed', k === palKey ? 'true' : 'false');
+    const chips = document.createElement('span');
+    chips.className = 'chips';
+    chips.setAttribute('aria-hidden', 'true');
+    for (const c of PALETTES[k].cols.slice(0, 6)) { const i = document.createElement('i'); i.style.background = c; chips.appendChild(i); }
+    b.appendChild(chips);
+    b.appendChild(document.createTextNode(PALETTES[k].name));
+    b.addEventListener('click', () => setPalette(k));
+    palWrap.appendChild(b);
+  }
+  function setPalette(k) {
+    palKey = k;
+    for (const b of palWrap.children) b.setAttribute('aria-pressed', b.dataset.pal === k ? 'true' : 'false');
+    assignFabrics();
+    build();
+    refreshDrape();
+    announce(PALETTES[k].name + ' fabrics.');
+  }
+  document.getElementById('stitch').addEventListener('click', () => {
+    newQuilt(((Math.random() * 1e9) | 0) + 1);
+    build();
+    // stitch the new blocks in one after another
+    if (!reduced) {
+      blockEls.forEach((g, k) => {
+        g.style.opacity = '0';
+        g.style.transform = 'translate(0, 10px)';
+        setTimeout(() => { g.style.transition = 'opacity .35s ease, transform .45s cubic-bezier(.3,1.6,.5,1)'; g.style.opacity = '1'; g.style.transform = ''; }, 40 + k * 38);
+        setTimeout(() => { g.style.transition = ''; }, 700 + k * 38);
+      });
+    }
+    refreshDrape();
+    announce('A new quilt: ' + quiltName + '.');
+  });
+
+  /* ================================================================
+     Rasterize the SVG (for the drape and for PNG export)
+     ================================================================ */
+  let quiltImg = null, drapeDirty = true;
+  function refreshDrape() {
+    drapeDirty = true;
+    if (draped) rasterize((img) => { if (img) { quiltImg = img; drapeDirty = false; } });
+  }
+  function rasterize(cb) {
+    const clone = svg.cloneNode(true);
+    clone.querySelectorAll('.focus-ring, title').forEach(n => n.remove());
+    clone.setAttribute('xmlns', NS);
+    const text = new XMLSerializer().serializeToString(clone);
+    const img = new Image();
+    img.onload = () => cb(img);
+    img.onerror = () => cb(null);
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(text);
+  }
+  document.getElementById('download').addEventListener('click', () => {
+    rasterize((img) => {
+      if (!img) { announce('Sorry, the PNG could not be made here.'); return; }
+      try {
+        const c = document.createElement('canvas');
+        const sc = 2;
+        c.width = geom.W * sc; c.height = geom.H * sc;
+        const g = c.getContext('2d');
+        g.drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob((blob) => {
+          if (!blob) return;
+          const a = document.createElement('a');
+          const toHref = URL.createObjectURL.bind(URL);
+          a.href = toHref(blob);
+          a.download = quiltName.toLowerCase().replace(/\s+/g, '-') + '-quilt.png';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          const drop = URL.revokeObjectURL.bind(URL);
+          setTimeout(() => drop(a.href), 4000);
+          announce('Downloaded the quilt as a PNG.');
+        }, 'image/png');
+      } catch (err) { announce('Sorry, the PNG could not be made here.'); }
+    });
+  });
+
+  /* ================================================================
+     The drape: a textured mesh blowing on a washing line
+     ================================================================ */
+  let draped = false, raf = 0;
+  drapeBtn.addEventListener('click', () => {
+    draped = !draped;
+    drapeBtn.setAttribute('aria-pressed', draped ? 'true' : 'false');
+    drapeLbl.textContent = draped ? 'Lay it flat' : 'Drape on line';
+    stage.classList.toggle('draped', draped);
+    tagEl.classList.remove('show');
+    if (draped) {
+      sizeDrape();
+      if (drapeDirty || !quiltImg) rasterize((img) => { quiltImg = img; drapeDirty = false; });
+      if (!raf) raf = requestAnimationFrame(drapeLoop);
+      announce('The quilt is hanging on the line.');
+    } else {
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      announce('The quilt is laid flat.');
+    }
+  });
+  let DW = 0, DH = 0, DPR = 1, QW = 0, QH = 0;
+  function sizeDrape() {
+    const r = stage.getBoundingClientRect();
+    DW = Math.max(280, Math.round(r.width));
+    const narrow = window.innerWidth < 900;
+    const maxH = narrow ? window.innerHeight * 0.9 : window.innerHeight - Math.max(0, r.top + window.scrollY) - 24;
+    QW = Math.min(DW * 0.8, Math.max(200, (maxH - 120) * geom.W / geom.H));
+    QH = QW * geom.H / geom.W;
+    DH = Math.max(360, Math.round(QH + 120));
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    drapeC.width = Math.round(DW * DPR); drapeC.height = Math.round(DH * DPR);
+    drapeC.style.height = DH + 'px';
+  }
+  function texTri(img, x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2) {
+    const g = dctx;
+    g.save();
+    // expand a hair to hide seams between neighbouring triangles
+    const cx = (x0 + x1 + x2) / 3, cy = (y0 + y1 + y2) / 3, e = 1.3;
+    const ex = (x, y) => { const dx = x - cx, dy = y - cy, L = Math.hypot(dx, dy) || 1; return [x + dx / L * e, y + dy / L * e]; };
+    const [a0, b0] = ex(x0, y0), [a1, b1] = ex(x1, y1), [a2, b2] = ex(x2, y2);
+    g.beginPath(); g.moveTo(a0, b0); g.lineTo(a1, b1); g.lineTo(a2, b2); g.closePath(); g.clip();
+    const den = u0 * (v1 - v2) + u1 * (v2 - v0) + u2 * (v0 - v1);
+    if (Math.abs(den) < 1e-9) { g.restore(); return; }
+    const m11 = (x0 * (v1 - v2) + x1 * (v2 - v0) + x2 * (v0 - v1)) / den;
+    const m12 = (y0 * (v1 - v2) + y1 * (v2 - v0) + y2 * (v0 - v1)) / den;
+    const m21 = (x0 * (u2 - u1) + x1 * (u0 - u2) + x2 * (u1 - u0)) / den;
+    const m22 = (y0 * (u2 - u1) + y1 * (u0 - u2) + y2 * (u1 - u0)) / den;
+    const dx = (x0 * (u1 * v2 - u2 * v1) + x1 * (u2 * v0 - u0 * v2) + x2 * (u0 * v1 - u1 * v0)) / den;
+    const dy = (y0 * (u1 * v2 - u2 * v1) + y1 * (u2 * v0 - u0 * v2) + y2 * (u0 * v1 - u1 * v0)) / den;
+    g.transform(m11, m12, m21, m22, dx, dy);
+    g.drawImage(img, 0, 0);
+    g.restore();
+  }
+  const GX = 22, GY = 16;
+  const mesh = new Float32Array((GX + 1) * (GY + 1) * 3);
+  function drapeLoop(now) {
+    raf = requestAnimationFrame(drapeLoop);
+    if (document.hidden) return;
+    const g = dctx;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, DW, DH);
+    const t = reduced ? now * 0.0002 : now * 0.001;
+    // the line and its posts
+    const qw = QW, qh = QH;
+    const x0 = (DW - qw) / 2, y0 = 58;
+    g.strokeStyle = '#8a6a4a';
+    g.lineWidth = 7;
+    g.lineCap = 'round';
+    g.beginPath(); g.moveTo(22, 20); g.lineTo(22, DH); g.moveTo(DW - 22, 20); g.lineTo(DW - 22, DH); g.stroke();
+    const sag = (x) => { const u = (x - 22) / (DW - 44); return 26 + Math.sin(u * Math.PI) * 22; };
+    g.strokeStyle = 'rgba(80,60,45,0.85)';
+    g.lineWidth = 1.6;
+    g.beginPath();
+    for (let x = 22; x <= DW - 22; x += 8) { const y = sag(x); if (x === 22) g.moveTo(x, y); else g.lineTo(x, y); }
+    g.stroke();
+    // compute the cloth mesh
+    const pegs = 5;
+    for (let j = 0; j <= GY; j++) {
+      const v = j / GY;
+      for (let i = 0; i <= GX; i++) {
+        const u = i / GX;
+        const gust = 0.6 + 0.4 * Math.sin(t * 0.37);
+        const z = (Math.sin(u * 7.5 - t * 2.3 + v * 1.8) * 0.55 + Math.sin(u * 3.1 + t * 1.4 - v * 2.4) * 0.45) * Math.pow(v, 0.9) * gust;
+        const sway = Math.sin(t * 0.9 + u * 1.2) * Math.pow(v, 1.6) * 18 * gust;
+        const px = x0 + u * qw;
+        // the top edge droops a little between the pegs
+        const topY = sag(px) + 4 + Math.sin(u * (pegs - 1) * Math.PI) ** 2 * 5;
+        const k = (i + j * (GX + 1)) * 3;
+        mesh[k] = px + z * 10 * (u - 0.5) + sway;
+        mesh[k + 1] = topY + v * qh * (1 - 0.035 * Math.abs(z)) + z * 3;
+        mesh[k + 2] = z;
+      }
+    }
+    if (quiltImg) {
+      const iw = quiltImg.width || geom.W, ih = quiltImg.height || geom.H;
+      for (let j = 0; j < GY; j++) {
+        for (let i = 0; i < GX; i++) {
+          const a = (i + j * (GX + 1)) * 3, b = a + 3, c = a + (GX + 1) * 3, d = c + 3;
+          const u0 = i / GX * iw, u1 = (i + 1) / GX * iw, v0 = j / GY * ih, v1 = (j + 1) / GY * ih;
+          texTri(quiltImg, mesh[a], mesh[a + 1], mesh[b], mesh[b + 1], mesh[c], mesh[c + 1], u0, v0, u1, v0, u0, v1);
+          texTri(quiltImg, mesh[b], mesh[b + 1], mesh[d], mesh[d + 1], mesh[c], mesh[c + 1], u1, v0, u1, v1, u0, v1);
+        }
+      }
+      // light and shadow in the folds
+      for (let j = 0; j < GY; j++) {
+        for (let i = 0; i < GX; i++) {
+          const a = (i + j * (GX + 1)) * 3, b = a + 3, c = a + (GX + 1) * 3, d = c + 3;
+          const slope = (mesh[b + 2] - mesh[a + 2] + mesh[d + 2] - mesh[c + 2]) * 0.5;
+          const shade = clamp(slope * 2.2, -0.5, 0.5);
+          g.fillStyle = shade > 0 ? 'rgba(255,250,235,' + (shade * 0.55).toFixed(3) + ')' : 'rgba(40,24,16,' + (-shade * 0.7).toFixed(3) + ')';
+          g.beginPath();
+          g.moveTo(mesh[a], mesh[a + 1]); g.lineTo(mesh[b], mesh[b + 1]); g.lineTo(mesh[d], mesh[d + 1]); g.lineTo(mesh[c], mesh[c + 1]);
+          g.closePath();
+          g.fill();
+        }
+      }
+      // wooden pegs
+      for (let p = 0; p < pegs; p++) {
+        const u = p / (pegs - 1);
+        const k = (Math.round(u * GX)) * 3;
+        const px = mesh[k], py = mesh[k + 1];
+        g.fillStyle = '#c49a6c';
+        g.strokeStyle = '#8a6a4a';
+        g.lineWidth = 1;
+        g.beginPath();
+        g.roundRect ? g.roundRect(px - 4, py - 16, 8, 26, 3) : g.rect(px - 4, py - 16, 8, 26);
+        g.fill(); g.stroke();
+        g.fillStyle = '#9a9aa2';
+        g.fillRect(px - 5, py - 4, 10, 3);
+      }
+    } else {
+      g.fillStyle = 'rgba(61,43,34,0.5)';
+      g.font = 'italic 16px Georgia, serif';
+      g.textAlign = 'center';
+      g.fillText('Pegging it out…', DW / 2, DH / 2);
+    }
+  }
+
+  /* ================================================================
+     Start
+     ================================================================ */
+  let lastNarrow = window.innerWidth < 900;
+  function relayout() {
+    computeLayout();
+    build();
+    drapeDirty = true;
+    if (draped) { sizeDrape(); rasterize((img) => { if (img) { quiltImg = img; drapeDirty = false; } }); }
+  }
+  window.addEventListener('resize', () => {
+    const narrow = window.innerWidth < 900;
+    if (narrow !== lastNarrow) lastNarrow = narrow;
+    relayout();
+  });
+  reduceMQ.addEventListener && reduceMQ.addEventListener('change', (e) => { reduced = e.matches; });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && raf) { cancelAnimationFrame(raf); raf = 0; } else if (!document.hidden && draped && !raf) raf = requestAnimationFrame(drapeLoop); });
+
+  newQuilt(quiltSeed);
+  computeLayout();
+  build();
+})();
+</script>
+</body>
+</html>

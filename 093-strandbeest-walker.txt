@@ -1,0 +1,40 @@
+TITLE: Windwalker — A Kinetic Sculpture Simulation
+FILE: 093-strandbeest-walker.html
+
+=== PROMPT (exact prompt used) ===
+Create "Windwalker — A Kinetic Sculpture Simulation", inspired by Theo Jansen's wind-walking beach creatures (an original rendering). Simulate the Jansen linkage with its canonical link lengths (a=38, b=41.5, c=39.3, d=40.1, e=55.8, f=39.4, g=36.7, h=65.7, i=49, j=50, k=61.9, l=7.8, m=15), solving every joint position each frame from the crank angle with circle–circle intersections. Draw a multi-legged creature (e.g. 6–12 legs with phase offsets) walking across a beach (sand #e9d8b4, sea #6fb3c7, sky #f0f4f5) in its pale-yellow tube aesthetic (#f4e3a1 tubes with darker joints), with each foot's path traced as the characteristic curve and a wind sail driving it. Interaction: a wind slider (walking speed); a "single leg diagram" toggle showing one linkage with labelled lengths and its foot trajectory; a trace-paths toggle; buttons to add/remove leg pairs; drag to pan along the beach. Parallax clouds and footprints fading in the sand behind it. Typography: an engineering-notebook sans with monospace labels.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Windwalker" is a full-screen beach scene in which an original multi-legged wind sculpture, built from pale-yellow tubes with darker joints and topped by translucent billowing sails and a red pennant, strides along the sand. Behind it are a pale sky with a soft sun, drifting clouds, distant birds and a teal sea with rolling wave lines and a sliding swash. Every leg is a true Jansen linkage using the canonical lengths (a=38, b=41.5, c=39.3, d=40.1, e=55.8, f=39.4, g=36.7, h=65.7, i=49, j=50, k=61.9, l=7.8, m=15). Each frame, all joints are solved from circle–circle intersections of the crank angle, and the body is moved so the planted foot never slips. Red-pencil dashed curves trace each foot's characteristic path, footprints fade in the sand behind, and small sand puffs rise at each touchdown. The interface reads like an engineer's field notebook: a taped, ruled title label, a monospace readout strip, a graph-paper "fig. 1" diagram of a single leg with every length labelled, a control dock, and below the scene a notes page with the full table of link lengths and how the solver works.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Linkage solver: crank tip from θ, then five circle–circle intersections (upper joint, knee, the outer corner of the upper triangle, the rear corner of the foot triangle, the foot), each on a fixed branch that was verified numerically to stay valid through the whole turn and to give the classic flat-bottomed foot path
+- Mirrored leg pairs share a crank (solved at π − θ and reflected); each pair has a golden-ratio phase offset, and alternate stations sit on the far side of the spine, drawn lighter, smaller and offset for depth
+- Slip-free walking: the lowest foot is the contact foot, the body advances by the opposite of that foot's motion in body space, and the body height settles so that foot rests on the sand, which produces the natural bob
+- Tubes drawn as three strokes (outline, pale-yellow body, specular highlight) with glazed rigid triangles, darker joint caps, crank hubs, a braced spine and frame, and sails built from quadratic curves that billow and flap with the wind
+- Pre-rendered sky, sun glow, sea gradient and sun glitter; clouds as layered radial-gradient puffs at three parallax depths; animated wave lines and swash foam
+- Sand drawn with ground parallax tuned to exactly 1 on the walking line, so wind ripples, shells and pebbles (hashed per world tile) stay locked to the footprints
+- Pooled footprints that fade over 45 seconds, touchdown puffs, wind-blown sand grains and a soft elliptical shadow
+- Graph-paper diagram canvas: the leg to scale with labelled lengths on paper-backed tags, hatched fixed pivots, dimension lines for a and l, the crank circle, and the dashed foot trajectory with a live foot marker
+
+=== INTERACTION MODEL ===
+- Wind slider (0 to 12 m/s) sets the crank speed, the sail billow, the pennant, the cloud drift and the blowing sand; at zero the beest stops
+- Plus and minus buttons (or + and - keys) add or remove leg pairs, from 1 to 8 pairs (2 to 16 legs)
+- "Leg diagram" (D) opens the single-leg figure with its labelled lengths and foot trajectory; on wide screens the camera leads a little so the beest stays visible
+- "Trace paths" (T) shows or hides every foot's characteristic curve and current foot position
+- Drag the beach (mouse or horizontal touch swipe) or use the arrow keys on the focused scene to pan; "Follow" (F or Home) re-centres the camera on the beest
+- Live readouts show crank angle, pace and distance walked (reading one linkage unit as one centimetre)
+- Optional Web Audio (off by default): filtered-noise wind that follows the slider and soft tube taps at each footfall
+- The page opens with a few seconds already walked, so there are footprints in the sand; prefers-reduced-motion lowers the wind, damps the sails and removes puffs and blowing grains

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crystalline — No Two Alike</title>
+<meta name="description" content="Crystalline: a procedural snowflake generator. Grow six-fold ice crystals from a hexagonal seed, steer their form with temperature and humidity after Nakaya's diagram, browse a numbered catalogue and download any flake as SVG.">
+<style>
+:root{
+  --deep:#0c1b33;
+  --winter:#1c3a5e;
+  --ice:#eaf6ff;
+  --ice-2:#bfe3ff;
+  --frost:#9fd8ff;
+  --text:#dcebf7;
+  --muted:rgba(210,230,247,.62);
+  --hair:rgba(190,225,255,.16);
+  --thin:"Helvetica Neue","Avenir Next","Segoe UI","Nimbus Sans","Liberation Sans",Arial,sans-serif;
+  --italic:Baskerville,"Hoefler Text","Libre Baskerville",Garamond,"P052","Palatino Linotype",Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100vh;color:var(--text);font-family:var(--thin);font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(ellipse 80% 70% at 62% 38%,#24476f 0%,#1c3a5e 30%,#132a49 62%,#0c1b33 100%) fixed,#0c1b33;
+}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:1px solid var(--frost);outline-offset:4px}
+.it{font-family:var(--italic);font-style:italic;font-weight:400;letter-spacing:.01em}
+.wide{text-transform:uppercase;letter-spacing:.42em;font-weight:300;font-size:11px}
+#snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+header.top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;padding:30px clamp(18px,4.5vw,64px) 0}
+.mark{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.mark h1{margin:0;font-weight:200;font-size:clamp(22px,2.3vw,32px);letter-spacing:.62em;margin-right:-.62em;color:#f3f9ff}
+.mark p{margin:0;font-size:clamp(17px,1.6vw,21px);color:var(--muted)}
+.count{color:var(--muted);text-decoration:none;display:flex;gap:10px;align-items:center}
+.count b{font-weight:300;color:var(--text);letter-spacing:.2em}
+.count:hover{color:var(--text)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;z-index:1;display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:clamp(20px,4vw,70px);align-items:center;padding:10px clamp(18px,4.5vw,64px) 30px;min-height:calc(100vh - 110px)}
+.panel{display:flex;flex-direction:column;gap:20px}
+.lede{margin:0;font-size:19px;line-height:1.55;color:#cfe2f3}
+.field{display:grid;gap:10px}
+.field .row{display:flex;justify-content:space-between;align-items:baseline}
+.field output{font-size:22px;font-weight:200;letter-spacing:.06em;color:#f3f9ff;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(90deg,var(--a,#6fb6ff),var(--b,#e9f6ff))}
+input[type=range]::-moz-range-track{height:2px;background:linear-gradient(90deg,var(--a,#6fb6ff),var(--b,#e9f6ff))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-7px;transform:rotate(30deg);clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%);background:#f3f9ff;box-shadow:0 0 12px rgba(160,215,255,.9)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border:0;border-radius:3px;background:#f3f9ff;box-shadow:0 0 12px rgba(160,215,255,.9)}
+#temp{--a:#e9f6ff;--b:#5aa6f0}
+#hum{--a:#35577f;--b:#e9f6ff}
+.diagram{position:relative;border:1px solid var(--hair);border-radius:4px;background:rgba(8,20,40,.35)}
+.diagram svg{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.diagram figcaption{position:absolute;right:10px;top:8px;font-size:13px;color:var(--muted)}
+.explain{margin:0;font-size:17px;line-height:1.55;color:#cfe2f3;min-height:3.1em}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn{
+  position:relative;display:inline-flex;align-items:center;gap:10px;cursor:pointer;border-radius:40px;padding:14px 24px;
+  border:1px solid rgba(190,225,255,.5);background:rgba(160,210,255,.08);color:#f3f9ff;
+  text-transform:uppercase;letter-spacing:.3em;font-size:11.5px;font-weight:400;overflow:hidden;
+  transition:background-color .3s,border-color .3s,box-shadow .3s
+}
+.btn:hover{background:rgba(160,210,255,.16);border-color:#e9f6ff;box-shadow:0 0 24px rgba(150,210,255,.35)}
+.btn.primary{background:linear-gradient(180deg,rgba(234,246,255,.95),rgba(191,227,255,.9));color:#0c1b33;border-color:transparent;font-weight:500}
+.btn.primary:hover{box-shadow:0 0 30px rgba(170,220,255,.6)}
+.btn svg{width:16px;height:16px}
+.btn:disabled{opacity:.55;cursor:progress}
+.meta{margin:0;display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--muted);font-size:13px;letter-spacing:.08em}
+.meta b{font-weight:300;color:var(--text)}
+
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0}
+.flake-wrap{position:relative;width:min(100%,76vh,740px);aspect-ratio:1/1;border-radius:50%;overflow:hidden}
+.flake-wrap::before{content:"";position:absolute;inset:6%;border-radius:50%;background:radial-gradient(circle,rgba(170,215,255,.2),rgba(170,215,255,0) 64%);pointer-events:none}
+.spin{position:absolute;inset:0;animation:spin 150s linear infinite;will-change:transform}
+@keyframes spin{to{transform:rotate(360deg)}}
+.flake{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 5px rgba(180,225,255,.55)) drop-shadow(0 0 22px rgba(120,190,255,.35))}
+.plaque{margin:-14px 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 18px;align-items:baseline;text-align:center;color:var(--muted);position:relative}
+.plaque .no{font-size:14px;letter-spacing:.34em;color:var(--text)}
+.stage .grow-hint{position:absolute;top:2%;right:0;color:var(--muted);font-size:15px}
+
+/* ---------- catalogue ---------- */
+.catalogue{position:relative;z-index:1;padding:40px clamp(18px,4.5vw,64px) 70px}
+.cat-head{display:flex;justify-content:space-between;align-items:baseline;gap:20px;border-top:1px solid var(--hair);padding-top:26px;margin-bottom:26px;flex-wrap:wrap}
+.cat-head h2{margin:0;font-weight:200;font-size:26px;letter-spacing:.5em}
+.cat-head p{margin:0;color:var(--muted);font-size:17px;max-width:520px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;list-style:none;margin:0;padding:0}
+.grid > li{display:flex}
+.card{width:100%;height:100%;display:flex;flex-direction:column;gap:8px;padding:14px 14px 16px;border-radius:6px;border:1px solid var(--hair);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));cursor:pointer;text-align:left;transition:border-color .3s,transform .3s,background-color .3s}
+.card:hover{border-color:rgba(190,225,255,.45);transform:translateY(-3px);background-color:rgba(160,210,255,.05)}
+.card svg{width:100%;aspect-ratio:1/1;height:auto;display:block;filter:drop-shadow(0 0 4px rgba(170,220,255,.45));transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.card:hover svg{transform:rotate(30deg) scale(1.04)}
+.card .no{font-size:12px;letter-spacing:.34em;color:var(--text)}
+.card .when{font-size:15px;color:var(--muted)}
+.card .hab{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--frost)}
+.card.new{animation:arrive 1.2s cubic-bezier(.2,.8,.2,1)}
+@keyframes arrive{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+
+/* ---------- lightbox ---------- */
+dialog{border:1px solid var(--hair);border-radius:10px;padding:0;background:radial-gradient(ellipse at 50% 40%,#21436b,#0c1b33 75%);color:var(--text);width:min(900px,calc(100vw - 24px));max-height:calc(100vh - 24px)}
+dialog::backdrop{background:rgba(4,10,22,.72);backdrop-filter:blur(4px)}
+.lb{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:10px;align-items:center;padding:26px}
+.lb svg{width:100%;height:auto;aspect-ratio:1/1;filter:drop-shadow(0 0 5px rgba(180,225,255,.6)) drop-shadow(0 0 22px rgba(120,190,255,.35))}
+.lb h3{margin:0 0 6px;font-weight:200;font-size:30px;letter-spacing:.3em}
+.lb .hab{margin:0 0 16px;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--frost)}
+.lb dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0 0 20px;font-size:14px}
+.lb dt{color:var(--muted);letter-spacing:.2em;text-transform:uppercase;font-size:11px;padding-top:3px}
+.lb dd{margin:0}
+.lb .explain{font-size:16px;margin-bottom:18px}
+.close{position:absolute;right:12px;top:12px;width:38px;height:38px;border-radius:50%;border:1px solid var(--hair);background:rgba(12,27,51,.6);cursor:pointer;display:grid;place-items:center}
+.close svg{width:14px;height:14px}
+footer{position:relative;z-index:1;padding:0 clamp(18px,4.5vw,64px) 40px;color:var(--muted);font-size:15px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:900px){
+  header.top{padding-top:20px}
+  .count span{display:none}
+  .hero{grid-template-columns:minmax(0,1fr);padding-top:4px;min-height:0}
+  .stage{order:1}
+  .panel{order:2}
+  .flake-wrap{width:min(92vw,58vh,560px)}
+  .panel .actions{order:-1;justify-content:center}
+  .stage .grow-hint{display:none}
+  .lb{grid-template-columns:minmax(0,1fr);padding:18px}
+}
+@media (max-width:560px){
+  .mark{gap:4px;flex-direction:column;align-items:flex-start}
+  .mark h1{letter-spacing:.44em;margin-right:-.44em;font-size:20px}
+  .mark p{font-size:16px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .card{padding:10px 10px 12px}
+  .card .when{font-size:13.5px}
+  .plaque{gap:10px}
+  .cat-head h2{font-size:21px;letter-spacing:.4em}
+}
+@media (prefers-reduced-motion:reduce){
+  .spin{animation:none}
+  .card svg{transition:none}
+}
+</style>
+</head>
+<body>
+<canvas id="snow" aria-hidden="true"></canvas>
+<header class="top">
+  <div class="mark"><h1>CRYSTALLINE</h1><p class="it">no two alike</p></div>
+  <a class="count wide" href="#catalogue"><span>Catalogue</span><b id="countOut">0</b></a>
+</header>
+
+<main>
+<section class="hero" aria-label="Snowflake grower">
+  <div class="panel">
+    <p class="lede it">Every snowflake begins as a tiny hexagon of ice. The air it falls through decides the rest.</p>
+    <div class="field">
+      <div class="row"><label class="wide" for="temp">Temperature</label><output id="tempOut" for="temp">−15 °C</output></div>
+      <input type="range" id="temp" min="-30" max="-1" step="0.5" value="-15">
+    </div>
+    <div class="field">
+      <div class="row"><label class="wide" for="hum">Humidity</label><output id="humOut" for="hum">85%</output></div>
+      <input type="range" id="hum" min="0" max="100" step="1" value="85">
+    </div>
+    <figure class="diagram" style="margin:0">
+      <svg id="nakaya" viewBox="0 0 320 190" role="img" aria-label="A simplified Nakaya diagram: crystal habit by temperature and humidity. Drag to choose conditions.">
+        <defs>
+          <radialGradient id="dotGlow"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#bfe3ff" stop-opacity=".8"/><stop offset="1" stop-color="#bfe3ff" stop-opacity="0"/></radialGradient>
+        </defs>
+        <filter id="soften" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.2"/></filter>
+        <g id="regions"></g>
+        <g id="axes"></g>
+        <g id="cursor"><circle r="16" fill="url(#dotGlow)"/><circle r="4" fill="#fff"/></g>
+      </svg>
+      <figcaption class="it">after Nakaya, simplified</figcaption>
+    </figure>
+    <p class="explain it" id="explain" aria-live="polite"></p>
+    <div class="actions">
+      <button type="button" class="btn primary" id="growBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1v14M2 4.5l12 7M2 11.5l12-7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Grow a snowflake</button>
+      <button type="button" class="btn" id="dlBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M4.5 7L8 10.5 11.5 7M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>SVG</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="flake-wrap">
+      <div class="spin"><svg class="flake" id="hero" viewBox="-1.08 -1.08 2.16 2.16" role="img" aria-labelledby="heroTitle"><title id="heroTitle">The current snowflake</title></svg></div>
+    </div>
+    <p class="plaque"><span class="no" id="heroNo">Nº 0000</span><span class="it" id="heroWhen"></span><span class="wide" id="heroHab" style="font-size:10px;color:var(--frost)"></span></p>
+    <p class="grow-hint it" aria-hidden="true">grown from a seed of six sides</p>
+  </div>
+</section>
+
+<section class="catalogue" id="catalogue" aria-labelledby="catTitle">
+  <div class="cat-head">
+    <h2 id="catTitle">THE CATALOGUE</h2>
+    <p class="it">Each crystal is numbered and dated as it forms. Open one to see its conditions, or take it home as a vector file.</p>
+  </div>
+  <ul class="grid" id="grid"></ul>
+</section>
+</main>
+<footer><p class="it">Forms here echo Ukichiro Nakaya’s 1930s studies of snow crystals grown in the laboratory, loosely and playfully. Real snowflakes are messier, and just as unrepeatable.</p></footer>
+
+<dialog id="lightbox" aria-labelledby="lbNo">
+  <div class="lb">
+    <svg id="lbFlake" viewBox="-1.08 -1.08 2.16 2.16" role="img" aria-label="Enlarged snowflake"></svg>
+    <div>
+      <h3 id="lbNo">Nº 0000</h3>
+      <p class="hab" id="lbHab"></p>
+      <dl>
+        <dt>Formed</dt><dd class="it" id="lbWhen"></dd>
+        <dt>Air</dt><dd id="lbAir"></dd>
+        <dt>Seed</dt><dd id="lbSeed"></dd>
+      </dl>
+      <p class="explain it" id="lbExplain"></p>
+      <div class="actions">
+        <button type="button" class="btn primary" id="lbDl">Download SVG</button>
+        <button type="button" class="btn" id="lbUse">Grow alike</button>
+      </div>
+    </div>
+  </div>
+  <button type="button" class="close" id="lbClose" aria-label="Close"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = s => document.querySelector(s);
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduce = mq.matches;
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} }
+  };
+  const mk = (tag, a, p) => { const n = document.createElementNS(NS, tag); if (a) for (const k in a) n.setAttribute(k, a[k]); if (p) p.appendChild(n); return n; };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const gs = (x, m, s) => Math.exp(-((x - m) * (x - m)) / (2 * s * s));
+  const sm = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const f3 = v => (Math.round(v * 1000) / 1000).toString();
+  function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  /* ---------- morphology, loosely after Nakaya ---------- */
+  function morph(T, H) {
+    const t = -T;
+    const dend = gs(t, 15, 3.3) * sm(0.5, 0.93, H);
+    const sector = gs(t, 13, 4.2) * gs(H, 0.58, 0.17) * (1 - dend * 0.5);
+    const plate = clamp(gs(t, 1.8, 1.5) + gs(t, 11, 3) * (1 - sm(0.3, 0.72, H)) + gs(t, 19.5, 2.6) * (1 - sm(0.35, 0.8, H)), 0, 1);
+    const needle = gs(t, 5, 1.3) * sm(0.35, 0.85, H);
+    const column = clamp(gs(t, 7, 1.7) * (1 - sm(0.3, 0.8, H)) + sm(21.5, 26, t) * (1 - H * 0.5), 0, 1);
+    return { dend, sector, plate, needle, column, H, t };
+  }
+  const HABITS = {
+    fern:['Fernlike stellar dendrite', 'Push the humidity high near −15 °C and the side branches branch again, feathery as ferns.'],
+    dend:['Stellar dendrite', 'Around −15 °C in moist air the six arms race outward and sprout side branches: the classic snowflake.'],
+    sector:['Sectored plate', 'Moderate vapour near −12 °C broadens the arms into flat, ribbed sectors.'],
+    stellarplate:['Stellar plate', 'Broad arms that end in little hexagonal plates, as growth flickers between plate and branch.'],
+    plate:['Hexagonal plate', 'In drier air growth is slow and even, and the crystal stays a flat hexagonal plate.'],
+    needle:['Needle star', 'Near −5 °C crystals grow long and slender. Nakaya found needles here; this flat model draws fine spikes.'],
+    column:['Hexagonal column', 'Around −7 °C, or in very cold air, crystals grow as columns. Seen end-on, a thick hollow prism.'],
+    star:['Simple star', 'Borderline air gives a modest six-armed star with only a few side branches.']
+  };
+  function habitOf(m) {
+    const s = [['fern', m.dend * (m.H > 0.86 ? 1.15 : 0.6)], ['dend', m.dend], ['sector', m.sector * 1.05], ['stellarplate', m.plate * sm(0.35, 0.7, m.H) * 0.9],
+      ['plate', m.plate * (1 - sm(0.35, 0.7, m.H))], ['needle', m.needle * 1.2], ['column', m.column], ['star', 0.22]];
+    s.sort((a, b) => b[1] - a[1]);
+    return s[0][0];
+  }
+
+  /* ---------- the crystal: primitives for one arm (axial) and one mirrored half ---------- */
+  function build(seed, T, H) {
+    const r = mulberry(seed);
+    const m = morph(T, H);
+    const G = { core: [], ax: [], half: [] };
+    const total = m.dend + m.plate + m.needle + m.sector + m.column + 0.2;
+    const colW = m.column / total;
+    let coreR = (0.065 + 0.42 * m.plate * (1 - m.dend) + 0.12 * m.sector + 0.4 * colW) * (0.85 + r() * 0.3);
+    coreR = clamp(coreR, 0.04, 0.6);
+    G.core.push({ k:'hex', c:[0, 0], s:coreR, rings: colW > 0.35 ? 3 : 1, col: colW > 0.35 });
+    let L = 0.32 + 0.6 * H + 0.22 * m.dend + 0.3 * m.needle - 0.28 * m.plate * (1 - H) - 0.55 * colW + (r() - 0.5) * 0.08;
+    L = clamp(L, coreR + 0.03, 0.97);
+    const armW = clamp(0.018 + 0.028 * m.plate + 0.02 * m.sector - 0.01 * m.needle + r() * 0.006, 0.007, 0.06);
+    if (L > coreR + 0.03) G.ax.push({ k:'strip', p0:[coreR * 0.5, 0], p1:[L, 0], w0:armW * 1.15, w1:armW * 0.75 });
+    // needle stars carry six finer spikes between the arms
+    if (m.needle > 0.35) {
+      const a = Math.PI / 6, l2 = L * (0.45 + r() * 0.25);
+      G.ax.push({ k:'strip', p0:[coreR * 0.6 * Math.cos(a), coreR * 0.6 * Math.sin(a)], p1:[l2 * Math.cos(a), l2 * Math.sin(a)], w0:armW * 0.8, w1:armW * 0.5 });
+    }
+    const tipS = (m.plate * 0.55 + m.sector * 0.45) * (0.05 + r() * 0.07) * (H > 0.25 ? 1 : 0.4);
+    if (tipS > 0.022 && L > coreR + 0.08) G.ax.push({ k:'hex', c:[L, 0], s:tipS });
+    // side branches on one side (mirrored at render time)
+    const span = L - coreR;
+    let nb = Math.round((1.5 + 6.5 * m.dend + 3 * m.sector + 1.2 * H + 1.5 * m.plate * H) * (0.82 + r() * 0.36) * (1 - colW) * (1 - m.needle * 0.7));
+    if (span < 0.08) nb = 0;
+    const U = [Math.cos(Math.PI / 3), Math.sin(Math.PI / 3)];
+    const broad = m.sector > Math.max(m.dend, 0.25);
+    // sectored plates: one ribbed wedge per half-arm makes a plate that is really six sectors
+    let bStart = coreR;
+    if (broad && L > coreR + 0.1) {
+      const Ls = coreR + (L - coreR) * (0.62 + r() * 0.14);
+      G.half.push({ k:'wedge', r0:coreR * 0.8, Ls, notch:0.86 + r() * 0.06, ribs:2 + Math.floor(r() * 3) });
+      nb = Math.max(0, Math.round(nb * 0.35));
+      bStart = Ls;
+    }
+    const bSpan = L - bStart;
+    let pos = [];
+    for (let i = 0; i < nb; i++) pos.push(bStart + bSpan * clamp((i + 0.55 + (r() - 0.5) * 0.7) / (nb + 0.3), 0.04, 0.95));
+    pos.sort((a, b) => a - b);
+    const fern = sm(0.84, 0.97, H) * m.dend;
+    pos.forEach((s, i) => {
+      const rel = (s - coreR) / span;
+      // a fir-tree envelope: long branches low on the arm, short ones near the tip
+      const env = Math.pow(Math.sin(Math.PI * clamp(rel * 0.8 + 0.12, 0, 1)), 0.9) * (1.05 - rel * 0.55);
+      let len = Math.min(0.72 * s, span * 0.62) * env * (0.4 + 0.7 * (m.dend + m.sector * 0.6 + H * 0.2)) * (0.72 + r() * 0.4);
+      if (broad) len *= 0.55;
+      if (len < 0.02) return;
+      const w = broad ? armW * (0.7 + r() * 0.25) : armW * (0.5 + r() * 0.2);
+      const p0 = [s, 0], p1 = [s + U[0] * len, U[1] * len];
+      G.half.push({ k:'strip', p0, p1, w0:w, w1:w * 0.55 });
+      if (broad && r() < 0.35) G.half.push({ k:'hex', c:p1, s:w * 1.1 });
+      // secondary dendrites grow outward, parallel to the main arm; ferns carry more of them
+      const nsub = len < 0.1 ? 0 : Math.floor((m.dend * 5 + fern * 5) * len * (0.7 + r() * 0.6));
+      for (let j = 0; j < nsub; j++) {
+        const tt = 0.25 + (j + 0.3 + r() * 0.4) / (nsub + 0.2) * 0.6;
+        const q = [s + U[0] * len * tt, U[1] * len * tt];
+        const sl = len * (1 - tt) * (0.55 + r() * 0.3);
+        if (sl < 0.018) continue;
+        G.half.push({ k:'strip', p0:q, p1:[q[0] + sl, q[1]], w0:w * 0.6, w1:w * 0.35 });
+        if (fern > 0.4 && r() < 0.5) {
+          const q2 = [q[0] - 0.5 * sl * 0.35, q[1] + 0.866 * sl * 0.35];
+          G.half.push({ k:'strip', p0:q, p1:q2, w0:w * 0.5, w1:w * 0.3 });
+        }
+      }
+    });
+    // plate ribs: faint parallel ridges inside broad plates
+    G.m = m;
+    let ext = L + armW * 1.6;
+    G.half.concat(G.ax).forEach(p => { const e = p.k === 'hex' ? Math.hypot(...p.c) + p.s : p.k === 'wedge' ? p.Ls : Math.hypot(...p.p1) + p.w1 * 1.6; if (e > ext) ext = e; });
+    ext = Math.max(ext, coreR);
+    // keep every crystal inside the frame
+    const k = ext > 0.96 ? 0.96 / ext : 1;
+    if (k < 1) {
+      const sc = v => [v[0] * k, v[1] * k];
+      G.core.concat(G.ax, G.half).forEach(p => {
+        if (p.k === 'hex') { p.c = sc(p.c); p.s *= k; }
+        else if (p.k === 'wedge') { p.r0 *= k; p.Ls *= k; }
+        else { p.p0 = sc(p.p0); p.p1 = sc(p.p1); p.w0 *= k; p.w1 *= k; }
+      });
+      L *= k; ext *= k;
+    }
+    G.L = L; G.ext = ext + 0.02;
+    return G;
+  }
+
+  /* ---------- geometry to path strings, clipped by growth radius ---------- */
+  function strip(p, R, out) {
+    const d0 = Math.hypot(p.p0[0], p.p0[1]);
+    const dx = p.p1[0] - p.p0[0], dy = p.p1[1] - p.p0[1], len = Math.hypot(dx, dy);
+    if (!len) return;
+    const ux = dx / len, uy = dy / len, nx = -uy, ny = ux;
+    const tipL = p.w1 * 1.6;
+    const dTip = Math.hypot(p.p1[0] + ux * tipL, p.p1[1] + uy * tipL);
+    if (R <= d0) return;
+    const f = clamp((R - d0) / Math.max(1e-4, dTip - d0), 0, 1);
+    const l = len * f;
+    const w1 = p.w0 + (p.w1 - p.w0) * f;
+    const ex = p.p0[0] + ux * l, ey = p.p0[1] + uy * l;
+    const tl = Math.min(tipL, w1 * 1.6);
+    const A = [p.p0[0] + nx * p.w0, p.p0[1] + ny * p.w0], B = [ex + nx * w1, ey + ny * w1], C = [ex + ux * tl, ey + uy * tl], D = [ex - nx * w1, ey - ny * w1], E = [p.p0[0] - nx * p.w0, p.p0[1] - ny * p.w0];
+    out.body += 'M' + f3(A[0]) + ' ' + f3(A[1]) + 'L' + f3(B[0]) + ' ' + f3(B[1]) + 'L' + f3(C[0]) + ' ' + f3(C[1]) + 'L' + f3(D[0]) + ' ' + f3(D[1]) + 'L' + f3(E[0]) + ' ' + f3(E[1]) + 'Z';
+    out.facet += 'M' + f3(p.p0[0]) + ' ' + f3(p.p0[1]) + 'L' + f3(A[0]) + ' ' + f3(A[1]) + 'L' + f3(B[0]) + ' ' + f3(B[1]) + 'L' + f3(C[0]) + ' ' + f3(C[1]) + 'Z';
+    out.ridge += 'M' + f3(p.p0[0]) + ' ' + f3(p.p0[1]) + 'L' + f3(C[0]) + ' ' + f3(C[1]);
+    if (l > 0.12 && p.w0 > 0.012) {
+      // little transverse ribs where the arm thickened in bursts
+      for (let q = 0.3; q < 0.9; q += 0.22) {
+        const cx = p.p0[0] + ux * l * q, cy = p.p0[1] + uy * l * q, ww = (p.w0 + (w1 - p.w0) * q) * 0.8;
+        out.ridge += 'M' + f3(cx + nx * ww) + ' ' + f3(cy + ny * ww) + 'L' + f3(cx + ux * ww * 0.6) + ' ' + f3(cy + uy * ww * 0.6) + 'L' + f3(cx - nx * ww) + ' ' + f3(cy - ny * ww);
+      }
+    }
+  }
+  function hex(p, R, out, isCore) {
+    const dc = Math.hypot(p.c[0], p.c[1]);
+    const sc = isCore ? clamp(0.12 + R / p.s, 0, 1) : clamp((R - (dc - p.s)) / (2 * p.s), 0, 1);
+    if (sc <= 0) return;
+    const s = p.s * sc;
+    const pts = [];
+    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; pts.push([p.c[0] + s * Math.cos(a), p.c[1] + s * Math.sin(a)]); }
+    out.body += 'M' + pts.map(q => f3(q[0]) + ' ' + f3(q[1])).join('L') + 'Z';
+    out.facet += 'M' + f3(p.c[0]) + ' ' + f3(p.c[1]) + 'L' + f3(pts[0][0]) + ' ' + f3(pts[0][1]) + 'L' + f3(pts[1][0]) + ' ' + f3(pts[1][1]) + 'Z'
+      + 'M' + f3(p.c[0]) + ' ' + f3(p.c[1]) + 'L' + f3(pts[2][0]) + ' ' + f3(pts[2][1]) + 'L' + f3(pts[3][0]) + ' ' + f3(pts[3][1]) + 'Z'
+      + 'M' + f3(p.c[0]) + ' ' + f3(p.c[1]) + 'L' + f3(pts[4][0]) + ' ' + f3(pts[4][1]) + 'L' + f3(pts[5][0]) + ' ' + f3(pts[5][1]) + 'Z';
+    pts.forEach(q => { out.ridge += 'M' + f3(p.c[0]) + ' ' + f3(p.c[1]) + 'L' + f3(q[0]) + ' ' + f3(q[1]); });
+    const rings = p.rings || 1;
+    for (let k = 1; k <= rings; k++) {
+      const f = k === rings && rings === 1 ? 0.56 : 0.28 + 0.62 * (k - 1) / Math.max(1, rings - 1);
+      out.ridge += 'M' + pts.map(q => f3(p.c[0] + (q[0] - p.c[0]) * f) + ' ' + f3(p.c[1] + (q[1] - p.c[1]) * f)).join('L') + 'Z';
+    }
+    if (p.col) out.body += 'M' + pts.map(q => f3(q[0] * 0.22) + ' ' + f3(q[1] * 0.22)).join('L') + 'Z';
+  }
+  function wedge(p, R, out) {
+    const f = clamp(R / p.Ls, 0, 1);
+    if (f <= 0.02) return;
+    const Ls = p.Ls * f, r0 = Math.min(p.r0, Ls * 0.8), c30 = Math.cos(Math.PI / 6), n = p.notch;
+    const A = [r0, 0], B = [Ls, 0], C = [Ls * c30 * n * c30, Ls * c30 * n * 0.5], D = [r0 * c30 * c30, r0 * c30 * 0.5];
+    const P = q => f3(q[0]) + ' ' + f3(q[1]);
+    out.body += 'M' + P(A) + 'L' + P(B) + 'L' + P(C) + 'L' + P(D) + 'Z';
+    out.facet += 'M' + P(A) + 'L' + P(B) + 'L' + P([(B[0] + C[0]) / 2, (B[1] + C[1]) / 2]) + 'Z';
+    out.ridge += 'M' + P(D) + 'L' + P(C);
+    for (let i = 1; i <= p.ribs; i++) {
+      const q = 0.35 + 0.55 * i / (p.ribs + 0.5);
+      if (q * Ls <= r0 * 1.2) continue;
+      out.ridge += 'M' + P([q * Ls, 0]) + 'L' + P([q * C[0], q * C[1]]);
+    }
+  }
+  function geometry(G, R) {
+    const core = { body:'', facet:'', ridge:'' }, ax = { body:'', facet:'', ridge:'' }, half = { body:'', facet:'', ridge:'' };
+    G.core.forEach(p => hex(p, R, core, true));
+    G.ax.forEach(p => p.k === 'hex' ? hex(p, R, ax) : strip(p, R, ax));
+    G.half.forEach(p => p.k === 'hex' ? hex(p, R, half) : p.k === 'wedge' ? wedge(p, R, half) : strip(p, R, half));
+    return { core, ax, half };
+  }
+
+  /* ---------- SVG renderer (shared by hero, cards, lightbox, export) ---------- */
+  let gid = 0;
+  function defsFor(svg) {
+    const id = 'ice' + (gid++);
+    const defs = mk('defs', null, svg);
+    const rg = mk('radialGradient', { id, cx:'0', cy:'0', r:'1', gradientUnits:'userSpaceOnUse' }, defs);
+    mk('stop', { offset:'0', 'stop-color':'#f4fbff', 'stop-opacity':'.42' }, rg);
+    mk('stop', { offset:'.55', 'stop-color':'#cde9ff', 'stop-opacity':'.2' }, rg);
+    mk('stop', { offset:'1', 'stop-color':'#9fd0ff', 'stop-opacity':'.16' }, rg);
+    return id;
+  }
+  function scaffold(svg) {
+    const iceId = defsFor(svg);
+    const root = mk('g', null, svg);
+    const layers = [];
+    const style = {
+      body:{ fill:'url(#' + iceId + ')', stroke:'rgba(236,248,255,.78)', 'stroke-width':'0.9', 'vector-effect':'non-scaling-stroke', 'stroke-linejoin':'round' },
+      facet:{ fill:'rgba(255,255,255,.13)', stroke:'none' },
+      ridge:{ fill:'none', stroke:'rgba(255,255,255,.5)', 'stroke-width':'0.6', 'vector-effect':'non-scaling-stroke', 'stroke-linecap':'round' }
+    };
+    const coreG = mk('g', null, root);
+    const core = {}; ['body', 'facet', 'ridge'].forEach(k => { core[k] = mk('path', style[k], coreG); });
+    const arms = [];
+    for (let i = 0; i < 6; i++) {
+      const g = mk('g', { transform:'rotate(' + i * 60 + ')' }, root);
+      const set = { ax:{}, half:{}, mir:{} };
+      ['ax', 'half', 'mir'].forEach(part => {
+        const pg = mk('g', part === 'mir' ? { transform:'scale(1 -1)' } : null, g);
+        ['body', 'facet', 'ridge'].forEach(k => { set[part][k] = mk('path', style[k], pg); });
+      });
+      arms.push(set);
+    }
+    const sparkle = mk('g', { fill:'#fff' }, root);
+    return { core, arms, sparkle };
+  }
+  function paint(S, geo, G, R) {
+    ['body', 'facet', 'ridge'].forEach(k => {
+      S.core[k].setAttribute('d', geo.core[k] || 'M0 0');
+      S.arms.forEach(a => {
+        a.ax[k].setAttribute('d', geo.ax[k] || 'M0 0');
+        a.half[k].setAttribute('d', geo.half[k] || 'M0 0');
+        a.mir[k].setAttribute('d', geo.half[k] || 'M0 0');
+      });
+    });
+    S.sparkle.textContent = '';
+    if (R >= G.ext) {
+      for (let i = 0; i < 6; i++) {
+        const a = i * Math.PI / 3, x = G.L * Math.cos(a), y = G.L * Math.sin(a);
+        mk('circle', { cx:f3(x), cy:f3(y), r:'0.008', opacity:'.9' }, S.sparkle);
+      }
+    }
+  }
+  function drawStatic(svg, G) {
+    const S = scaffold(svg);
+    paint(S, geometry(G, 9), G, 9);
+    return S;
+  }
+  function exportSVG(entry) {
+    const G = build(entry.seed, entry.T, entry.H);
+    const geo = geometry(G, 9);
+    const P = (d, st) => '<path d="' + d + '" ' + st + '/>';
+    const body = 'fill="url(#ice)" stroke="#ecf8ff" stroke-opacity="0.78" stroke-width="0.0022" stroke-linejoin="round"';
+    const facet = 'fill="#ffffff" fill-opacity="0.13"';
+    const ridge = 'fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="0.0015" stroke-linecap="round"';
+    let arms = '';
+    for (let i = 0; i < 6; i++) {
+      arms += '<g transform="rotate(' + i * 60 + ')">'
+        + P(geo.ax.body, body) + P(geo.ax.facet, facet) + P(geo.ax.ridge, ridge)
+        + P(geo.half.body, body) + P(geo.half.facet, facet) + P(geo.half.ridge, ridge)
+        + '<g transform="scale(1 -1)">' + P(geo.half.body, body) + P(geo.half.facet, facet) + P(geo.half.ridge, ridge) + '</g></g>';
+    }
+    const hab = HABITS[habitOf(G.m)][0];
+    return '<?xml version="1.0" encoding="UTF-8"?>\n'
+      + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1.1 -1.1 2.2 2.2" width="1200" height="1200">\n'
+      + '<title>Crystalline ' + noStr(entry.no) + ', ' + hab + '</title>\n'
+      + '<desc>Grown ' + entry.date + ' at ' + fmtT(entry.T) + ', humidity ' + Math.round(entry.H * 100) + '%. Seed ' + entry.seed + '.</desc>\n'
+      + '<defs><radialGradient id="bg" cx="0" cy="0" r="1.5" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1c3a5e"/><stop offset="1" stop-color="#0c1b33"/></radialGradient>'
+      + '<radialGradient id="ice" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#f4fbff" stop-opacity="0.42"/><stop offset="0.55" stop-color="#cde9ff" stop-opacity="0.2"/><stop offset="1" stop-color="#9fd0ff" stop-opacity="0.16"/></radialGradient>'
+      + '<filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="0.012" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>\n'
+      + '<rect x="-1.1" y="-1.1" width="2.2" height="2.2" fill="url(#bg)"/>\n'
+      + '<g filter="url(#glow)">' + P(geo.core.body, body) + P(geo.core.facet, facet) + P(geo.core.ridge, ridge) + arms + '</g>\n'
+      + '<text x="-1.04" y="1.05" font-family="Helvetica, Arial, sans-serif" font-size="0.042" letter-spacing="0.02" fill="#dcebf7" fill-opacity="0.7">CRYSTALLINE  ' + noStr(entry.no) + '  ' + entry.date.toUpperCase() + '</text>\n'
+      + '</svg>\n';
+  }
+  function download(entry) {
+    try {
+      const a = document.createElement('a');
+      a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(exportSVG(entry));
+      a.download = 'crystalline-' + String(entry.no).padStart(4, '0') + '.svg';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => a.remove(), 1500);
+    } catch (_) {}
+  }
+
+  /* ---------- catalogue ---------- */
+  const noStr = n => 'Nº ' + String(n).padStart(4, '0');
+  const fmtT = T => '−' + Math.abs(T).toFixed(Math.abs(T) % 1 ? 1 : 0) + ' °C';
+  const fmtDate = d => d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) + ', ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  const SEEDED = [[1117,-15,.96],[2231,-14.5,.74],[3301,-12.5,.56],[4409,-2,.3],[5557,-11,.52],[6613,-5,.82],[7727,-7,.18],[8831,-16,.86],[9941,-18.5,.64],[1013,-1.5,.62],[1210,-24,.42],[1310,-13.5,.92]];
+  let entries = store.get('crystalline-entries');
+  let nextNo = store.get('crystalline-next') || 0;
+  if (!Array.isArray(entries) || !entries.length) {
+    let back = Date.now();
+    entries = SEEDED.map(([seed, T, H], i) => {
+      back -= 86400000 * (1 + (seed % 3)) + (seed % 700) * 60000;
+      return { no:128 - i, seed, T, H, date:fmtDate(new Date(back)) };
+    });
+    nextNo = 129;
+  }
+  if (!nextNo) nextNo = Math.max(...entries.map(e => e.no)) + 1;
+  const grid = $('#grid');
+  function card(entry, fresh) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'card' + (fresh ? ' new' : '');
+    const G = build(entry.seed, entry.T, entry.H);
+    const hab = HABITS[habitOf(G.m)][0];
+    b.setAttribute('aria-label', noStr(entry.no) + ', ' + hab + ', formed ' + entry.date + '. Open.');
+    const svg = mk('svg', { viewBox:'-1.08 -1.08 2.16 2.16', 'aria-hidden':'true' });
+    b.appendChild(svg);
+    drawStatic(svg, G);
+    const no = document.createElement('span'); no.className = 'no'; no.textContent = noStr(entry.no);
+    const when = document.createElement('span'); when.className = 'when it'; when.textContent = entry.date;
+    const h = document.createElement('span'); h.className = 'hab'; h.textContent = hab;
+    b.append(no, when, h);
+    b.addEventListener('click', () => openBox(entry, b));
+    li.appendChild(b);
+    return li;
+  }
+  function renderGrid() {
+    grid.textContent = '';
+    entries.forEach(e => grid.appendChild(card(e)));
+    $('#countOut').textContent = String(nextNo - 1).padStart(4, '0');
+  }
+
+  /* ---------- lightbox ---------- */
+  const box = $('#lightbox');
+  let boxEntry = null;
+  function openBox(entry) {
+    boxEntry = entry;
+    const G = build(entry.seed, entry.T, entry.H);
+    const hk = habitOf(G.m);
+    const svg = $('#lbFlake'); svg.textContent = '';
+    drawStatic(svg, G);
+    $('#lbNo').textContent = noStr(entry.no);
+    $('#lbHab').textContent = HABITS[hk][0];
+    $('#lbWhen').textContent = entry.date;
+    $('#lbAir').textContent = fmtT(entry.T) + ' · humidity ' + Math.round(entry.H * 100) + '%';
+    $('#lbSeed').textContent = String(entry.seed);
+    $('#lbExplain').textContent = HABITS[hk][1];
+    try { box.showModal(); } catch (_) { box.setAttribute('open', ''); }
+  }
+  $('#lbClose').addEventListener('click', () => box.close());
+  box.addEventListener('click', e => { if (e.target === box) box.close(); });
+  $('#lbDl').addEventListener('click', () => boxEntry && download(boxEntry));
+  $('#lbUse').addEventListener('click', () => {
+    if (!boxEntry) return;
+    box.close();
+    setConditions(boxEntry.T, boxEntry.H);
+    scrollTo({ top:0, behavior: reduce ? 'auto' : 'smooth' });
+    setTimeout(grow, reduce ? 0 : 500);
+  });
+
+  /* ---------- the Nakaya mini-diagram ---------- */
+  const nk = $('#nakaya');
+  const X0 = 34, X1 = 306, Y0 = 158, Y1 = 22;
+  const tx = T => X0 + (-T) / 30 * (X1 - X0);
+  const hy = H => Y0 - H * (Y0 - Y1);
+  (function drawDiagram() {
+    const g = $('#regions');
+    const soft = mk('g', { filter:'url(#soften)' }, g);
+    const zone = (t0, t1, h0, h1, col, label, lx, ly) => {
+      mk('rect', { x:f3(tx(-t0) + 2), y:f3(hy(h1) + 2), width:f3(tx(-t1) - tx(-t0) - 4), height:f3(hy(h0) - hy(h1) - 4), rx:'9', fill:col }, soft);
+      if (label) { const t = mk('text', { x:lx, y:ly, 'font-size':'10', fill:'#dcebf7', opacity:'.8', 'text-anchor':'middle', 'letter-spacing':'1.5', 'font-family':'Helvetica Neue,Nimbus Sans,Arial,sans-serif' }, g); t.textContent = label; }
+    };
+    zone(0, 3.5, 0, 1, 'rgba(159,216,255,.10)', '', 0, 0);
+    const pl = mk('text', { x:'0', y:'0', 'font-size':'10', fill:'#dcebf7', opacity:'.8', 'text-anchor':'middle', 'letter-spacing':'1.5', 'font-family':'Helvetica Neue,Nimbus Sans,Arial,sans-serif', transform:'translate(' + f3(tx(-1.8) + 3) + ' ' + f3(hy(0.5)) + ') rotate(-90)' }, g);
+    pl.textContent = 'PLATES';
+    zone(3.5, 8.5, 0.45, 1, 'rgba(200,170,255,.10)', 'NEEDLES', tx(-5.9), hy(0.9));
+    zone(3.5, 9.5, 0, 0.45, 'rgba(255,220,170,.08)', 'COLUMNS', tx(-6.5), hy(0.14));
+    zone(9.5, 22, 0, 0.42, 'rgba(159,216,255,.10)', 'PLATES', tx(-15.5), hy(0.14));
+    zone(10, 21, 0.42, 0.7, 'rgba(159,216,255,.16)', 'SECTORS', tx(-15.5), hy(0.52));
+    zone(11.5, 19, 0.7, 1, 'rgba(234,246,255,.2)', 'DENDRITES', tx(-15.3), hy(0.9));
+    zone(22, 30, 0, 1, 'rgba(255,220,170,.07)', 'COLUMNS', tx(-26), hy(0.5));
+    const ax = $('#axes');
+    mk('path', { d:'M' + X0 + ' ' + Y1 + 'V' + Y0 + 'H' + X1, fill:'none', stroke:'rgba(220,235,247,.4)', 'stroke-width':'1' }, ax);
+    [0, -5, -10, -15, -20, -25, -30].forEach(T => {
+      mk('path', { d:'M' + f3(tx(T)) + ' ' + Y0 + 'v4', stroke:'rgba(220,235,247,.5)' }, ax);
+      const t = mk('text', { x:f3(tx(T)), y:Y0 + 15, 'font-size':'9.5', fill:'#dcebf7', opacity:'.65', 'text-anchor':'middle', 'font-family':'Helvetica Neue,Nimbus Sans,Arial,sans-serif' }, ax);
+      t.textContent = T === 0 ? '0 °C' : '−' + (-T);
+    });
+    const lab = mk('text', { x:'12', y:f3((Y0 + Y1) / 2), 'font-size':'9', fill:'#dcebf7', opacity:'.6', 'text-anchor':'middle', transform:'rotate(-90 12 ' + (Y0 + Y1) / 2 + ')', 'letter-spacing':'2', 'font-family':'Helvetica Neue,Nimbus Sans,Arial,sans-serif' }, ax);
+    lab.textContent = 'MORE VAPOUR →';
+  })();
+  let dragging = false;
+  function fromPointer(e) {
+    const ctm = nk.getScreenCTM(); if (!ctm) return;
+    const p = nk.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+    const q = p.matrixTransform(ctm.inverse());
+    const T = -clamp((q.x - X0) / (X1 - X0) * 30, 1, 30), H = clamp((Y0 - q.y) / (Y0 - Y1), 0, 1);
+    setConditions(Math.round(T * 2) / 2, Math.round(H * 100) / 100);
+  }
+  nk.addEventListener('pointerdown', e => { dragging = true; try { nk.setPointerCapture(e.pointerId); } catch (_) {} fromPointer(e); });
+  nk.addEventListener('pointermove', e => { if (dragging) fromPointer(e); });
+  nk.addEventListener('pointerup', () => { dragging = false; });
+  nk.addEventListener('pointercancel', () => { dragging = false; });
+
+  /* ---------- conditions ---------- */
+  const tempIn = $('#temp'), humIn = $('#hum');
+  let T = -15, H = 0.85;
+  function setConditions(t, h, fromInput, silent) {
+    T = t; H = h;
+    if (!fromInput) { tempIn.value = T; humIn.value = Math.round(H * 100); }
+    $('#tempOut').textContent = fmtT(T);
+    $('#humOut').textContent = Math.round(H * 100) + '%';
+    tempIn.setAttribute('aria-valuetext', fmtT(T));
+    humIn.setAttribute('aria-valuetext', Math.round(H * 100) + ' percent');
+    $('#cursor').setAttribute('transform', 'translate(' + f3(tx(T)) + ' ' + f3(hy(H)) + ')');
+    const hk = habitOf(morph(T, H));
+    $('#explain').textContent = HABITS[hk][1];
+    if (!silent) previewSoon();
+  }
+  tempIn.addEventListener('input', () => setConditions(+tempIn.value, H, true));
+  humIn.addEventListener('input', () => setConditions(T, +humIn.value / 100, true));
+
+  /* ---------- hero: growth ---------- */
+  const heroSvg = $('#hero');
+  const heroS = scaffold(heroSvg);
+  let heroEntry = null, heroG = null, growT = -1, growing = false, shown = null;
+  function showHero(entry, animate) {
+    heroEntry = entry; shown = entry;
+    heroG = build(entry.seed, entry.T, entry.H);
+    $('#heroNo').textContent = noStr(entry.no);
+    $('#heroWhen').textContent = entry.date;
+    $('#heroHab').textContent = HABITS[habitOf(heroG.m)][0];
+    heroSvg.setAttribute('aria-label', 'Snowflake ' + noStr(entry.no) + ', ' + HABITS[habitOf(heroG.m)][0]);
+    if (animate && !reduce) { growT = performance.now(); growing = true; $('#growBtn').disabled = true; requestAnimationFrame(growFrame); }
+    else { paint(heroS, geometry(heroG, 9), heroG, 9); }
+  }
+  const GROW_MS = 3600;
+  function growFrame(now) {
+    if (!growing) return;
+    const k = clamp((now - growT) / GROW_MS, 0, 1);
+    const e = 1 - Math.pow(1 - k, 2.2);
+    const R = 0.025 + e * (heroG.ext + 0.02);
+    paint(heroS, geometry(heroG, R), heroG, k >= 1 ? 9 : R);
+    if (k < 1) requestAnimationFrame(growFrame);
+    else { growing = false; $('#growBtn').disabled = false; }
+  }
+  function grow() {
+    if (growing) return;
+    const seed = (Math.random() * 1e9) | 0;
+    const entry = { no:nextNo++, seed, T, H, date:fmtDate(new Date()) };
+    entries.unshift(entry);
+    if (entries.length > 36) entries.length = 36;
+    store.set('crystalline-entries', entries);
+    store.set('crystalline-next', nextNo);
+    showHero(entry, true);
+    grid.insertBefore(card(entry, true), grid.firstChild);
+    while (grid.children.length > 36) grid.lastChild.remove();
+    $('#countOut').textContent = String(nextNo - 1).padStart(4, '0');
+  }
+  $('#growBtn').addEventListener('click', grow);
+  $('#dlBtn').addEventListener('click', () => shown && download(shown));
+  // while sliders move, show a live, un-numbered preview after a short pause
+  let pvTimer = 0;
+  function previewSoon() {
+    if (!heroEntry || growing) return;
+    clearTimeout(pvTimer);
+    pvTimer = setTimeout(() => {
+      if (growing) return;
+      const G = build(heroEntry.seed, T, H);
+      heroG = G;
+      shown = { no:heroEntry.no, seed:heroEntry.seed, T, H, date:fmtDate(new Date()) + ' (preview)' };
+      paint(heroS, geometry(G, 9), G, 9);
+      $('#heroHab').textContent = HABITS[habitOf(G.m)][0] + ' · preview';
+    }, 60);
+  }
+
+  /* ---------- snowfall with depth ---------- */
+  const snow = $('#snow'), sx = snow.getContext('2d');
+  let SW = 0, SH = 0, dpr = 1, flakes = [], sprites = [];
+  function sprite(size, blur) {
+    const c = document.createElement('canvas'), n = Math.ceil(size * 2 + blur * 4) + 2;
+    c.width = c.height = n;
+    const g = c.getContext('2d'), rg = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+    rg.addColorStop(0, 'rgba(240,248,255,1)');
+    rg.addColorStop(clamp(size / (size + blur * 2), 0.05, 0.95), 'rgba(225,240,255,.55)');
+    rg.addColorStop(1, 'rgba(225,240,255,0)');
+    g.fillStyle = rg; g.fillRect(0, 0, n, n);
+    return c;
+  }
+  function sizeSnow() {
+    dpr = Math.min(2, devicePixelRatio || 1);
+    SW = innerWidth; SH = innerHeight;
+    snow.width = Math.round(SW * dpr); snow.height = Math.round(SH * dpr);
+    sx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    sprites = [sprite(1, 0.5), sprite(1.8, 1.2), sprite(3, 3), sprite(6, 7)];
+    const n = Math.round(Math.min(220, SW * SH / 7000));
+    flakes = [];
+    for (let i = 0; i < n; i++) {
+      const z = Math.pow(Math.random(), 1.6);
+      flakes.push({ x:Math.random() * SW, y:Math.random() * SH, z, ph:Math.random() * 6.28, sp:0.4 + Math.random() * 0.8 });
+    }
+    flakes.sort((a, b) => a.z - b.z);
+    if (reduce) drawSnow(0, 0);
+  }
+  function drawSnow(t, dt) {
+    sx.clearRect(0, 0, SW, SH);
+    for (const f of flakes) {
+      if (!reduce) {
+        f.y += (8 + f.z * 46) * f.sp * dt;
+        f.x += (Math.sin(t * 0.6 * f.sp + f.ph) * (6 + f.z * 18) + 6) * dt;
+        if (f.y > SH + 20) { f.y = -20; f.x = Math.random() * SW; }
+        if (f.x > SW + 20) f.x = -20;
+      }
+      const si = f.z < 0.35 ? 0 : f.z < 0.7 ? 1 : f.z < 0.93 ? 2 : 3;
+      const s = sprites[si];
+      sx.globalAlpha = si === 3 ? 0.16 : si === 2 ? 0.45 : 0.28 + f.z * 0.5;
+      sx.drawImage(s, f.x - s.width / 2, f.y - s.height / 2);
+    }
+    sx.globalAlpha = 1;
+  }
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!reduce) drawSnow(now / 1000, dt);
+    requestAnimationFrame(loop);
+  }
+  addEventListener('resize', () => { clearTimeout(sizeSnow.t); sizeSnow.t = setTimeout(sizeSnow, 150); });
+  mq.addEventListener && mq.addEventListener('change', e => { reduce = e.matches; });
+
+  /* ---------- start ---------- */
+  sizeSnow();
+  renderGrid();
+  showHero(entries[0], false);
+  setConditions(entries[0].T, entries[0].H, false, true);  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

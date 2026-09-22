@@ -1,0 +1,39 @@
+TITLE: Soft Machine
+FILE: 007-neumorphic-synth.html
+
+=== PROMPT (exact prompt used) ===
+Create "SOFT MACHINE", a playable neumorphic synthesizer. Everything is sculpted from one soft clay surface (#e4e8ee) with paired light/dark shadows (#ffffff / #b8bec7), raised and pressed states, and a single accent — warm coral #ff6b5a — for active LEDs and the waveform. Layout: a device centred on the page with an OLED-like inset screen showing a live oscilloscope (AnalyserNode drawn on canvas); four rotary knobs (cutoff, resonance, attack, release) dragged vertically; a waveform selector (sine/triangle/saw/square) as neumorphic segmented buttons; a 16-step sequencer row of soft pads; and a two-octave keyboard of soft keys. Typography: a rounded sans stack ("SF Pro Rounded", Nunito, "Varela Round", "Segoe UI", system-ui, sans-serif) with small-caps labels in muted slate. Interaction: click/touch keys or use computer keys A–K to play (Web Audio oscillator → filter → envelope); knobs update the sound in real time with smooth value tooltips; the sequencer plays/stops with adjustable tempo. Audio starts only after the first gesture. Responsive: the device scales down and the keyboard becomes compact on phones without page overflow.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+SOFT MACHINE (model SM-16, a fictional instrument) is a fully playable polyphonic synthesizer sculpted as a single slab of soft clay (#e4e8ee) floating on a matching clay page. Every control is raised out of or pressed into that one surface with paired #ffffff / #b8bec7 shadows, and the only colour anywhere is warm coral #ff6b5a, used for LEDs, knob value arcs, the tempo fill and the glowing oscilloscope trace. An OLED-like inset screen dominates the upper left: before any sound it shows a live, band-limited preview of the chosen waveform as it would leave the filter (Fourier series times a two-pole low-pass response, so resonance produces real ringing), then switches to the actual AnalyserNode signal once you play. Four rotary knobs (cutoff, resonance, attack, release), a four-way waveform selector, a play/tempo transport, a 16-step sequencer in four grouped trays and a two-octave soft keyboard complete the device. Engraved small-caps labels in muted slate, screws in the corners, a speaker grille and a power LED that flickers with the output level give it the feel of a real object.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Neumorphism from one palette only: raised states use paired outer shadows, pressed states use paired inset shadows, and every control (knobs, segmented buttons, pads, keys, chips, slider) animates between the two
+- Oscilloscope canvas sized to the container x devicePixelRatio (max 2) with a pre-rendered dot grid, a zero-crossing trigger for a stable live trace, and a three-pass coral glow stroke instead of expensive shadowBlur
+- Idle "preview" trace computed additively from 48 harmonics of the selected waveform shaped by the current cutoff/Q, so turning the knobs visibly changes the wave even before audio starts
+- Knobs built from inline SVG: an engraved groove, a highlight ring, eleven tick marks and a coral value arc driven by stroke-dasharray on a pathLength-normalised circle; the cap is a concave dish rotated through 270 degrees
+- Floating clay tooltips that rise and fade on hover, drag and keyboard focus, showing formatted values (Hz/kHz, Q, ms/s)
+- Engraved wordmark via light/dark text-shadow, CSS-only speaker grille, screw heads with rotated slots, and a procedural film-grain canvas behind the whole page
+- Sequencer playhead lit sample-accurately from a ring buffer of scheduled audio times, with a pulse ring for the current step and a dashed "listening" ring for an armed step
+- Phone layout: screen stacks above a single row of four knobs, the sequencer folds into 8 x 2 and the keyboard rebuilds itself as one compact octave
+
+=== INTERACTION MODEL ===
+- Play the keyboard with mouse or touch (glissando by sliding across keys) or with the computer keys A W S E D F T G Y H U J K (O L P ; extend upward); Z / X or the - / + chips shift the octave
+- Sound path per voice: oscillator -> resonant low-pass (with a short filter pluck) -> attack/release amplitude envelope -> darkened echo -> compressor -> analyser -> master; polyphonic, voices cleaned up when they end
+- Knobs: drag vertically (Shift for fine control), mouse wheel, arrow/Page/Home/End keys when focused, double-click to reset; changes are applied to sounding voices in real time
+- Waveform selector is a radio group (click or arrow keys) and retunes playing voices instantly
+- Sequencer: play/stop button or Space; tempo slider 60-180 BPM; tap a pad to light it and it "listens", then play any key to give that step its note; Shuffle writes a new A-minor-pentatonic phrase, Clear empties the pattern
+- Audio context is created only on the first gesture; the speaker button mutes/unmutes with a short fade while the scope keeps drawing
+- Settings, pattern, tempo and octave persist in localStorage (guarded with try/catch); the sequencer stops and held notes release when the tab is hidden; reduced-motion users get a still preview trace and no pulsing

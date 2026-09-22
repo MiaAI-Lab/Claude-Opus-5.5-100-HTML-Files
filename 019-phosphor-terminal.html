@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="green">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HELIOS/OS v2.3 — Phosphor Terminal</title>
+<meta name="description" content="HELIOS/OS v2.3: a retro CRT terminal simulation with a BIOS boot, a working shell, three phosphor themes, glyph rain, ASCII weather and a playable snake game.">
+<meta name="theme-color" content="#031a07">
+<style>
+:root{
+  --fg:#33ff66; --fg-rgb:51,255,102; --bg:#031a07; --bg-hi:#073012; --bg-lo:#010c03; --hot:#dcffe5;
+  --mono:"SF Mono","IBM Plex Mono",Menlo,Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono","Nimbus Mono PS",monospace;
+  --fs:clamp(13px, 0.5rem + 0.62vw, 17.5px);
+  --lh:1.38;
+  --bezel:clamp(8px, 1.9vw, 28px);
+  --status-h:calc(var(--fs) * 1.95);
+  --pad-x:clamp(16px, 3vw, 50px);
+  --shadow:0 0 1px rgba(var(--fg-rgb),.9), 0 0 6px rgba(var(--fg-rgb),.5), 0 0 17px rgba(var(--fg-rgb),.22);
+}
+html[data-theme="amber"]{ --fg:#ffb000; --fg-rgb:255,176,0; --bg:#1a0f00; --bg-hi:#2c1a02; --bg-lo:#0c0600; --hot:#fff1cc; }
+html[data-theme="ice"]{ --fg:#9fe7ff; --fg-rgb:159,231,255; --bg:#02111a; --bg-hi:#07243a; --bg-lo:#01070c; --hot:#f2fcff; }
+
+*,*::before,*::after{ box-sizing:border-box; }
+[hidden]{ display:none !important; }
+html,body{ margin:0; height:100%; overflow:hidden; background:#0a0b09; }
+body{
+  height:100vh; height:100dvh; height:var(--app-h, 100dvh);
+  display:grid; grid-template-rows:minmax(0,1fr) auto;
+  font-family:var(--mono); color:var(--fg);
+  -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
+}
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+
+/* ------------------------------------------------ the monitor housing */
+.monitor{
+  position:relative; min-height:0;
+  padding:var(--bezel) var(--bezel) calc(var(--bezel) * .55);
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(255,255,255,.05), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px),
+    linear-gradient(#1d1f1a, #121310 70%, #0e0f0c);
+}
+.screen{
+  position:relative; height:100%; overflow:hidden; isolation:isolate;
+  border-radius:30px / 26px;
+  background:#000;
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 0 6px #161814,
+    0 0 0 7px #262822,
+    0 0 70px 6px rgba(var(--fg-rgb),.09),
+    0 14px 40px rgba(0,0,0,.6);
+  transition:box-shadow .6s ease;
+}
+.screen.snake{ touch-action:none; }
+
+/* the lit phosphor surface */
+.crt{
+  position:absolute; inset:0; border-radius:inherit; overflow:hidden;
+  background:radial-gradient(120% 95% at 50% 46%, var(--bg-hi) 0%, var(--bg) 52%, var(--bg-lo) 100%);
+  transform-origin:50% 50%;
+  transition:background .5s ease;
+}
+.crt.off{ transform:scale(0,0); }
+.crt.pon{ animation:pon .82s cubic-bezier(.25,.8,.25,1) both; }
+.crt.poff{ animation:poff .62s cubic-bezier(.6,0,.8,.4) both; }
+.crt.degauss{ animation:degauss .72s ease-out; }
+.crt.glitch{ animation:glitch .24s steps(4) 1; }
+@keyframes pon{
+  0%{ transform:scale(.02,.004); filter:brightness(5); }
+  32%{ transform:scale(1,.006); filter:brightness(4); }
+  68%{ transform:scale(1,1.035); filter:brightness(1.6); }
+  100%{ transform:none; filter:none; }
+}
+@keyframes poff{
+  0%{ transform:none; filter:none; }
+  48%{ transform:scale(1,.005); filter:brightness(4); }
+  78%{ transform:scale(.004,.005); filter:brightness(7); }
+  100%{ transform:scale(0,0); filter:brightness(7); }
+}
+@keyframes degauss{
+  0%{ transform:none; filter:none; }
+  12%{ transform:scale(1.012) skewX(-1.2deg) translateX(-4px); filter:hue-rotate(110deg) saturate(2.4) brightness(1.3); }
+  28%{ transform:scale(.996) skewX(.9deg) translateX(3px); filter:hue-rotate(-80deg) saturate(1.8); }
+  46%{ transform:skewX(-.5deg) translateX(-2px); filter:hue-rotate(40deg) saturate(1.3); }
+  66%{ transform:skewX(.2deg) translateX(1px); filter:hue-rotate(-12deg); }
+  100%{ transform:none; filter:none; }
+}
+@keyframes glitch{
+  0%{ transform:translateX(0); }
+  25%{ transform:translateX(5px) skewX(-2deg); }
+  50%{ transform:translateX(-3px) skewX(1deg); }
+  75%{ transform:translateX(2px); }
+  100%{ transform:none; }
+}
+
+/* ------------------------------------------------ terminal text */
+.term{
+  position:absolute; inset:0 0 var(--status-h) 0; z-index:1;
+  overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain;
+  padding:clamp(16px, 2.6vw, 38px) var(--pad-x) 14px;
+  font-size:var(--fs); line-height:var(--lh);
+  color:var(--fg); text-shadow:var(--shadow);
+  scrollbar-width:thin; scrollbar-color:rgba(var(--fg-rgb),.35) transparent;
+  cursor:text;
+}
+.term::-webkit-scrollbar{ width:8px; }
+.term::-webkit-scrollbar-thumb{ background:rgba(var(--fg-rgb),.3); border-radius:4px; }
+.term ::selection{ background:var(--fg); color:var(--bg); text-shadow:none; }
+#out{ min-height:0; }
+.l{ white-space:pre-wrap; overflow-wrap:anywhere; min-height:calc(var(--lh) * 1em); }
+.l.logo{ line-height:1.04; min-height:0; white-space:pre; overflow:visible; }
+.l.art{ white-space:pre; overflow:hidden; text-overflow:clip; }
+.banner .l{ animation:lineIn .38s ease-out both; }
+.banner.still .l{ animation:none; }
+@keyframes lineIn{ from{ opacity:0; filter:brightness(3); transform:translateX(-6px); } to{ opacity:1; filter:none; transform:none; } }
+
+.hot{ color:var(--hot); text-shadow:0 0 2px var(--fg), 0 0 9px rgba(var(--fg-rgb),.75), 0 0 26px rgba(var(--fg-rgb),.4); }
+.dim{ color:rgba(var(--fg-rgb),.58); text-shadow:0 0 5px rgba(var(--fg-rgb),.25); }
+.faint{ color:rgba(var(--fg-rgb),.28); text-shadow:none; }
+.b{ font-weight:700; }
+.u{ text-decoration:underline; text-underline-offset:3px; text-decoration-thickness:1px; }
+.inv{ background:var(--fg); color:var(--bg); text-shadow:none; box-shadow:0 0 12px rgba(var(--fg-rgb),.55); }
+.err{ color:var(--hot); font-weight:700; }
+.blink{ animation:blink 1s steps(1) infinite; }
+.em{ color:var(--fg); text-shadow:0 0 3px var(--fg), 0 0 14px rgba(var(--fg-rgb),.6); }
+
+.prompt-line{ position:relative; white-space:pre-wrap; overflow-wrap:anywhere; min-height:calc(var(--lh) * 1em); }
+.ps1{ font-weight:700; }
+.ps1 .path{ font-weight:400; }
+.caret{
+  display:inline-block; min-width:1ch; background:var(--fg); color:var(--bg); text-shadow:none;
+  box-shadow:0 0 10px rgba(var(--fg-rgb),.75), 0 0 2px var(--fg);
+  animation:blink 1.06s steps(1) infinite;
+}
+.caret.solid{ animation:none; }
+.prompt-line:not(.focused) .caret{ background:transparent; color:var(--fg); box-shadow:inset 0 0 0 1px var(--fg), 0 0 8px rgba(var(--fg-rgb),.4); animation:none; }
+@keyframes blink{ 0%,55%{ opacity:1; } 56%,100%{ opacity:0; } }
+#cmd{
+  position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0; border:0;
+  opacity:0; background:transparent; color:transparent; caret-color:transparent;
+  font-size:16px; outline:none; cursor:text;
+}
+.probe{ position:absolute; left:-9999px; top:0; visibility:hidden; white-space:pre; }
+
+.game{ line-height:1.2; white-space:pre; min-height:0; }
+.game .hd{ color:var(--hot); text-shadow:0 0 3px var(--fg), 0 0 14px rgba(var(--fg-rgb),.85); }
+.game .fd{ color:var(--hot); animation:blink .7s steps(1) infinite; font-style:normal; }
+.game .gd{ color:rgba(var(--fg-rgb),.16); text-shadow:none; }
+.game .wall{ color:rgba(var(--fg-rgb),.75); }
+.game .msg{ background:var(--fg); color:var(--bg); text-shadow:none; }
+
+/* ghost persistence after clear */
+.ghost{
+  position:absolute; inset:0 0 var(--status-h) 0; z-index:1; overflow:hidden; pointer-events:none;
+  padding:clamp(16px, 2.6vw, 38px) var(--pad-x) 14px;
+  font-size:var(--fs); line-height:var(--lh); color:var(--fg); text-shadow:var(--shadow);
+  opacity:0;
+}
+.ghost > div{ will-change:transform; }
+.ghost.fade{ animation:ghost 1.1s ease-out both; }
+@keyframes ghost{ 0%{ opacity:.55; filter:blur(0); } 100%{ opacity:0; filter:blur(2px); } }
+
+/* BIOS badge (top-right, like the vendor logo on an old POST screen) */
+.bios-badge{
+  position:absolute; z-index:1; top:clamp(16px, 2.6vw, 38px); right:var(--pad-x);
+  width:clamp(120px, 13vw, 190px); height:auto; color:var(--fg);
+  filter:drop-shadow(0 0 4px rgba(var(--fg-rgb),.7)) drop-shadow(0 0 16px rgba(var(--fg-rgb),.3));
+  opacity:0; transition:opacity .3s ease; pointer-events:none;
+}
+.bios-badge.show{ opacity:1; }
+.bios-badge .spin{ transform-origin:60px 46px; animation:spin 14s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* glyph-rain canvas */
+.fx{ position:absolute; inset:0; z-index:2; width:100%; height:100%; pointer-events:none; opacity:0; transition:opacity .9s ease; }
+.fx.on{ opacity:1; transition:opacity .25s ease; }
+
+/* status line (tmux-like) */
+.status{
+  position:absolute; left:0; right:0; bottom:0; z-index:3; height:var(--status-h);
+  display:flex; align-items:center; gap:1.4ch; padding:0 var(--pad-x);
+  font-size:calc(var(--fs) * .8); letter-spacing:.05em; white-space:nowrap; overflow:hidden;
+  background:rgba(var(--fg-rgb),.86); color:var(--bg);
+  box-shadow:0 0 26px rgba(var(--fg-rgb),.38), 0 -1px 0 rgba(var(--fg-rgb),.5);
+}
+.status .tag{ font-weight:700; background:var(--bg); color:var(--fg); padding:.12em .7ch; text-shadow:0 0 6px rgba(var(--fg-rgb),.8); }
+.status .fill{ flex:1; }
+.sbtn{
+  font:inherit; letter-spacing:inherit; color:inherit; background:transparent; border:0; padding:.2em .4ch; margin:0;
+  cursor:pointer; border-radius:2px;
+}
+.sbtn:hover{ background:rgba(0,0,0,.14); }
+.sbtn:focus-visible{ outline:2px solid var(--bg); outline-offset:-1px; }
+
+/* ------------------------------------------------ glass effects */
+.ov{ position:absolute; inset:0; pointer-events:none; border-radius:inherit; }
+.grain{ position:absolute; inset:0; z-index:4; width:100%; height:100%; pointer-events:none; opacity:.045; mix-blend-mode:screen; }
+.scan{
+  z-index:5;
+  background:repeating-linear-gradient(180deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.3) 2px, rgba(0,0,0,.3) 3px);
+}
+.scan::after{
+  content:""; position:absolute; inset:0;
+  background:repeating-linear-gradient(90deg, rgba(255,40,40,.035) 0 1px, rgba(40,255,40,.02) 1px 2px, rgba(40,40,255,.035) 2px 3px);
+}
+.roll{
+  z-index:6; inset:auto 0 auto 0; top:0; height:20%;
+  background:linear-gradient(180deg, rgba(var(--fg-rgb),0) 0%, rgba(var(--fg-rgb),.025) 55%, rgba(var(--fg-rgb),.055) 90%, rgba(var(--fg-rgb),.085) 96%, rgba(var(--fg-rgb),.02) 99%, rgba(var(--fg-rgb),0) 100%);
+  animation:roll 8.5s linear infinite; border-radius:0;
+}
+@keyframes roll{ from{ transform:translateY(-100%); } to{ transform:translateY(520%); } }
+.flicker{ z-index:7; background:#000; opacity:0; animation:flicker 5.3s steps(1) infinite; }
+@keyframes flicker{
+  0%{opacity:.02} 4%{opacity:.05} 8%{opacity:0} 12%{opacity:.035} 19%{opacity:.01} 23%{opacity:.06} 26%{opacity:.015}
+  34%{opacity:.04} 41%{opacity:0} 47%{opacity:.03} 52%{opacity:.07} 54%{opacity:.01} 63%{opacity:.045} 71%{opacity:.02}
+  77%{opacity:.055} 83%{opacity:.01} 90%{opacity:.04} 96%{opacity:.02}
+}
+.vignette{
+  z-index:8;
+  background:radial-gradient(ellipse 78% 74% at 50% 50%, rgba(0,0,0,0) 56%, rgba(0,0,0,.32) 78%, rgba(0,0,0,.78) 100%);
+  box-shadow:inset 0 0 90px 18px rgba(0,0,0,.72), inset 0 0 8px 2px rgba(0,0,0,.95);
+}
+.glass{
+  z-index:9;
+  background:
+    radial-gradient(55% 40% at 20% 6%, rgba(255,255,255,.075), rgba(255,255,255,0) 70%),
+    radial-gradient(40% 22% at 84% 96%, rgba(255,255,255,.028), rgba(255,255,255,0) 70%),
+    linear-gradient(168deg, rgba(255,255,255,.035) 0%, rgba(255,255,255,0) 32%);
+}
+.beam{
+  position:absolute; z-index:10; left:4%; right:4%; top:50%; height:3px; margin-top:-1.5px; border-radius:3px;
+  background:var(--hot); box-shadow:0 0 14px 3px rgba(var(--fg-rgb),.85), 0 0 50px 10px rgba(var(--fg-rgb),.4);
+  opacity:0; pointer-events:none;
+}
+.beam.on{ animation:beam .8s ease-out both; }
+.beam.dot{ animation:beamdot 1s ease-out both; }
+@keyframes beam{
+  0%{ opacity:1; transform:scaleX(.01); }
+  30%{ opacity:1; transform:scaleX(1); }
+  55%{ opacity:.7; transform:scaleX(1) scaleY(10); }
+  100%{ opacity:0; transform:scaleX(1) scaleY(90); }
+}
+@keyframes beamdot{
+  0%{ opacity:1; transform:scale(.004, 1.4); }
+  60%{ opacity:.9; transform:scale(.004, 1.4); }
+  100%{ opacity:0; transform:scale(.001, .6); }
+}
+
+/* ------------------------------------------------ bezel strip */
+.strip{
+  display:flex; align-items:center; gap:clamp(10px, 1.6vw, 22px);
+  padding:calc(var(--bezel) * .35) var(--bezel) calc(var(--bezel) * .6 + env(safe-area-inset-bottom));
+  background:linear-gradient(#10110e, #0b0c0a);
+  border-top:1px solid rgba(255,255,255,.035);
+  font-family:var(--mono); color:#9d9889;
+  min-width:0;
+}
+.brand{ display:flex; align-items:center; gap:10px; flex:none; }
+.led{
+  width:9px; height:9px; border-radius:50%; background:#1a2a1c;
+  box-shadow:inset 0 1px 1px rgba(0,0,0,.6);
+  transition:background .3s, box-shadow .3s;
+}
+.led.lit{ background:var(--fg); box-shadow:0 0 6px var(--fg), 0 0 14px rgba(var(--fg-rgb),.6), inset 0 -1px 1px rgba(0,0,0,.3); }
+.brand-name{ font-size:12px; font-weight:700; letter-spacing:.34em; text-transform:uppercase; color:#b9b3a2; text-shadow:0 1px 0 #000, 0 -1px 0 rgba(255,255,255,.07); }
+.brand-model{ font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:#6c685c; }
+.keys{ display:flex; gap:8px; flex:1; min-width:0; overflow-x:auto; scrollbar-width:none; padding:4px 2px 6px; justify-content:center; }
+.keys::-webkit-scrollbar{ display:none; }
+.dials{ display:flex; align-items:center; gap:8px; flex:none; }
+.dial-label{ font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:#6c685c; margin-right:2px; }
+.key{
+  flex:none; display:inline-flex; align-items:center; gap:7px;
+  font:600 11px/1 var(--mono); letter-spacing:.14em; text-transform:uppercase;
+  color:#d4cebd; background:linear-gradient(#2d2f29, #1e201b 60%, #1a1b17);
+  border:1px solid #060705; border-radius:5px; padding:9px 12px 8px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09), inset 0 -2px 0 rgba(0,0,0,.25), 0 2px 0 #050604, 0 4px 8px rgba(0,0,0,.45);
+  cursor:pointer; transition:transform .07s ease, box-shadow .07s ease, color .2s;
+  touch-action:manipulation;
+}
+.key:hover{ color:#fff8e6; }
+.key:active, .key.pressed{ transform:translateY(2px); box-shadow:inset 0 1px 0 rgba(255,255,255,.05), inset 0 -1px 0 rgba(0,0,0,.2), 0 0 0 #050604, 0 1px 3px rgba(0,0,0,.5); }
+.key:focus-visible, .brand:focus-visible{ outline:2px solid var(--fg); outline-offset:3px; }
+.key svg{ width:12px; height:12px; }
+.lamp{ position:relative; width:7px; height:7px; border-radius:50%; background:#141510; box-shadow:inset 0 1px 1px rgba(0,0,0,.7); }
+.lamp::after{ content:""; position:absolute; inset:0; border-radius:50%; background:var(--c, var(--fg)); opacity:.26; transition:opacity .25s, box-shadow .25s; }
+.key[aria-pressed="true"] .lamp::after{ opacity:1; box-shadow:0 0 6px var(--c, var(--fg)), 0 0 12px var(--c, var(--fg)); }
+
+/* ------------------------------------------------ responsive */
+@media (max-width: 980px){
+  .brand-model{ display:none; }
+}
+@media (max-width: 720px){
+  :root{ --fs:12px; --pad-x:12px; --bezel:8px; }
+  .keys{ -webkit-mask-image:linear-gradient(90deg, #000 82%, transparent); mask-image:linear-gradient(90deg, #000 82%, transparent); padding-right:28px; }
+  .tkey .tl{ display:none; }
+  .tkey{ padding:9px 9px 8px; }
+  .screen{ border-radius:18px / 16px; box-shadow:0 0 0 1px #000, 0 0 0 4px #161814, 0 0 40px 4px rgba(var(--fg-rgb),.09); }
+  .strip{ gap:8px; padding:6px 8px calc(8px + env(safe-area-inset-bottom)); }
+  .brand{ display:none; }
+  .keys{ justify-content:flex-start; }
+  .dial-label{ display:none; }
+  .dials{ gap:6px; }
+  .key{ padding:9px 10px 8px; letter-spacing:.1em; }
+  .status .wide{ display:none; }
+  .bios-badge{ display:none; }
+  .vignette{ box-shadow:inset 0 0 50px 10px rgba(0,0,0,.7), inset 0 0 6px 2px rgba(0,0,0,.95); }
+}
+@media (max-width: 420px){
+  .key .lbl-long{ display:none; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .roll, .flicker{ animation:none; display:none; }
+  .caret{ animation:none; }
+  .crt.pon, .crt.poff, .crt.degauss, .crt.glitch{ animation-duration:.01s; }
+  .banner .l{ animation:none; }
+  .bios-badge .spin{ animation:none; }
+  .beam{ display:none; }
+}
+</style>
+</head>
+<body>
+<main class="monitor" id="monitor">
+  <h1 class="sr">HELIOS/OS v2.3 — a simulated phosphor terminal</h1>
+  <div class="screen" id="screen">
+    <div class="crt off" id="crt">
+      <svg class="bios-badge" id="biosBadge" viewBox="0 0 190 104" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="60" cy="46" r="17"/>
+          <circle cx="60" cy="46" r="8" fill="currentColor" stroke="none"/>
+          <g class="spin">
+            <path d="M60 18v-12M60 74v12M32 46h-12M88 46h12M40.2 26.2l-8.5-8.5M79.8 65.8l8.5 8.5M40.2 65.8l-8.5 8.5M79.8 26.2l8.5-8.5"/>
+          </g>
+          <path d="M104 22h78M104 70h78" stroke-width="1.4"/>
+        </g>
+        <text x="104" y="42" fill="currentColor" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="1.5">HELIO</text>
+        <text x="104" y="60" fill="currentColor" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="1.5">GRAPH</text>
+        <text x="104" y="88" fill="currentColor" font-family="DejaVu Sans Mono, Menlo, Consolas, monospace" font-size="9" letter-spacing="2.2">SOLAR COMPUTE</text>
+      </svg>
+      <div class="ghost" id="ghost" aria-hidden="true"></div>
+      <div class="term" id="term">
+        <div id="out" role="log" aria-live="polite" aria-label="Terminal output"></div>
+        <div class="prompt-line" id="promptLine" hidden><span class="ps1" id="ps1"></span><span id="typed"></span><input id="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" aria-label="Terminal command input"></div>
+        <span class="probe" id="probe" aria-hidden="true">0000000000</span>
+      </div>
+      <canvas class="fx" id="fx" aria-hidden="true"></canvas>
+      <div class="status" id="status">
+        <span class="tag">HELIOS/OS 2.3</span>
+        <span class="wide">tty1</span>
+        <span class="wide" id="stPath">operator@helios:~</span>
+        <span class="fill"></span>
+        <button type="button" class="sbtn" id="stTheme" aria-label="Cycle phosphor theme">[P1:GRN]</button>
+        <button type="button" class="sbtn" id="stSound" aria-label="Toggle typing sounds" aria-pressed="false">[SND:OFF]</button>
+        <span class="wide" id="stUp">up 0:00</span>
+        <span id="stClock">--:--:--</span>
+      </div>
+    </div>
+    <canvas class="grain" id="grain" aria-hidden="true"></canvas>
+    <div class="ov scan" aria-hidden="true"></div>
+    <div class="ov roll" aria-hidden="true"></div>
+    <div class="ov flicker" aria-hidden="true"></div>
+    <div class="ov vignette" aria-hidden="true"></div>
+    <div class="ov glass" aria-hidden="true"></div>
+    <div class="beam" id="beam" aria-hidden="true"></div>
+  </div>
+</main>
+<footer class="strip">
+  <div class="brand"><span class="led" id="led"></span><span class="brand-name">Heliograph</span><span class="brand-model">HX-14 · Monochrome Display</span></div>
+  <nav class="keys" id="keys" aria-label="Quick commands">
+    <button type="button" class="key" data-cmd="help">Help</button>
+    <button type="button" class="key" data-cmd="ls -l">Ls</button>
+    <button type="button" class="key" data-cmd="cat phosphor.txt">Poem</button>
+    <button type="button" class="key" data-cmd="cat mission.log">Log</button>
+    <button type="button" class="key" data-cmd="weather">Weather</button>
+    <button type="button" class="key" data-cmd="snake">Snake</button>
+    <button type="button" class="key" data-cmd="matrix">Matrix</button>
+    <button type="button" class="key" data-cmd="clear">Clear</button>
+  </nav>
+  <nav class="keys" id="pad" aria-label="Snake controls" hidden>
+    <button type="button" class="key" data-dir="left" aria-label="Steer left"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M8.5 1.5 3 6l5.5 4.5z" fill="currentColor"/></svg></button>
+    <button type="button" class="key" data-dir="up" aria-label="Steer up"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 8.5 6 3l4.5 5.5z" fill="currentColor"/></svg></button>
+    <button type="button" class="key" data-dir="down" aria-label="Steer down"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 3.5 6 9l4.5-5.5z" fill="currentColor"/></svg></button>
+    <button type="button" class="key" data-dir="right" aria-label="Steer right"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 1.5 9 6l-5.5 4.5z" fill="currentColor"/></svg></button>
+    <button type="button" class="key" data-dir="pause">Pause</button>
+    <button type="button" class="key" data-dir="quit">Quit</button>
+  </nav>
+  <div class="dials" role="group" aria-label="Phosphor and sound">
+    <span class="dial-label">Phosphor</span>
+    <button type="button" class="key tkey" data-theme="green" aria-pressed="true" aria-label="Green phosphor" style="--c:#33ff66"><i class="lamp"></i><span class="tl">P1</span></button>
+    <button type="button" class="key tkey" data-theme="amber" aria-pressed="false" aria-label="Amber phosphor" style="--c:#ffb000"><i class="lamp"></i><span class="tl">P3</span></button>
+    <button type="button" class="key tkey" data-theme="ice" aria-pressed="false" aria-label="Ice phosphor" style="--c:#9fe7ff"><i class="lamp"></i><span class="tl">Ice</span></button>
+    <button type="button" class="key" id="sndKey" aria-pressed="false" aria-label="Typing sounds" style="--c:#ff5a3c"><i class="lamp"></i><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3.5v11L5 10H2z" fill="currentColor"/><path d="M11.2 5.2a4 4 0 0 1 0 5.6M13 3.4a6.6 6.6 0 0 1 0 9.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="lbl-long">Sound</span></button>
+  </div>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const root = document.documentElement;
+const out = $('#out'), term = $('#term'), cmd = $('#cmd'), typed = $('#typed'), promptLine = $('#promptLine'), ps1El = $('#ps1');
+const crt = $('#crt'), screen = $('#screen'), beam = $('#beam'), ghost = $('#ghost'), fx = $('#fx'), grainC = $('#grain');
+const probe = $('#probe'), badge = $('#biosBadge');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+const coarse = window.matchMedia('(pointer: coarse)');
+
+/* ------------------------------------------------------------ storage (guarded) */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem('helios23.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v){ try { localStorage.setItem('helios23.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+const HOME = '/home/operator';
+const state = {
+  mode: 'boot', cwd: HOME, theme: store.get('theme', 'green'), sound: !!store.get('sound', false),
+  history: store.get('history', []), hIndex: -1, draft: '', baud: 19200, cps: 1920,
+  bootAt: Date.now(), lastLogin: store.get('lastLogin', null), userTapped: false
+};
+if (!Array.isArray(state.history)) state.history = [];
+if (!['green', 'amber', 'ice'].includes(state.theme)) state.theme = 'green';
+
+const THEMES = {
+  green: { label: 'P1:GRN', tube: 'P1 green phosphor · 60 Hz', meta: '#031a07' },
+  amber: { label: 'P3:AMB', tube: 'P3 amber phosphor · 60 Hz', meta: '#1a0f00' },
+  ice:   { label: 'ICE', tube: 'ice-blue phosphor · 60 Hz', meta: '#02111a' }
+};
+
+/* ------------------------------------------------------------ helpers */
+const pad2 = n => String(n).padStart(2, '0');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function tzName(d){
+  try {
+    const p = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' }).formatToParts(d).find(x => x.type === 'timeZoneName');
+    return p ? p.value : '';
+  } catch (e) { return ''; }
+}
+function fmtDate(d){
+  return `${DAYS[d.getDay()]} ${MONS[d.getMonth()]} ${String(d.getDate()).padStart(2, ' ')} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())} ${tzName(d)} ${d.getFullYear()}`.replace(/\s+/g, ' ');
+}
+function isoWeek(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - y0) / 86400000 + 1) / 7);
+}
+function dayOfYear(d){ return Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 0)) / 86400000); }
+function uptimeStr(){
+  const s = Math.floor((Date.now() - state.bootAt) / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
+  return h ? `${h}:${pad2(m)}` : `${m} min`;
+}
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ------------------------------------------------------------ measurement */
+function measure(){
+  const r = probe.getBoundingClientRect();
+  const cs = getComputedStyle(term);
+  const cw = (r.width / 10) || 8;
+  const lh = parseFloat(cs.lineHeight) || r.height || 18;
+  const iw = term.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const ih = term.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  return { cw, lh, cols: Math.max(24, Math.floor(iw / cw)), rows: Math.max(10, Math.floor(ih / lh)) };
+}
+
+/* ------------------------------------------------------------ audio (lazy, off by default) */
+let actx = null, master = null, noiseBuf = null;
+function audio(){
+  if (!actx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { actx = new AC(); } catch (e) { return null; }
+    master = actx.createGain(); master.gain.value = .55; master.connect(actx.destination);
+    noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * .06), actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+  }
+  if (actx.state === 'suspended') actx.resume().catch(() => {});
+  return actx;
+}
+function sfxKey(kind){
+  if (!state.sound) return;
+  const a = audio(); if (!a) return;
+  const t = a.currentTime;
+  const src = a.createBufferSource(); src.buffer = noiseBuf;
+  const bp = a.createBiquadFilter(); bp.type = 'bandpass';
+  bp.frequency.value = kind === 'enter' ? 1100 : 2300 + Math.random() * 1700; bp.Q.value = kind === 'enter' ? 1.4 : 3.2;
+  const g = a.createGain();
+  g.gain.setValueAtTime(kind === 'enter' ? .55 : .34, t);
+  g.gain.exponentialRampToValueAtTime(.0008, t + (kind === 'enter' ? .09 : .04));
+  src.connect(bp).connect(g).connect(master); src.start(t); src.stop(t + .07);
+  if (kind === 'enter'){
+    const o = a.createOscillator(), og = a.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(70, t + .08);
+    og.gain.setValueAtTime(.3, t); og.gain.exponentialRampToValueAtTime(.0008, t + .12);
+    o.connect(og).connect(master); o.start(t); o.stop(t + .13);
+  }
+}
+function beep(freq = 880, dur = .11, type = 'square', vol = .06){
+  if (!state.sound) return;
+  const a = audio(); if (!a) return;
+  const t = a.currentTime, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .005); g.gain.setValueAtTime(vol, t + dur - .02); g.gain.linearRampToValueAtTime(0, t + dur);
+  o.connect(g).connect(master); o.start(t); o.stop(t + dur + .02);
+}
+function thunk(){
+  if (!state.sound) return;
+  const a = audio(); if (!a) return;
+  const t = a.currentTime;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(60, t);
+  const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 320;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.35, t + .02); g.gain.exponentialRampToValueAtTime(.0008, t + .7);
+  o.connect(lp).connect(g).connect(master); o.start(t); o.stop(t + .72);
+  const s = a.createBufferSource(); s.buffer = noiseBuf; const sg = a.createGain(); sg.gain.value = .4;
+  s.connect(sg).connect(master); s.start(t);
+}
+
+/* ------------------------------------------------------------ output engine (streams at "baud") */
+const MAX_NODES = 700;
+const S = (t, c) => ({ t: String(t), c: c || '' });
+function norm(l){
+  if (l == null || l === '') return { cls: '', segs: [] };
+  if (typeof l === 'string') return { cls: '', segs: [S(l)] };
+  if (Array.isArray(l)) return { cls: '', segs: l.map(x => typeof x === 'string' ? S(x) : Array.isArray(x) ? S(x[1], x[0]) : x) };
+  return { cls: l.cls || '', segs: (l.segs || []).map(x => typeof x === 'string' ? S(x) : Array.isArray(x) ? S(x[1], x[0]) : x) };
+}
+function trim(){ while (out.childElementCount > MAX_NODES) out.removeChild(out.firstElementChild); }
+function newLine(cls, parent){
+  const d = document.createElement('div');
+  d.className = 'l' + (cls ? ' ' + cls : '');
+  (parent || out).appendChild(d);
+  if (!parent) trim();
+  return d;
+}
+function fillLine(el, line){
+  for (const s of line.segs){
+    const sp = document.createElement('span');
+    if (s.c) sp.className = s.c;
+    sp.textContent = s.t; el.appendChild(sp);
+  }
+  return el;
+}
+function scrollDown(){ term.scrollTop = term.scrollHeight; }
+const jobs = []; let pumping = false, flushReq = false;
+function emit(lines, cps){
+  const job = { lines: lines.map(norm), cps: cps == null ? state.cps : cps };
+  return new Promise(res => { job.res = res; jobs.push(job); if (!pumping) pump(); });
+}
+async function pump(){
+  pumping = true;
+  while (jobs.length){ const j = jobs.shift(); await play(j); j.res(); }
+  pumping = false; flushReq = false;
+}
+function play(j){
+  return new Promise(done => {
+    let li = 0, si = 0, ci = 0, lineEl = null, node = null, last = performance.now(), budget = 0;
+    const frame = now => {
+      budget += Math.max(0, now - last) / 1000 * j.cps; last = now;
+      if (!isFinite(j.cps) || flushReq || reduced.matches || document.hidden) budget = Infinity;
+      while (li < j.lines.length && budget >= 1){
+        const L = j.lines[li];
+        if (!lineEl){ lineEl = newLine(L.cls); si = 0; ci = 0; node = null; budget -= 1; }
+        if (si >= L.segs.length){ li++; lineEl = null; continue; }
+        const sg = L.segs[si];
+        if (!node){
+          const sp = document.createElement('span'); if (sg.c) sp.className = sg.c;
+          node = document.createTextNode(''); sp.appendChild(node); lineEl.appendChild(sp);
+        }
+        const n = Math.min(sg.t.length - ci, Math.floor(Math.min(budget, 1e7)));
+        if (n > 0){ node.appendData(sg.t.substr(ci, n)); ci += n; budget -= n; }
+        if (ci >= sg.t.length){ si++; ci = 0; node = null; }
+      }
+      scrollDown();
+      if (li >= j.lines.length) done(); else requestAnimationFrame(frame);
+    };
+    if (!isFinite(j.cps) || reduced.matches) frame(performance.now()); else requestAnimationFrame(frame);
+  });
+}
+const print = (lines) => emit(Array.isArray(lines) ? lines : [lines]);
+const printNow = (lines) => emit(Array.isArray(lines) ? lines : [lines], Infinity);
+
+/* sleeps that a keypress can fast-forward (used by the boot) */
+let fast = false; const sleepers = new Set();
+function sleep(ms){
+  return new Promise(r => {
+    if (fast || reduced.matches) return r();
+    const o = { r }; o.t = setTimeout(() => { sleepers.delete(o); r(); }, ms); sleepers.add(o);
+  });
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function hurry(){ fast = true; flushReq = true; for (const o of sleepers){ clearTimeout(o.t); o.r(); } sleepers.clear(); }
+
+/* ------------------------------------------------------------ files (all fictional) */
+const MSG = 'HELLO FROM THE FAR SIDE OF THE SUN. WE SEE YOUR LIGHT. KEEP IT ON.';
+function hexdump(str){
+  const rows = [];
+  for (let i = 0; i < str.length; i += 16){
+    const chunk = str.slice(i, i + 16);
+    let hex = '';
+    for (let k = 0; k < 16; k++){
+      hex += k < chunk.length ? chunk.charCodeAt(k).toString(16).toUpperCase().padStart(2, '0') + ' ' : '   ';
+      if (k === 7) hex += ' ';
+    }
+    rows.push(i.toString(16).toUpperCase().padStart(4, '0') + '  ' + hex + ' ' + chunk);
+  }
+  return rows.join('\n');
+}
+const T = (lines) => lines.join('\n');
+const F = (content, date) => ({ type: 'file', content, date });
+const D = (children, date) => ({ type: 'dir', children, date });
+const FS = D({
+  bin: D({}, 'Mar 14  1987'),
+  etc: D({
+    hostname: F('helios', 'Mar 14  1987'),
+    motd: F(T(['Welcome aboard Perihelion Relay Station.', 'Keep the light on.']), 'Aug 30  1987'),
+    'os-release': F(T(['NAME="HELIOS/OS"', 'VERSION="2.3 (Aphelion)"', 'ID=helios', 'VENDOR="Heliograph Systems (fictional)"', 'PRETTY_NAME="HELIOS/OS v2.3 Aphelion"']), 'Mar 14  1987')
+  }, 'Mar 14  1987'),
+  home: D({
+    operator: D({
+      'readme.txt': F(T([
+        'HELIOS/OS v2.3 "Aphelion" — operator notes',
+        '==========================================',
+        'This terminal is the only screen aboard Perihelion Relay',
+        'Station. It boots in eleven seconds on a cold morning and in',
+        'three on a warm one. Be kind to it.',
+        '',
+        '  cat mission.log     what happened while you slept',
+        '  cat phosphor.txt    nobody wrote this. allegedly.',
+        '  weather             surface forecast for Dome 3',
+        '  snake               sanctioned recreation (1 h per shift)',
+        '  theme amber         easier on the eyes after midnight',
+        '',
+        'HELIOS, Heliograph Systems, Perihelion Station and its crew',
+        'are fictional. The phosphor glow is real physics.'
+      ]), 'Aug 30  1987'),
+      'phosphor.txt': F(T([
+        '            P H O S P H O R',
+        '',
+        '  Every letter is a small collision:',
+        '  an electron flung across the dark',
+        '  to strike the glass and bloom, and fade,',
+        '  and be struck again, sixty times a second,',
+        '  so that you believe it never left.',
+        '',
+        '  That is the whole trick of the screen,',
+        '  and maybe the whole trick of us —',
+        '  to be renewed so steadily',
+        '  that no one sees the falling,',
+        '  only the green, only the glow.',
+        '',
+        '  When you power down tonight',
+        '  I will hold your last line a moment longer',
+        '  than the circuitry requires:',
+        '  a faint persistence on the curve of the tube,',
+        '  the way a room remembers voices.',
+        '',
+        '                           — left on tty3, unsigned'
+      ]), 'Sep 02  1987'),
+      'mission.log': F(T([
+        'PERIHELION RELAY STATION · MISSION LOG · CREW OF THREE',
+        '(fictional record, part of the HELIOS/OS simulation)',
+        '────────────────────────────────────────────────────────',
+        'DAY 211 06:40  Mirror array realigned. Mirror #4 still drifts',
+        '               0.3 arcmin east after dusk. Logged for Ines.',
+        'DAY 211 19:15  Solar wind up to 610 km/s. Shutters down, tube',
+        '               brightness to 40 %. Coffee maker fuse blew. Again.',
+        'DAY 212 02:03  Narrow carrier near 1420.4 MHz, the hydrogen line.',
+        '               Repeats every 17.3 s. Not ours. Not noise.',
+        'DAY 212 02:41  Pattern decodes as plain 8-bit ASCII.',
+        '               See logs/signal-0417.log.',
+        'DAY 212 09:30  Kasimir wants to answer. Ines wants to wait.',
+        '               I want to sleep. We voted: wait one more orbit.',
+        'DAY 213 00:00  The signal stopped mid-word. The silence is loud.',
+        'DAY 213 05:12  Terminal left on overnight. Someone wrote a poem',
+        '               on tty3. Nobody admits to it.',
+        '────────────────────────────────────────────────── end of log'
+      ]), 'Sep 03  1987'),
+      'todo.txt': F(T([
+        '[x] realign heliograph mirror #4',
+        '[x] replace the coffee maker fuse (third time)',
+        '[ ] answer the signal',
+        '[ ] teach the snake not to eat its own tail',
+        '[ ] find out who keeps writing poems on tty3'
+      ]), 'Sep 03  1987'),
+      '.plan': F(T([
+        'Plan for this shift:',
+        '  1. Keep the light on.',
+        '  2. Try `theme ice`, then `matrix`. Trust me.',
+        '  3. If you are sure, type `answer`.'
+      ]), 'Sep 01  1987'),
+      logs: D({
+        'signal-0417.log': F(T([
+          'RELAY-7 CAPTURE 0417 · carrier 1420.4 MHz · period 17.3 s',
+          'decoded payload (8-bit ASCII, fictional):',
+          '',
+          hexdump(MSG),
+          '',
+          'capture ends mid-transmission. checksum: ok'
+        ]), 'Sep 03  1987'),
+        'boot.log': F(T([
+          '[ ok ] mounted /dev/hd0 on /',
+          '[ ok ] sysd, netd, cron, lpd started',
+          '[ ok ] heliograph mirrors calibrated (7 of 8)',
+          '[WARN] mirror #4 drift 0.3\' east'
+        ]), 'Sep 03  1987')
+      }, 'Sep 03  1987'),
+      games: D({
+        'snake.txt': F(T(['snake is installed system-wide.', 'type `snake` to play. arrows / WASD steer, P pauses, Q quits.']), 'Jul 19  1987')
+      }, 'Jul 19  1987')
+    }, 'Sep 03  1987')
+  }, 'Mar 14  1987'),
+  tmp: D({}, 'Sep 03  1987')
+}, 'Mar 14  1987');
+
+function resolve(p){
+  if (!p || p === '~') return p ? HOME : state.cwd;
+  if (p.startsWith('~/')) p = HOME + p.slice(1);
+  const parts = (p.startsWith('/') ? p : state.cwd + '/' + p).split('/');
+  const st = [];
+  for (const s of parts){ if (!s || s === '.') continue; if (s === '..') st.pop(); else st.push(s); }
+  return '/' + st.join('/');
+}
+function lookup(abs){
+  let n = FS; if (abs === '/') return n;
+  for (const s of abs.slice(1).split('/')){ if (!n || n.type !== 'dir') return null; n = n.children[s]; }
+  return n || null;
+}
+const prettyPath = abs => abs === HOME ? '~' : abs.startsWith(HOME + '/') ? '~' + abs.slice(HOME.length) : abs;
+const sizeOf = n => n.type === 'dir' ? 512 : n.type === 'exe' ? 4096 + (n.name.length * 733) % 9000 : new Blob([n.content]).size;
+
+/* ------------------------------------------------------------ art */
+const LOGO = [
+  '██╗  ██╗███████╗██╗     ██╗ ██████╗ ███████╗',
+  '██║  ██║██╔════╝██║     ██║██╔═══██╗██╔════╝',
+  '███████║█████╗  ██║     ██║██║   ██║███████╗',
+  '██╔══██║██╔══╝  ██║     ██║██║   ██║╚════██║',
+  '██║  ██║███████╗███████╗██║╚██████╔╝███████║',
+  '╚═╝  ╚═╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚══════╝'
+];
+const EMBLEM = [
+  '             |',
+  '       \\     |     /',
+  '        \\   ▄▄▄   /',
+  '    .    ▄▓█████▓▄    .',
+  '        ▐█████████▌',
+  '  ───── ███████████ ─────',
+  '        ▐█████████▌',
+  '    \'    ▀▓█████▓▀    \'',
+  '        /   ▀▀▀   \\',
+  '       /     |     \\',
+  '             |'
+];
+const WX = {
+  clear: { name: 'Clear skies', big: ['    \\   |   /     ', '      .---.       ', '  -- (     ) --   ', '      \'---\'       ', '    /   |   \\     '], small: [' \\ | / ', '-( o )-', ' / | \\ '] },
+  partly: { name: 'Partly cloudy', big: ['   \\  |  /        ', '    .---.  .--.   ', ' --(   .-(    ).  ', '    \'-(___.__)__) ', '   /  |  \\        '], small: ['\\ .--. ', '-(    ).', '(__(__) '] },
+  cloudy: { name: 'Overcast', big: ['                  ', '       .--.       ', '    .-(    ).     ', '   (___.__)__)    ', '                  '], small: ['  .--. ', ' (    ).', '(___(__)'] },
+  rain: { name: 'Light showers', big: ['       .--.       ', '    .-(    ).     ', '   (___.__)__)    ', '    \' \' \' \' \'     ', '   \' \' \' \' \'      '], small: [' .--.  ', '(____) ', ' \' \' \' '] },
+  fog: { name: 'Mirror fog', big: ['                  ', '  _ - _ - _ - _   ', '   _ - _ - _ -    ', '  _ - _ - _ - _   ', '                  '], small: [' _ - _ ', '- _ - _', ' _ - _ '] }
+};
+const FORTUNES = [
+  'A terminal left on is a lighthouse for someone.',
+  'Every bug is a letter from your past self.',
+  'Persistence of vision is just memory with good lighting.',
+  'Real operators read the manual after it breaks.',
+  'The glow you are reading left the phosphor a moment ago.',
+  'Measure twice, cut once, reboot three times.',
+  'The snake never learns. That is its whole charm.',
+  'Silence on the relay is also a message.'
+];
+
+/* ------------------------------------------------------------ banner (re-rendered on resize/theme) */
+let bannerEl = null;
+function bannerLines(cols){
+  const L = [];
+  if (cols >= 46){ for (const s of LOGO) L.push({ cls: 'logo', segs: [S(s, 'hot')] }); }
+  else L.push({ cls: '', segs: [S('H E L I O S', 'hot b')] });
+  L.push({ cls: '', segs: [S(' /OS v2.3 "Aphelion" ', 'inv'), S(cols >= 52 ? '  Heliograph Systems · 64 MiB' : '  64 MiB', 'dim')] });
+  L.push('');
+  const info = [
+    [S('operator', 'hot b'), S('@', 'dim'), S('helios', 'hot b')],
+    [S('───────────────', 'dim')],
+    [S('OS      ', 'dim'), S('HELIOS/OS v2.3 "Aphelion"')],
+    [S('Kernel  ', 'dim'), S('hx 2.3.11-relay')],
+    [S('Host    ', 'dim'), S('Heliograph HX-14 terminal')],
+    [S('CPU     ', 'dim'), S('HX-68030 @ 33 MHz')],
+    [S('Memory  ', 'dim'), S('1.9 MiB / 64 MiB')],
+    [S('Tube    ', 'dim'), S(THEMES[state.theme].tube)],
+    [S('Relay   ', 'dim'), S('Perihelion Station · link ok')],
+    [S('Uptime  ', 'dim'), S(uptimeStr())],
+    [S('░░░', 'faint'), S('▒▒▒', 'dim'), S('▓▓▓'), S('███', 'hot')]
+  ];
+  if (cols >= 66){
+    for (let i = 0; i < Math.max(EMBLEM.length, info.length); i++){
+      L.push({ cls: 'art', segs: [S('  ' + (EMBLEM[i] || '').padEnd(26, ' '), 'em'), ...(info[i] || [])] });
+    }
+  } else {
+    for (const r of info) L.push({ cls: '', segs: [S(' '), ...r] });
+  }
+  L.push('');
+  L.push([S(' * ', 'hot'), S('3 new entries in '), S('mission.log', 'u'), S(cols >= 60 ? '   → cat mission.log' : '', 'dim')]);
+  L.push([S(' * ', 'hot'), S('someone left a poem on tty3'), S(cols >= 60 ? ' → cat phosphor.txt' : '', 'dim')]);
+  L.push([S(' * ', 'hot'), S(cols >= 60 ? 'relay nominal · mirror #4 drifting 0.3\' east' : 'relay nominal · mirror #4 drift 0.3\'')]);
+  L.push('');
+  L.push([S('Type '), S('help', 'inv'), S(' to begin. '), S(coarse.matches ? 'Tap the screen to type.' : cols >= 60 ? 'Tab completes, ↑/↓ recalls.' : 'Tab completes.', 'dim')]);
+  L.push('');
+  return L;
+}
+function renderBanner(animate){
+  if (!bannerEl || !bannerEl.isConnected) return;
+  const { cols } = measure();
+  bannerEl.textContent = '';
+  bannerEl.classList.toggle('still', !animate);
+  bannerLines(cols).map(norm).forEach((line, i) => {
+    const el = fillLine(newLine(line.cls, bannerEl), line);
+    if (animate) el.style.animationDelay = (i * 38) + 'ms';
+  });
+  scrollDown();
+}
+function showBanner(){
+  bannerEl = document.createElement('div');
+  bannerEl.className = 'banner';
+  out.appendChild(bannerEl);
+  renderBanner(true);
+}
+
+/* ------------------------------------------------------------ prompt / input rendering */
+const caret = document.createElement('span'); caret.className = 'caret';
+let solidTimer = 0;
+function renderPrompt(){
+  ps1El.textContent = '';
+  const a = document.createElement('span'); a.textContent = 'operator@helios';
+  const b = document.createElement('span'); b.className = 'path'; b.textContent = ':' + prettyPath(state.cwd);
+  ps1El.append(a, b, document.createTextNode('$ '));
+  $('#stPath').textContent = 'operator@helios:' + prettyPath(state.cwd);
+}
+function renderInput(){
+  const v = cmd.value;
+  const pos = cmd.selectionStart == null ? v.length : cmd.selectionStart;
+  typed.textContent = '';
+  typed.append(v.slice(0, pos));
+  caret.textContent = v.charAt(pos) || ' ';
+  typed.append(caret, v.slice(pos + 1));
+}
+function poke(){ caret.classList.add('solid'); clearTimeout(solidTimer); solidTimer = setTimeout(() => caret.classList.remove('solid'), 520); }
+function showPrompt(){
+  state.mode = 'shell'; flushReq = false;
+  renderPrompt(); renderInput();
+  promptLine.hidden = false;
+  scrollDown();
+  if (!coarse.matches || state.userTapped) focusInput();
+}
+function focusInput(){ try { cmd.focus({ preventScroll: true }); } catch (e) { cmd.focus(); } }
+cmd.addEventListener('focus', () => promptLine.classList.add('focused'));
+cmd.addEventListener('blur', () => promptLine.classList.remove('focused'));
+cmd.addEventListener('input', () => { renderInput(); poke(); });
+document.addEventListener('selectionchange', () => { if (document.activeElement === cmd) renderInput(); });
+
+/* ------------------------------------------------------------ shell */
+let handledEvt = null;
+cmd.addEventListener('keydown', e => {
+  if (state.mode !== 'shell') return;
+  handledEvt = e;
+  const k = e.key;
+  if (k === 'Enter'){ e.preventDefault(); sfxKey('enter'); submit(); return; }
+  if (k.length === 1 || k === 'Backspace' || k === 'Delete' || k === ' ') sfxKey('key');
+  if (k === 'ArrowUp'){ e.preventDefault(); histNav(1); }
+  else if (k === 'ArrowDown'){ e.preventDefault(); histNav(-1); }
+  else if (k === 'Tab'){ e.preventDefault(); complete(); }
+  else if (k === 'Escape'){ cmd.value = ''; }
+  else if (e.ctrlKey && !e.altKey && !e.metaKey){
+    const c = k.toLowerCase();
+    if (c === 'l'){ e.preventDefault(); clearScreen(true); }
+    else if (c === 'c' && cmd.selectionStart === cmd.selectionEnd){
+      e.preventDefault(); echoLine(cmd.value + '^C'); cmd.value = '';
+    } else if (c === 'u'){ e.preventDefault(); cmd.value = cmd.value.slice(cmd.selectionStart); cmd.setSelectionRange(0, 0); }
+  }
+  poke();
+  requestAnimationFrame(renderInput);
+});
+function echoLine(text){
+  const el = newLine('');
+  const a = document.createElement('span'); a.className = 'ps1'; a.textContent = ps1El.textContent;
+  const b = document.createElement('span'); b.textContent = text;
+  el.append(a, b);
+  scrollDown();
+}
+function histNav(dir){
+  const h = state.history; if (!h.length) return;
+  if (state.hIndex === -1) state.draft = cmd.value;
+  state.hIndex = clamp(state.hIndex + dir, -1, h.length - 1);
+  cmd.value = state.hIndex === -1 ? state.draft : h[h.length - 1 - state.hIndex];
+  const n = cmd.value.length;
+  requestAnimationFrame(() => { cmd.setSelectionRange(n, n); renderInput(); });
+}
+function parseArgs(s){
+  const r = []; const re = /"([^"]*)"|'([^']*)'|(\S+)/g; let m;
+  while ((m = re.exec(s))) r.push(m[1] != null ? m[1] : m[2] != null ? m[2] : m[3]);
+  return r;
+}
+async function submit(){
+  const raw = cmd.value; cmd.value = '';
+  promptLine.hidden = true;
+  echoLine(raw);
+  state.hIndex = -1; state.draft = '';
+  const line = raw.trim();
+  if (line){
+    if (state.history[state.history.length - 1] !== line){ state.history.push(line); if (state.history.length > 60) state.history.shift(); store.set('history', state.history); }
+    await run(line);
+  }
+  if (state.mode === 'busy' || state.mode === 'shell') showPrompt();
+}
+async function run(line){
+  const argv = parseArgs(line); const name = (argv.shift() || '').toLowerCase();
+  const c = CMDS[name];
+  state.mode = 'busy';
+  if (!c){
+    beep(220, .16, 'square', .05);
+    await print([[S('hsh: ', 'dim'), S(name, 'err'), S(': command not found. Try '), S('help', 'u'), S('.')]]);
+    return;
+  }
+  try { await c.run(argv, line); }
+  catch (err){ await print([[S('hsh: ' + name + ': internal fault — ', 'err'), S(String(err && err.message || err))]]); }
+}
+function commonPrefix(arr){
+  let p = arr[0] || '';
+  for (const s of arr) while (!s.startsWith(p)) p = p.slice(0, -1);
+  return p;
+}
+function complete(){
+  const v = cmd.value, pos = cmd.selectionStart;
+  const left = v.slice(0, pos);
+  const word = (left.match(/(\S*)$/) || ['', ''])[1];
+  const start = pos - word.length;
+  const before = left.slice(0, start).trim().split(/\s+/).filter(Boolean);
+  let cands = [];
+  if (!before.length){
+    cands = Object.keys(CMDS).filter(c => !CMDS[c].hidden && c.startsWith(word.toLowerCase()));
+  } else {
+    const c0 = before[0].toLowerCase();
+    const lists = { theme: ['green', 'amber', 'ice'], sound: ['on', 'off'], baud: ['1200', '2400', '9600', '19200', '57600', 'max'] };
+    if (lists[c0]) cands = lists[c0].filter(x => x.startsWith(word));
+    else {
+      const sl = word.lastIndexOf('/');
+      const dirPart = sl >= 0 ? word.slice(0, sl + 1) : '';
+      const base = word.slice(sl + 1);
+      const node = lookup(resolve(dirPart || '.'));
+      if (node && node.type === 'dir'){
+        cands = Object.keys(node.children)
+          .filter(n => n.startsWith(base) && (base.startsWith('.') || !n.startsWith('.')))
+          .map(n => dirPart + n + (node.children[n].type === 'dir' ? '/' : ''));
+      }
+      if (c0 === 'cd') cands = cands.filter(x => x.endsWith('/'));
+    }
+  }
+  if (!cands.length){ beep(660, .05, 'square', .03); return; }
+  let ins;
+  if (cands.length === 1) ins = cands[0] + (cands[0].endsWith('/') ? '' : ' ');
+  else {
+    const cp = commonPrefix(cands);
+    if (cp.length > word.length) ins = cp;
+    else {
+      echoLine(v);
+      const w = Math.max(...cands.map(c => c.length)) + 2;
+      const per = Math.max(1, Math.floor(measure().cols / w));
+      const rows = [];
+      for (let i = 0; i < cands.length; i += per) rows.push(cands.slice(i, i + per).map(c => c.padEnd(w, ' ')).join(''));
+      printNow(rows.map(r => [S(r, 'dim')]));
+      return;
+    }
+  }
+  cmd.value = v.slice(0, start) + ins + v.slice(pos);
+  const np = start + ins.length;
+  cmd.setSelectionRange(np, np);
+  renderInput();
+}
+
+/* ------------------------------------------------------------ commands */
+const CMDS = {};
+const def = (name, desc, usage, runFn, extra) => { CMDS[name] = Object.assign({ name, desc, usage, run: runFn }, extra || {}); };
+
+def('help', 'this list', 'help', async () => {
+  const rows = Object.values(CMDS).filter(c => !c.hidden);
+  const { cols } = measure();
+  const w = cols >= 64 ? 26 : 0;
+  const L = [[S(' HELIOS/OS v2.3 ', 'inv'), S('  built-in commands', 'dim')], ''];
+  for (const c of rows){
+    if (w) L.push([S('  ' + c.usage.padEnd(w, ' '), 'hot'), S(c.desc, '')]);
+    else { L.push([S('  ' + c.usage, 'hot')]); L.push([S('      ' + c.desc, 'dim')]); }
+  }
+  L.push('');
+  L.push([S('  keys  ', 'dim'), S('↑/↓ history · Tab complete · Ctrl+C cancel · Ctrl+L clear')]);
+  await print(L);
+});
+def('ls', 'list a directory', 'ls [-a] [-l] [dir]', async (argv) => {
+  const flags = argv.filter(a => a.startsWith('-')).join('');
+  const all = flags.includes('a'), long = flags.includes('l');
+  const target = argv.find(a => !a.startsWith('-'));
+  const abs = resolve(target || '.'); const n = lookup(abs);
+  if (!n){ await print([[S('ls: ', 'dim'), S(target, 'err'), S(': no such file or directory')]]); return; }
+  if (n.type !== 'dir'){ await print([target]); return; }
+  let names = Object.keys(n.children).sort((a, b) => a.replace(/^\./, '').localeCompare(b.replace(/^\./, '')));
+  if (!all) names = names.filter(x => !x.startsWith('.'));
+  if (!names.length){ await print([[S('(empty)', 'dim')]]); return; }
+  if (long){
+    const L = [[S('total ' + names.length * 4, 'dim')]];
+    for (const nm of names){
+      const c = n.children[nm]; const dir = c.type === 'dir';
+      const perm = dir ? 'drwxr-xr-x' : c.type === 'exe' ? '-rwxr-xr-x' : '-rw-r--r--';
+      const who = abs.startsWith(HOME) ? 'operator crew ' : 'root     wheel';
+      L.push([S(perm + '  ' + who + ' ' + String(sizeOf(c)).padStart(6, ' ') + ' ' + (c.date || 'Mar 14  1987') + ' ', 'dim'), S(nm + (dir ? '/' : ''), dir ? 'hot b' : c.type === 'exe' ? 'b' : '')]);
+    }
+    await print(L);
+  } else {
+    const { cols } = measure();
+    const w = Math.max(...names.map(x => x.length)) + 3;
+    const per = Math.max(1, Math.floor(cols / w));
+    const L = [];
+    for (let i = 0; i < names.length; i += per){
+      L.push(names.slice(i, i + per).map(nm => {
+        const c = n.children[nm]; const dir = c.type === 'dir';
+        return S((nm + (dir ? '/' : '')).padEnd(w, ' '), dir ? 'hot b' : c.type === 'exe' ? 'b' : '');
+      }));
+    }
+    await print(L);
+  }
+});
+def('cd', 'change directory', 'cd <dir>', async (argv) => {
+  const abs = resolve(argv[0] || '~'); const n = lookup(abs);
+  if (!n) return print([[S('cd: ', 'dim'), S(argv[0], 'err'), S(': no such directory')]]);
+  if (n.type !== 'dir') return print([[S('cd: ', 'dim'), S(argv[0], 'err'), S(': not a directory')]]);
+  state.cwd = abs; renderPrompt();
+});
+def('pwd', 'print working directory', 'pwd', () => print([state.cwd]));
+def('cat', 'print a file', 'cat <file>', async (argv) => {
+  if (!argv.length) return print([[S('usage: ', 'dim'), S('cat <file>'), S('   try: cat phosphor.txt', 'dim')]]);
+  for (const a of argv){
+    const n = lookup(resolve(a));
+    if (!n) await print([[S('cat: ', 'dim'), S(a, 'err'), S(': no such file or directory')]]);
+    else if (n.type === 'dir') await print([[S('cat: ', 'dim'), S(a, 'err'), S(': is a directory')]]);
+    else if (n.type === 'exe') await print([[S('cat: ', 'dim'), S(a, 'err'), S(': HX-68k executable — try running '), S(n.name, 'u')]]);
+    else {
+      const isPoem = /phosphor/.test(a), isDump = /signal/.test(a);
+      await print(n.content.split('\n').map((t, i) => isPoem && i === 0 ? [S(t, 'hot b')] : { cls: isDump ? 'art' : '', segs: [S(t)] }));
+    }
+  }
+});
+def('clear', 'clear the screen (Ctrl+L)', 'clear', () => { clearScreen(true); });
+def('date', 'current date and time', 'date', () => {
+  const d = new Date();
+  return print([fmtDate(d), [S(`day ${dayOfYear(d)} · ISO week ${isoWeek(d)} · RTC battery 87 %`, 'dim')]]);
+});
+def('whoami', 'who you are', 'whoami', () => print(['operator', [S('uid=1000(operator) gid=100(crew) groups=100(crew),27(relay) · third shift', 'dim')]]));
+def('theme', 'switch phosphor', 'theme <green|amber|ice>', async (argv) => {
+  const t = (argv[0] || '').toLowerCase();
+  if (!THEMES[t]) return print([[S('usage: theme green|amber|ice   ', ''), S('(current: ' + state.theme + ')', 'dim')]]);
+  applyTheme(t, true);
+  await wait(reduced.matches ? 0 : 420);
+  await print([[S('phosphor → ', 'dim'), S(THEMES[t].tube, 'hot')]]);
+});
+def('matrix', 'glyph rain (any key stops)', 'matrix', () => runMatrix());
+def('weather', 'surface forecast', 'weather', () => weather());
+def('snake', 'play snake', 'snake', () => runSnake());
+def('history', 'command history', 'history', () => {
+  const h = state.history.slice(-20); const off = state.history.length - h.length;
+  return print(h.length ? h.map((c, i) => [S(String(off + i + 1).padStart(4, ' ') + '  ', 'dim'), S(c)]) : [[S('(no history yet)', 'dim')]]);
+});
+def('echo', 'print text', 'echo <text>', (argv, raw) => print([raw.replace(/^\s*echo\s?/i, '')]));
+def('uname', 'system name', 'uname [-a]', (argv) => print([argv.includes('-a') ? 'HELIOS helios 2.3.11-relay #1 Sep 03 1987 hx68030 HELIOS/OS' : 'HELIOS']));
+def('uptime', 'time since power-on', 'uptime', () => {
+  const d = new Date(); const s = Math.floor((Date.now() - state.bootAt) / 1000);
+  return print([` ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())} up ${Math.floor(s / 3600)}:${pad2(Math.floor(s / 60) % 60)}, 1 user, load average: 0.0${1 + (s % 7)}, 0.03, 0.01`]);
+});
+def('fortune', 'relay-station wisdom', 'fortune', () => print([[S('  “' + FORTUNES[Math.floor(Math.random() * FORTUNES.length)] + '”', 'hot')]]));
+def('sound', 'typing clicks', 'sound <on|off>', (argv) => {
+  const v = (argv[0] || '').toLowerCase();
+  setSound(v === 'on' ? true : v === 'off' ? false : !state.sound);
+  return print([[S('sound ', 'dim'), S(state.sound ? 'on — keys click, errors beep' : 'off', 'hot')]]);
+});
+def('baud', 'output speed', 'baud <1200..57600|max>', (argv) => {
+  const v = (argv[0] || '').toLowerCase();
+  if (!v) return print([[S('line speed ' + (isFinite(state.cps) ? state.baud + ' baud' : 'unlimited'), '')]]);
+  if (v === 'max'){ state.cps = Infinity; state.baud = 0; return print(['line speed: unlimited']); }
+  const b = parseInt(v, 10);
+  if (!(b >= 300 && b <= 115200)) return print([[S('baud: ', 'dim'), S(v, 'err'), S(': choose 300–115200 or max')]]);
+  state.baud = b; state.cps = b / 10;
+  return print([[S(`line speed ${b} baud `, ''), S(`(8N1 → ${b / 10} chars/s)`, 'dim')]]);
+});
+def('reboot', 'power-cycle the tube', 'reboot', async () => {
+  await print([[S('Broadcast message from operator@helios: ', 'dim'), S('the system is going down NOW', 'hot')]]);
+  await wait(300); boot(true);
+  state.mode = 'boot';
+});
+def('sudo', 'superuser', 'sudo', () => { beep(200, .2); return print(['operator is not in the sudoers file. This incident will be reported to Mission Control.']); }, { hidden: true });
+def('exit', 'log out', 'exit', async () => { await print(['logout']); await wait(300); clearScreen(true); login(); state.mode = 'login'; }, { hidden: true });
+def('logout', 'log out', 'logout', (a, r) => CMDS.exit.run(a, r), { hidden: true });
+def('hello', '', 'hello', () => print(['Hello, operator. The light is on.']), { hidden: true });
+def('answer', 'reply to the signal', 'answer', async () => {
+  await print([[S('encoding reply ', 'dim'), S('"WE SEE YOURS TOO."', 'hot')]]);
+  const el = newLine('');
+  const W = Math.min(28, measure().cols - 14);
+  for (let i = 0; i <= W; i++){
+    el.textContent = 'mirror array [' + '#'.repeat(i) + '.'.repeat(W - i) + '] ' + Math.round(i / W * 100) + '%';
+    scrollDown(); if (i % 4 === 0) beep(1200 + i * 30, .03, 'sine', .03);
+    await wait(reduced.matches ? 0 : 45);
+  }
+  await print(['transmitted by heliograph flash, 8 mirrors.', [S('light time to the far side of the Sun (≈2 AU): 16 min 38 s', 'dim')], [S('keep the light on.', 'hot')]]);
+}, { hidden: true });
+
+Object.keys(CMDS).forEach(k => { FS.children.bin.children[k] = { type: 'exe', name: k, date: 'Mar 14  1987' }; });
+
+/* ------------------------------------------------------------ clear with phosphor persistence */
+function clearScreen(withGhost){
+  if (withGhost && !reduced.matches && out.childElementCount){
+    ghost.textContent = '';
+    const wrap = document.createElement('div');
+    const clone = out.cloneNode(true); clone.removeAttribute('id'); clone.removeAttribute('role'); clone.removeAttribute('aria-live'); clone.removeAttribute('aria-label');
+    wrap.appendChild(clone);
+    wrap.style.transform = `translateY(${-term.scrollTop}px)`;
+    ghost.appendChild(wrap);
+    ghost.classList.remove('fade'); void ghost.offsetWidth; ghost.classList.add('fade');
+  }
+  out.textContent = ''; bannerEl = null;
+  term.scrollTop = 0;
+}
+
+/* ------------------------------------------------------------ theme + sound */
+function applyTheme(t, withFx){
+  state.theme = t; root.dataset.theme = t; store.set('theme', t);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', THEMES[t].meta);
+  document.querySelectorAll('.tkey').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === t)));
+  $('#stTheme').textContent = '[' + THEMES[t].label + ']';
+  if (withFx && !reduced.matches){ crt.classList.remove('degauss'); void crt.offsetWidth; crt.classList.add('degauss'); thunk(); }
+  if (bannerEl) renderBanner(false);
+}
+function setSound(on){
+  state.sound = on; store.set('sound', on);
+  if (on) audio();
+  const k = $('#sndKey'); k.setAttribute('aria-pressed', String(on));
+  const s = $('#stSound'); s.textContent = on ? '[SND:ON]' : '[SND:OFF]'; s.setAttribute('aria-pressed', String(on));
+  if (on) sfxKey('enter');
+}
+
+/* ------------------------------------------------------------ boot sequence */
+async function powerOn(){
+  crt.classList.remove('off', 'poff', 'pon'); void crt.offsetWidth;
+  if (reduced.matches || fast){ return; }
+  crt.classList.add('pon');
+  beam.classList.remove('on', 'dot'); void beam.offsetWidth; beam.classList.add('on');
+  await sleep(480);
+}
+async function powerOff(){
+  if (reduced.matches){ crt.classList.add('off'); return; }
+  crt.classList.remove('pon'); void crt.offsetWidth; crt.classList.add('poff');
+  await wait(560);
+  beam.classList.remove('on', 'dot'); void beam.offsetWidth; beam.classList.add('dot');
+  crt.classList.add('off'); crt.classList.remove('poff');
+  await wait(700);
+}
+function appendTo(el, text, cls){ const s = document.createElement('span'); if (cls) s.className = cls; s.textContent = text; el.appendChild(s); scrollDown(); }
+let bootToken = 0;
+async function boot(isReboot){
+  const my = ++bootToken;
+  state.mode = 'boot'; fast = reduced.matches; promptLine.hidden = true;
+  document.body.classList.remove('snaking');
+  if (isReboot){ await powerOff(); }
+  if (my !== bootToken) return;
+  clearScreen(false); ghost.textContent = '';
+  state.bootAt = Date.now(); state.cwd = HOME;
+  $('#led').classList.add('lit');
+  await powerOn();
+  const { cols } = measure();
+  const narrow = cols < 56;
+  badge.classList.add('show');
+  await emit([
+    [S('HELIOGRAPH SYSTEMS', 'hot b'), S('  ROM BIOS v4.07')],
+    [S(narrow ? '(C) 1979-87 Heliograph Systems Ltd.' : 'Copyright (C) 1979-1987 Heliograph Systems Ltd.', 'dim')],
+    [S('(a fictional company)', 'faint')],
+    ''
+  ], fast ? Infinity : 2600);
+  await sleep(120);
+  await emit([narrow ? 'HX-68030 CPU at 33 MHz, FPU present' : 'HX-14/68030 CPU at 33 MHz · FPU present · 256 B cache'], fast ? Infinity : 3200);
+  const mem = newLine('');
+  await new Promise(res => {
+    const t0 = performance.now(), D0 = 520;
+    const step = now => {
+      const k = fast ? 1 : clamp((now - t0) / D0, 0, 1);
+      const v = Math.floor(65536 * (1 - Math.pow(1 - k, 1.6)) / 64) * 64;
+      mem.textContent = 'Memory Test : ' + String(v).padStart(6, ' ') + 'K';
+      scrollDown();
+      if (k >= 1){ appendTo(mem, ' OK', 'hot'); res(); } else requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+  beep(1000, .09, 'square', .04);
+  await sleep(110);
+  await emit([''], Infinity);
+  const devs = [
+    ['Primary Master', 'HX-DISK 120 MB'],
+    ['Primary Slave', 'None', 'dim'],
+    ['Tape Drive', 'QIC-80 streamer'],
+    ['Serial COM1', '19200 baud modem'],
+    ['Phosphor Tube', null],
+    ['Real-Time Clock', 'battery 87 %']
+  ];
+  const dw = narrow ? 17 : 26;
+  for (const [a, b, c] of devs){
+    const el = newLine('');
+    appendTo(el, ((narrow ? '' : 'Detecting ') + a + ' ').padEnd(dw, '.') + ' ', '');
+    await sleep(45 + Math.random() * 60);
+    appendTo(el, b || THEMES[state.theme].tube.replace(' phosphor', '').replace(' · ', ', '), c || 'hot');
+  }
+  await emit(['', [S(narrow ? 'Press DEL for SETUP · any key skips' : 'Press DEL to enter SETUP · any key to skip boot', 'dim')], ''], Infinity);
+  await sleep(240);
+  badge.classList.remove('show');
+  await emit([[S('Booting from HX-DISK …', 'b')], [S('HELIOS/OS v2.3 "Aphelion" loading', '')]], fast ? Infinity : 2400);
+  const bar = newLine('');
+  const BW = narrow ? 18 : 32;
+  await new Promise(res => {
+    const t0 = performance.now(), D0 = 400;
+    const step = now => {
+      const k = fast ? 1 : clamp((now - t0) / D0, 0, 1);
+      const n = Math.round(BW * k);
+      bar.textContent = '';
+      appendTo(bar, 'kernel ', 'dim'); appendTo(bar, '▕'); appendTo(bar, '█'.repeat(n), 'hot'); appendTo(bar, '░'.repeat(BW - n), 'faint'); appendTo(bar, '▏ ' + String(Math.round(k * 100)).padStart(3, ' ') + '%');
+      if (k >= 1) res(); else requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+  const svc = [
+    ['ok', 'mounting /dev/hd0 on /'],
+    ['ok', 'starting sysd · netd · cron · lpd'],
+    ['ok', 'relay link: 3 hops, 212 ms'],
+    ['ok', 'calibrating heliograph mirrors'],
+    ['WARN', 'mirror #4 drift 0.3\' east'],
+    ['ok', 'spooling mission log']
+  ];
+  for (const [s, t] of svc){
+    await emit([[S('[', 'dim'), S(s === 'ok' ? ' ok ' : 'WARN', s === 'ok' ? 'hot' : 'inv'), S('] ', 'dim'), S(t)]], Infinity);
+    await sleep(30 + Math.random() * 40);
+  }
+  await sleep(240);
+  if (my !== bootToken) return;
+  clearScreen(!fast);
+  await login(my);
+}
+async function login(my){
+  if (my == null) my = ++bootToken;
+  state.mode = 'boot';
+  await emit([[S('HELIOS/OS v2.3 "Aphelion" (helios) (tty1)', 'dim')], ''], Infinity);
+  const ln = newLine('');
+  appendTo(ln, 'helios login: ');
+  await sleep(170);
+  for (const ch of 'operator'){ appendTo(ln, ch); sfxKey('key'); await sleep(34 + Math.random() * 28); }
+  const pw = newLine('');
+  appendTo(pw, 'Password: ');
+  await sleep(300);
+  if (my !== bootToken) return;
+  const prev = state.lastLogin;
+  const now = new Date();
+  store.set('lastLogin', now.getTime());
+  await emit([[S('Last login: ', 'dim'), S(prev ? fmtDate(new Date(prev)) + ' on tty1' : 'never — welcome aboard, operator', 'dim')], ''], Infinity);
+  state.lastLogin = now.getTime();
+  showBanner();
+  fast = false;
+  await wait(reduced.matches ? 0 : 200);
+  if (my !== bootToken) return;
+  showPrompt();
+}
+
+/* ------------------------------------------------------------ weather */
+async function weather(){
+  const d = new Date();
+  const r = mulberry(d.getFullYear() * 1000 + dayOfYear(d));
+  const kinds = ['clear', 'partly', 'cloudy', 'rain', 'fog'];
+  const pick = () => kinds[Math.floor(r() * kinds.length)];
+  const now = pick();
+  const temp = Math.round(8 + r() * 16), feels = temp - Math.round(1 + r() * 3);
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const wind = `${dirs[Math.floor(r() * 8)]} ${Math.round(4 + r() * 22)} km/h`;
+  const hum = Math.round(28 + r() * 55), vis = Math.round(4 + r() * 16);
+  const { cols } = measure();
+  const W = WX[now];
+  const L = [
+    [S(' HELIOS WEATHER SERVICE ', 'inv'), S(cols >= 60 ? '  Perihelion Dome 3 (fictional)' : '', 'dim')],
+    [S(`${DAYS[d.getDay()]} ${d.getDate()} ${MONS[d.getMonth()]} · ${pad2(d.getHours())}:${pad2(d.getMinutes())} local · issued by relay-7`, 'dim')],
+    ''
+  ];
+  const txt = [
+    [S(W.name, 'hot b')],
+    [S(`${temp > 0 ? '+' : ''}${temp} °C`, 'hot'), S(`  feels like ${feels > 0 ? '+' : ''}${feels} °C`, 'dim')],
+    [S('wind       ', 'dim'), S(wind)],
+    [S('humidity   ', 'dim'), S(hum + ' %')],
+    [S('visibility ', 'dim'), S(vis + ' km')]
+  ];
+  if (cols >= 52){
+    for (let i = 0; i < 5; i++) L.push({ cls: 'art', segs: [S(' ' + W.big[i].padEnd(21, ' '), 'em'), ...txt[i]] });
+  } else {
+    for (let i = 0; i < 5; i++) L.push({ cls: 'art', segs: [S(' ' + W.big[i], 'em')] });
+    L.push('');
+    for (const t of txt) L.push([S(' '), ...t]);
+  }
+  L.push('');
+  const days = [1, 2, 3].map(k => { const dd = new Date(d.getTime() + k * 86400000); const kk = pick(); const hi = Math.round(9 + r() * 15); return { name: DAYS[dd.getDay()].toUpperCase(), k: kk, hi, lo: hi - Math.round(4 + r() * 6) }; });
+  const cw = cols >= 52 ? 16 : 14;
+  L.push({ cls: 'art', segs: [S(' ' + days.map(x => x.name.padEnd(cw, ' ')).join(''), 'b')] });
+  for (let i = 0; i < 3; i++) L.push({ cls: 'art', segs: [S(' ' + days.map(x => WX[x.k].small[i].padEnd(cw, ' ')).join(''), 'em')] });
+  const sgn = v => v > 0 ? '+' + v : String(v);
+  L.push({ cls: 'art', segs: [S(' ' + days.map(x => `${sgn(x.hi)}/${sgn(x.lo)} °C`.padEnd(cw, ' ')).join(''), 'hot')] });
+  L.push({ cls: 'art', segs: [S(' ' + days.map(x => WX[x.k].name.toLowerCase().slice(0, cw - 2).padEnd(cw, ' ')).join(''), 'dim')] });
+  L.push('');
+  L.push([S(' mirror advisory: ', 'dim'), S(now === 'fog' ? 'heliograph range reduced — use radio.' : now === 'clear' ? 'excellent flash conditions.' : 'intermittent flash conditions.')]);
+  await print(L);
+}
+
+/* ------------------------------------------------------------ matrix glyph rain */
+const GLYPHS = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ZΞΣΔΛΠΨΩ=+*<>:¦|';
+let matrixStop = null;
+function runMatrix(){
+  return new Promise(resolve => {
+    state.mode = 'matrix';
+    promptLine.hidden = true;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = crt.clientWidth, h = crt.clientHeight;
+    fx.width = Math.round(w * dpr); fx.height = Math.round(h * dpr);
+    const ctx = fx.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+    const cs = getComputedStyle(root);
+    const fg = cs.getPropertyValue('--fg').trim(), hot = cs.getPropertyValue('--hot').trim(), bgRGB = hexRGB(cs.getPropertyValue('--bg').trim());
+    const fs = Math.max(13, Math.round(parseFloat(getComputedStyle(term).fontSize) * 1.08));
+    const colW = Math.round(fs * .95);
+    const n = Math.ceil(w / colW);
+    const cols = [];
+    for (let i = 0; i < n; i++) cols.push({ y: -Math.floor(Math.random() * 30), sp: 9 + Math.random() * 20, acc: 0, prev: null });
+    ctx.font = `${fs}px ${cs.getPropertyValue('--mono')}`; ctx.textBaseline = 'top';
+    const g = () => { const ch = GLYPHS[Math.floor(Math.random() * GLYPHS.length)]; return { ch, m: Math.random() < .5 }; };
+    const draw = (gl, x, y) => {
+      if (gl.m){ ctx.save(); ctx.translate(x + colW, y); ctx.scale(-1, 1); ctx.fillText(gl.ch, 0, 0); ctx.restore(); }
+      else ctx.fillText(gl.ch, x, y);
+    };
+    requestAnimationFrame(() => fx.classList.add('on'));
+    const t0 = performance.now(); let last = t0, ending = false, alive = true;
+    const DUR = reduced.matches ? 1800 : 6500;
+    const finish = () => {
+      if (!alive) return; alive = false; matrixStop = null;
+      fx.classList.remove('on');
+      setTimeout(() => {
+        ctx.clearRect(0, 0, w, h);
+        print([[S('the rain stops. the signal remains.', 'dim')]]).then(() => { state.mode = 'busy'; resolve(); });
+      }, reduced.matches ? 50 : 900);
+    };
+    matrixStop = finish;
+    const frame = now => {
+      if (!alive) return;
+      const dt = Math.min(60, now - last); last = now;
+      const fade = 1 - Math.pow(1 - .085, dt / 16.67);
+      ctx.fillStyle = `rgba(${bgRGB},${fade})`; ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < n; i++){
+        const c = cols[i]; const x = i * colW;
+        c.acc += dt / 1000 * c.sp;
+        while (c.acc >= 1){
+          c.acc -= 1;
+          if (c.prev){ ctx.fillStyle = fg; ctx.shadowBlur = 0; draw(c.prev, x, (c.y - 1) * fs); }
+          if (c.y >= 0){
+            const gl = g(); ctx.fillStyle = hot; ctx.shadowColor = fg; ctx.shadowBlur = 10; draw(gl, x, c.y * fs); ctx.shadowBlur = 0; c.prev = gl;
+          }
+          c.y++;
+          if (c.y * fs > h + Math.random() * h * .6){ c.y = ending ? -99999 : -Math.floor(Math.random() * 12); c.prev = null; c.sp = 9 + Math.random() * 20; }
+        }
+      }
+      for (let k = 0; k < 4; k++){
+        const i = Math.floor(Math.random() * n), c = cols[i];
+        if (c.y > 3){ ctx.fillStyle = fg; ctx.globalAlpha = .7; draw(g(), i * colW, Math.floor(Math.random() * (c.y - 1)) * fs); ctx.globalAlpha = 1; }
+      }
+      if (!ending && now - t0 > DUR){ ending = true; setTimeout(finish, 600); }
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
+}
+function hexRGB(hex){
+  const m = hex.replace('#', ''); const v = m.length === 3 ? m.split('').map(c => c + c).join('') : m;
+  return [0, 2, 4].map(i => parseInt(v.substr(i, 2), 16)).join(',');
+}
+
+/* ------------------------------------------------------------ snake */
+let snake = null;
+function runSnake(){
+  return new Promise(resolve => {
+    state.mode = 'snake';
+    document.body.classList.add('snaking'); screen.classList.add('snake');
+    $('#keys').hidden = true; $('#pad').hidden = false;
+    const m = measure();
+    const W = clamp(Math.floor((m.cols - 2) / 2), 10, 30);
+    const H = clamp(m.rows - 6, 8, 18);
+    let best = +store.get('snakeBest', 0) || 0;
+    const head = newLine('');
+    const board = newLine('game');
+    const foot = newLine('dim');
+    foot.textContent = coarse.matches ? 'swipe or use the pad to steer · pause · quit' : 'arrows / WASD steer · P pause · Q or Esc quit';
+    let body = [], dir = { x: 1, y: 0 }, q = [], food = null, score = 0, paused = false, dead = false, acc = 0, last = performance.now(), alive = true;
+    const cy = Math.floor(H / 2);
+    for (let i = 0; i < 4; i++) body.push({ x: Math.floor(W / 2) - i, y: cy });
+    const placeFood = () => {
+      let p, tries = 0;
+      do { p = { x: Math.floor(Math.random() * W), y: Math.floor(Math.random() * H) }; tries++; } while (body.some(b => b.x === p.x && b.y === p.y) && tries < 500);
+      return p;
+    };
+    food = placeFood();
+    const renderHead = () => {
+      head.textContent = '';
+      appendTo(head, ' SNAKE ', 'inv'); appendTo(head, '  score ', 'dim'); appendTo(head, String(score).padStart(3, '0'), 'hot b');
+      appendTo(head, '  best ', 'dim'); appendTo(head, String(Math.max(best, score)).padStart(3, '0'));
+      if (paused) appendTo(head, '  PAUSED', 'hot blink');
+    };
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const draw = (msg) => {
+      const grid = [];
+      const occ = new Map();
+      body.forEach((b, i) => occ.set(b.x + ',' + b.y, i));
+      let html = '<span class="wall">┌' + '─'.repeat(W * 2) + '┐</span>\n';
+      for (let y = 0; y < H; y++){
+        let row = '<span class="wall">│</span>';
+        if (msg && y === Math.floor(H / 2)){
+          const t = (' ' + msg + ' ');
+          const padL = Math.max(0, Math.floor((W * 2 - t.length) / 2));
+          row += ' '.repeat(padL) + '<span class="msg">' + esc(t) + '</span>' + ' '.repeat(Math.max(0, W * 2 - padL - t.length));
+        } else {
+          for (let x = 0; x < W; x++){
+            const k = x + ',' + y;
+            if (occ.has(k)){
+              const i = occ.get(k), n = body.length;
+              row += i === 0 ? '<b class="hd">██</b>' : i >= n - 1 ? '░░' : i >= n - 3 ? '▒▒' : '▓▓';
+            } else if (food.x === x && food.y === y) row += '<i class="fd">&lt;&gt;</i>';
+            else row += '<span class="gd">· </span>';
+          }
+        }
+        row += '<span class="wall">│</span>';
+        grid.push(row);
+      }
+      html += grid.join('\n') + '\n<span class="wall">└' + '─'.repeat(W * 2) + '┘</span>';
+      board.innerHTML = html;
+      renderHead();
+      scrollDown();
+    };
+    const turn = (dx, dy) => {
+      const lastDir = q.length ? q[q.length - 1] : dir;
+      if (dx === -lastDir.x && dy === -lastDir.y) return;
+      if (dx === lastDir.x && dy === lastDir.y) return;
+      if (q.length < 3) q.push({ x: dx, y: dy });
+    };
+    const step = () => {
+      if (q.length) dir = q.shift();
+      const h = { x: body[0].x + dir.x, y: body[0].y + dir.y };
+      const willEat = h.x === food.x && h.y === food.y;
+      const bodyHit = body.slice(0, willEat ? body.length : body.length - 1).some(b => b.x === h.x && b.y === h.y);
+      if (h.x < 0 || h.y < 0 || h.x >= W || h.y >= H || bodyHit){ die(); return; }
+      body.unshift(h);
+      if (willEat){ score++; beep(1320, .05, 'square', .05); food = placeFood(); } else body.pop();
+    };
+    const die = () => {
+      dead = true; beep(140, .35, 'sawtooth', .06);
+      if (score > best){ best = score; store.set('snakeBest', best); }
+      draw('GAME OVER · ' + score);
+      setTimeout(() => finish(), reduced.matches ? 400 : 1300);
+    };
+    const finish = () => {
+      if (!alive) return; alive = false; snake = null;
+      document.body.classList.remove('snaking'); screen.classList.remove('snake');
+      $('#keys').hidden = false; $('#pad').hidden = true;
+      if (!dead) draw('QUIT · ' + score);
+      if (score > best){ best = score; store.set('snakeBest', best); }
+      print([[S('snake: ', 'dim'), S(score + ' pellet' + (score === 1 ? '' : 's'), 'hot'), S(' · best ' + best, 'dim')]]).then(() => { state.mode = 'busy'; resolve(); });
+    };
+    const loop = now => {
+      if (!alive) return;
+      const dt = Math.min(120, now - last); last = now;
+      if (!paused && !dead){
+        acc += dt;
+        const iv = Math.max(62, 138 - score * 4);
+        let changed = false;
+        while (acc >= iv && !dead){ acc -= iv; step(); changed = true; }
+        if (changed && !dead) draw();
+      }
+      requestAnimationFrame(loop);
+    };
+    snake = {
+      key(e){
+        const k = e.key.toLowerCase();
+        const map = { arrowup: [0, -1], w: [0, -1], arrowdown: [0, 1], s: [0, 1], arrowleft: [-1, 0], a: [-1, 0], arrowright: [1, 0], d: [1, 0] };
+        if (map[k]){ e.preventDefault(); if (!paused) turn(...map[k]); }
+        else if (k === 'p' || k === ' '){ e.preventDefault(); this.pause(); }
+        else if (k === 'q' || k === 'escape'){ e.preventDefault(); this.quit(); }
+        else if (dead){ finish(); }
+      },
+      dir(name){ const m2 = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }; if (m2[name] && !paused) turn(...m2[name]); },
+      pause(){ if (dead) return; paused = !paused; draw(paused ? 'PAUSED' : null); },
+      quit(){ if (!dead) finish(); }
+    };
+    draw();
+    requestAnimationFrame(loop);
+  });
+}
+
+/* ------------------------------------------------------------ auto-typed quick keys */
+async function autoType(text){
+  if (state.mode === 'boot'){ hurry(); return; }
+  if (state.mode !== 'shell') return;
+  state.mode = 'typing';
+  cmd.value = ''; renderInput();
+  for (const ch of text){ cmd.value += ch; cmd.setSelectionRange(cmd.value.length, cmd.value.length); renderInput(); poke(); sfxKey('key'); await wait(reduced.matches ? 0 : 34 + Math.random() * 38); }
+  await wait(reduced.matches ? 0 : 140);
+  state.mode = 'shell'; sfxKey('enter');
+  submit();
+}
+document.querySelectorAll('#keys .key').forEach(b => b.addEventListener('click', () => autoType(b.dataset.cmd)));
+document.querySelectorAll('#pad .key').forEach(b => b.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (!snake) return;
+  const d = b.dataset.dir;
+  if (d === 'pause') snake.pause(); else if (d === 'quit') snake.quit(); else snake.dir(d);
+}));
+document.querySelectorAll('#pad .key').forEach(b => b.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && snake){ e.preventDefault(); e.stopPropagation(); const d = b.dataset.dir; if (d === 'pause') snake.pause(); else if (d === 'quit') snake.quit(); else snake.dir(d); }
+}));
+document.querySelectorAll('.tkey').forEach(b => b.addEventListener('click', () => { if (state.theme !== b.dataset.theme) applyTheme(b.dataset.theme, true); }));
+$('#sndKey').addEventListener('click', () => setSound(!state.sound));
+$('#stSound').addEventListener('click', e => { e.stopPropagation(); setSound(!state.sound); });
+$('#stTheme').addEventListener('click', e => {
+  e.stopPropagation();
+  const order = ['green', 'amber', 'ice'];
+  applyTheme(order[(order.indexOf(state.theme) + 1) % 3], true);
+});
+
+/* ------------------------------------------------------------ global keys + pointer */
+document.addEventListener('keydown', e => {
+  if (e === handledEvt) return;
+  if (state.mode === 'boot' || state.mode === 'login'){ if (!e.metaKey && !e.altKey && e.key !== 'Tab') hurry(); return; }
+  if (state.mode === 'matrix'){ if (e.key !== 'Tab'){ e.preventDefault(); if (matrixStop) matrixStop(); } return; }
+  if (state.mode === 'snake'){ if (snake && e.key !== 'Tab') snake.key(e); return; }
+  if (state.mode === 'busy'){
+    if (e.key === 'Enter' || e.key === 'Escape' || (e.ctrlKey && e.key.toLowerCase() === 'c')){ e.preventDefault(); flushReq = true; }
+    return;
+  }
+  if (state.mode === 'shell' && document.activeElement !== cmd && !e.ctrlKey && !e.metaKey && !e.altKey){
+    const t = e.target;
+    if (t && t.closest && t.closest('button') && (e.key === ' ' || e.key === 'Enter' || e.key === 'Tab')) return;
+    if (e.key.length === 1 || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Backspace'){ focusInput(); }
+  }
+});
+let swipe = null;
+screen.addEventListener('pointerdown', e => { if (state.mode === 'snake') swipe = { x: e.clientX, y: e.clientY }; });
+screen.addEventListener('pointerup', e => {
+  if (state.mode === 'snake' && swipe && snake){
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 22){ Math.abs(dx) > Math.abs(dy) ? snake.dir(dx > 0 ? 'right' : 'left') : snake.dir(dy > 0 ? 'down' : 'up'); }
+    swipe = null;
+  }
+});
+screen.addEventListener('click', e => {
+  if (e.target.closest('button')) return;
+  if (state.mode === 'boot' || state.mode === 'login'){ hurry(); return; }
+  if (state.mode === 'matrix'){ if (matrixStop) matrixStop(); return; }
+  if (state.mode === 'busy'){ flushReq = true; return; }
+  if (state.mode === 'shell'){
+    const sel = window.getSelection && window.getSelection();
+    if (sel && !sel.isCollapsed && sel.toString().length) return;
+    state.userTapped = true;
+    focusInput();
+  }
+});
+
+/* ------------------------------------------------------------ ambient: grain, clock, glitches */
+const gctx = grainC.getContext('2d');
+let gimg = null, gFrame = 0;
+function sizeGrain(){
+  const w = Math.max(64, Math.round(screen.clientWidth / 3)), h = Math.max(48, Math.round(screen.clientHeight / 3));
+  grainC.width = w; grainC.height = h; gimg = gctx.createImageData(w, h);
+}
+function grain(){
+  if (!gimg) sizeGrain();
+  const d = gimg.data;
+  for (let i = 0; i < d.length; i += 4){ const v = Math.random() * 255 | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+  gctx.putImageData(gimg, 0, 0);
+}
+function ambient(){
+  if (!document.hidden && !reduced.matches && (gFrame++ & 1) === 0) grain();
+  requestAnimationFrame(ambient);
+}
+function tick(){
+  const d = new Date();
+  $('#stClock').textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+  $('#stUp').textContent = 'up ' + uptimeStr();
+}
+function glitchLater(){
+  setTimeout(() => {
+    if (!document.hidden && !reduced.matches && state.mode !== 'boot' && !crt.classList.contains('degauss')){
+      crt.classList.remove('glitch'); void crt.offsetWidth; crt.classList.add('glitch');
+      setTimeout(() => crt.classList.remove('glitch'), 260);
+    }
+    glitchLater();
+  }, 11000 + Math.random() * 16000);
+}
+
+/* ------------------------------------------------------------ viewport + resize */
+let rzT = 0, lastCols = 0;
+function fitViewport(){
+  const vv = window.visualViewport;
+  root.style.setProperty('--app-h', Math.round(vv ? vv.height : window.innerHeight) + 'px');
+  if (vv && vv.offsetTop) window.scrollTo(0, 0);
+}
+function onResize(){
+  fitViewport();
+  clearTimeout(rzT);
+  rzT = setTimeout(() => {
+    sizeGrain(); if (reduced.matches) grain();
+    const { cols } = measure();
+    if (cols !== lastCols){ lastCols = cols; if (bannerEl) renderBanner(false); }
+    scrollDown();
+  }, 90);
+}
+window.addEventListener('resize', onResize);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
+crt.addEventListener('animationend', e => { if (e.target === crt) crt.classList.remove('pon', 'degauss', 'glitch'); });
+
+/* ------------------------------------------------------------ start */
+applyTheme(state.theme, false);
+state.sound = false; /* typing sounds are always off until the operator turns them on */
+fitViewport(); sizeGrain(); grain();
+lastCols = measure().cols;
+tick(); setInterval(tick, 1000);
+requestAnimationFrame(ambient);
+glitchLater();
+boot(false);
+})();
+</script>
+</body>
+</html>

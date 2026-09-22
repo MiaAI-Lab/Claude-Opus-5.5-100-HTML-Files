@@ -1,0 +1,39 @@
+TITLE: Aquarelle — Generative Watercolour Landscapes
+FILE: 094-watercolor-landscapes.html
+
+=== PROMPT (exact prompt used) ===
+Build "Aquarelle — Generative Watercolor Landscapes". Each generation paints a new landscape in convincing watercolour: layered translucent washes built by recursively deforming polygons (many low-alpha layers with jittered edges) for sky gradients, distant hills, mid-ground mountains, a lake, trees as dabbed blobs, and a sun or moon — all on textured cold-press paper (procedural grain, with pigment darkening where it pools at edges). Palettes rotate among seasonal watercolour sets: "Ultramarine & Burnt Sienna", "Sap Green Spring", "Quinacridone Sunset" and "Payne's Grey Winter". The painting builds up layer by layer over about six seconds, as if being painted. Interaction: "Paint another"; palette choice; a "wet-in-wet" slider controlling bleed; clicking the paper drops water that creates a cauliflower bloom in the wet wash; "Sign & download" adds a small signature and date before saving a PNG. The painting sits on a wooden easel/table background. Typography: a delicate serif with a script-like italic.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Aquarelle is a painting table rather than a web page. A sheet of warm, cold-press watercolour paper with a slightly deckled edge is taped at its corners to a procedurally grained oak table, tilted a little and casting a soft shadow. Beside it sits a dark enamel paint box with four sets of pans, a wet-in-wet slider with a water-drop handle, and two buttons: a paper "Paint another" and a brass "Sign & download". Each generation paints a fresh landscape inside a crisp masked border, and you watch it build over about six seconds while an italic status line narrates the steps: laying in the sky, dropping in the sun or lifting out the moon, glazing the far hills, blocking in the mountains, pulling the lake across, mirroring the reflections, dabbing the far shore, washing in the foreground, then dabbing in conifers or round trees, birds, grass flicks and splatter. Four seasonal palettes change the mood: Ultramarine & Burnt Sienna, Sap Green Spring, Quinacridone Sunset (with a low, lifted sun) and Payne's Grey Winter (with a lifted moon and snow-capped peaks). The type pairs a calligraphic script title ("Aquarelle") with a delicate old-style serif (a Garamond, Baskerville and Palatino stack) set in italics and letterspaced capitals.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Recursive polygon deformation (midpoint displacement with Gaussian magnitudes and per-vertex variance): each wash is a deformed base shape, re-deformed for every one of dozens of low-alpha layers
+- Multiply compositing for transparent, subtractive pigment mixing, plus a darker low-alpha edge stroke on each layer so pigment pools at the drying edges
+- Granulating pigments (ultramarine, burnt sienna, Payne's grey) alternate flat fills with speckled noise patterns
+- "Lifting" passes that paint back toward the paper colour for clouds, sun halos, the moon, snow caps and horizontal glints on the water
+- Midpoint-displacement skylines: rolling far hills, peaky mountains, a mirrored and compressed reflection, and an undulating shoreline that overlaps the lake
+- Conifers as zig-zag silhouettes of drooping branch tips, with a darker glaze down the shadow side; deciduous trees as clusters of dabbed blobs over a trunk
+- A timeline scheduler that maps about six seconds onto the painting steps, with overlapping windows so wet sky bands bleed into one another and a per-frame time budget
+- The wet-in-wet slider scales deformation variance, layer count and alpha (dry brush through soaked)
+- Cauliflower blooms: a many-lobed outline that grows over about a second, re-frilled every frame, lifting pigment inside while ragged dark lines of the sampled local pigment pile up at the drying front
+- Procedural paper (value-noise tooth, speckle and fibres) blended with multiply; procedural oak planks with warped grain and seams; a CSS deckle clip-path, torn masking tape, a drop shadow and a fading wet sheen
+
+=== INTERACTION MODEL ===
+- "Paint another" (key N) paints a new seeded composition; choosing a pan set (keys 1–4) repaints the same composition in the new palette
+- The wet-in-wet slider, from "dry brush" to "soaked", repaints with softer or crisper washes
+- Click or tap the painting to drop clean water: a cauliflower bloom spreads in the wash, and blooms are larger while the paper is wet (the status line reports wet, damp, drying, dry)
+- "Sign & download" (key S) finishes the painting instantly if needed, adds a script signature with the painting number and today's date in the bottom margin, and saves a PNG (painting plus paper grain) via toBlob
+- Palette, wetness and the running painting number are remembered with guarded localStorage; the same seed repaints on resize; the loop pauses while the tab is hidden; reduced motion paints the landscape at once instead of animating it

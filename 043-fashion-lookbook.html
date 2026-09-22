@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier Noire — Autumn/Winter Collection</title>
+<meta name="description" content="Atelier Noire, a fictional couture house, presents its Autumn/Winter collection: eight looks drawn in line and cloth, a horizontal editorial lookbook with procedural fabric details.">
+<meta name="theme-color" content="#efe9e1">
+<style>
+:root{
+  --bone:#efe9e1;
+  --blush:#e8c4b8;
+  --ox:#5a1a1d;
+  --ink:#0d0d0d;
+  --didone:Didot,"Bodoni 72","Bodoni MT","Bodoni Moda","C059","Century Schoolbook",serif;
+  --sans:"Helvetica Neue",Helvetica,Arial,"Nimbus Sans","Liberation Sans",sans-serif;
+  --ease:cubic-bezier(.7,0,.2,1);
+  --soft:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bone);scrollbar-width:thin;scrollbar-color:var(--ox) transparent}
+body{background:var(--bone);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font:inherit;color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.k{font-family:var(--sans);font-size:10px;letter-spacing:.34em;text-transform:uppercase;font-weight:500}
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+
+/* ---------- curtain ---------- */
+.curtain{position:fixed;inset:0;z-index:50;pointer-events:none}
+.curtain .c{position:absolute;inset:0}
+.curtain .c1{background:var(--ox);display:grid;place-items:center;animation:wipe 1s var(--ease) .38s forwards;z-index:2}
+.curtain .c2{background:var(--ink);animation:wipe 1s var(--ease) .52s forwards}
+.mono{font-family:var(--didone);color:var(--bone);font-size:clamp(64px,12vw,150px);line-height:1;letter-spacing:.02em;animation:monoOut .5s var(--ease) .12s forwards;display:flex;align-items:baseline;gap:.08em}
+.mono i{font-style:italic;color:var(--blush)}
+.curtain .season{position:absolute;left:0;right:0;bottom:12vh;text-align:center;color:var(--blush);animation:monoOut .5s var(--ease) .16s forwards}
+@keyframes wipe{to{clip-path:inset(0 0 100% 0)}}
+@keyframes monoOut{to{opacity:0;transform:translateY(-14px)}}
+.curtain.done{display:none}
+
+/* ---------- chrome ---------- */
+.top{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px clamp(18px,3vw,44px);color:var(--bone);mix-blend-mode:difference;pointer-events:none}
+.top > *{pointer-events:auto}
+.brand{font-family:var(--didone);font-size:17px;letter-spacing:.42em;text-decoration:none;color:inherit;white-space:nowrap}
+.top .season{opacity:.8}
+.top nav{display:flex;gap:4px}
+.top nav button{background:none;border:0;cursor:pointer;padding:8px 10px;position:relative}
+.top nav button::after{content:"";position:absolute;left:10px;right:10px;bottom:4px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .5s var(--ease)}
+.top nav button:hover::after{transform:scaleX(1);transform-origin:left}
+:focus-visible{outline:1px solid var(--ox);outline-offset:4px}
+.top :focus-visible{outline-color:var(--bone)}
+
+.progress{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:22px;padding:18px clamp(18px,3vw,44px);color:var(--bone);mix-blend-mode:difference;pointer-events:none}
+.progress .bar{flex:1;height:1px;background:rgba(239,233,225,.3);position:relative;overflow:hidden}
+.progress .fill{position:absolute;inset:0;background:var(--bone);transform-origin:0 50%;transform:scaleX(0)}
+.progress .count{font-family:var(--didone);font-size:15px;letter-spacing:.08em;min-width:74px;text-align:right;font-variant-numeric:lining-nums}
+.progress .count em{font-style:italic}
+
+/* ---------- stage (horizontal on wide screens) ---------- */
+.wordwrap{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.word{position:absolute;left:0;top:50%;font-family:var(--didone);font-size:66vh;line-height:.74;letter-spacing:-.02em;color:var(--blush);white-space:nowrap;transform:translate3d(30vw,-46%,0);will-change:transform;opacity:.62}
+.scroller{position:relative;z-index:1}
+.stage{position:sticky;top:0;height:100vh;overflow:hidden}
+.track{display:flex;height:100%;width:max-content;will-change:transform}
+.panel{position:relative;flex:none;height:100%}
+
+/* cover */
+.cover{width:100vw;min-width:760px}
+.cover .l1,.cover .l2{position:absolute;font-family:var(--didone);font-weight:400;line-height:.8;white-space:nowrap;letter-spacing:-.025em}
+.cover .l1{left:3.2vw;top:13vh;font-size:25vh;color:var(--ink);z-index:1}
+.cover .l2{right:3vw;bottom:9vh;font-size:30vh;font-style:italic;color:var(--ox);z-index:3;mix-blend-mode:multiply}
+.cover .fig{position:absolute;left:47%;bottom:2vh;height:92vh;z-index:2;transform:translateX(-50%)}
+.cover .meta{position:absolute;left:3.4vw;bottom:13vh;z-index:3;display:grid;gap:14px;max-width:30ch}
+.cover .meta p.lede{font-family:var(--didone);font-style:italic;font-size:22px;line-height:1.25;letter-spacing:0;text-transform:none}
+.cover .tag{position:absolute;left:3.4vw;top:44vh;z-index:3;display:flex;flex-direction:column;gap:6px}
+.cover .hint{position:absolute;right:3.2vw;top:44vh;z-index:3;display:flex;align-items:center;gap:14px}
+.cover .hint i{display:block;width:70px;height:1px;background:var(--ink);transform-origin:0 50%;animation:hint 2.4s var(--ease) infinite}
+@keyframes hint{0%{transform:scaleX(0)}50%{transform:scaleX(1);transform-origin:0 50%}51%{transform-origin:100% 50%}100%{transform:scaleX(0);transform-origin:100% 50%}}
+
+/* looks */
+.look{width:clamp(700px,104vh,1180px)}
+.look.wide{width:clamp(760px,118vh,1300px)}
+.num{position:absolute;font-family:var(--didone);font-size:60vh;line-height:.76;letter-spacing:-.04em;color:var(--ox);z-index:1;white-space:nowrap;will-change:transform;font-variant-numeric:lining-nums}
+.fig{position:absolute;height:84vh;aspect-ratio:300/720;z-index:2;cursor:none;outline:none}
+.fig svg.art{width:100%;height:100%;display:block;overflow:visible;transition:transform 1.1s var(--soft)}
+.fig:hover svg.art,.fig.pinned svg.art{transform:scale(1.025)}
+.info{position:absolute;z-index:3;width:min(300px,26vw)}
+.info .t{font-family:var(--didone);font-weight:400;font-style:italic;font-size:clamp(34px,6.2vh,64px);line-height:.98;letter-spacing:-.01em;margin:14px 0 18px}
+.info .rule{width:44px;height:1px;background:currentColor;margin:0 0 16px;opacity:.7}
+.mat{list-style:none;display:grid;gap:9px;font-size:12px;line-height:1.5;letter-spacing:.02em}
+.mat li{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.mat li::before{content:"—";opacity:.5}
+.va .num{left:4%;top:9vh}
+.va .fig{left:29%;bottom:5vh}
+.va .info{right:5%;bottom:15vh}
+.vb .num{right:3%;bottom:-5vh;font-size:52vh}
+.vb .fig{left:16%;bottom:5vh}
+.vb .info{right:7%;top:18vh}
+.vc .num{right:5%;top:9vh}
+.vc .fig{right:30%;bottom:5vh}
+.vc .info{left:7%;top:30vh}
+.num.outline{color:transparent;-webkit-text-stroke:1.2px var(--ox)}
+.dark{background:var(--ox);color:var(--bone)}
+.dark .num{color:var(--blush);opacity:.9}
+.dark .k{color:var(--blush)}
+.inkbg{background:var(--ink);color:var(--bone)}
+
+/* the fabric loupe */
+.loupe{position:absolute;left:var(--lx);top:var(--ly);width:clamp(104px,15.5vh,146px);aspect-ratio:1;z-index:4;pointer-events:none;transform:translate(-50%,-50%) scale(.2);opacity:0;transition:transform .7s var(--soft),opacity .35s}
+.loupe canvas{width:100%;height:100%;border-radius:50%;display:block;box-shadow:0 18px 40px -12px rgba(13,13,13,.45),0 0 0 1px rgba(13,13,13,.25),0 0 0 6px rgba(239,233,225,.9),0 0 0 7px rgba(13,13,13,.18)}
+.loupe .lcap{position:absolute;right:0;top:calc(100% + 16px);white-space:nowrap;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink);background:var(--bone);padding:5px 8px}
+.loupe::before{content:"";position:absolute;right:calc(100% + 7px);top:50%;width:38px;height:1px;background:var(--ink);opacity:.6}
+.loupe::after{content:"";position:absolute;right:calc(100% + 43px);top:calc(50% - 2.5px);width:5px;height:5px;border-radius:50%;background:var(--ink)}
+.loupe.to-r .lcap{right:auto;left:0}
+.loupe.to-r::before{right:auto;left:calc(100% + 7px)}
+.loupe.to-r::after{right:auto;left:calc(100% + 43px)}
+.dark .loupe::after{background:var(--bone)}
+.dark .loupe .lcap{color:var(--bone);background:var(--ox)}
+.dark .loupe::before{background:var(--bone)}
+.fig:hover .loupe,.fig:focus-visible .loupe,.fig.pinned .loupe,.touch .look.inview .loupe{transform:translate(-50%,-50%) scale(1);opacity:1}
+.fig:focus-visible{outline:1px dashed var(--ox);outline-offset:10px}
+
+/* interludes */
+.quote{width:clamp(720px,120vh,1320px);display:grid;align-content:center;padding:0 7vw}
+.quote blockquote{font-family:var(--didone);font-style:italic;font-size:clamp(46px,10vh,104px);line-height:1;letter-spacing:-.015em;color:var(--ink);max-width:14ch}
+.quote blockquote span{color:var(--ox)}
+.quote .k{margin-top:34px}
+.materials{width:clamp(900px,150vh,1600px);padding:16vh 6vw 12vh;display:grid;grid-template-columns:auto 1fr;gap:5vw;align-items:center}
+.materials h2{font-family:var(--didone);font-weight:400;font-style:italic;font-size:clamp(56px,14vh,140px);line-height:.9;letter-spacing:-.02em}
+.materials h2 small{display:block;font-style:normal;margin-top:22px}
+.swgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4vh 2.4vw}
+.swgrid figure{display:grid;gap:12px;justify-items:start}
+.swgrid canvas{width:clamp(96px,17vh,168px);aspect-ratio:1;border-radius:50%;display:block;box-shadow:0 16px 34px -14px rgba(13,13,13,.5);transition:transform .8s var(--soft)}
+.swgrid figure:hover canvas{transform:scale(1.07) rotate(-6deg)}
+.swgrid figcaption{font-size:11px;line-height:1.45;letter-spacing:.02em}
+.swgrid figcaption b{display:block;font-family:var(--didone);font-style:italic;font-weight:400;font-size:20px;letter-spacing:0;margin-bottom:2px}
+.fin{width:100vw;min-width:760px;display:grid;align-content:center;justify-items:start;padding:0 8vw}
+.fin h2{font-family:var(--didone);font-style:italic;font-weight:400;font-size:44vh;line-height:.8;color:var(--ox);letter-spacing:-.03em}
+.fin p{max-width:44ch;font-size:13px;line-height:1.7;margin-top:28px}
+.fin .again{margin-top:30px;background:none;border:1px solid var(--ink);padding:14px 22px;cursor:pointer;transition:background-color .4s,color .4s}
+.fin .again:hover{background:var(--ink);color:var(--bone)}
+
+/* ---------- cursor ---------- */
+.cursor{position:fixed;left:0;top:0;z-index:40;pointer-events:none;width:0;height:0;mix-blend-mode:difference}
+.cursor .ring{position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;border:1px solid #efe9e1;background:#efe9e1;transition:all .45s var(--soft);display:grid;place-items:center}
+.cursor .ring span{font-size:9px;letter-spacing:.32em;text-indent:.32em;color:#efe9e1;opacity:0;transition:opacity .3s}
+.cursor.view .ring{left:-44px;top:-44px;width:88px;height:88px;background:transparent}
+.cursor.view .ring span{opacity:1}
+.cursor.press .ring{transform:scale(.8)}
+.cursor.hide{opacity:0}
+@media (hover:none),(pointer:coarse){ .cursor{display:none} .fig{cursor:pointer} }
+
+/* ---------- vertical layout for phones and portrait tablets ---------- */
+@media (max-width:820px){
+  .top{padding:16px 16px}
+  .top .season{display:none}
+  .brand{font-size:13px;letter-spacing:.34em}
+  .top nav button{padding:8px 5px;font-size:9px;letter-spacing:.22em}
+  .top nav button:last-child{display:none}
+  .scroller{height:auto !important}
+  .stage{position:relative;height:auto;overflow:hidden}
+  .track{flex-direction:column;width:100%;transform:none !important}
+  .panel{height:auto;width:100% !important;min-width:0 !important}
+  .word{font-size:46vh;top:44%}
+  .cover{height:100svh;min-height:640px}
+  .look .loupe{left:clamp(64px,var(--lx),calc(100% - 64px))}
+  .cover .l1{left:16px;top:84px;font-size:17vw}
+  .cover .l2{right:12px;bottom:88px;font-size:21vw}
+  .cover .fig{height:72svh;bottom:84px;left:60%}
+  .cover .tag{top:auto;bottom:80px;left:16px}
+  .cover .meta{display:none}
+  .cover .hint{display:none}
+  .cover .hint i{width:40px;transform:rotate(90deg);animation:none}
+  .look,.look.wide{min-height:auto;padding:96px 18px 64px;display:grid;justify-items:center}
+  .num{font-size:52vw;top:48px !important;bottom:auto !important;left:10px !important;right:auto !important}
+  .vb .num,.vc .num{left:auto !important;right:6px !important}
+  .look .fig{position:relative;height:70svh;min-height:430px;left:auto !important;right:auto !important;bottom:auto !important}
+  .info{position:relative;width:100%;max-width:420px;left:auto !important;right:auto !important;top:auto !important;bottom:auto !important;margin-top:18px}
+  .quote{padding:18vh 22px}
+  .quote blockquote{font-size:11vw}
+  .materials{padding:90px 20px 60px;grid-template-columns:1fr;gap:34px}
+  .materials h2{font-size:17vw}
+  .swgrid{grid-template-columns:repeat(2,1fr);gap:28px 16px}
+  .swgrid canvas{width:min(38vw,150px)}
+  .fin{min-height:92svh;padding:110px 22px 90px}
+  .fin h2{font-size:42vw}
+  .progress{padding:14px 16px}
+  .loupe{width:min(34vw,140px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .curtain .c1,.curtain .c2{animation-duration:.01s;animation-delay:.2s}
+  .cover .hint i{animation:none}
+  .fig svg.art,.loupe{transition:none}
+}
+</style>
+</head>
+<body>
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gOx" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#360c0f"/><stop offset=".16" stop-color="#6e2327"/><stop offset=".3" stop-color="#4c1518"/><stop offset=".46" stop-color="#7f2d32"/><stop offset=".6" stop-color="#521619"/><stop offset=".78" stop-color="#6a2124"/><stop offset="1" stop-color="#300b0e"/>
+    </linearGradient>
+    <linearGradient id="gSilk" x1="0" x2="1">
+      <stop offset="0" stop-color="#cbbfae"/><stop offset=".14" stop-color="#faf6ef"/><stop offset=".27" stop-color="#dbd0c1"/><stop offset=".4" stop-color="#fffdf9"/><stop offset=".52" stop-color="#d4c8b7"/><stop offset=".7" stop-color="#f4eee4"/><stop offset=".86" stop-color="#d7ccbc"/><stop offset="1" stop-color="#c2b5a2"/>
+    </linearGradient>
+    <linearGradient id="gBlush" x1="0" x2="1">
+      <stop offset="0" stop-color="#c3968a"/><stop offset=".18" stop-color="#eccabf"/><stop offset=".34" stop-color="#d2a799"/><stop offset=".52" stop-color="#f5dbd1"/><stop offset=".68" stop-color="#d0a395"/><stop offset=".84" stop-color="#e9c4b8"/><stop offset="1" stop-color="#b98b7d"/>
+    </linearGradient>
+    <linearGradient id="gBlack" x1="0" x2="1">
+      <stop offset="0" stop-color="#050505"/><stop offset=".3" stop-color="#202020"/><stop offset=".5" stop-color="#0b0b0b"/><stop offset=".72" stop-color="#262626"/><stop offset="1" stop-color="#060606"/>
+    </linearGradient>
+    <linearGradient id="gVelvet" x1="0" x2="1">
+      <stop offset="0" stop-color="#030303"/><stop offset=".22" stop-color="#2d1f21"/><stop offset=".36" stop-color="#0a0a0a"/><stop offset=".55" stop-color="#211718"/><stop offset=".75" stop-color="#070707"/><stop offset=".9" stop-color="#2a1c1d"/><stop offset="1" stop-color="#040404"/>
+    </linearGradient>
+    <linearGradient id="gTrench" x1="0" x2="1">
+      <stop offset="0" stop-color="#b3a58e"/><stop offset=".18" stop-color="#e4dac8"/><stop offset=".34" stop-color="#c7b9a1"/><stop offset=".5" stop-color="#ede5d6"/><stop offset=".66" stop-color="#c4b59c"/><stop offset=".84" stop-color="#ddd1bc"/><stop offset="1" stop-color="#a99a82"/>
+    </linearGradient>
+    <linearGradient id="gSatin" x1="0" x2="1" y1="0" y2=".22">
+      <stop offset="0" stop-color="#330b0e"/><stop offset=".2" stop-color="#8c3b40"/><stop offset=".3" stop-color="#4f1417"/><stop offset=".47" stop-color="#bf6d72"/><stop offset=".58" stop-color="#5a1a1d"/><stop offset=".8" stop-color="#7d2c31"/><stop offset="1" stop-color="#2b090b"/>
+    </linearGradient>
+    <linearGradient id="gSkin" x1="0" x2="1">
+      <stop offset="0" stop-color="#d4a596"/><stop offset=".5" stop-color="#eccabe"/><stop offset="1" stop-color="#cf9e8f"/>
+    </linearGradient>
+    <linearGradient id="gShade" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/>
+    </linearGradient>
+    <linearGradient id="gSheen" x1="0" x2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".16"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/>
+    </linearGradient>
+    <pattern id="pHerring" width="8" height="5" patternUnits="userSpaceOnUse">
+      <rect width="8" height="5" fill="#171717"/>
+      <path d="M0 5L4 0M0 2.5L2 0M2 5L4 2.5M4 0L8 5M6 0L8 2.5M4 2.5L6 5" stroke="#393939" stroke-width=".9" fill="none"/>
+    </pattern>
+    <pattern id="pTweed" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#5a1a1d"/>
+      <path d="M-1 8L8 -1M-4 4L4 -4M3 11L11 3" stroke="#7d2e33" stroke-width="1.3"/>
+      <rect x="1" y="1.2" width="1.5" height="1.3" fill="#efe9e1" opacity=".8"/>
+      <rect x="4.4" y="3.8" width="1.3" height="1.2" fill="#0d0d0d" opacity=".75"/>
+      <rect x="3.2" y=".2" width="1" height="1" fill="#e8c4b8" opacity=".9"/>
+      <rect x=".4" y="4.6" width="1" height="1.4" fill="#e8c4b8" opacity=".6"/>
+      <rect x="5.6" y="5.8" width="1.2" height=".9" fill="#efe9e1" opacity=".55"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="curtain" id="curtain" aria-hidden="true">
+  <div class="c c2"></div>
+  <div class="c c1"><span class="mono">A<i>N</i></span><span class="season k">Autumn / Winter · Collection IX</span></div>
+</div>
+
+<header class="top">
+  <a class="brand" href="#cover">ATELIER NOIRE</a>
+  <p class="season k">Autumn / Winter — Collection IX</p>
+  <nav aria-label="Sections">
+    <button type="button" class="k" data-go="look-1">Looks</button>
+    <button type="button" class="k" data-go="materials">Materials</button>
+    <button type="button" class="k" data-go="fin">Atelier</button>
+  </nav>
+</header>
+
+<div class="wordwrap" aria-hidden="true"><div class="word" id="word">RESTRAINT</div></div>
+
+<main class="scroller" id="scroller">
+<div class="stage" id="stage">
+<div class="track" id="track">
+
+  <!-- ============ COVER ============ -->
+  <section class="panel cover" id="cover" aria-label="Cover">
+    <h1 class="sr">Atelier Noire, Autumn/Winter Collection IX</h1>
+    <div class="l1" aria-hidden="true">ATELIER</div>
+    <div class="fig cover-fig">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: a tall figure in a sweeping black coat with a blush lining and an oxblood wide-brimmed hat">
+        <ellipse cx="150" cy="702" rx="96" ry="7" fill="#0d0d0d" opacity=".12"/>
+        <path d="M138 600L147 600L146 682L141 682ZM153 600L162 600L159 682L154 682Z" fill="#0d0d0d"/>
+        <path d="M141 680L147 680L147 695L129 699Q132 688 141 680ZM153 680L159 680Q168 688 171 699L153 695Z" fill="#0d0d0d"/>
+        <path d="M143 74L157 74L158 100L142 100Z" fill="url(#gSkin)"/>
+        <ellipse cx="150" cy="58" rx="14.5" ry="19" fill="url(#gSkin)"/>
+        <path d="M110 98Q150 86 190 98L201 116Q214 360 246 604Q196 626 150 612Q104 626 54 604Q86 360 99 116Z" fill="url(#gBlack)"/>
+        <path d="M110 98Q150 86 190 98L201 116Q214 360 246 604Q196 626 150 612Q104 626 54 604Q86 360 99 116Z" fill="url(#gShade)"/>
+        <path d="M150 150Q158 380 176 612Q164 616 150 612Q146 380 150 150Z" fill="url(#gBlush)"/>
+        <path d="M150 150Q142 380 124 612Q136 616 150 612Z" fill="#e8c4b8" opacity=".55"/>
+        <path d="M130 96L150 152L170 96L186 88L188 120L156 250L150 152L144 250L112 120L114 88Z" fill="#141414" stroke="#2a2a2a" stroke-width=".8"/>
+        <path d="M99 116Q92 260 94 404M201 116Q208 260 206 404" stroke="#2c2c2c" stroke-width="1.1" fill="none"/>
+        <path d="M95 404q3 16 11 14q4 -7 0 -14Z" fill="url(#gSkin)"/>
+        <path d="M128 40Q127 12 150 12Q173 12 172 40Z" fill="#5a1a1d"/>
+        <path d="M128 33L172 33L172 38L128 38Z" fill="#0d0d0d"/>
+        <ellipse cx="150" cy="41" rx="74" ry="9" fill="#5a1a1d"/>
+        <ellipse cx="150" cy="40" rx="74" ry="9" fill="none" stroke="#3b0f12" stroke-width=".8"/>
+        <ellipse cx="150" cy="48" rx="17" ry="4.5" fill="#0d0d0d" opacity=".22"/>
+      </svg>
+    </div>
+    <div class="l2" aria-hidden="true">Noire</div>
+    <div class="tag"><span class="k">Autumn / Winter</span><span class="k">Collection IX</span></div>
+    <div class="meta">
+      <p class="lede">Eight looks on the art of withholding.</p>
+      <p class="k">A fictional house · drawn in line and cloth</p>
+    </div>
+    <div class="hint k" aria-hidden="true">Scroll <i></i></div>
+  </section>
+
+  <!-- ============ LOOK 01 ============ -->
+  <article class="panel look va" id="look-1" data-look="1" aria-labelledby="t1">
+    <div class="num" aria-hidden="true">01</div>
+    <figure class="fig" tabindex="0" aria-describedby="m1">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: a long belted oxblood column coat with sharp lapels, worn under a wide black hat">
+        <ellipse cx="150" cy="700" rx="78" ry="7" fill="#0d0d0d" opacity=".1"/>
+        <path d="M136 560L147 560L146 680L140 680ZM153 560L164 560L160 680L154 680Z" fill="#0d0d0d"/>
+        <path d="M140 678L147 678L147 694L128 698Q131 686 140 678ZM153 678L160 678Q169 686 172 698L153 694Z" fill="#0d0d0d"/>
+        <path d="M143 74L157 74L158 100L142 100Z" fill="url(#gSkin)"/>
+        <ellipse cx="150" cy="58" rx="14.5" ry="19" fill="url(#gSkin)"/>
+        <path d="M135.5 56Q136 38 150 38Q164 38 164.5 56Q158 46 150 47Q141 47 135.5 56Z" fill="#0d0d0d"/>
+        <path d="M114 100Q150 90 186 100L197 118L205 562Q150 574 95 562L103 118Z" fill="url(#gOx)"/>
+        <path d="M114 100Q150 90 186 100L197 118L205 562Q150 574 95 562L103 118Z" fill="url(#gShade)"/>
+        <path d="M141 96L159 96L150 150Z" fill="#0d0d0d"/>
+        <path d="M137 98L150 150L163 98L178 104L166 124L172 132L150 246L128 132L134 124L122 104Z" fill="#43111a" opacity=".9"/>
+        <path d="M150 150L150 246" stroke="#28070a" stroke-width="1"/>
+        <path d="M103 118Q98 250 101 392M197 118Q202 250 199 392" stroke="#2c0a0d" stroke-width="1.2" fill="none"/>
+        <path d="M101 392L117 390M183 390L199 392" stroke="#2c0a0d" stroke-width="1"/>
+        <path d="M104 393q3 14 10 12q4 -6 1 -12ZM196 393q-3 14 -10 12q-4 -6 -1 -12Z" fill="url(#gSkin)"/>
+        <path d="M101.5 246L198.5 246L199 258L101 258Z" fill="#0d0d0d"/>
+        <rect x="143" y="243.5" width="14" height="17" fill="none" stroke="#e8c4b8" stroke-width="1.4"/>
+        <path d="M150 258L150 566" stroke="#28070a" stroke-width="1.1"/>
+        <path d="M114 332L132 328M168 328L186 332" stroke="#28070a" stroke-width="1.6"/>
+        <path d="M129 40Q128 14 150 14Q172 14 171 40Z" fill="#0d0d0d"/>
+        <path d="M129 32L171 32L171 37L129 37Z" fill="#5a1a1d"/>
+        <ellipse cx="150" cy="41" rx="66" ry="8.5" fill="#0d0d0d"/>
+        <ellipse cx="150" cy="48" rx="16" ry="4" fill="#0d0d0d" opacity=".24"/>
+      </svg>
+      <div class="loupe to-r" style="--lx:2%;--ly:44%"><canvas width="320" height="320" data-fabric="cashmere"></canvas><span class="lcap">Double-faced cashmere · detail</span></div>
+    </figure>
+    <div class="info">
+      <p class="k">Look 01</p>
+      <h2 class="t" id="t1">The Column Coat</h2>
+      <div class="rule"></div>
+      <ul class="mat" id="m1">
+        <li>Double-faced cashmere coat, belted at the natural waist. Oxblood</li>
+        <li>Fur felt hat with a sixty-centimetre brim. Black</li>
+        <li>Fine-rib turtleneck and opaque tights. Black</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ============ LOOK 02 ============ -->
+  <article class="panel look vb" id="look-2" data-look="2" aria-labelledby="t2">
+    <div class="num outline" aria-hidden="true">02</div>
+    <figure class="fig" tabindex="0" aria-describedby="m2">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: a bias-cut bone silk slip dress under a sheer blush veil">
+        <ellipse cx="150" cy="700" rx="82" ry="7" fill="#0d0d0d" opacity=".1"/>
+        <path d="M139 600L147 600L146 682L141 682ZM153 600L161 600L159 682L154 682Z" fill="url(#gSkin)"/>
+        <path d="M141 680L146 680L147 694L131 697Q134 687 141 680ZM154 680L159 680Q166 687 169 697L153 694Z" fill="#0d0d0d"/>
+        <path d="M129 112Q118 210 115 322L122 324Q127 214 136 122ZM171 112Q182 210 185 322L178 324Q173 214 164 122Z" fill="url(#gSkin)"/>
+        <path d="M143 74L157 74L158 104L142 104Z" fill="url(#gSkin)"/>
+        <path d="M128 104Q150 98 172 104L174 124L126 124Z" fill="url(#gSkin)"/>
+        <ellipse cx="150" cy="58" rx="14.5" ry="19" fill="url(#gSkin)"/>
+        <path d="M135 60Q134 36 150 35Q166 36 165 60Q162 46 150 44Q138 46 135 60Z" fill="#0d0d0d"/>
+        <circle cx="150" cy="31" r="8" fill="#0d0d0d"/>
+        <path d="M131 131L137 102M169 131L163 102" stroke="#b9ad9b" stroke-width="1.1"/>
+        <path d="M128 130Q150 122 172 130L175 176Q166 262 178 336Q196 470 216 612Q186 622 162 616Q140 628 114 618Q98 616 86 606Q106 470 122 336Q134 262 125 176Z" fill="url(#gSilk)"/>
+        <path d="M128 130Q150 122 172 130L175 176Q166 262 178 336Q196 470 216 612Q186 622 162 616Q140 628 114 618Q98 616 86 606Q106 470 122 336Q134 262 125 176Z" fill="url(#gShade)" opacity=".7"/>
+        <path d="M150 178Q144 330 128 612M160 190Q172 360 192 614M140 200Q128 380 104 608M166 230Q186 400 208 610" stroke="#b7aa97" stroke-width=".8" fill="none" opacity=".7"/>
+        <path d="M134 44Q150 28 166 44Q210 140 246 320Q262 450 236 570Q222 480 198 410Q178 320 162 220Q156 150 134 44Z" fill="url(#gBlush)" opacity=".5"/>
+        <path d="M166 46Q196 180 236 560M160 70Q180 250 210 440M150 44Q168 190 196 400" stroke="#b98b7d" stroke-width=".7" fill="none" opacity=".55"/>
+        <path d="M134 44Q150 28 166 44" stroke="#c3968a" stroke-width="1" fill="none"/>
+      </svg>
+      <div class="loupe to-r" style="--lx:4%;--ly:56%"><canvas width="320" height="320" data-fabric="silk"></canvas><span class="lcap">Silk charmeuse · detail</span></div>
+    </figure>
+    <div class="info">
+      <p class="k">Look 02</p>
+      <h2 class="t" id="t2">Slip &amp; Veil</h2>
+      <div class="rule"></div>
+      <ul class="mat" id="m2">
+        <li>Bias-cut silk charmeuse slip with an uneven hem. Bone</li>
+        <li>Silk tulle veil, hand-rolled edges. Blush</li>
+        <li>Barely-there leather sandals. Black</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ============ LOOK 03 ============ -->
+  <article class="panel look vc" id="look-3" data-look="3" aria-labelledby="t3">
+    <div class="num" aria-hidden="true">03</div>
+    <figure class="fig" tabindex="0" aria-describedby="m3">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: a black herringbone jacket with exaggerated square shoulders and wide trousers">
+        <ellipse cx="150" cy="702" rx="80" ry="7" fill="#0d0d0d" opacity=".1"/>
+        <path d="M116 300L184 300L198 692L158 692L150 380L142 692L102 692Z" fill="url(#gBlack)"/>
+        <path d="M123 330L120 690M177 330L180 690" stroke="#3c3c3c" stroke-width=".8"/>
+        <path d="M100 690L140 690L136 699L96 699ZM160 690L200 690L204 699L164 699Z" fill="#0d0d0d"/>
+        <path d="M143 74L157 74L158 100L142 100Z" fill="url(#gSkin)"/>
+        <ellipse cx="150" cy="58" rx="14.5" ry="19" fill="url(#gSkin)"/>
+        <path d="M133 70Q130 36 150 36Q170 36 167 70L162 72Q164 50 150 48Q138 50 138 72Z" fill="#0d0d0d"/>
+        <path d="M140 100L160 100L150 152Z" fill="#efe9e1"/>
+        <path d="M94 102L206 102L203 120Q188 190 182 252Q192 290 204 334L96 334Q108 290 118 252Q112 190 97 120Z" fill="url(#pHerring)"/>
+        <path d="M94 102L206 102L203 120Q188 190 182 252Q192 290 204 334L96 334Q108 290 118 252Q112 190 97 120Z" fill="url(#gSheen)"/>
+        <path d="M138 100L150 152L162 100L176 104L166 120L172 126L150 222L128 126L134 120L124 104Z" fill="#0e0e0e" stroke="#444" stroke-width=".8"/>
+        <circle cx="150" cy="240" r="3.2" fill="#efe9e1"/>
+        <path d="M97 120Q88 230 90 336M203 120Q212 230 210 336" stroke="#070707" stroke-width="3" fill="none"/>
+        <path d="M86 336q3 16 11 14q4 -7 0 -14ZM214 336q-3 16 -11 14q-4 -7 0 -14Z" fill="url(#gSkin)"/>
+        <path d="M106 292L134 289M166 289L194 292" stroke="#050505" stroke-width="1.6"/>
+        <path d="M94 102L206 102" stroke="#050505" stroke-width="2"/>
+      </svg>
+      <div class="loupe" style="--lx:98%;--ly:30%"><canvas width="320" height="320" data-fabric="herringbone"></canvas><span class="lcap">Herringbone wool · detail</span></div>
+    </figure>
+    <div class="info">
+      <p class="k">Look 03</p>
+      <h2 class="t" id="t3">Tailleur</h2>
+      <div class="rule"></div>
+      <ul class="mat" id="m3">
+        <li>Herringbone wool jacket, shoulders cut square and wide. Black</li>
+        <li>Pleated wool trousers, floor-grazing. Black</li>
+        <li>Poplin shirt, collarless. Bone</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ============ QUOTE ============ -->
+  <section class="panel quote" aria-label="From the atelier notebook">
+    <blockquote>Take away until the silhouette <span>holds its breath.</span></blockquote>
+    <p class="k">— From the atelier notebook</p>
+  </section>
+
+  <!-- ============ LOOK 04 ============ -->
+  <article class="panel look va wide" id="look-4" data-look="4" aria-labelledby="t4">
+    <div class="num" aria-hidden="true">04</div>
+    <figure class="fig" tabindex="0" aria-describedby="m4">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: a sweeping blush wool cape over a black turtleneck and long black skirt">
+        <ellipse cx="150" cy="700" rx="90" ry="7" fill="#0d0d0d" opacity=".1"/>
+        <path d="M126 300L174 300L187 678L113 678Z" fill="url(#gBlack)"/>
+        <path d="M118 676L146 676L142 690L112 692ZM154 676L182 676L188 692L158 690Z" fill="#0d0d0d"/>
+        <path d="M143 74L157 74L158 96L142 96Z" fill="url(#gSkin)"/>
+        <ellipse cx="150" cy="58" rx="14.5" ry="19" fill="url(#gSkin)"/>
+        <path d="M135 58Q134 36 150 35Q166 36 165 58Q161 44 150 43Q139 44 135 58Z" fill="#0d0d0d"/>
+        <ellipse cx="150" cy="30" rx="11" ry="7" fill="#0d0d0d"/>
+        <path d="M138 78L162 78L167 106L133 106Z" fill="#0d0d0d"/>
+        <path d="M134 100Q150 94 166 100Q222 190 256 452Q150 484 44 452Q78 190 134 100Z" fill="url(#gBlush)"/>
+        <path d="M134 100Q150 94 166 100Q222 190 256 452Q150 484 44 452Q78 190 134 100Z" fill="url(#gShade)"/>
+        <path d="M144 104L72 452M147 104L104 462M150 104L136 468M153 104L166 468M156 104L198 462M160 104L230 452" stroke="#b58779" stroke-width=".8" opacity=".55"/>
+        <path d="M112 300L112 346M188 300L188 346" stroke="#9c6e61" stroke-width="1.2"/>
+        <path d="M110 344q2 13 8 12q3 -5 0 -12ZM190 344q-2 13 -8 12q-3 -5 0 -12Z" fill="url(#gSkin)"/>
+        <path d="M134 100Q150 94 166 100" stroke="#b58779" stroke-width="1.4" fill="none"/>
+      </svg>
+      <div class="loupe" style="--lx:104%;--ly:32%"><canvas width="320" height="320" data-fabric="boucle"></canvas><span class="lcap">Wool bouclé · detail</span></div>
+    </figure>
+    <div class="info">
+      <p class="k">Look 04</p>
+      <h2 class="t" id="t4">The Cape</h2>
+      <div class="rule"></div>
+      <ul class="mat" id="m4">
+        <li>Wool bouclé cape, cut from a single circle. Blush</li>
+        <li>Merino turtleneck. Black</li>
+        <li>Column skirt in wool crêpe, to the ankle. Black</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ============ LOOK 05 ============ -->
+  <article class="panel look vb" id="look-5" data-look="5" aria-labelledby="t5">
+    <div class="num" aria-hidden="true">05</div>
+    <figure class="fig" tabindex="0" aria-describedby="m5">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: a boxy oxblood tweed jacket with bone trim and fringed hem, a black column skirt and an oxblood cloche">
+        <ellipse cx="150" cy="700" rx="72" ry="7" fill="#0d0d0d" opacity=".1"/>
+        <path d="M137 560L147 560L146 680L140 680ZM153 560L163 560L160 680L154 680Z" fill="#0d0d0d"/>
+        <path d="M140 678L147 678L147 694L130 697Q133 686 140 678ZM153 678L160 678Q167 686 170 697L153 694Z" fill="#0d0d0d"/>
+        <path d="M114 296L186 296L182 564L118 564Z" fill="url(#gBlack)"/>
+        <path d="M143 74L157 74L158 100L142 100Z" fill="url(#gSkin)"/>
+        <ellipse cx="150" cy="60" rx="14.5" ry="18" fill="url(#gSkin)"/>
+        <path d="M108 100L192 100L200 118L198 300L102 300L100 118Z" fill="url(#pTweed)"/>
+        <path d="M108 100L192 100L200 118L198 300L102 300L100 118Z" fill="url(#gSheen)"/>
+        <path d="M132 100Q150 118 168 100" stroke="#efe9e1" stroke-width="3" fill="none"/>
+        <path d="M150 112L150 300" stroke="#efe9e1" stroke-width="2.4"/>
+        <path d="M102 300L198 300" stroke="#efe9e1" stroke-width="2"/>
+        <path d="M104 301v6M108 301v7M112 301v5M116 301v7M120 301v6M124 301v7M128 301v5M132 301v7M136 301v6M140 301v7M144 301v5M148 301v7M152 301v6M156 301v7M160 301v5M164 301v7M168 301v6M172 301v7M176 301v5M180 301v7M184 301v6M188 301v7M192 301v5M196 301v6" stroke="#8a3d42" stroke-width="1"/>
+        <rect x="112" y="220" width="24" height="22" fill="none" stroke="#efe9e1" stroke-width="1.6"/>
+        <rect x="164" y="220" width="24" height="22" fill="none" stroke="#efe9e1" stroke-width="1.6"/>
+        <path d="M100 118Q94 220 96 290M200 118Q206 220 204 290" stroke="#2c0a0d" stroke-width="1.2" fill="none"/>
+        <path d="M94 290l12 0M194 290l12 0" stroke="#efe9e1" stroke-width="2"/>
+        <path d="M96 292q3 15 10 13q4 -7 0 -13ZM204 292q-3 15 -10 13q-4 -7 0 -13Z" fill="url(#gSkin)"/>
+        <path d="M128 54Q126 20 150 18Q174 20 172 54Q178 60 178 64L122 64Q122 60 128 54Z" fill="#5a1a1d"/>
+        <path d="M127 51L173 51L174 57L126 57Z" fill="#0d0d0d"/>
+        <path d="M150 18Q162 30 160 52" stroke="#7d2e33" stroke-width="1" fill="none"/>
+      </svg>
+      <div class="loupe" style="--lx:96%;--ly:27%"><canvas width="320" height="320" data-fabric="tweed"></canvas><span class="lcap">Fantasy tweed · detail</span></div>
+    </figure>
+    <div class="info">
+      <p class="k">Look 05</p>
+      <h2 class="t" id="t5">Tweed Armour</h2>
+      <div class="rule"></div>
+      <ul class="mat" id="m5">
+        <li>Boxy jacket in fantasy tweed with a frayed hem. Oxblood, bone, blush</li>
+        <li>Grosgrain trim. Bone</li>
+        <li>Wool cloche with a banded crown. Oxblood</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ============ LOOK 06 ============ -->
+  <article class="panel look vc dark" id="look-6" data-look="6" aria-labelledby="t6">
+    <div class="num outline" aria-hidden="true" style="-webkit-text-stroke-color:#e8c4b8">06</div>
+    <figure class="fig" tabindex="0" aria-describedby="m6">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: a one-shoulder black velvet gown with a blush silk drape and long bone gloves">
+        <ellipse cx="150" cy="700" rx="98" ry="7" fill="#000" opacity=".25"/>
+        <path d="M126 116Q112 210 111 332L119 334Q123 214 134 124ZM176 116Q190 210 191 332L183 334Q179 214 168 124Z" fill="#efe9e1"/>
+        <path d="M108 332q2 15 9 13q4 -6 1 -13ZM194 332q-2 15 -9 13q-4 -6 -1 -13Z" fill="#efe9e1"/>
+        <path d="M143 74L157 74L158 104L142 104Z" fill="url(#gSkin)"/>
+        <path d="M126 106Q150 98 176 102L176 122L126 122Z" fill="url(#gSkin)"/>
+        <ellipse cx="150" cy="58" rx="14.5" ry="19" fill="url(#gSkin)"/>
+        <path d="M135 60Q133 34 150 33Q167 34 165 60Q161 44 150 42Q139 44 135 60Z" fill="#0d0d0d"/>
+        <path d="M140 30Q150 12 160 30Q150 26 140 30Z" fill="#0d0d0d"/>
+        <circle cx="136" cy="76" r="2" fill="#efe9e1"/>
+        <path d="M128 112L174 96L178 124Q170 206 178 304Q204 480 238 694L62 694Q96 480 122 304Q128 210 124 142Z" fill="url(#gVelvet)"/>
+        <path d="M128 112L174 96L178 124Q170 206 178 304Q204 480 238 694L62 694Q96 480 122 304Q128 210 124 142Z" fill="url(#gShade)"/>
+        <path d="M170 98Q194 108 184 146Q172 226 152 300Q142 342 172 384Q190 470 178 592Q164 486 150 410Q128 334 140 272Q158 184 170 98Z" fill="url(#gBlush)"/>
+        <path d="M176 110Q176 190 156 290Q150 330 172 380" stroke="#b98b7d" stroke-width=".8" fill="none" opacity=".7"/>
+        <path d="M112 520Q120 610 108 694M190 520Q184 610 196 694" stroke="#2a1c1d" stroke-width=".8" fill="none"/>
+      </svg>
+      <div class="loupe to-r" style="--lx:0%;--ly:72%"><canvas width="320" height="320" data-fabric="velvet"></canvas><span class="lcap">Silk velvet · detail</span></div>
+    </figure>
+    <div class="info">
+      <p class="k">Look 06</p>
+      <h2 class="t" id="t6">Nocturne</h2>
+      <div class="rule"></div>
+      <ul class="mat" id="m6">
+        <li>One-shoulder gown in silk velvet. Black</li>
+        <li>Charmeuse drape, knotted at the hip. Blush</li>
+        <li>Opera gloves in kid leather. Bone</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ============ MATERIALS ============ -->
+  <section class="panel materials" id="materials" aria-labelledby="matT">
+    <h2 id="matT">Materials<small class="k">Eight cloths, seen up close</small></h2>
+    <div class="swgrid">
+      <figure><canvas width="320" height="320" data-fabric="cashmere" aria-hidden="true"></canvas><figcaption><b>Cashmere</b>Double-faced, felted by hand</figcaption></figure>
+      <figure><canvas width="320" height="320" data-fabric="silk" aria-hidden="true"></canvas><figcaption><b>Charmeuse</b>Silk, cut on the bias</figcaption></figure>
+      <figure><canvas width="320" height="320" data-fabric="herringbone" aria-hidden="true"></canvas><figcaption><b>Herringbone</b>Worsted wool, broken twill</figcaption></figure>
+      <figure><canvas width="320" height="320" data-fabric="boucle" aria-hidden="true"></canvas><figcaption><b>Bouclé</b>Looped wool yarn</figcaption></figure>
+      <figure><canvas width="320" height="320" data-fabric="tweed" aria-hidden="true"></canvas><figcaption><b>Tweed</b>Four-colour fantasy weave</figcaption></figure>
+      <figure><canvas width="320" height="320" data-fabric="velvet" aria-hidden="true"></canvas><figcaption><b>Velvet</b>Silk pile, softly crushed</figcaption></figure>
+      <figure><canvas width="320" height="320" data-fabric="gabardine" aria-hidden="true"></canvas><figcaption><b>Gabardine</b>Steep cotton twill</figcaption></figure>
+      <figure><canvas width="320" height="320" data-fabric="satin" aria-hidden="true"></canvas><figcaption><b>Duchess satin</b>Heavy, with a low lustre</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ============ LOOK 07 ============ -->
+  <article class="panel look va" id="look-7" data-look="7" aria-labelledby="t7">
+    <div class="num" aria-hidden="true">07</div>
+    <figure class="fig" tabindex="0" aria-describedby="m7">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: a bone gabardine trench coat with popped collar, trailing belt and sweeping hem, blush gloves">
+        <ellipse cx="150" cy="700" rx="92" ry="7" fill="#0d0d0d" opacity=".1"/>
+        <path d="M137 600L147 600L146 682L140 682ZM153 600L163 600L160 682L154 682Z" fill="#0d0d0d"/>
+        <path d="M140 680L147 680L147 695L129 698Q132 688 140 680ZM153 680L160 680Q168 688 171 698L153 695Z" fill="#0d0d0d"/>
+        <path d="M143 74L157 74L158 100L142 100Z" fill="url(#gSkin)"/>
+        <ellipse cx="150" cy="58" rx="14.5" ry="19" fill="url(#gSkin)"/>
+        <path d="M134 62Q132 36 150 35Q168 36 166 62L170 90Q164 72 163 56Q158 46 150 46Q142 46 137 56Q136 72 130 90Z" fill="#0d0d0d"/>
+        <path d="M110 100L190 100L199 116Q207 330 226 604Q150 622 74 604Q93 330 101 116Z" fill="url(#gTrench)"/>
+        <path d="M110 100L190 100L199 116Q207 330 226 604Q150 622 74 604Q93 330 101 116Z" fill="url(#gShade)"/>
+        <path d="M126 98L150 150L174 98L188 76L186 112L150 208L114 112L112 76Z" fill="#cfc2ab" stroke="#a3947b" stroke-width=".8"/>
+        <path d="M104 118L134 120L132 176L103 182" stroke="#a3947b" stroke-width=".9" fill="none"/>
+        <circle cx="136" cy="196" r="2.6" fill="#0d0d0d"/><circle cx="164" cy="196" r="2.6" fill="#0d0d0d"/>
+        <circle cx="136" cy="232" r="2.6" fill="#0d0d0d"/><circle cx="164" cy="232" r="2.6" fill="#0d0d0d"/>
+        <path d="M97 258L203 258L204 271L96 271Z" fill="#c2b196"/>
+        <rect x="143" y="255" width="15" height="19" fill="none" stroke="#6f6250" stroke-width="1.3"/>
+        <path d="M162 271L170 356L178 354L172 271Z" fill="#c2b196"/>
+        <path d="M150 271L152 610" stroke="#a3947b" stroke-width="1"/>
+        <path d="M122 290Q112 450 94 604M178 290Q190 450 206 606M134 300Q128 460 118 612" stroke="#a3947b" stroke-width=".7" fill="none" opacity=".8"/>
+        <path d="M101 116Q94 260 96 400M199 116Q206 260 204 400" stroke="#a3947b" stroke-width="1.1" fill="none"/>
+        <path d="M94 398l14 0M192 398l14 0" stroke="#a3947b" stroke-width="2"/>
+        <path d="M95 400q3 15 10 13q4 -7 1 -13ZM205 400q-3 15 -10 13q-4 -7 -1 -13Z" fill="#e8c4b8"/>
+      </svg>
+      <div class="loupe to-r" style="--lx:0%;--ly:60%"><canvas width="320" height="320" data-fabric="gabardine"></canvas><span class="lcap">Cotton gabardine · detail</span></div>
+    </figure>
+    <div class="info">
+      <p class="k">Look 07</p>
+      <h2 class="t" id="t7">Trench, Undone</h2>
+      <div class="rule"></div>
+      <ul class="mat" id="m7">
+        <li>Double-breasted trench in cotton gabardine, belt left trailing. Bone</li>
+        <li>Short gloves in washed lambskin. Blush</li>
+        <li>Pointed boots. Black</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ============ LOOK 08 ============ -->
+  <article class="panel look vb wide" id="look-8" data-look="8" aria-labelledby="t8">
+    <div class="num" aria-hidden="true">08</div>
+    <figure class="fig" tabindex="0" aria-describedby="m8">
+      <svg class="art" viewBox="0 0 300 720" role="img" aria-label="Illustration: an oxblood duchess satin cocoon gown with a hood framing the face and a sweeping train">
+        <ellipse cx="170" cy="702" rx="110" ry="8" fill="#0d0d0d" opacity=".12"/>
+        <ellipse cx="150" cy="62" rx="13" ry="17" fill="url(#gSkin)"/>
+        <path d="M137 56Q140 46 150 45Q160 46 163 56Q158 50 150 50Q142 50 137 56Z" fill="#0d0d0d"/>
+        <path d="M96 116Q64 260 88 430Q104 560 116 694L266 706Q224 650 204 566Q232 400 212 250Q204 160 204 116Z" fill="url(#gSatin)"/>
+        <path d="M96 116Q64 260 88 430Q104 560 116 694L266 706Q224 650 204 566Q232 400 212 250Q204 160 204 116Z" fill="url(#gShade)"/>
+        <path fill-rule="evenodd" d="M150 12Q184 14 186 64Q188 94 206 118L94 118Q112 94 114 64Q116 14 150 12ZM150 40Q135 40 136 63Q137 84 150 86Q163 84 164 63Q165 40 150 40Z" fill="url(#gSatin)"/>
+        <path d="M150 40Q135 40 136 63Q137 84 150 86Q163 84 164 63Q165 40 150 40Z" fill="none" stroke="#2b090b" stroke-width="1.2"/>
+        <path d="M150 130Q136 320 150 690M180 140Q202 330 192 560Q212 640 252 702M120 140Q98 300 112 520" stroke="#c9777c" stroke-width="1" fill="none" opacity=".45"/>
+        <path d="M204 118Q176 130 150 124Q124 130 96 118" stroke="#2b090b" stroke-width="1" fill="none"/>
+      </svg>
+      <div class="loupe" style="--lx:108%;--ly:40%"><canvas width="320" height="320" data-fabric="satin"></canvas><span class="lcap">Duchess satin · detail</span></div>
+    </figure>
+    <div class="info">
+      <p class="k">Look 08 · Finale</p>
+      <h2 class="t" id="t8">Cocoon</h2>
+      <div class="rule"></div>
+      <ul class="mat" id="m8">
+        <li>Hooded cocoon gown in duchess satin, with a train that takes its time. Oxblood</li>
+        <li>Nothing else</li>
+      </ul>
+    </div>
+  </article>
+
+  <!-- ============ FIN ============ -->
+  <section class="panel fin" id="fin" aria-labelledby="finT">
+    <p class="k">Atelier Noire · Autumn / Winter · Collection IX</p>
+    <h2 id="finT">Fin.</h2>
+    <p>Atelier Noire is a fictional house. Every look on these pages is drawn in code from line, gradient and pattern, with no photographs or models. The cloth is woven procedurally, thread by thread, each time the page opens.</p>
+    <button type="button" class="again k" id="again">Return to the cover</button>
+  </section>
+
+</div>
+</div>
+</main>
+
+<footer class="progress" aria-hidden="true">
+  <span class="k">Atelier Noire</span>
+  <span class="bar"><span class="fill" id="fill"></span></span>
+  <span class="count" id="count"><em>Cover</em></span>
+</footer>
+
+<div class="cursor" id="cursor" aria-hidden="true"><div class="ring"><span>VIEW</span></div></div>
+
+<script>
+(function(){
+'use strict';
+var doc = document, root = doc.documentElement, body = doc.body;
+var track = doc.getElementById('track'), scroller = doc.getElementById('scroller'), word = doc.getElementById('word');
+var fill = doc.getElementById('fill'), count = doc.getElementById('count'), cursor = doc.getElementById('cursor');
+var RM = window.matchMedia('(prefers-reduced-motion: reduce)');
+var VQ = window.matchMedia('(max-width: 820px)');
+var touch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+if (touch) body.classList.add('touch');
+
+/* ---------- curtain ---------- */
+var curtain = doc.getElementById('curtain');
+setTimeout(function(){ curtain.classList.add('done'); }, RM.matches ? 400 : 1700);
+
+/* ---------- procedural cloth ---------- */
+function rng(seed){ var a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) | 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function hx(h){ return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+function mix(a, b, t){ return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+function pixels(c, w, h, fn){
+  var img = c.createImageData(w, h), d = img.data, i = 0;
+  for (var y = 0; y < h; y++) for (var x = 0; x < w; x++, i += 4){
+    var col = fn(x, y);
+    d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = 255;
+  }
+  c.putImageData(img, 0, 0);
+}
+var CLOTH = {
+  cashmere: function(c, w, h, R){
+    var base = hx('#5a1a1d'), lo = hx('#3a0f12'), hi = hx('#7d3035');
+    pixels(c, w, h, function(x, y){ var n = R(); var v = 0.5 + 0.5 * Math.sin(x * 0.03 + Math.sin(y * 0.02) * 2) * 0.3 + (n - 0.5) * 0.35; return v > 0.5 ? mix(base, hi, (v - 0.5) * 1.6) : mix(lo, base, v * 2); });
+    c.lineCap = 'round';
+    for (var i = 0; i < 2600; i++){
+      var x = R() * w, y = R() * h, a = R() * Math.PI * 2, l = 2 + R() * 7;
+      c.strokeStyle = R() < 0.5 ? 'rgba(140,60,64,.28)' : 'rgba(30,6,8,.3)';
+      c.lineWidth = 0.6 + R() * 0.8;
+      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + Math.cos(a + 1) * l * 0.5, y + Math.sin(a + 1) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l); c.stroke();
+    }
+  },
+  silk: function(c, w, h, R){
+    var lo = hx('#cfc3b1'), mid = hx('#e9e1d4'), hi = hx('#fffdf8');
+    pixels(c, w, h, function(x, y){
+      var u = x + 26 * Math.sin(y * 0.018 + x * 0.006) + 12 * Math.sin(y * 0.045);
+      var s1 = Math.pow(0.5 + 0.5 * Math.sin(u * 0.042), 7), s2 = Math.pow(0.5 + 0.5 * Math.sin(u * 0.013 + 1.3), 2);
+      var v = s2 * 0.6 + s1 * 0.5 + (R() - 0.5) * 0.03;
+      return v < 0.5 ? mix(lo, mid, v * 2) : mix(mid, hi, Math.min(1, (v - 0.5) * 2));
+    });
+  },
+  herringbone: function(c, w, h, R){
+    var dark = hx('#141414'), light = hx('#474747'), fleck = hx('#8a8580');
+    var cw = 18;
+    pixels(c, w, h, function(x, y){
+      var col = Math.floor(x / cw), t = x % cw, dir = col % 2 === 0;
+      var ph = (y + (dir ? t : cw - t) * 0.9) % 7;
+      var v = ph < 3.2 ? 0.75 : 0.18;
+      if (t === 0) v *= 0.4;
+      v += (R() - 0.5) * 0.28;
+      if (R() < 0.006) return fleck;
+      return mix(dark, light, Math.max(0, Math.min(1, v)));
+    });
+  },
+  boucle: function(c, w, h, R){
+    c.fillStyle = '#dcb0a3'; c.fillRect(0, 0, w, h);
+    var cols = ['rgba(245,219,209,.9)', 'rgba(196,146,132,.8)', 'rgba(239,233,225,.85)', 'rgba(180,128,115,.7)', 'rgba(232,196,184,.95)'];
+    for (var i = 0; i < 1500; i++){
+      var x = R() * w, y = R() * h, r = 2 + R() * 4.5;
+      c.strokeStyle = cols[Math.floor(R() * cols.length)];
+      c.lineWidth = 1.2 + R() * 1.6;
+      c.beginPath(); c.arc(x, y, r, R() * 6.28, R() * 6.28 + 3.5 + R() * 2.5); c.stroke();
+    }
+  },
+  tweed: function(c, w, h, R){
+    var P = [hx('#5a1a1d'), hx('#7d2e33'), hx('#efe9e1'), hx('#0d0d0d'), hx('#e8c4b8'), hx('#3c1013')];
+    pixels(c, w, h, function(x, y){
+      var tw = ((x + y) >> 1) % 4 < 2;
+      var slub = Math.sin(y * 0.9 + Math.sin(x * 0.05) * 3) > 0.96;
+      var r = R();
+      var col = tw ? P[0] : P[1];
+      if (r < 0.07) col = P[2]; else if (r < 0.12) col = P[3]; else if (r < 0.18) col = P[4]; else if (r < 0.26) col = P[5];
+      if (slub) col = mix(col, P[2], 0.55);
+      var k = 0.85 + R() * 0.3;
+      return [col[0] * k, col[1] * k, col[2] * k];
+    });
+  },
+  velvet: function(c, w, h, R){
+    var lo = hx('#060606'), hi = hx('#4a3234');
+    pixels(c, w, h, function(x, y){
+      var v = 0.5 + 0.25 * Math.sin(x * 0.021 + Math.sin(y * 0.017) * 2.2) + 0.25 * Math.sin(y * 0.013 - x * 0.009 + 1.7);
+      v = Math.pow(Math.max(0, v), 3.2) + (R() - 0.5) * 0.05;
+      return mix(lo, hi, Math.max(0, Math.min(1, v)));
+    });
+  },
+  gabardine: function(c, w, h, R){
+    var base = hx('#d6c9b3'), dk = hx('#a8997f'), lt = hx('#ece3d3');
+    pixels(c, w, h, function(x, y){
+      var p = (x * 2 + y) % 7;
+      var v = p < 2 ? 0 : p < 4 ? 0.5 : 1;
+      var col = v === 0 ? dk : v === 1 ? lt : base;
+      var k = 0.94 + R() * 0.1;
+      return [col[0] * k, col[1] * k, col[2] * k];
+    });
+  },
+  satin: function(c, w, h, R){
+    var lo = hx('#3a0d10'), mid = hx('#5a1a1d'), hi = hx('#d08a8f');
+    pixels(c, w, h, function(x, y){
+      var u = (x * 0.7 + y) * 0.028 + Math.sin(y * 0.014 + x * 0.005) * 2.6;
+      var s = Math.pow(0.5 + 0.5 * Math.sin(u), 6), b = 0.5 + 0.5 * Math.sin(u * 0.5 + 2);
+      var col = mix(lo, mid, b);
+      col = mix(col, hi, s * 0.85);
+      if ((y % 3) === 0){ col = [col[0] * 0.96, col[1] * 0.96, col[2] * 0.96]; }
+      return col;
+    });
+  }
+};
+Array.prototype.forEach.call(doc.querySelectorAll('canvas[data-fabric]'), function(cv, i){
+  var type = cv.getAttribute('data-fabric'), c = cv.getContext('2d');
+  try { CLOTH[type](c, cv.width, cv.height, rng(97 + i * 131 + type.length * 7)); } catch(e){}
+});
+
+/* ---------- horizontal stage ---------- */
+var vertical = VQ.matches, maxX = 0, cur = 0, W = 0, H = 0, trackW = 0;
+var panels = [], looks = [], nums = [];
+function measure(){
+  vertical = VQ.matches;
+  W = window.innerWidth; H = window.innerHeight;
+  if (!vertical){
+    trackW = track.scrollWidth;
+    maxX = Math.max(0, trackW - W);
+    scroller.style.height = (maxX + H) + 'px';
+  } else {
+    scroller.style.height = '';
+    track.style.transform = '';
+    maxX = Math.max(0, doc.documentElement.scrollHeight - H);
+  }
+  panels = Array.prototype.map.call(track.children, function(p){ return { el:p, x:p.offsetLeft, y:p.offsetTop, w:p.offsetWidth, h:p.offsetHeight }; });
+  looks = panels.filter(function(p){ return p.el.hasAttribute('data-look'); });
+  nums = looks.map(function(p){ return p.el.querySelector('.num'); });
+}
+function targetPos(){ return vertical ? window.scrollY : Math.min(maxX, Math.max(0, window.scrollY)); }
+var lastLabel = '';
+function tick(){
+  requestAnimationFrame(tick);
+  if (doc.hidden) return;
+  var t = targetPos();
+  cur = RM.matches ? t : cur + (t - cur) * 0.1;
+  if (Math.abs(t - cur) < 0.05) cur = t;
+  var span = vertical ? Math.max(1, maxX) : Math.max(1, maxX);
+  var p = Math.min(1, Math.max(0, cur / span));
+  if (!vertical){
+    track.style.transform = 'translate3d(' + (-cur).toFixed(2) + 'px,0,0)';
+  }
+  var wx = vertical ? (W * 0.1 - cur * 0.42) : (W * 0.3 - cur * 0.36);
+  word.style.transform = 'translate3d(' + wx.toFixed(1) + 'px,-46%,0)';
+  fill.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+  /* numerals drift against the scroll */
+  var best = -1, bestD = 1e9;
+  for (var i = 0; i < looks.length; i++){
+    var L = looks[i], d;
+    if (!vertical){
+      d = (L.x - cur + L.w / 2) - W / 2;
+      if (nums[i] && Math.abs(d) < W * 1.5) nums[i].style.transform = 'translate3d(' + (d * 0.14).toFixed(1) + 'px,0,0)';
+    } else {
+      d = (L.y - cur + L.h / 2) - H / 2;
+      if (nums[i] && Math.abs(d) < H * 1.5) nums[i].style.transform = 'translate3d(0,' + (d * 0.1).toFixed(1) + 'px,0)';
+    }
+    if (Math.abs(d) < bestD){ bestD = Math.abs(d); best = i; }
+  }
+  var lim = vertical ? H * 0.6 : W * 0.55;
+  var label = (best >= 0 && bestD < lim) ? ('<em>Look</em> ' + String(best + 1).padStart(2, '0') + ' / 08') : (p < 0.03 ? '<em>Cover</em>' : p > 0.97 ? '<em>Fin</em>' : '<em>Interlude</em>');
+  if (label !== lastLabel){ count.innerHTML = label; lastLabel = label; }
+}
+
+/* wheel: vertical wheel already drives the stage; sideways trackpad swipes are folded in */
+window.addEventListener('wheel', function(e){
+  if (vertical) return;
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)){ window.scrollBy(0, e.deltaX); e.preventDefault(); }
+}, { passive:false });
+
+function goTo(el){
+  if (!el) return;
+  measure();
+  var p = panels.filter(function(q){ return q.el === el; })[0];
+  if (!p) return;
+  var y = vertical ? p.y : Math.min(maxX, p.x);
+  window.scrollTo(0, y);
+}
+Array.prototype.forEach.call(doc.querySelectorAll('[data-go]'), function(b){
+  b.addEventListener('click', function(){ goTo(doc.getElementById(b.getAttribute('data-go'))); });
+});
+doc.querySelector('.brand').addEventListener('click', function(e){ e.preventDefault(); window.scrollTo(0, 0); });
+doc.getElementById('again').addEventListener('click', function(){ window.scrollTo(0, 0); });
+
+doc.addEventListener('keydown', function(e){
+  if (vertical || e.metaKey || e.ctrlKey || e.altKey) return;
+  var k = e.key, pos = targetPos();
+  if (k === 'ArrowRight' || k === 'ArrowLeft'){
+    e.preventDefault();
+    var list = panels.map(function(p){ return Math.min(maxX, p.x); });
+    var nxt = pos;
+    if (k === 'ArrowRight'){ for (var i = 0; i < list.length; i++) if (list[i] > pos + 8){ nxt = list[i]; break; } }
+    else { for (var j = list.length - 1; j >= 0; j--) if (list[j] < pos - 8){ nxt = list[j]; break; } }
+    window.scrollTo(0, nxt);
+  }
+});
+
+/* ---------- looks: pin the fabric detail on click or Enter ---------- */
+Array.prototype.forEach.call(doc.querySelectorAll('.look .fig'), function(f){
+  f.addEventListener('click', function(){ f.classList.toggle('pinned'); });
+  f.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); f.classList.toggle('pinned'); } });
+});
+if ('IntersectionObserver' in window && touch){
+  var io = new IntersectionObserver(function(ents){
+    ents.forEach(function(en){ en.target.classList.toggle('inview', en.intersectionRatio > 0.5); });
+  }, { threshold:[0, 0.5, 1] });
+  Array.prototype.forEach.call(doc.querySelectorAll('.look'), function(l){ io.observe(l); });
+}
+
+/* ---------- cursor ---------- */
+var cx = -100, cy = -100, tx = -100, ty = -100;
+if (!touch){
+  window.addEventListener('pointermove', function(e){
+    tx = e.clientX; ty = e.clientY;
+    var over = e.target && e.target.closest && e.target.closest('.look .fig');
+    cursor.classList.toggle('view', !!over);
+    cursor.classList.remove('hide');
+  });
+  window.addEventListener('pointerdown', function(){ cursor.classList.add('press'); });
+  window.addEventListener('pointerup', function(){ cursor.classList.remove('press'); });
+  doc.addEventListener('pointerleave', function(){ cursor.classList.add('hide'); });
+  (function follow(){
+    requestAnimationFrame(follow);
+    cx += (tx - cx) * (RM.matches ? 1 : 0.2); cy += (ty - cy) * (RM.matches ? 1 : 0.2);
+    cursor.style.transform = 'translate3d(' + cx.toFixed(1) + 'px,' + cy.toFixed(1) + 'px,0)';
+  })();
+}
+
+window.addEventListener('resize', function(){ measure(); });
+VQ.addEventListener ? VQ.addEventListener('change', measure) : VQ.addListener(measure);
+measure();
+cur = targetPos();
+requestAnimationFrame(tick);
+window.addEventListener('load', measure);
+})();
+</script>
+</body>
+</html>

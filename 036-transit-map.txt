@@ -1,0 +1,40 @@
+TITLE: Meridian Metro
+FILE: 036-transit-map.html
+
+=== PROMPT (exact prompt used) ===
+Create "Meridian Metro", an animated transit map for a fictional city in the tradition of Beck and Vignelli diagrams. White ground (#fbfbf9); six coloured lines (#e4002b red, #0072ce blue, #00a651 green, #ffb81c amber, #9b26b6 purple, #00b2a9 teal) drawn as thick SVG paths with only 45° and 90° bends; interchange stations as white capsules with black outlines, regular stations as tick marks; a river as a pale blue band and a park area. Station names in a clean humanist sans with careful placement. Trains (small rounded rectangles in the line colour) run along the lines on simulated schedules, pausing at stations. Interaction: hover a line to spotlight it (others fade); hover or click a station for a card with next departures whose countdowns tick live; a route planner — pick origin and destination to highlight the shortest path (Dijkstra on the station graph) with transfer count and estimated time; zoom/pan on mobile. The line legend doubles as toggles. Include a subtle "service status" panel ("Good service", "Minor delays"). It should look like a crisp printed map.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Meridian Metro is a live network diagram for an invented city, drawn in the tradition of Beck and Vignelli. It looks like a printed poster: a double-ruled sheet on warm white paper, with a title band, a legend strip along the foot and a sidebar of passenger information. Six lines in the brief's colours run only at 90° and 45° with rounded bends: a west–east Crown Line, a north–south Harbour Line, two diagonals (Parkway and Sunrise) that meet at the eight-spoke Meridian Central hub, an octagonal Meridian Circle and a Riverside Line that follows the pale-blue River Vell. There are 40 stations: interchanges are white capsules with black outlines, ordinary stops are coloured ticks and termini are cross-bars. Two dotted parks and a north arrow complete the sheet. Timetabled trains glide along both sides of every track and pause at each station. The sidebar holds a Dijkstra journey planner, a service-status board (one line has minor delays, which the simulation actually applies) and a map key.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Hand-designed network geometry on a 45°/90° grid; line paths are built from vertex lists with quadratic rounded corners, and the same sampled polylines drive both the drawing and the train motion
+- Station positions are projected onto each line to get arc lengths, which feed a per-line timetable model (run time at a fixed speed, dwell times, a terminus turnaround sized so the headway divides the cycle exactly)
+- Trains are small outlined rounded rectangles in the line colour with a dashed "window" stripe, offset to the left or right of the centreline by direction (double track), rotated to the track tangent, with eased acceleration and braking between stops
+- Printed-map finish: a double-rule frame, paper-coloured halos on labels (paint-order stroke), capsule interchanges oriented to the track, tick marks placed automatically on the label side, a large black-and-white hub roundel, dotted park fills, and an italic river label with wide letter-spacing
+- Staggered stroke-dashoffset draw-in of the six lines on load, then fade-in of stations, labels and trains
+- Humanist sans stack (Frutiger, Seravek, Segoe UI, Myriad, Calibri, Gill Sans, Cantarell…) with tabular figures for clocks and countdowns
+- The route overlay has a paper casing, full-colour leg segments, hollow stop dots, and A/B pins with pulsing SVG rings; the rest of the network dims beneath it
+- Labels are counter-scaled when zoomed out on small screens so station names stay readable
+
+=== INTERACTION MODEL ===
+- Hover a line (or its legend entry) to spotlight it; other lines, trains and stations fade back
+- Legend entries toggle their line's visibility (aria-pressed); stations served only by hidden lines disappear with them
+- Hover, focus or click a station for a departure card: line chips, a fictional fare zone and the next two departures in each direction, counting down live against the simulated clock ("due", "N min", or m:ss at 1× speed); clicking pins the card, and Esc or × closes it
+- The journey planner takes From/To selects (or "Route from here" / "Route to here" on a station card) and runs Dijkstra on a (station, line) graph with a 4-minute penalty per change. It shows the total time, the number of changes and stops, each leg with its direction and duration, and the next departure from the origin, updated live
+- Swap and Clear buttons; the planned route is drawn over the dimmed map
+- Pan by dragging, zoom with the mouse wheel, pinch on touch screens, the +/−/reset buttons, or arrow keys and +/−/0 while the map has focus
+- Simulation speed control (1×, 20×, 60×) runs the network clock, which starts at your local time of day; everything pauses while the tab is hidden, and reduced motion defaults to real-time speed with no draw-in

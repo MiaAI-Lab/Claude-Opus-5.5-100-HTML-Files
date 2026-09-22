@@ -1,0 +1,39 @@
+TITLE: Radical Shapes — Milano Design Fest '86
+FILE: 058-memphis-fest.html
+
+=== PROMPT (exact prompt used) ===
+Design "RADICAL SHAPES — Milano Design Fest '86" (fictional), a Memphis-Group-inspired event landing page. Palette: black #111, pink #ff90b3, turquoise #2ec4b6, yellow #ffd23f, lilac #b388eb, red #ef476f on white, with terrazzo/confetti patterns and squiggle backgrounds (SVG patterns). The composition is bold, playful and asymmetric: geometric objects (cylinders, zigzags, dotted triangles, half-moons) float and rotate slowly around the hero title. Typography: chunky geometric sans headlines, bold outlines and two-colour offset text shadows. Sections: a countdown to the fictional opening with flip digits; a lineup of fictional designers on cards with patterned headers; a schedule timeline; a venue map made of playful illustrated blocks; and ticket tiers. Interaction: shapes bounce away from the cursor; clicking the hero spawns new random Memphis shapes with a pop; cards wobble on hover; a pattern-shuffler button changes every background pattern. Keep chaos from overwhelming readability: a strong grid underneath.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+RADICAL SHAPES is a landing page for a fictional festival, the Milano Design Fest '86, designed as if the Memphis movement had made its own website. Every block has a thick black outline and a hard offset shadow, and the page sits on a 12-column grid, so the loud patterns stay organised. The hero stacks the chunky geometric title (black-stroked letters with two-colour offset shadows) over a tilted terrazzo slab on graph paper, with a dotted turquoise disc, a squiggle band and a dozen hand-drawn Memphis objects floating around it: a striped cylinder, a zigzag, a dotted triangle, a half-moon, a banded sphere, a totem column, a lightning bolt and a rainbow arch. Below the hero come a black countdown band with yellow flip-card digits and saw-tooth edges; six designer cards with patterned headers and geometric portraits; a lilac graph-paper schedule with day tabs and a shaped-dot timeline; an illustrated map of a made-up district drawn from chunky SVG blocks; and three perforated tickets on a terrazzo pink field.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Nine SVG <pattern> tiles (terrazzo, confetti, squiggle, zigzag, polka dots, stripes, graph grid, dotted triangles, rainbow waves) inked through CSS custom properties, so a single variable swap recolours every pattern at once
+- Offset-shadow Memphis styling everywhere: 3px ink borders, hard box-shadows, black-stroked text with paint-order and two-colour text-shadows, tilted blocks and taped cards
+- A spring-physics layer for the hero shapes: each shape has a home position, velocity, damping, idle bobbing and rotation, and is pushed away by the cursor with a squash-and-stretch wobble
+- The Memphis shapes are drawn at runtime as small parameterised inline SVGs; new ones pop in with an overshooting scale-and-rotate plus a CSS confetti burst
+- 3D flip-clock digits (split halves plus a rotating leaf with backface-visibility) driven by a real countdown to the next 14 April, 18:00 Milan time, computed with Intl time zones
+- Illustrated SVG map with offset-shadow blocks, a dashed-road grid, a canal, lollipop trees and venues that lift on hover or focus and show a dashed selection ring
+- Ticket stubs with perforation lines and half-circle notches, a rotated "Most radical" badge, IntersectionObserver reveal-on-scroll, and a toast that slides up with an overshoot
+
+=== INTERACTION MODEL ===
+- Move the cursor (or drag a finger) through the hero and the floating shapes bounce away, then spring back home
+- Click or tap anywhere in the hero to drop a new random Memphis shape with a pop and confetti (the oldest disappear after 18)
+- Cards wobble on hover or keyboard focus; the letters of the title hop when hovered
+- The Shuffle button (or the S key) reassigns every background pattern and rotates the pattern ink palette across the whole page
+- Schedule tabs (arrow keys supported, ARIA tablist) switch between five days; each day changes the theme card, its illustration and a staggered timeline
+- Venue blocks on the map are keyboard-focusable buttons; choosing one updates the info panel beside the map
+- Ticket "Reserve" buttons answer with a toast explaining that the festival is fictional; sticky nav links jump to each section
+- prefers-reduced-motion stops the bobbing, rotation, wobble, reveal and flip animations; the animation loop pauses when the tab is hidden or the hero is off-screen

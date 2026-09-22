@@ -1,0 +1,46 @@
+TITLE: Woolgathering
+FILE: 013-knitted-life.html
+
+=== PROMPT (exact prompt used) ===
+Create "Woolgathering", Conway's Game of Life rendered as a living piece of knitting. Each cell is drawn on a canvas as a knit stitch (a small V-shaped pair of loops with shading); live cells are coloured yarn and dead cells are background yarn, so the evolving pattern reads as Fair Isle knitwear. Palette of cosy wools: oatmeal #e9dcc5 background, rust #b5502b, mustard #d9a441, forest #2f5d50, cream #f6efe2 — plus a colourway selector with four palettes. Add a subtle fuzz/halo on stitches and gentle drape shading across the fabric. Frame the canvas as if it hangs from knitting needles (SVG at the top) with yarn-ball illustrations. Warm rounded controls: play/pause, step, speed, randomise, clear, and preset patterns (glider, pulsar, Gosper glider gun, a snowflake motif). Draw cells with pointer or touch. Show the generation count as a knitted row counter. Typography: a friendly serif ("Cooper", Georgia, "URW Bookman", serif).
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Woolgathering" presents Conway's Game of Life as a piece of Fair Isle knitting hanging from a wooden needle on an oatmeal linen wall. Every cell is a hand-shaded stockinette stitch: two twisted, slightly fuzzy yarn loops forming a V, drawn in cream ground yarn when dead and in rust, mustard or forest when alive. Rows are banded like a Fair Isle yoke, mirrored about the middle row with a second oatmeal ground behind the wide bands, and the page opens by knitting the cloth down from the needle before an eightfold snowflake motif starts to bloom symmetrically. Beside the cloth, a dark "ball band" label with a knitted row counter holds warm, stitched-edge controls, four colourways and the preset motifs. Three balls of wool, two crossed needles and a working strand that tugs with every row complete the still life.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Canvas stitch sprites pre-rendered per colour and per variant: each V is two rotated ellipses with a cross-strand gradient, tucked-end shading, diagonal ply-twist lines, a soft drop shadow and random loose fibres for the fuzzy halo
+- Shading darkens toward each palette's own warm shadow colour (not black), so cream stays warm and navy stays deep
+- Stitches are drawn bottom row first so each V overlaps the one below, as real stockinette does; small per-stitch jitter and tone variation keep it handmade
+- Mohair halo: a one-pixel-per-cell colour map, scaled with bilinear smoothing, is painted beneath the stitches (so colour shows in the gaps) and faintly above them
+- Drape: a pre-computed fold field lights one side of each vertical fold and shades the other, deepens toward the hem, shades the top under the needle and curls the selvedges; the same fold function makes the hem wave and casts a soft shadow of the whole cloth on the wall
+- Mirrored Fair Isle band layout (rust / mustard peerie / forest) around the centre row, with a second ground shade behind the forest bands
+- SVG rig laid out from the canvas geometry: a birch needle with a turned knob and taper, a loop-front pattern whose tile width equals one stitch so every loop sits on the needle, and a working-yarn Bezier that tugs taut on each generation while the big ball's wraps turn
+- Hand-drawn SVG yarn balls with clipped wrap ellipses and a spherical shading gradient, recoloured live through CSS custom properties
+- Knitted row counter: the generation number is knitted in a 3x5 stitch font between two forest border rows on its own canvas
+- Cast-on intro that knits the cloth row by row from the needle, eased births with a small overshoot "pop", and fading deaths
+- Stitched UI language: dashed inner "stitching" on buttons and on the card, a twisted-yarn range track with a yarn-ball thumb, and colourway swatches as wool balls
+
+=== INTERACTION MODEL ===
+- Play/pause (big rust button or Space), "Knit one row" step (or N), pace slider from 1 to 30 rows a second
+- Draw on the fabric with mouse or touch: the first stitch decides whether the stroke knits or unpicks, and strokes are filled cell by cell along the line; hovering shows a dashed ring around the stitch
+- Keyboard drawing: focus the fabric, move a cursor with the arrow keys, toggle stitches with Enter
+- Randomise scatters a four-way mirrored motif (R); Clear (C) empties the needle
+- Preset motifs with live pictograms (keys 1 to 4): a flock of gliders knitted in the round, a period-3 pulsar, Gosper's glider gun (turned on its diagonal on narrow phones), and an eightfold snowflake
+- Four colourways (Hebridean Hearth, Shetland Sea, Heather & Peat, Midwinter Night) re-dye the stitches, yarn balls, strand, title and page; the choice is remembered in localStorage (guarded)
+- "Knit in the round" toggles toroidal wrapping; flat mode uses a hidden margin with an absorbing edge so gliders leave the cloth cleanly and the gun keeps firing
+- Colour by Fair Isle bands or by age (fresh mustard, established rust, old forest)
+- Optional synthesized needle clicks (Web Audio, off by default, toggle with visible state)
+- Status line reports stitches in yarn and detects still lifes and repeating periods; if left untouched after it settles, the page "woolgathers" and casts on a new mirrored motif
+- Honours prefers-reduced-motion (no intro, no pop, instant changes, slower default pace); animation loop idles while the tab is hidden

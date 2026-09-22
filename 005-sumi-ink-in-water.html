@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sumi — Ink in Water</title>
+<meta name="description" content="A meditative stable-fluids painting. Let drops of sumi, indigo, vermillion or pale gold ink fall onto warm washi and watch them bloom, curl and diffuse; drag to stir the water.">
+<meta name="theme-color" content="#f4efe6">
+<style>
+  :root {
+    --paper: #f4efe6;
+    --sumi: #1b1f2a;
+    --indigo: #2c3e75;
+    --verm: #d23c26;
+    --gold: #b89b5e;
+    --seal: #b9352a;
+    --ink-2: rgba(27, 31, 42, .62);
+    --ink-3: rgba(27, 31, 42, .38);
+    --hair: rgba(27, 31, 42, .16);
+    --current: var(--sumi);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", P052, "URW Palladio L", Georgia, serif;
+    --gutter: clamp(16px, 2.8vw, 44px);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--sumi);
+    font-family: var(--serif);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ---------- the water ---------- */
+  #stage {
+    position: fixed;
+    inset: 0;
+    touch-action: none;
+    cursor: crosshair;
+    outline: none;
+  }
+  #stage.has-ring { cursor: none; }
+  #stage:focus-visible::after {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border: 1px dashed var(--ink-3);
+    pointer-events: none;
+  }
+  #stage canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  #ink {
+    mix-blend-mode: multiply;
+    image-rendering: auto;
+  }
+  #fx { pointer-events: none; }
+
+  /* ---------- vertical masthead ---------- */
+  .masthead {
+    position: fixed;
+    top: clamp(22px, 6vh, 64px);
+    left: var(--gutter);
+    display: flex;
+    gap: clamp(8px, 1vw, 14px);
+    align-items: flex-start;
+    pointer-events: none;
+    user-select: none;
+    z-index: 2;
+  }
+  .masthead .col-main {
+    writing-mode: vertical-rl;
+    display: flex;
+    align-items: center;
+  }
+  .masthead h1 {
+    margin: 0;
+    font-weight: 400;
+    font-size: clamp(34px, 4.4vw, 60px);
+    line-height: 1;
+    letter-spacing: .3em;
+    text-orientation: upright;
+    color: var(--sumi);
+    opacity: .9;
+  }
+  .masthead .sub {
+    margin: .3em 0 0;
+    padding-block-start: 1.1em;
+    font-style: italic;
+    font-size: clamp(15px, 1.3vw, 18px);
+    letter-spacing: .18em;
+    color: var(--ink-2);
+    white-space: nowrap;
+    position: relative;
+  }
+  .masthead .sub::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: .8em;
+    background: var(--hair);
+  }
+  .masthead .verse {
+    writing-mode: vertical-rl;
+    margin: clamp(150px, 26vh, 250px) 0 0;
+    font-size: 11px;
+    letter-spacing: .28em;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .masthead .sub, .masthead .verse { text-orientation: mixed; }
+  @media (max-height: 780px) { .masthead .verse { display: none; } }
+
+  /* ---------- hanko + colophon ---------- */
+  .signature {
+    position: fixed;
+    left: var(--gutter);
+    bottom: clamp(20px, 4.5vh, 46px);
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    pointer-events: none;
+    user-select: none;
+    z-index: 2;
+  }
+  .hanko {
+    width: clamp(30px, 2.7vw, 40px);
+    height: auto;
+    display: block;
+    mix-blend-mode: multiply;
+    transform: rotate(-1.4deg);
+  }
+  .colophon {
+    margin: 0 0 2px;
+    font-size: 10px;
+    line-height: 1.7;
+    letter-spacing: .2em;
+    text-transform: lowercase;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .colophon span { display: block; }
+
+  /* ---------- the toolbar ---------- */
+  .tools {
+    position: fixed;
+    right: var(--gutter);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 3;
+    user-select: none;
+  }
+  .tools::before {
+    content: "";
+    position: absolute;
+    inset: -40px -26px;
+    background: radial-gradient(closest-side, rgba(244, 239, 230, .88), rgba(244, 239, 230, .6) 55%, rgba(244, 239, 230, 0));
+    z-index: -1;
+    pointer-events: none;
+  }
+  .tools .label {
+    margin: 0 0 6px;
+    writing-mode: vertical-rl;
+    font-size: 10px;
+    letter-spacing: .38em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .ink-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 6px 4px 5px;
+    width: 74px;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    font: inherit;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: color .5s ease;
+  }
+  .ink-btn .blot {
+    width: 26px;
+    height: 26px;
+    display: block;
+    transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+  }
+  .ink-btn .blot circle { transition: r .6s cubic-bezier(.2, .8, .2, 1), opacity .6s ease; }
+  .ink-btn .name {
+    white-space: nowrap;
+    font-size: 12.5px;
+    letter-spacing: .06em;
+    line-height: 1.1;
+  }
+  .ink-btn .jp {
+    font-size: 10px;
+    font-style: italic;
+    letter-spacing: .12em;
+    color: var(--ink-3);
+    opacity: .8;
+    line-height: 1;
+  }
+  .ink-btn:hover { color: var(--ink-2); }
+  .ink-btn:hover .blot { transform: scale(1.08) rotate(-8deg); }
+  .ink-btn[aria-pressed="true"] { color: var(--sumi); }
+  .ink-btn[aria-pressed="true"] .blot { transform: scale(1.14); }
+  .ink-btn .ring { opacity: 0; }
+  .ink-btn[aria-pressed="true"] .ring { opacity: 1; }
+  .rule {
+    width: 1px;
+    height: 34px;
+    background: var(--hair);
+    margin: 6px 0;
+  }
+  .still-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: .14em;
+    color: var(--ink-2);
+    writing-mode: vertical-rl;
+    padding: 12px 10px;
+    cursor: pointer;
+    position: relative;
+    border-radius: 3px;
+    transition: color .4s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .still-btn svg { width: 16px; height: 16px; flex: none; transition: transform 1.2s ease; }
+  .still-btn:hover { color: var(--sumi); }
+  .still-btn:hover svg { transform: scale(1.18); }
+  .still-btn.is-stilling { color: var(--ink-3); }
+  .still-btn.is-stilling svg { animation: breathe 1.6s ease-in-out infinite; }
+  @keyframes breathe { 50% { transform: scale(1.35); opacity: .5; } }
+  .sound-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: color .3s ease;
+  }
+  .sound-btn:hover { color: var(--sumi); }
+  .sound-btn svg { width: 18px; height: 18px; }
+  .sound-btn .wave { transition: opacity .3s ease; }
+  .sound-btn[aria-pressed="false"] .wave { opacity: 0; }
+  .sound-btn[aria-pressed="true"] .mute { opacity: 0; }
+
+  :focus-visible {
+    outline: 1.5px dashed var(--sumi);
+    outline-offset: 3px;
+  }
+  button:focus:not(:focus-visible) { outline: none; }
+
+  /* ---------- hint ---------- */
+  .hint {
+    position: fixed;
+    left: 50%;
+    bottom: clamp(20px, 4.5vh, 46px);
+    transform: translateX(-50%);
+    margin: 0;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: .08em;
+    color: var(--ink-2);
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 1.6s ease, transform 1.6s ease;
+    z-index: 2;
+  }
+  .hint kbd {
+    font: inherit;
+    font-style: normal;
+    font-size: 11px;
+    letter-spacing: .1em;
+    border-bottom: 1px solid var(--hair);
+  }
+  .hint.gone { opacity: 0; transform: translate(-50%, 8px); }
+  .hint .dot { display: inline-block; margin: 0 .7em; color: var(--ink-3); }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ---------- phones ---------- */
+  @media (max-width: 640px) {
+    .masthead { top: 20px; gap: 8px; }
+    .masthead h1 { font-size: 34px; }
+    .masthead .sub { font-size: 14px; }
+    .masthead .verse { display: none; }
+    .tools { gap: 2px; }
+    .tools::before {
+    content: "";
+    position: absolute;
+    inset: -40px -26px;
+    background: radial-gradient(closest-side, rgba(244, 239, 230, .88), rgba(244, 239, 230, .6) 55%, rgba(244, 239, 230, 0));
+    z-index: -1;
+    pointer-events: none;
+  }
+  .tools .label { display: none; }
+    .ink-btn { width: 50px; padding: 5px 2px; }
+    .ink-btn .jp { display: none; }
+    .ink-btn .name { font-size: 11px; }
+    .still-btn { font-size: 13px; padding: 10px 8px; }
+    .rule { height: 20px; }
+    .hint { font-size: 13px; }
+    .hint .desk { display: none; }
+    .colophon { display: none; }
+  }
+  @media (hover: none) { .hint .desk { display: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<main id="stage" tabindex="0" aria-label="Water over washi paper. Click or tap to let a drop of ink fall; drag to stir. Keys: Space drops ink, 1 to 4 choose the ink, S stills the water, M toggles sound." aria-describedby="status">
+  <canvas id="paper" aria-hidden="true"></canvas>
+  <canvas id="ink" aria-hidden="true"></canvas>
+  <canvas id="fx" aria-hidden="true"></canvas>
+</main>
+
+<header class="masthead">
+  <div class="col-main">
+    <h1 aria-label="Sumi">SUMI</h1>
+    <p class="sub">Ink in Water</p>
+  </div>
+  <p class="verse">one drop &middot; a held breath &middot; the slow unfurling</p>
+</header>
+
+<nav class="tools" aria-label="Ink and water">
+  <p class="label" aria-hidden="true">inks</p>
+  <button type="button" class="ink-btn" data-ink="sumi" aria-pressed="true" aria-label="Sumi black ink">
+    <svg class="blot" viewBox="0 0 26 26" aria-hidden="true">
+      <circle class="ring" cx="13" cy="13" r="12.2" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1.4 2.2"/>
+      <path fill="#1b1f2a" d="M13.2 4.6c2.6-.1 5.1 1.2 6.4 3.4 1.4 2.3 1.5 5.4.1 7.7-1.2 2.1-3.4 3.9-6 4-2.7.2-5.3-1.1-6.7-3.4-1.5-2.4-1.4-5.6.2-7.9 1.3-2.2 3.6-3.7 6-3.8z"/>
+      <circle cx="20.6" cy="19.4" r=".9" fill="#1b1f2a"/>
+    </svg>
+    <span class="name">Sumi</span><span class="jp">sumi</span>
+  </button>
+  <button type="button" class="ink-btn" data-ink="indigo" aria-pressed="false" aria-label="Indigo ink">
+    <svg class="blot" viewBox="0 0 26 26" aria-hidden="true">
+      <circle class="ring" cx="13" cy="13" r="12.2" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1.4 2.2"/>
+      <path fill="#2c3e75" d="M12.6 4.4c2.9.2 5.6 1.9 6.7 4.4 1 2.2.7 4.9-.6 6.9-1.4 2.3-4 3.9-6.7 3.9-2.4 0-4.8-1.4-6-3.5-1.3-2.4-1.1-5.5.5-7.7 1.4-2.1 3.7-4.1 6.1-4z"/>
+      <circle cx="5.4" cy="20.2" r=".8" fill="#2c3e75"/>
+    </svg>
+    <span class="name">Indigo</span><span class="jp">ai</span>
+  </button>
+  <button type="button" class="ink-btn" data-ink="vermillion" aria-pressed="false" aria-label="Vermillion ink">
+    <svg class="blot" viewBox="0 0 26 26" aria-hidden="true">
+      <circle class="ring" cx="13" cy="13" r="12.2" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1.4 2.2"/>
+      <path fill="#d23c26" d="M13.4 5c2.4 0 4.9 1.4 5.9 3.6 1.2 2.4.9 5.4-.6 7.5-1.4 2-3.9 3.3-6.3 3.1-2.6-.1-5-1.8-5.9-4.2-1-2.5-.4-5.5 1.4-7.5 1.4-1.6 3.4-2.5 5.5-2.5z"/>
+      <circle cx="20.8" cy="6.2" r=".7" fill="#d23c26"/>
+    </svg>
+    <span class="name">Vermillion</span><span class="jp">shu</span>
+  </button>
+  <button type="button" class="ink-btn" data-ink="gold" aria-pressed="false" aria-label="Pale gold ink">
+    <svg class="blot" viewBox="0 0 26 26" aria-hidden="true">
+      <circle class="ring" cx="13" cy="13" r="12.2" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1.4 2.2"/>
+      <path fill="#b89b5e" d="M12.8 4.8c2.8-.3 5.6 1.3 6.8 3.8 1.1 2.3.8 5.1-.6 7.2-1.4 2.2-4 3.6-6.6 3.5-2.4-.1-4.8-1.5-5.9-3.7-1.2-2.3-1-5.2.5-7.3 1.4-1.9 3.5-3.3 5.8-3.5z"/>
+      <circle cx="6" cy="6.4" r=".75" fill="#b89b5e"/>
+    </svg>
+    <span class="name">Pale gold</span><span class="jp">kin</span>
+  </button>
+  <span class="rule" aria-hidden="true"></span>
+  <button type="button" class="still-btn" id="still">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2" fill="currentColor"/><circle cx="8" cy="8" r="4.6" fill="none" stroke="currentColor" stroke-width=".7" opacity=".6"/><circle cx="8" cy="8" r="7.2" fill="none" stroke="currentColor" stroke-width=".5" opacity=".35"/></svg>
+    <span id="still-label">Still the water</span>
+  </button>
+  <button type="button" class="sound-btn" id="sound" aria-pressed="true" aria-label="Sound of falling drops">
+    <svg viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.5 7h2.6L9 3.8v10.4L5.1 11H2.5z" fill="currentColor" fill-opacity=".12"/>
+      <path class="wave" d="M11.6 6.4c.9.8.9 4.4 0 5.2M13.6 4.6c2 1.9 2 6.9 0 8.8"/>
+      <path class="mute" d="M11.8 7l3.8 4m0-4l-3.8 4"/>
+    </svg>
+  </button>
+</nav>
+
+<footer class="signature">
+  <svg class="hanko" viewBox="0 0 60 100" role="img" aria-labelledby="hanko-title">
+    <title id="hanko-title">Red hanko seal reading suigetsu, the moon in the water</title>
+    <defs>
+      <filter id="carve" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" result="grain"/>
+        <feDisplacementMap in="SourceGraphic" in2="grain" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="3" seed="4" result="wear"/>
+        <feColorMatrix in="wear" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -9 0 0 0 6.3" result="wearMask"/>
+        <feComposite in="rough" in2="wearMask" operator="in" result="worn"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="blot"/>
+        <feColorMatrix in="blot" type="matrix" values=".34 0 0 0 .8  .34 0 0 0 .8  .34 0 0 0 .8  0 0 0 0 1" result="blotC"/>
+        <feComposite in="worn" in2="blotC" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="tinted"/>
+        <feComposite in="tinted" in2="worn" operator="in"/>
+      </filter>
+      <mask id="seal-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="60" height="100">
+        <rect x="0" y="0" width="60" height="100" fill="#fff"/>
+        <g fill="none" stroke="#000" stroke-width="4.6" stroke-linecap="square" stroke-linejoin="miter">
+          <!-- 水 : water -->
+          <path d="M30 9.5V43.5L24.5 39"/>
+          <path d="M10.5 20.5H23.5L10 40.5"/>
+          <path d="M33.5 27L47 15.5"/>
+          <path d="M33.5 27L49.5 45"/>
+          <!-- 月 : moon -->
+          <path d="M18.5 56V80Q18.5 89 11 93.5"/>
+          <path d="M18.5 56H43.5V90.5L38 87"/>
+          <path d="M18.5 67.5H43.5"/>
+          <path d="M18.5 78.5H43.5"/>
+        </g>
+      </mask>
+    </defs>
+    <g filter="url(#carve)">
+      <rect x="2.5" y="2.5" width="55" height="95" rx="3.5" fill="#b9352a" mask="url(#seal-cut)"/>
+    </g>
+  </svg>
+  <p class="colophon" id="colophon" aria-hidden="true">stable fluids</p>
+</footer>
+
+<p class="hint" id="hint"><span>Tap to let a drop fall</span><span class="dot">&middot;</span><span>drag to stir</span><span class="desk"><span class="dot">&middot;</span>hold to pour</span></p>
+<p class="sr-only" id="status" aria-live="polite"></p>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ================================================================
+     Sumi — Ink in Water
+     A small stable-fluids solver (Stam): forces, vorticity confinement,
+     viscosity, pressure projection and semi-Lagrangian advection on a
+     coarse velocity grid, with dye carried on a finer grid and rendered
+     as optical absorbance multiplied over hand-made washi.
+     ================================================================ */
+
+  const stage = document.getElementById('stage');
+  const paperC = document.getElementById('paper');
+  const inkC = document.getElementById('ink');
+  const fxC = document.getElementById('fx');
+  const pctx = paperC.getContext('2d');
+  const ictx = inkC.getContext('2d', { alpha: false });
+  const fctx = fxC.getContext('2d');
+  const statusEl = document.getElementById('status');
+  const hintEl = document.getElementById('hint');
+  const stillBtn = document.getElementById('still');
+  const stillLabel = document.getElementById('still-label');
+  const soundBtn = document.getElementById('sound');
+  const colophon = document.getElementById('colophon');
+  const inkBtns = Array.from(document.querySelectorAll('.ink-btn'));
+
+  const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = reduceMQ.matches;
+  const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+
+  const PAPER_RGB = [244, 239, 230];
+  const INKS = {
+    sumi:       { hex: '#1b1f2a', label: 'Sumi', strength: 1.5 },
+    indigo:     { hex: '#2c3e75', label: 'Indigo', strength: 1.2 },
+    vermillion: { hex: '#d23c26', label: 'Vermillion', strength: 1.15 },
+    gold:       { hex: '#b89b5e', label: 'Pale gold', strength: 1.45 }
+  };
+  // Beer–Lambert: the absorbance that turns washi into this ink at unit concentration.
+  for (const key in INKS) {
+    const h = INKS[key].hex;
+    const rgb = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    INKS[key].rgb = rgb;
+    INKS[key].abs = rgb.map((c, i) => -Math.log(Math.max(c, 3) / PAPER_RGB[i]));
+  }
+  const INK_KEYS = Object.keys(INKS);
+  let currentInk = 'sumi';
+
+  /* ---------------- storage (guarded) ---------------- */
+  const store = {
+    get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* file:// may refuse */ } }
+  };
+
+  /* ---------------- small helpers ---------------- */
+  let seed = (Date.now() ^ 0x5f3759df) >>> 0;
+  function rand() { // mulberry32
+    seed = (seed + 0x6D2B79F5) >>> 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
+  function hash2(x, y) {
+    let h = Math.imul(x, 374761393) + Math.imul(y, 668265263);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+  function vnoise(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y);
+    const xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = hash2(xi, yi), b = hash2(xi + 1, yi), c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+
+  /* ================================================================
+     Simulation state
+     ================================================================ */
+  let W = 0, H = 0, DPR = 1;
+  let NX = 0, NY = 0, SX = 0, SY = 0; // velocity grid (with 1-cell border)
+  let R = 2;                          // dye cells per velocity cell
+  let DX = 0, DY = 0;                 // dye grid
+  let cell = 12;                      // CSS px per velocity cell
+  let dyePx = 6;
+  let ITER = 20;
+  let quality = 1;
+  let mobile = false;
+
+  let u, v, uP, vP, p, dv, cu, eu, ev;
+  let D0, D1, D2, T0, T1, T2, M0, M1, M2, VX, VY, S0, S1, S2, GR, F0, F1, F2;
+  let UP = 2, upI, upF, upJ, upG, EM, EKX, EKY;
+  let colI, colF, rowJ, rowF;
+  let img, buf32;
+  let sinX, cosX, sinY, cosY;
+
+  const LUT_N = 2048, LUT_SCALE = 256;
+  const LUT = new Uint8Array(LUT_N);
+  for (let i = 0; i < LUT_N; i++) LUT[i] = Math.round(255 * Math.exp(-i / LUT_SCALE));
+
+  function allocate() {
+    SX = NX + 2; SY = NY + 2;
+    const n = SX * SY;
+    u = new Float32Array(n); v = new Float32Array(n);
+    uP = new Float32Array(n); vP = new Float32Array(n);
+    p = new Float32Array(n); dv = new Float32Array(n); cu = new Float32Array(n);
+    eu = new Float32Array(n); ev = new Float32Array(n);
+    DX = NX * R; DY = NY * R;
+    const m = DX * DY;
+    D0 = new Float32Array(m); D1 = new Float32Array(m); D2 = new Float32Array(m);
+    T0 = new Float32Array(m); T1 = new Float32Array(m); T2 = new Float32Array(m);
+    M0 = new Float32Array(m); M1 = new Float32Array(m); M2 = new Float32Array(m);
+    VX = new Float32Array(m); VY = new Float32Array(m);
+    S0 = new Float32Array(m); S1 = new Float32Array(m); S2 = new Float32Array(m);
+    GR = new Float32Array(m);
+    // paper sizing: the same drop of ink soaks a little differently everywhere
+    for (let b = 0; b < DY; b++) {
+      for (let a = 0; a < DX; a++) {
+        const x = a * dyePx, y = b * dyePx;
+        const g = 0.62 * vnoise(x / 70, y / 70) + 0.28 * vnoise(x / 19 + 40, y / 19 - 11) + 0.1 * hash2(a, b);
+        GR[a + DX * b] = 0.86 + 0.3 * g;
+      }
+    }
+    // near the paper's edge the ink thins away instead of piling against the border
+    EKX = new Float32Array(DX); EKY = new Float32Array(DY);
+    const band = Math.max(4, Math.round(Math.min(DX, DY) * 0.07));
+    for (let a = 0; a < DX; a++) { const e = Math.min(a, DX - 1 - a) / band; EKX[a] = e >= 1 ? 1 : 0.982 + 0.018 * e * e; }
+    for (let b = 0; b < DY; b++) { const e = Math.min(b, DY - 1 - b) / band; EKY[b] = e >= 1 ? 1 : 0.982 + 0.018 * e * e; }
+    colI = new Int32Array(DX); colF = new Float32Array(DX);
+    rowJ = new Int32Array(DY); rowF = new Float32Array(DY);
+    for (let a = 0; a < DX; a++) { const g = (a + 0.5) / R + 0.5; colI[a] = g | 0; colF[a] = g - (g | 0); }
+    for (let b = 0; b < DY; b++) { const g = (b + 0.5) / R + 0.5; rowJ[b] = g | 0; rowF[b] = g - (g | 0); }
+    sinX = new Float32Array(SX); cosX = new Float32Array(SX);
+    sinY = new Float32Array(SY); cosY = new Float32Array(SY);
+    F0 = new Float32Array(m); F1 = new Float32Array(m); F2 = new Float32Array(m);
+    EM = new Uint8Array(m);
+    UP = 2;
+    const OW = DX * UP, OH = DY * UP;
+    upJ = new Int32Array(OW); upG = new Float32Array(OW);
+    upI = new Int32Array(OH); upF = new Float32Array(OH);
+    for (let x = 0; x < OW; x++) { let g = (x + 0.5) / UP - 0.5; if (g < 0) g = 0; upJ[x] = g | 0; upG[x] = g - (g | 0); }
+    for (let y = 0; y < OH; y++) { let g = (y + 0.5) / UP - 0.5; if (g < 0) g = 0; upI[y] = g | 0; upF[y] = g - (g | 0); }
+    inkC.width = OW; inkC.height = OH;
+    img = ictx.createImageData(OW, OH);
+    buf32 = new Uint32Array(img.data.buffer);
+  }
+
+  function setBnd(b, x) {
+    const top = SX * (NY + 1);
+    for (let i = 1; i <= NX; i++) {
+      x[i] = b === 2 ? -x[i + SX] : x[i + SX];
+      x[i + top] = b === 2 ? -x[i + top - SX] : x[i + top - SX];
+    }
+    for (let j = 1; j <= NY; j++) {
+      const r = SX * j;
+      x[r] = b === 1 ? -x[r + 1] : x[r + 1];
+      x[r + NX + 1] = b === 1 ? -x[r + NX] : x[r + NX];
+    }
+    x[0] = 0.5 * (x[1] + x[SX]);
+    x[NX + 1] = 0.5 * (x[NX] + x[NX + 1 + SX]);
+    x[top] = 0.5 * (x[top + 1] + x[top - SX]);
+    x[top + NX + 1] = 0.5 * (x[top + NX] + x[top - SX + NX + 1]);
+  }
+
+  /* ---------------- viscosity (implicit, Gauss–Seidel) ---------------- */
+  function diffuseVel(visc, dt) {
+    const a = visc * dt;
+    if (a <= 0) return;
+    const c = 1 + 4 * a;
+    uP.set(u); vP.set(v);
+    for (let it = 0; it < 3; it++) {
+      for (let j = 1; j <= NY; j++) {
+        let k = 1 + SX * j;
+        for (let i = 1; i <= NX; i++, k++) {
+          u[k] = (uP[k] + a * (u[k - 1] + u[k + 1] + u[k - SX] + u[k + SX])) / c;
+          v[k] = (vP[k] + a * (v[k - 1] + v[k + 1] + v[k - SX] + v[k + SX])) / c;
+        }
+      }
+      setBnd(1, u); setBnd(2, v);
+    }
+  }
+
+  /* ---------------- pressure projection ---------------- */
+  function project() {
+    const U = u, V = v, P = p, Dv = dv, sx = SX, nx = NX, ny = NY, iters = ITER;
+    for (let j = 1; j <= ny; j++) {
+      let k = 1 + sx * j;
+      for (let i = 1; i <= nx; i++, k++) {
+        Dv[k] = -0.5 * (U[k + 1] - U[k - 1] + V[k + sx] - V[k - sx]);
+        P[k] *= 0.92; // warm start from the last frame
+      }
+    }
+    setBnd(0, Dv); setBnd(0, P);
+    for (let it = 0; it < iters; it++) {
+      for (let j = 1; j <= ny; j++) {
+        let k = 1 + sx * j;
+        for (let i = 1; i <= nx; i++, k++) {
+          P[k] = (Dv[k] + P[k - 1] + P[k + 1] + P[k - sx] + P[k + sx]) * 0.25;
+        }
+      }
+      setBnd(0, P);
+    }
+    for (let j = 1; j <= ny; j++) {
+      let k = 1 + sx * j;
+      for (let i = 1; i <= nx; i++, k++) {
+        U[k] -= 0.5 * (P[k + 1] - P[k - 1]);
+        V[k] -= 0.5 * (P[k + sx] - P[k - sx]);
+      }
+    }
+    setBnd(1, U); setBnd(2, V);
+  }
+
+  /* ---------------- semi-Lagrangian self-advection ---------------- */
+  function advectVel(dt) {
+    let t = u; u = uP; uP = t;
+    t = v; v = vP; vP = t;
+    const mx = NX + 0.5, my = NY + 0.5;
+    for (let j = 1; j <= NY; j++) {
+      let k = 1 + SX * j;
+      for (let i = 1; i <= NX; i++, k++) {
+        let x = i - dt * uP[k], y = j - dt * vP[k];
+        if (x < 0.5) x = 0.5; else if (x > mx) x = mx;
+        if (y < 0.5) y = 0.5; else if (y > my) y = my;
+        const i0 = x | 0, j0 = y | 0;
+        const s1 = x - i0, t1 = y - j0, s0 = 1 - s1, t0 = 1 - t1;
+        const q = i0 + SX * j0;
+        u[k] = s0 * (t0 * uP[q] + t1 * uP[q + SX]) + s1 * (t0 * uP[q + 1] + t1 * uP[q + 1 + SX]);
+        v[k] = s0 * (t0 * vP[q] + t1 * vP[q + SX]) + s1 * (t0 * vP[q + 1] + t1 * vP[q + 1 + SX]);
+      }
+    }
+    setBnd(1, u); setBnd(2, v);
+  }
+
+  /* ---------------- vorticity confinement: keeps the curls alive ---------------- */
+  function confine(eps, dt) {
+    const U = u, V = v, C = cu, sx = SX, nx = NX, ny = NY;
+    for (let j = 1; j <= ny; j++) {
+      let k = 1 + sx * j;
+      for (let i = 1; i <= nx; i++, k++) {
+        const c = 0.5 * ((V[k + 1] - V[k - 1]) - (U[k + sx] - U[k - sx]));
+        C[k] = c;
+      }
+    }
+    const e = eps * dt;
+    for (let j = 2; j < ny; j++) {
+      let k = 2 + sx * j;
+      for (let i = 2; i < nx; i++, k++) {
+        const a = C[k + 1], b = C[k - 1], c = C[k + sx], d = C[k - sx];
+        const wx = 0.5 * ((a < 0 ? -a : a) - (b < 0 ? -b : b));
+        const wy = 0.5 * ((c < 0 ? -c : c) - (d < 0 ? -d : d));
+        const w = C[k] * e / (Math.sqrt(wx * wx + wy * wy) + 1e-5);
+        U[k] += wy * w;
+        V[k] -= wx * w;
+      }
+    }
+  }
+
+  /* ---------------- a slow, breathing current (divergence-free) ---------------- */
+  let simTime = 0;
+  function ambient(dt) {
+    if (reduced) return;
+    const A = 0.00018 * dt;
+    const k1 = 0.055, k2 = 0.07, t = simTime;
+    for (let i = 0; i < SX; i++) { sinX[i] = Math.sin(i * k1 + t * 0.0021); cosX[i] = Math.cos(i * k1 + t * 0.0021); }
+    for (let j = 0; j < SY; j++) { sinY[j] = Math.sin(j * k2 - t * 0.0017); cosY[j] = Math.cos(j * k2 - t * 0.0017); }
+    for (let j = 1; j <= NY; j++) {
+      let k = 1 + SX * j;
+      const sy = sinY[j], cy = cosY[j];
+      for (let i = 1; i <= NX; i++, k++) {
+        u[k] += A * sinX[i] * k2 * cy * 12;
+        v[k] -= A * k1 * cosX[i] * sy * 12;
+      }
+    }
+  }
+
+  /* ================================================================
+     Ink drops ("blooms")
+     A drop is a small source: it pours dye outward (a compressible
+     spreading carried only by the ink, as when ink sinks and fans out
+     in real water), while its advancing front sheds alternating
+     vortices into the incompressible water — those are the tendrils.
+     ================================================================ */
+  const blooms = [];
+  for (let i = 0; i < 24; i++) blooms.push({ on: false });
+  const PROF_N = 128, PROF_K = PROF_N / 6.2831853;
+
+  function spawnBloom(cx, cy, inkKey, size, held) {
+    if (mobile) size *= 0.8; // a phone is a smaller sheet: smaller drops
+    let b = null;
+    for (const c of blooms) { if (!c.on) { b = c; break; } }
+    if (!b) { b = blooms[0]; for (const c of blooms) if (c.age > b.age) b = c; }
+    const ink = INKS[inkKey];
+    const scale = 12 / cell; // keep drops the same size in CSS pixels
+    b.on = true;
+    b.x = cx; b.y = cy;
+    b.age = 0; b.flow = 0;
+    b.size = size;
+    b.q0 = (5.2 + rand() * 2.2) * size * size * scale * scale;
+    b.tau = 20 + rand() * 10;
+    b.rc = (0.75 + 0.25 * size) * scale;
+    b.k = 5 + Math.floor(rand() * 5);
+    b.ph = rand() * 6.283;
+    b.lobe = 0.35 + rand() * 0.35;
+    // an irregular angular profile: the ink pushes out in feathered fingers
+    if (!b.prof) b.prof = new Float32Array(PROF_N);
+    {
+      const f3 = 11 + Math.floor(rand() * 9);
+      const p1 = rand() * 6.283, p2 = rand() * 6.283, p3 = rand() * 6.283, p4 = rand() * 6.283;
+      let mn = 1e9, mx = -1e9;
+      for (let i = 0; i < PROF_N; i++) {
+        const th = i / PROF_N * 6.2831853;
+        const n = Math.sin(b.k * th + p1) + 0.62 * Math.sin((2 * b.k + 1) * th + p2) + 0.42 * Math.sin(f3 * th + p3) + 0.5 * Math.sin(2 * th + p4);
+        b.prof[i] = n;
+        if (n < mn) mn = n; if (n > mx) mx = n;
+      }
+      let mean = 0;
+      for (let i = 0; i < PROF_N; i++) {
+        const t = clamp((b.prof[i] - mn) / (mx - mn + 1e-9), 0, 1); // float32 rounding can dip below mn
+        b.prof[i] = 0.16 + 2.2 * Math.pow(t, 2.3);
+        mean += b.prof[i];
+      }
+      mean /= PROF_N;
+      for (let i = 0; i < PROF_N; i++) b.prof[i] /= mean;
+    }
+    // a second, signed profile: where the advancing front sheds its vortex pairs
+    if (!b.shed) b.shed = new Float32Array(PROF_N);
+    {
+      const fr = [3 + Math.floor(rand() * 4), 6 + Math.floor(rand() * 5), 9 + Math.floor(rand() * 6), 13 + Math.floor(rand() * 5)];
+      const am = [1, 0.7 + rand() * 0.4, 0.45 + rand() * 0.4, 0.3 + rand() * 0.3];
+      const ph = [rand() * 6.283, rand() * 6.283, rand() * 6.283, rand() * 6.283];
+      let mx = 1e-6;
+      for (let i = 0; i < PROF_N; i++) {
+        const th = i / PROF_N * 6.2831853;
+        let n = 0;
+        for (let q = 0; q < 4; q++) n += am[q] * Math.sin(fr[q] * th + ph[q]);
+        b.shed[i] = n;
+        if (Math.abs(n) > mx) mx = Math.abs(n);
+      }
+      for (let i = 0; i < PROF_N; i++) b.shed[i] /= mx;
+    }
+    b.twist = (rand() - 0.5) * 0.12;
+    b.fa = (0.08 + rand() * 0.07) * size;
+    b.spin = (rand() - 0.5) * 0.05;
+    b.area = Math.PI * b.rc * b.rc;
+    b.cs = ink.strength * (0.9 + rand() * 0.2);
+    b.abs = ink.abs;
+    b.held = !!held;
+    b.holdT = 0;
+    const wa = rand() * 6.283, ws = (0.012 + rand() * 0.02) * scale;
+    b.vx = Math.cos(wa) * ws; b.vy = Math.sin(wa) * ws; b.turn = (rand() - 0.5) * 0.02;
+    // an initial bead of ink so the drop is visible from the very first frame
+    stampDye(cx, cy, b.rc * 1.1, b.abs, b.cs * 1.05, 1);
+    // the impact leaves a few stray eddies nearby, so no two blooms unfold alike
+    const kicks = 3 + Math.floor(rand() * 3);
+    const est = Math.sqrt(b.q0 * b.tau / Math.PI);
+    for (let q = 0; q < kicks; q++) {
+      const a = rand() * 6.283, d = est * (0.5 + rand() * 1.1);
+      vortex(cx + Math.cos(a) * d, cy + Math.sin(a) * d, (1.2 + rand() * 1.8) * scale, (rand() < 0.5 ? -1 : 1) * (0.1 + rand() * 0.16) * size);
+    }
+    return b;
+  }
+
+  function vortex(cx, cy, rad, s) {
+    const box = Math.ceil(rad * 3);
+    const i0 = Math.max(1, Math.floor(cx - box)), i1 = Math.min(NX, Math.ceil(cx + box));
+    const j0 = Math.max(1, Math.floor(cy - box)), j1 = Math.min(NY, Math.ceil(cy + box));
+    const inv = 1 / (rad * rad);
+    for (let j = j0; j <= j1; j++) {
+      const dy = j - cy;
+      let k = i0 + SX * j;
+      for (let i = i0; i <= i1; i++, k++) {
+        const dx = i - cx;
+        const g = Math.exp(-(dx * dx + dy * dy) * inv) * s;
+        u[k] -= dy * g / rad;
+        v[k] += dx * g / rad;
+      }
+    }
+  }
+
+  function stampDye(cx, cy, rad, abs, conc, mix) {
+    // cx, cy, rad in velocity-cell units -> dye cells
+    const ax = (cx - 0.5) * R, ay = (cy - 0.5) * R, rd = rad * R;
+    const r2 = rd * rd;
+    const a0 = Math.max(0, Math.floor(ax - rd * 2.5)), a1 = Math.min(DX - 1, Math.ceil(ax + rd * 2.5));
+    const b0 = Math.max(0, Math.floor(ay - rd * 2.5)), b1 = Math.min(DY - 1, Math.ceil(ay + rd * 2.5));
+    const t0 = abs[0] * conc, t1 = abs[1] * conc, t2 = abs[2] * conc;
+    for (let b = b0; b <= b1; b++) {
+      const dy = b + 0.5 - ay;
+      for (let a = a0; a <= a1; a++) {
+        const dx = a + 0.5 - ax;
+        const w = Math.exp(-(dx * dx + dy * dy) / r2) * mix;
+        if (w < 0.004) continue;
+        const k = a + DX * b;
+        D0[k] += (t0 - D0[k]) * w;
+        D1[k] += (t1 - D1[k]) * w;
+        D2[k] += (t2 - D2[k]) * w;
+      }
+    }
+  }
+
+  function updateBlooms(dt) {
+    for (const b of blooms) {
+      if (!b.on) continue;
+      b.age += dt;
+      if (b.held) {
+        b.holdT += dt;
+        if (b.holdT > 200) b.held = false;
+      } else {
+        b.flow += dt;
+      }
+      const Q = b.q0 * (b.held ? 0.75 : Math.exp(-b.flow / b.tau));
+      b.area += Q * dt;
+      if (Q < 0.035 && b.age > 30) { b.on = false; continue; }
+
+      const rf = Math.sqrt(b.area / Math.PI);
+      const reach = Math.min(Math.max(NX, NY) * 0.5, rf * 2.2 + 4);
+      const i0 = Math.max(1, Math.floor(b.x - reach)), i1 = Math.min(NX, Math.ceil(b.x + reach));
+      const j0 = Math.max(1, Math.floor(b.y - reach)), j1 = Math.min(NY, Math.ceil(b.y + reach));
+      const qf = Q / (2 * Math.PI);
+      const rc2 = b.rc * b.rc;
+      const reach2 = reach * reach;
+      const fa = b.fa * Math.exp(-b.age / 45) * dt;
+      const ringW = 1 / (1.2 + rf * 0.12);
+      for (let j = j0; j <= j1; j++) {
+        const dy = j - b.y;
+        let k = i0 + SX * j;
+        for (let i = i0; i <= i1; i++, k++) {
+          const dx = i - b.x;
+          const r2 = dx * dx + dy * dy;
+          if (r2 > reach2) continue;
+          const th = Math.atan2(dy, dx);
+          const r = Math.sqrt(r2) + 1e-4;
+          let pa = ((th + b.twist * r) * PROF_K) % PROF_N;
+          if (pa < 0) pa += PROF_N;
+          const pi0 = pa | 0, pf = pa - pi0;
+          const mod = b.prof[pi0] * (1 - pf) + b.prof[(pi0 + 1) % PROF_N] * pf;
+          const f = qf * mod / (r2 + rc2) * Math.exp(-r2 / reach2 * 1.6);
+          eu[k] += dx * f + b.spin * -dy * f * 6;
+          ev[k] += dy * f + b.spin * dx * f * 6;
+          // front shedding: irregular tangential pushes where the ink meets clear water
+          const ring = (r - rf) * ringW;
+          const ea = ring * ring;
+          if (ea < 9) {
+            let sa = th * PROF_K;
+            if (sa < 0) sa += PROF_N;
+            const si = sa | 0, sf = sa - si;
+            const sh = b.shed[si % PROF_N] * (1 - sf) + b.shed[(si + 1) % PROF_N] * sf;
+            const g = Math.exp(-ea) * fa * sh;
+            u[k] += -dy / r * g;
+            v[k] += dx / r * g;
+          }
+        }
+      }
+      // the source drifts a little and keeps releasing ink that pales as the drop empties
+      if (!b.held) {
+        b.x += b.vx * dt; b.y += b.vy * dt;
+        const c = Math.cos(b.turn * dt), s = Math.sin(b.turn * dt);
+        const nvx = b.vx * c - b.vy * s; b.vy = b.vx * s + b.vy * c; b.vx = nvx;
+      }
+      const pulse = 0.82 + 0.18 * Math.sin(b.age * 0.19 + b.ph);
+      const conc = b.cs * pulse * (b.held ? 0.85 : 0.3 + 0.7 * Math.exp(-b.flow / 24));
+      stampDye(b.x, b.y, b.rc, b.abs, conc, Math.min(1, 0.55 * dt) * clamp(Q / b.q0 * 1.4, 0, 1));
+    }
+  }
+
+  /* ---------------- stirring with the pointer ---------------- */
+  const stirs = [];
+  function applyStirs() {
+    if (!stirs.length) return;
+    const rad = 2.6 * (12 / cell) ** 0.5;
+    const inv = 1 / (rad * rad);
+    const box = Math.ceil(rad * 2.6);
+    for (const s of stirs) {
+      const x0 = s[0] / cell + 0.5, y0 = s[1] / cell + 0.5, x1 = s[2] / cell + 0.5, y1 = s[3] / cell + 0.5;
+      const ddx = x1 - x0, ddy = y1 - y0;
+      const len = Math.hypot(ddx, ddy);
+      if (len < 1e-4) continue;
+      const n = Math.max(1, Math.ceil(len / 0.8));
+      const gain = 0.55 / n;
+      const fx = clamp(ddx, -6, 6) * gain, fy = clamp(ddy, -6, 6) * gain;
+      for (let q = 1; q <= n; q++) {
+        const cx = x0 + ddx * q / n, cy = y0 + ddy * q / n;
+        const i0 = Math.max(1, Math.floor(cx - box)), i1 = Math.min(NX, Math.ceil(cx + box));
+        const j0 = Math.max(1, Math.floor(cy - box)), j1 = Math.min(NY, Math.ceil(cy + box));
+        for (let j = j0; j <= j1; j++) {
+          const dy = j - cy;
+          let k = i0 + SX * j;
+          for (let i = i0; i <= i1; i++, k++) {
+            const dx = i - cx;
+            const w = Math.exp(-(dx * dx + dy * dy) * inv);
+            u[k] += fx * w; v[k] += fy * w;
+          }
+        }
+      }
+    }
+    stirs.length = 0;
+  }
+
+  /* ---------------- dye: advection + diffusion ---------------- */
+  /* MacCormack advection: a semi-Lagrangian step, a reverse step to
+     measure its own smearing, and a limited correction — keeps thin
+     filaments of pigment sharp instead of letting them fog over. */
+  function advectDye(dt) {
+    const mxA = DX - 1.001, mxB = DY - 1.001;
+    const dr = dt * R;
+    // 1. water velocity (plus the ink's own spreading) at every dye cell, as a displacement
+    for (let b = 0; b < DY; b++) {
+      const jj = rowJ[b], fy = rowF[b], gy = 1 - fy;
+      const rowBase = SX * jj;
+      let idx = DX * b;
+      for (let a = 0; a < DX; a++, idx++) {
+        const ii = colI[a], fx = colF[a], gx = 1 - fx;
+        const q = ii + rowBase;
+        const w00 = gx * gy, w10 = fx * gy, w01 = gx * fy, w11 = fx * fy;
+        VX[idx] = dr * (w00 * (u[q] + eu[q]) + w10 * (u[q + 1] + eu[q + 1]) + w01 * (u[q + SX] + eu[q + SX]) + w11 * (u[q + SX + 1] + eu[q + SX + 1]));
+        VY[idx] = dr * (w00 * (v[q] + ev[q]) + w10 * (v[q + 1] + ev[q + 1]) + w01 * (v[q + SX] + ev[q + SX]) + w11 * (v[q + SX + 1] + ev[q + SX + 1]));
+      }
+    }
+    // 2. forward (backtraced) step: D -> T
+    for (let b = 0, idx = 0; b < DY; b++) {
+      for (let a = 0; a < DX; a++, idx++) {
+        let x = a - VX[idx], y = b - VY[idx];
+        if (x < 0) x = 0; else if (x > mxA) x = mxA;
+        if (y < 0) y = 0; else if (y > mxB) y = mxB;
+        const x0 = x | 0, y0 = y | 0, sx = x - x0, sy = y - y0, s = x0 + DX * y0;
+        const a00 = (1 - sx) * (1 - sy), a10 = sx * (1 - sy), a01 = (1 - sx) * sy, a11 = sx * sy;
+        T0[idx] = a00 * D0[s] + a10 * D0[s + 1] + a01 * D0[s + DX] + a11 * D0[s + DX + 1];
+        T1[idx] = a00 * D1[s] + a10 * D1[s + 1] + a01 * D1[s + DX] + a11 * D1[s + DX + 1];
+        T2[idx] = a00 * D2[s] + a10 * D2[s + 1] + a01 * D2[s + DX] + a11 * D2[s + DX + 1];
+      }
+    }
+    // 3. reverse step: T -> M (where would the result have come back to?)
+    for (let b = 0, idx = 0; b < DY; b++) {
+      for (let a = 0; a < DX; a++, idx++) {
+        let x = a + VX[idx], y = b + VY[idx];
+        if (x < 0) x = 0; else if (x > mxA) x = mxA;
+        if (y < 0) y = 0; else if (y > mxB) y = mxB;
+        const x0 = x | 0, y0 = y | 0, sx = x - x0, sy = y - y0, s = x0 + DX * y0;
+        const a00 = (1 - sx) * (1 - sy), a10 = sx * (1 - sy), a01 = (1 - sx) * sy, a11 = sx * sy;
+        M0[idx] = a00 * T0[s] + a10 * T0[s + 1] + a01 * T0[s + DX] + a11 * T0[s + DX + 1];
+        M1[idx] = a00 * T1[s] + a10 * T1[s + 1] + a01 * T1[s + DX] + a11 * T1[s + DX + 1];
+        M2[idx] = a00 * T2[s] + a10 * T2[s + 1] + a01 * T2[s + DX] + a11 * T2[s + DX + 1];
+      }
+    }
+    // 4. corrected value, limited to the range of the cells it was drawn from
+    for (let b = 0, idx = 0; b < DY; b++) {
+      const kr = 0.99994 * EKY[b];
+      for (let a = 0; a < DX; a++, idx++) {
+        const keep = kr * EKX[a];
+        let x = a - VX[idx], y = b - VY[idx];
+        if (x < 0) x = 0; else if (x > mxA) x = mxA;
+        if (y < 0) y = 0; else if (y > mxB) y = mxB;
+        const s = (x | 0) + DX * (y | 0);
+        let c0 = D0[s], c1 = D0[s + 1], c2 = D0[s + DX], c3 = D0[s + DX + 1];
+        let lo = c0 < c1 ? c0 : c1, hi = c0 > c1 ? c0 : c1;
+        lo = lo < c2 ? lo : c2; hi = hi > c2 ? hi : c2; lo = lo < c3 ? lo : c3; hi = hi > c3 ? hi : c3;
+        let n = T0[idx] + 0.5 * (D0[idx] - M0[idx]);
+        M0[idx] = (n < lo ? lo : n > hi ? hi : n) * keep;
+        c0 = D1[s]; c1 = D1[s + 1]; c2 = D1[s + DX]; c3 = D1[s + DX + 1];
+        lo = c0 < c1 ? c0 : c1; hi = c0 > c1 ? c0 : c1;
+        lo = lo < c2 ? lo : c2; hi = hi > c2 ? hi : c2; lo = lo < c3 ? lo : c3; hi = hi > c3 ? hi : c3;
+        n = T1[idx] + 0.5 * (D1[idx] - M1[idx]);
+        M1[idx] = (n < lo ? lo : n > hi ? hi : n) * keep;
+        c0 = D2[s]; c1 = D2[s + 1]; c2 = D2[s + DX]; c3 = D2[s + DX + 1];
+        lo = c0 < c1 ? c0 : c1; hi = c0 > c1 ? c0 : c1;
+        lo = lo < c2 ? lo : c2; hi = hi > c2 ? hi : c2; lo = lo < c3 ? lo : c3; hi = hi > c3 ? hi : c3;
+        n = T2[idx] + 0.5 * (D2[idx] - M2[idx]);
+        M2[idx] = (n < lo ? lo : n > hi ? hi : n) * keep;
+      }
+    }
+    let t = D0; D0 = M0; M0 = t;
+    t = D1; D1 = M1; M1 = t;
+    t = D2; D2 = M2; M2 = t;
+  }
+
+  function diffuseDye(k) {
+    // explicit molecular diffusion — the soft feathering of pigment into water
+    let t = D0; D0 = T0; T0 = t;
+    t = D1; D1 = T1; T1 = t;
+    t = D2; D2 = T2; T2 = t;
+    const c = 1 - 4 * k;
+    for (let b = 0; b < DY; b++) {
+      const up = b > 0 ? -DX : 0, dn = b < DY - 1 ? DX : 0;
+      let idx = DX * b;
+      for (let a = 0; a < DX; a++, idx++) {
+        const l = a > 0 ? -1 : 0, r = a < DX - 1 ? 1 : 0;
+        D0[idx] = c * T0[idx] + k * (T0[idx + l] + T0[idx + r] + T0[idx + up] + T0[idx + dn]);
+        D1[idx] = c * T1[idx] + k * (T1[idx + l] + T1[idx + r] + T1[idx + up] + T1[idx + dn]);
+        D2[idx] = c * T2[idx] + k * (T2[idx + l] + T2[idx + r] + T2[idx + up] + T2[idx + dn]);
+      }
+    }
+  }
+
+  /* ---------------- stilling ---------------- */
+  let stilling = false;
+  let stillStart = 0;
+  function stillStep(dt) {
+    const f = Math.pow(0.978, dt), fs = Math.pow(0.972, dt), fv = Math.pow(0.94, dt);
+    let total = 0;
+    for (let i = 0, m = D0.length; i < m; i++) {
+      D0[i] *= f; D1[i] *= f; D2[i] *= f;
+      S0[i] *= fs; S1[i] *= fs; S2[i] *= fs;
+      total += D0[i];
+    }
+    for (let i = 0, n = u.length; i < n; i++) { u[i] *= fv; v[i] *= fv; }
+    for (const b of blooms) b.on = false;
+    if (total / D0.length < 0.0006 && performance.now() - stillStart > 1500) {
+      D0.fill(0); D1.fill(0); D2.fill(0); S0.fill(0); S1.fill(0); S2.fill(0);
+      u.fill(0); v.fill(0); p.fill(0);
+      stilling = false;
+      stillBtn.classList.remove('is-stilling');
+      stillLabel.textContent = 'Still the water';
+      announce('The water is still.');
+      lastActivity = performance.now();
+    }
+  }
+
+  /* ---------------- one simulation step ---------------- */
+  function step(dt) {
+    simTime += dt;
+    eu.fill(0); ev.fill(0);
+    ambient(dt);
+    applyStirs();
+    updateBlooms(dt);
+    confine(reduced ? 0.06 : 0.11, dt);
+    diffuseVel(0.02, dt);
+    advectVel(dt);
+    project();
+    const damp = Math.pow(0.9965, dt);
+    for (let i = 0, n = u.length; i < n; i++) {
+      let x = u[i] * damp, y = v[i] * damp;
+      if (!(x <= 4 && x >= -4)) x = x > 4 ? 4 : x < -4 ? -4 : 0;
+      if (!(y <= 4 && y >= -4)) y = y > 4 ? 4 : y < -4 ? -4 : 0;
+      u[i] = x; v[i] = y;
+    }
+    advectDye(dt);
+    diffuseDye(0.007);
+    if (stilling) stillStep(dt);
+  }
+
+  /* ================================================================
+     Rendering the ink: absorbance × paper sizing, dark tidelines where
+     the pigment front stalls, and faint stains the paper keeps.
+     ================================================================ */
+  function renderInk() {
+    const L = LUT, top = LUT_N - 1;
+    for (let b = 0; b < DY; b++) {
+      const up = b > 0 ? -DX : 0, dn = b < DY - 1 ? DX : 0;
+      let idx = DX * b;
+      for (let a = 0; a < DX; a++, idx++) {
+        const a0 = D0[idx], a1 = D1[idx], a2 = D2[idx];
+        const s = a0 + a1 + a2;
+        let r0 = S0[idx], r1 = S1[idx], r2 = S2[idx];
+        if (s > 0.004) {
+          const l = a > 0 ? idx - 1 : idx, r = a < DX - 1 ? idx + 1 : idx;
+          const gx = (D0[r] + D1[r] + D2[r]) - (D0[l] + D1[l] + D2[l]);
+          const gy = (D0[idx + dn] + D1[idx + dn] + D2[idx + dn]) - (D0[idx + up] + D1[idx + up] + D2[idx + up]);
+          const g = Math.sqrt(gx * gx + gy * gy);
+          // tideline: a thin iso-line where the pigment front thins out against clear water
+          const band = (s - 0.26) * 7;
+          let tide = g * 2.4;
+          tide = (tide > 1 ? 1 : tide) * Math.exp(-band * band);
+          // a gentler darkening along steep inner edges, where pigment piles up
+          let rim = (g - 0.12) * 1.1;
+          rim = rim < 0 ? 0 : rim > 1 ? 1 : rim;
+          rim *= s < 1.2 ? 1 : s > 3.6 ? 0 : (3.6 - s) / 2.4;
+          const inv = 1 / (s + 0.08);
+          const gr = GR[idx];
+          const boost = (1 + 0.28 * rim) * gr;
+          const edge = 0.5 * tide * inv;
+          r0 += a0 * boost + a0 * edge;
+          r1 += a1 * boost + a1 * edge;
+          r2 += a2 * boost + a2 * edge;
+          // paper remembers where the ink front lingered
+          if (tide > 0.3 && !stilling && S0[idx] + S1[idx] + S2[idx] < 0.3) {
+            const k = 0.0035 * tide * inv;
+            S0[idx] += a0 * k; S1[idx] += a1 * k; S2[idx] += a2 * k;
+          }
+        }
+        F0[idx] = r0; F1[idx] = r1; F2[idx] = r2;
+        EM[idx] = r0 + r1 + r2 < 0.004 ? 1 : 0;
+      }
+    }
+    // upsample absorbance (not colour) before Beer–Lambert: softer gradients, crisper edges
+    const OW = DX * UP, OH = DY * UP;
+    for (let y = 0, o = 0; y < OH; y++) {
+      const y0 = upI[y], fy = upF[y], gy = 1 - fy;
+      const y1 = y0 < DY - 1 ? y0 + 1 : y0;
+      const ra = DX * y0, rb = DX * y1;
+      for (let x = 0; x < OW; x++, o++) {
+        const x0 = upJ[x], fx = upG[x], gx = 1 - fx;
+        const x1 = x0 < DX - 1 ? x0 + 1 : x0;
+        const w00 = gx * gy, w10 = fx * gy, w01 = gx * fy, w11 = fx * fy;
+        const q00 = ra + x0, q10 = ra + x1, q01 = rb + x0, q11 = rb + x1;
+        if (EM[q00] & EM[q10] & EM[q01] & EM[q11]) { buf32[o] = 0xffffffff; continue; }
+        let i0 = ((w00 * F0[q00] + w10 * F0[q10] + w01 * F0[q01] + w11 * F0[q11]) * LUT_SCALE) | 0;
+        let i1 = ((w00 * F1[q00] + w10 * F1[q10] + w01 * F1[q01] + w11 * F1[q11]) * LUT_SCALE) | 0;
+        let i2 = ((w00 * F2[q00] + w10 * F2[q10] + w01 * F2[q01] + w11 * F2[q11]) * LUT_SCALE) | 0;
+        if (i0 > top) i0 = top; if (i1 > top) i1 = top; if (i2 > top) i2 = top;
+        buf32[o] = 0xff000000 | (L[i2] << 16) | (L[i1] << 8) | L[i0];
+      }
+    }
+    ictx.putImageData(img, 0, 0);
+  }
+
+  /* ================================================================
+     Washi paper, made once per size: cloud-like formation, kozo fibres,
+     bark flecks, fine grain and a soft deckle shadow.
+     ================================================================ */
+  function makePaper() {
+    const w = Math.max(1, Math.round(W * DPR)), h = Math.max(1, Math.round(H * DPR));
+    paperC.width = w; paperC.height = h;
+    const g = pctx;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'source-over';
+    g.globalAlpha = 1;
+    g.fillStyle = '#f4efe6';
+    g.fillRect(0, 0, w, h);
+
+    // formation clouds: two octaves of soft blotches, upscaled with smoothing
+    const cloud = (step, alpha, sd) => {
+      const mw = Math.ceil(w / step) + 2, mh = Math.ceil(h / step) + 2;
+      const m = document.createElement('canvas');
+      m.width = mw; m.height = mh;
+      const mc = m.getContext('2d');
+      const id = mc.createImageData(mw, mh);
+      const d = id.data;
+      for (let y = 0; y < mh; y++) {
+        for (let x = 0; x < mw; x++) {
+          const n = vnoise(x * 0.55 + sd, y * 0.55 - sd) * 0.7 + hash2(x + sd * 7, y) * 0.3;
+          const o = (x + y * mw) * 4;
+          if (n > 0.5) { d[o] = 255; d[o + 1] = 252; d[o + 2] = 244; d[o + 3] = (n - 0.5) * 2 * alpha * 255; }
+          else { d[o] = 196; d[o + 1] = 182; d[o + 2] = 158; d[o + 3] = (0.5 - n) * 2 * alpha * 255; }
+        }
+      }
+      mc.putImageData(id, 0, 0);
+      g.imageSmoothingEnabled = true;
+      g.imageSmoothingQuality = 'high';
+      g.drawImage(m, 0, 0, mw, mh, -step, -step, mw * step, mh * step);
+    };
+    cloud(90 * DPR, 0.2, 3);
+    cloud(26 * DPR, 0.12, 17);
+
+    // fine grain tile
+    const tile = document.createElement('canvas');
+    tile.width = tile.height = 160;
+    const tc = tile.getContext('2d');
+    const tid = tc.createImageData(160, 160);
+    const td = tid.data;
+    for (let i = 0; i < td.length; i += 4) {
+      const n = rand();
+      if (n > 0.5) { td[i] = 255; td[i + 1] = 253; td[i + 2] = 248; td[i + 3] = (n - 0.5) * 70; }
+      else { td[i] = 150; td[i + 1] = 132; td[i + 2] = 104; td[i + 3] = (0.5 - n) * 44; }
+    }
+    tc.putImageData(tid, 0, 0);
+    g.fillStyle = g.createPattern(tile, 'repeat');
+    g.fillRect(0, 0, w, h);
+
+    // kozo fibres: long, translucent, gently wandering
+    const area = (w * h) / (DPR * DPR);
+    const nFib = Math.round(area / 820);
+    g.lineCap = 'round';
+    for (let f = 0; f < nFib; f++) {
+      const long = rand() < 0.08;
+      const len = (long ? 140 + rand() * 260 : 14 + rand() * rand() * 110) * DPR;
+      const x = rand() * w, y = rand() * h;
+      const ang = rand() * Math.PI * 2;
+      const ex = x + Math.cos(ang) * len, ey = y + Math.sin(ang) * len;
+      const bend = (rand() - 0.5) * len * 0.5;
+      const cx = (x + ex) / 2 - Math.sin(ang) * bend, cy = (y + ey) / 2 + Math.cos(ang) * bend;
+      const light = rand() < 0.62;
+      g.strokeStyle = light ? 'rgba(255,253,247,' + (0.35 + rand() * 0.4).toFixed(3) + ')'
+                            : 'rgba(158,138,106,' + (0.08 + rand() * 0.14).toFixed(3) + ')';
+      g.lineWidth = (long ? 0.5 + rand() * 0.7 : 0.35 + rand() * 1.1) * DPR;
+      g.beginPath();
+      g.moveTo(x, y);
+      g.quadraticCurveTo(cx, cy, ex, ey);
+      g.stroke();
+    }
+    // bark flecks — tiny dark inclusions typical of hand-made kozo sheets
+    const nFleck = Math.round(area / 16000);
+    for (let f = 0; f < nFleck; f++) {
+      const x = rand() * w, y = rand() * h;
+      g.fillStyle = 'rgba(96,78,52,' + (0.18 + rand() * 0.3).toFixed(3) + ')';
+      g.beginPath();
+      g.ellipse(x, y, (0.4 + rand() * 1.4) * DPR, (0.3 + rand() * 0.6) * DPR, rand() * 3.14, 0, Math.PI * 2);
+      g.fill();
+    }
+    // deckle shadow
+    const vg = g.createRadialGradient(w * 0.5, h * 0.48, Math.min(w, h) * 0.3, w * 0.5, h * 0.5, Math.hypot(w, h) * 0.62);
+    vg.addColorStop(0, 'rgba(120,98,64,0)');
+    vg.addColorStop(1, 'rgba(120,98,64,0.14)');
+    g.fillStyle = vg;
+    g.fillRect(0, 0, w, h);
+  }
+
+  /* ================================================================
+     Layout / resize — dye is resampled so the painting survives
+     ================================================================ */
+  function layout(first) {
+    const w = window.innerWidth, h = window.innerHeight;
+    const oldW = W, oldH = H;
+    const old = first ? null : { D0, D1, D2, S0, S1, S2, DX, DY, dyePx };
+    W = w; H = h;
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    mobile = Math.min(w, h) < 620 || (coarsePointer && Math.min(w, h) < 900);
+    const target = (mobile ? 7 : 10) / quality;
+    NX = clamp(Math.round(w / target), mobile ? 30 : 60, mobile ? 72 : 150);
+    cell = w / NX;
+    NY = Math.max(10, Math.round(h / cell));
+    R = 2;
+    dyePx = cell / R;
+    ITER = mobile ? 14 : 22;
+    allocate();
+    fxC.width = Math.round(w * DPR); fxC.height = Math.round(h * DPR);
+    makePaper();
+    // a phone-sized sheet cut from a desktop painting would only be a blur: begin a fresh one
+    const fresh = old && (W * H < 0.45 * oldW * oldH || W * H > 2.2 * oldW * oldH);
+    if (old && !fresh) resample(old, oldW, oldH);
+    for (const b of blooms) b.on = false;
+    const c1 = document.createElement('span'), c2 = document.createElement('span');
+    c1.textContent = 'suigetsu · moon in water';
+    c2.textContent = 'stable fluids · ' + NX + ' × ' + NY;
+    colophon.replaceChildren(c1, c2);
+    if (fresh && !stilling) playOpening();
+    renderInk();
+  }
+
+  function resample(old, ow, oh) {
+    // keep the composition centred and proportionate across a size change
+    const s = clamp(Math.min(W, H) / Math.max(1, Math.min(ow, oh)), 0.72, 1.4);
+    const inv = 1 / s;
+    for (let b = 0; b < DY; b++) {
+      const y = (b + 0.5) * dyePx;
+      const oy = oh / 2 + (y - H / 2) * inv;
+      const fy = oy / old.dyePx - 0.5;
+      for (let a = 0; a < DX; a++) {
+        const x = (a + 0.5) * dyePx;
+        const ox = ow / 2 + (x - W / 2) * inv;
+        const fx = ox / old.dyePx - 0.5;
+        if (fx < 0 || fy < 0 || fx >= old.DX - 1 || fy >= old.DY - 1) continue;
+        const x0 = fx | 0, y0 = fy | 0, sx = fx - x0, sy = fy - y0;
+        const q = x0 + old.DX * y0;
+        const w00 = (1 - sx) * (1 - sy), w10 = sx * (1 - sy), w01 = (1 - sx) * sy, w11 = sx * sy;
+        const k = a + DX * b;
+        D0[k] = w00 * old.D0[q] + w10 * old.D0[q + 1] + w01 * old.D0[q + old.DX] + w11 * old.D0[q + old.DX + 1];
+        D1[k] = w00 * old.D1[q] + w10 * old.D1[q + 1] + w01 * old.D1[q + old.DX] + w11 * old.D1[q + old.DX + 1];
+        D2[k] = w00 * old.D2[q] + w10 * old.D2[q + 1] + w01 * old.D2[q + old.DX] + w11 * old.D2[q + old.DX + 1];
+        S0[k] = w00 * old.S0[q] + w10 * old.S0[q + 1] + w01 * old.S0[q + old.DX] + w11 * old.S0[q + old.DX + 1];
+        S1[k] = w00 * old.S1[q] + w10 * old.S1[q + 1] + w01 * old.S1[q + old.DX] + w11 * old.S1[q + old.DX + 1];
+        S2[k] = w00 * old.S2[q] + w10 * old.S2[q + 1] + w01 * old.S2[q + old.DX] + w11 * old.S2[q + old.DX + 1];
+      }
+    }
+  }
+
+  /* ================================================================
+     Overlay: ripples, the falling droplet, the brush-tip cursor
+     ================================================================ */
+  const ripples = [];
+  for (let i = 0; i < 16; i++) ripples.push({ on: false });
+  function addRipple(x, y, size, rgb) {
+    if (reduced) return;
+    let r = ripples.find(q => !q.on);
+    if (!r) r = ripples[0];
+    r.on = true; r.x = x; r.y = y; r.t = 0; r.size = size; r.rgb = rgb;
+  }
+
+  let falling = null; // {x, y, t, dur, ink, size}
+  const cursor = { x: -99, y: -99, show: false, down: false, press: 0 };
+
+  function drawFx(dtMs) {
+    const g = fctx;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, W, H);
+    for (const r of ripples) {
+      if (!r.on) continue;
+      r.t += dtMs / 1700;
+      if (r.t >= 1) { r.on = false; continue; }
+      const e = 1 - Math.pow(1 - r.t, 3);
+      const fade = (1 - r.t) * (1 - r.t);
+      for (let q = 0; q < 3; q++) {
+        const rad = (8 + e * 120 * r.size) * (1 - q * 0.2) - q * 6;
+        if (rad <= 1) continue;
+        g.beginPath();
+        g.arc(r.x, r.y, rad, 0, Math.PI * 2);
+        g.lineWidth = 1.6 - q * 0.4;
+        g.strokeStyle = 'rgba(' + r.rgb[0] + ',' + r.rgb[1] + ',' + r.rgb[2] + ',' + (0.16 * fade * (1 - q * 0.3)).toFixed(3) + ')';
+        g.stroke();
+        g.beginPath();
+        g.arc(r.x - 0.6, r.y - 1.1, rad + 1.4, Math.PI * 1.05, Math.PI * 1.95);
+        g.lineWidth = 1.1;
+        g.strokeStyle = 'rgba(255,255,252,' + (0.55 * fade * (1 - q * 0.3)).toFixed(3) + ')';
+        g.stroke();
+      }
+    }
+    if (falling) {
+      falling.t += dtMs / falling.dur;
+      const t = Math.min(1, falling.t);
+      const e = t * t; // accelerating fall
+      const rgb = INKS[falling.ink].rgb;
+      // the shadow sharpens as the drop nears the water
+      const sr = (26 - 20 * e) * falling.size;
+      const sg = g.createRadialGradient(falling.x + 5 * (1 - e), falling.y + 7 * (1 - e), 0, falling.x + 5 * (1 - e), falling.y + 7 * (1 - e), sr);
+      sg.addColorStop(0, 'rgba(60,48,30,' + (0.05 + 0.2 * e).toFixed(3) + ')');
+      sg.addColorStop(1, 'rgba(60,48,30,0)');
+      g.fillStyle = sg;
+      g.beginPath();
+      g.arc(falling.x + 5 * (1 - e), falling.y + 7 * (1 - e), sr, 0, Math.PI * 2);
+      g.fill();
+      // the drop itself, seen from above, shrinking as it falls away from us
+      const dr = (11 - 7.5 * e) * falling.size;
+      const dx = falling.x - 18 * (1 - e), dy = falling.y - 26 * (1 - e);
+      g.globalAlpha = Math.min(1, t * 3);
+      const dg = g.createRadialGradient(dx - dr * 0.35, dy - dr * 0.4, dr * 0.1, dx, dy, dr);
+      dg.addColorStop(0, 'rgba(255,255,255,0.75)');
+      dg.addColorStop(0.18, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.85)');
+      dg.addColorStop(1, 'rgba(' + (rgb[0] * 0.7 | 0) + ',' + (rgb[1] * 0.7 | 0) + ',' + (rgb[2] * 0.7 | 0) + ',0.95)');
+      g.fillStyle = dg;
+      g.beginPath();
+      g.arc(dx, dy, dr, 0, Math.PI * 2);
+      g.fill();
+      g.globalAlpha = 1;
+      if (falling.t >= 1) {
+        const f = falling;
+        falling = null;
+        dropAt(f.x, f.y, f.ink, f.size, false, true);
+      }
+    }
+    if (cursor.show && !reduced) {
+      const rgb = INKS[currentInk].rgb;
+      cursor.press += ((cursor.down ? 1 : 0) - cursor.press) * 0.25;
+      const rr = 11 - 4 * cursor.press;
+      g.beginPath();
+      g.arc(cursor.x, cursor.y, rr, 0, Math.PI * 2);
+      g.lineWidth = 1;
+      g.strokeStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.55)';
+      g.stroke();
+      g.beginPath();
+      g.arc(cursor.x, cursor.y, 1.7 + cursor.press * 1.4, 0, Math.PI * 2);
+      g.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.85)';
+      g.fill();
+    }
+  }
+
+  /* ================================================================
+     Sound — a synthesized plink with a soft wet echo
+     ================================================================ */
+  let soundOn = store.get('sumi-sound') !== 'off';
+  let actx = null, master = null;
+  function setSoundUI() {
+    soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+    soundBtn.setAttribute('aria-label', soundOn ? 'Sound on — mute the drops' : 'Sound off — hear the drops');
+  }
+  function ensureAudio() {
+    if (!soundOn) return;
+    if (!actx) {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        actx = new AC();
+        master = actx.createGain();
+        master.gain.value = 0.55;
+        const delay = actx.createDelay(1.2);
+        delay.delayTime.value = 0.27;
+        const fb = actx.createGain();
+        fb.gain.value = 0.32;
+        const lp = actx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = 1500;
+        master.connect(actx.destination);
+        master.connect(delay);
+        delay.connect(lp);
+        lp.connect(fb);
+        fb.connect(delay);
+        lp.connect(actx.destination);
+      } catch (e) { actx = null; return; }
+    }
+    if (actx.state === 'suspended') actx.resume().catch(() => {});
+  }
+  function plink(size, xNorm) {
+    if (!soundOn || !actx || actx.state !== 'running') return;
+    const t = actx.currentTime + 0.01;
+    const base = 520 + (1 - Math.min(1.6, size)) * 260 + rand() * 120;
+    const o = actx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(base, t);
+    o.frequency.exponentialRampToValueAtTime(base * 2.3, t + 0.07);
+    const gn = actx.createGain();
+    gn.gain.setValueAtTime(0.0001, t);
+    gn.gain.exponentialRampToValueAtTime(0.16, t + 0.006);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+    let out = gn;
+    if (actx.createStereoPanner) {
+      const pan = actx.createStereoPanner();
+      pan.pan.value = clamp((xNorm - 0.5) * 1.2, -0.8, 0.8);
+      gn.connect(pan);
+      out = pan;
+    }
+    o.connect(gn);
+    out.connect(master);
+    o.start(t);
+    o.stop(t + 0.3);
+    // a low, slow exhale as the ink sinks
+    const o2 = actx.createOscillator();
+    o2.type = 'sine';
+    o2.frequency.setValueAtTime(92 + rand() * 30, t);
+    const g2 = actx.createGain();
+    g2.gain.setValueAtTime(0.0001, t);
+    g2.gain.exponentialRampToValueAtTime(0.05 * size, t + 0.25);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+    o2.connect(g2);
+    g2.connect(master);
+    o2.start(t);
+    o2.stop(t + 1.9);
+  }
+
+  /* ================================================================
+     Interaction
+     ================================================================ */
+  let lastActivity = performance.now();
+  let nextIdle = 7000;
+  let hintHidden = false;
+
+  function announce(msg) { statusEl.textContent = msg; }
+  function hideHint() {
+    if (hintHidden) return;
+    hintHidden = true;
+    hintEl.classList.add('gone');
+  }
+
+  function dropAt(x, y, inkKey, size, held, fromAbove) {
+    if (stilling) return null;
+    const b = spawnBloom(x / cell + 0.5, y / cell + 0.5, inkKey, size, held);
+    addRipple(x, y, size * (fromAbove ? 1.15 : 1), INKS[inkKey].rgb);
+    plink(size, x / W);
+    return b;
+  }
+
+  function setInk(key, speak) {
+    currentInk = key;
+    document.documentElement.style.setProperty('--current', INKS[key].hex);
+    for (const b of inkBtns) b.setAttribute('aria-pressed', b.dataset.ink === key ? 'true' : 'false');
+    if (speak) announce(INKS[key].label + ' ink selected.');
+  }
+
+  const ptr = { id: null, x: 0, y: 0, sx: 0, sy: 0, moved: false, bloom: null };
+
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button > 0) return;
+    ensureAudio();
+    hideHint();
+    lastActivity = performance.now();
+    try { stage.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    ptr.id = e.pointerId;
+    ptr.x = ptr.sx = e.clientX;
+    ptr.y = ptr.sy = e.clientY;
+    ptr.moved = false;
+    cursor.down = true;
+    ptr.bloom = dropAt(e.clientX, e.clientY, currentInk, 0.85 + rand() * 0.3, true, false);
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'mouse') {
+      cursor.x = e.clientX; cursor.y = e.clientY; cursor.show = true;
+      stage.classList.add('has-ring');
+    }
+    if (ptr.id !== e.pointerId) return;
+    const x = e.clientX, y = e.clientY;
+    if (!ptr.moved && Math.hypot(x - ptr.sx, y - ptr.sy) > 7) {
+      ptr.moved = true;
+      if (ptr.bloom) { ptr.bloom.held = false; ptr.bloom = null; }
+    }
+    if (ptr.moved) stirs.push([ptr.x, ptr.y, x, y]);
+    ptr.x = x; ptr.y = y;
+    lastActivity = performance.now();
+  });
+  function endPointer(e) {
+    if (ptr.id !== e.pointerId) return;
+    if (ptr.bloom) { ptr.bloom.held = false; ptr.bloom = null; }
+    ptr.id = null;
+    cursor.down = false;
+  }
+  stage.addEventListener('pointerup', endPointer);
+  stage.addEventListener('pointercancel', endPointer);
+  stage.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { cursor.show = false; stage.classList.remove('has-ring'); } });
+  stage.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  for (const b of inkBtns) {
+    b.addEventListener('click', () => { setInk(b.dataset.ink, true); lastActivity = performance.now(); });
+  }
+
+  function beginStill() {
+    if (stilling) return;
+    stilling = true;
+    stillStart = performance.now();
+    falling = null;
+    stillBtn.classList.add('is-stilling');
+    stillLabel.textContent = 'Stilling…';
+    announce('Stilling the water.');
+    hideHint();
+  }
+  stillBtn.addEventListener('click', beginStill);
+
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    store.set('sumi-sound', soundOn ? 'on' : 'off');
+    setSoundUI();
+    if (soundOn) { ensureAudio(); announce('Sound on.'); }
+    else { if (actx && actx.state === 'running') actx.suspend().catch(() => {}); announce('Sound off.'); }
+  });
+
+  function randomSpot() {
+    const mx = mobile ? 70 : 170, my = mobile ? 90 : 90;
+    return [mx + rand() * Math.max(10, W - mx * 2), my + rand() * Math.max(10, H - my * 2)];
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key;
+    if (k >= '1' && k <= '4') { setInk(INK_KEYS[+k - 1], true); return; }
+    if (k === 's' || k === 'S') { beginStill(); return; }
+    if (k === 'm' || k === 'M') { soundBtn.click(); return; }
+    if ((k === ' ' || k === 'Enter') && document.activeElement === stage) {
+      e.preventDefault();
+      ensureAudio();
+      hideHint();
+      const [x, y] = randomSpot();
+      dropAt(x, y, currentInk, 0.8 + rand() * 0.45, false, true);
+      lastActivity = performance.now();
+    }
+  });
+
+  reduceMQ.addEventListener && reduceMQ.addEventListener('change', (e) => { reduced = e.matches; });
+
+  /* ================================================================
+     Main loop
+     ================================================================ */
+  let raf = 0, lastT = 0, perfAcc = 0, perfN = 0, downgrades = 0, overture = reduced ? 0 : 80;
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    const dtMs = lastT ? Math.min(64, now - lastT) : 16.7;
+    lastT = now;
+    let dt = clamp(dtMs / 16.67, 0.5, 1.6);
+    if (reduced) dt *= 0.55;
+
+    const t0 = performance.now();
+    step(dt);
+    if (overture > 0) { overture--; step(dt); } // the opening unfolds at double speed
+    renderInk();
+    const cost = performance.now() - t0;
+    drawFx(dtMs);
+
+    // idle: now and then a drop falls on its own
+    if (!reduced && !stilling && !falling && ptr.id === null && now - lastActivity > nextIdle) {
+      const [x, y] = randomSpot();
+      const key = rand() < 0.65 ? currentInk : INK_KEYS[Math.floor(rand() * INK_KEYS.length)];
+      falling = { x, y, t: 0, dur: 820, ink: key, size: 0.55 + rand() * 0.5 };
+      lastActivity = now;
+      nextIdle = 9000 + rand() * 9000;
+    }
+
+    // adaptive quality: step down if the solver is too heavy for this machine
+    if (overture === 0) { perfAcc += cost; perfN++; }
+    if (perfN >= 90) {
+      const avg = perfAcc / perfN;
+      perfAcc = 0; perfN = 0;
+      if (avg > 20 && downgrades < 2 && !document.hidden) {
+        downgrades++;
+        quality *= 0.78;
+        layout(false);
+      }
+    }
+  }
+  function start() { if (!raf) { lastT = 0; raf = requestAnimationFrame(frame); } }
+  function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
+
+  window.addEventListener('resize', () => { layout(false); });
+
+  /* ================================================================
+     Opening: a first bloom already unfolding, two more to follow
+     ================================================================ */
+  let openingTimers = [];
+  function playOpening() {
+    for (const t of openingTimers) clearTimeout(t);
+    openingTimers = [];
+    const opening = mobile
+      ? [[0.44, 0.45, 'sumi', 1.2, 0], [0.6, 0.6, 'indigo', 0.85, 420], [0.36, 0.3, 'vermillion', 0.55, 1000]]
+      : [[0.42, 0.5, 'sumi', 1.4, 0], [0.58, 0.62, 'indigo', 0.95, 420], [0.6, 0.33, 'vermillion', 0.6, 1000]];
+    const first = opening[0];
+    spawnBloom(first[0] * W / cell + 0.5, first[1] * H / cell + 0.5, first[2], first[3], false);
+    for (let i = 0; i < 40; i++) step(1);
+    for (let i = 1; i < opening.length; i++) {
+      const o = opening[i];
+      openingTimers.push(setTimeout(() => {
+        if (!stilling) {
+          spawnBloom(o[0] * W / cell + 0.5, o[1] * H / cell + 0.5, o[2], o[3], false);
+          addRipple(o[0] * W, o[1] * H, o[3], INKS[o[2]].rgb);
+        }
+      }, reduced ? 0 : o[4]));
+    }
+    overture = reduced ? 0 : 80;
+    lastActivity = performance.now();
+  }
+
+  setSoundUI();
+  setInk('sumi', false);
+  layout(true);
+  playOpening();
+  renderInk();
+  start();
+})();
+</script>
+</body>
+</html>

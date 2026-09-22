@@ -1,0 +1,40 @@
+TITLE: Neon Rain
+FILE: 002-neon-rain.html
+
+=== PROMPT (exact prompt used) ===
+Create an immersive cyberpunk street at night titled "NEON RAIN — District 9 Night Market" (fictional). A full-viewport canvas scene with four parallax layers of skyline silhouettes (#05010f → #1a0433) and randomly lit windows; holographic vertical signs with katakana-like glyphs drawn in canvas that flicker with believable neon failure (brief dropouts, buzz); a wet street reflecting the signs (mirrored, blurred, rippled); dense diagonal rain with splash particles on the ground. Palette: hot magenta #ff2a6d, cyan #05d9e8 and acid-yellow #f9f002 accents on ink black. Overlay a thin HUD: time, temperature, "SIGNAL" bars and a scrolling ticker of fictional news in monospace. Typography: condensed uppercase sans with chromatic-aberration text-shadow. Interaction: the pointer moves the parallax camera; a click triggers a lightning flash that briefly lights the whole skyline plus a thunder rumble (Web Audio noise, after a gesture, with a mute toggle); a toggle switches rain intensity. Must stay fluid at 60fps using pooled particles.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A full-viewport, live-rendered cyberpunk street at night in the fictional District 9 night market. Four parallax skylines step back from ink black (#05010f) to deep violet (#1a0433) against a smog-lit sky, with hundreds of windows that switch on and off over time. Hand-traced katakana-like neon signs hang off the near towers in hot magenta, cyan and acid yellow. They fail the way real neon fails: stutters, dropouts, brownouts and one dead glyph, and a HOTEL sign whose "L" stays dark, a joke the news ticker picks up. A wireframe holographic koi swims above Tower 61 inside a projector beam. Market stalls glow under striped awnings, steam rises from the stalls and pedestrians with glowing umbrella shafts walk the kerb. Everything is mirrored into a rain-rippled, blurred wet street, and dense diagonal rain splashes and rings across it. A thin monospace HUD, a condensed chromatic-aberration title and a scrolling fictional newswire complete the frame.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Four pre-rendered skyline layer canvases (normal + half-resolution "lightning facade" version) composited with per-layer parallax ranges and violet fog bands between depths
+- Procedural buildings (setbacks, spires with blinking aviation lights, water tanks, slanted and domed roofs), neon rim lighting on the near layers, and live window toggling painted directly into the layer canvases
+- Neon signs built from hand-traced polyline glyphs stroked as glass tubes (wide glow pass, second glow, bright core), cached in on / broken-glyph / unlit variants, plus light spill sprites and a sweeping holographic scan band
+- Per-sign failure state machine (stutter, dropout, brownout, dead-glyph sputter) with buzz jitter; the dying sign drives a synthesized 120 Hz neon buzz
+- Wet-street reflection: the lower scene is captured each frame into a low-resolution flipped buffer, then redrawn row by row with layered sine offsets (mirrored, blurred by upscaling, rippled), under an asphalt overlay with soft puddle cut-outs, kerb and lane paint
+- Pooled typed-array particle systems: up to 1,700 depth-sorted rain streaks batched into three stroke passes, 700 splash droplets with gravity, 260 flattened ripple rings, 44 steam puffs
+- Holographic koi: an analytic spine sampled along a figure-eight path, a blunt-headed body profile, wave undulation, fins, wireframe ribs, clipped kohaku patches, a chromatic magenta ghost, destination-out scanlines, a glow pass and occasional slice glitches, projected by a light-cone beam
+- Lightning: midpoint-displacement bolt with branches, drawn in three additive passes; multi-pulse flash envelope brightening sky, clouds and every skyline facade
+- CSS: condensed uppercase title with chromatic-aberration text-shadow and clip-path slice glitches, scanline/vignette overlay, corner-bracket HUD, CSS-transform news marquee
+
+=== INTERACTION MODEL ===
+- Pointer or touch movement steers the parallax camera; after four idle seconds the camera drifts on its own; arrow keys nudge it
+- Click or tap anywhere on the street (or press Space / L, or the STRIKE button) to call a lightning strike near the pointer: the skyline lights up, the HUD glitches, SIGNAL bars drop and a thunder rumble follows after a distance delay
+- Sound (Web Audio, started only by a gesture): filtered-noise rain bed, panned brown-noise thunder with crack and rumble modulation, and a neon buzz synced to the failing sign; the SOUND button or M key mutes it
+- RAIN button or R key cycles Drizzle / Downpour / Monsoon, which changes drop density, ripple strength, the precip readout and the rain audio level
+- HUD shows live local time, drifting temperature, precipitation and animated signal bars; hover the ticker to pause it
+- prefers-reduced-motion: less and slower rain, steady neon, no ambient flashes, one soft flash per strike, slower hologram and a near-still ticker; rendering pauses and audio suspends while the tab is hidden

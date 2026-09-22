@@ -1,0 +1,38 @@
+TITLE: Long Water — The World's Great Rivers
+FILE: 020-rivers-of-the-world.html
+
+=== PROMPT (exact prompt used) ===
+Create "Long Water — The World's Great Rivers", an elegant data-art visualization comparing the ten longest rivers. Use these commonly cited approximate lengths (label them "approx." and note that sources vary): Nile 6,650 km; Amazon 6,400; Yangtze 6,300; Mississippi–Missouri 6,275; Yenisei 5,539; Yellow River 5,464; Ob–Irtysh 5,410; Paraná 4,880; Congo 4,700; Amur 4,444. Each river is a flowing, meandering SVG ribbon whose length is proportional to its real length, flowing left to right with particles drifting along it like current. Palette: deep river blues and teals on pale limestone (#f3f1ec) — a sequential scale from #0b3d5c to #7fc8c2 — with thin ink labels. Typography: refined serif titles, small-caps continent labels, tabular numerals. Interaction: hover a river to highlight it and show a tooltip (length, continent, where it flows out); sort toggle (by length / by continent); unit toggle (km / miles); a "race" button where droplets travel every river at the same speed so the differences in length can be felt. Include an elegant legend and a short intro paragraph. Mobile: ribbons become vertical flows.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+An editorial data-art plate printed on pale limestone paper. A large italic serif masthead, "Long Water", floats over faint contour lines, next to a short essay on why river lengths are slippery and three headline figures (combined length, times around the Equator, continents). Below, the ten longest rivers run from a shared "source" line on the left to their seas on the right. Each is a meandering ribbon whose horizontal extent is drawn to one km scale. It starts as a pale thread and swells into a deep-blue mouth that fans into a small delta. The ribbon's final width is scaled to the square root of approximate mean discharge, so the Amazon's flood and the Nile's thread tell a second story beside length. Shade follows a sequential scale from #0b3d5c (longest) to #7fc8c2 (shortest). Thin ink labels give rank, name, continent in small caps, "≈" tabular lengths and the receiving sea. A legend, a scale bar and a footnote on measurement uncertainty close the page. On phones the ribbons turn into ten vertical flows that pour down the page under rotated labels.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- SVG ribbons built at runtime from an along/cross coordinate system: a three-harmonic meander centreline, analytic normals and a tapering width profile form each filled polygon. The same geometry maps to horizontal rows (desktop) or vertical columns (phone).
+- Per-river userSpaceOnUse linear gradients (pale source to full-colour mouth), a Gaussian-blurred "floodplain" halo under each ribbon, a faint glint line on wide rivers, and quadratic-curve delta distributaries at every mouth.
+- A canvas overlay (DPR-aware, max 2) draws pooled current particles as short streaks in two weights. They are sampled more densely where the river is wide and follow the ribbon's centreline and normals, with no per-frame allocation.
+- A staggered intro reveal uses per-river clipPaths, so rivers pour out of their sources one after another. A gentle stroke-dash animation draws the three-line wave ornament.
+- A procedural paper grain and vignette are painted once onto a fixed background canvas from a noise tile. Parallel contour lines sit behind the title via SVG <use>.
+- Editorial typography: a Baskerville/Hoefler serif stack, lower-cased small-caps labels with wide tracking, tabular lining numerals throughout, and an italic drop cap.
+- The race layer draws glowing droplets with fading trails, a dashed "front line" marking the distance travelled, and expanding ripples at each mouth on arrival.
+
+=== INTERACTION MODEL ===
+- Hover (mouse) or tap (touch) a river: the other rivers fade, and a tooltip card shows rank, continent, length in both units, where the river rises, where it flows out, approximate mean discharge and a short fact. Tapping empty space dismisses it.
+- Keyboard: every river is focusable. Focus shows its card, arrow keys move between rivers in the current order, Enter/Space toggles the card and Escape closes it.
+- Sort toggle (Length / Continent): rows (or columns on phones) glide to new positions. Continent mode adds small-caps section dividers for Africa, Asia, North America and South America.
+- Units toggle (km / miles) rewrites every label, the axis ticks, the headline total, the scale bar, the tooltip and the screen-reader table.
+- "Race the droplets": a droplet sets off down every river at the same speed while an odometer counts distance. Each arrival triggers a ripple and a live message, and a closing line reports how far behind the shortest river the Nile arrives. Pressing again stops the race.
+- Resizing or rotating rebuilds the geometry for the new width, switching between horizontal rows and vertical flows. With reduced motion the reveal is instant and the current barely drifts. Animation pauses while the tab is hidden.

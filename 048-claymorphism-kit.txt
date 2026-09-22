@@ -1,0 +1,38 @@
+TITLE: Squishy — Claymorphism UI Kit
+FILE: 048-claymorphism-kit.html
+
+=== PROMPT (exact prompt used) ===
+Build "Squishy — Claymorphism UI Kit" (a fictional product), a playful landing page in claymorphism: puffy, soft 3D shapes made with layered inner/outer shadows and radial gradients so elements look like modelling clay. Candy-pastel palette: bubblegum #ffb3c6, butter #ffe5a5, mint #b8f2e6, periwinkle #aab7ff, peach #ffcfb0 on a cream-lilac background (#f7f1ff). Hero: a cluster of 3D clay icons (heart, cloud, star, chat bubble, toggle switch, rocket) built purely with CSS/SVG that bob and wiggle; clicking one makes it squash and stretch with elastic physics and burst into little clay confetti. Sections: a component showcase (clay buttons with pressed states, toggles, sliders, a progress bar that fills with a jelly wobble), feature cards, a pricing section with a squishy toggle, and an FAQ accordion whose panels open with bouncy height animations. Typography: a chunky rounded sans (Nunito, "Varela Round", "SF Pro Rounded", "Segoe UI", system-ui, sans-serif) at heavy weights. Every interactive element should feel tactile.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Squishy — Claymorphism UI Kit" is a playful landing page for a fictional product, built so almost everything looks like modelling clay and moves like it too. On a cream-lilac (#f7f1ff) ground in bubblegum, butter, mint, periwinkle and peach, a floating clay navigation pill leads to an asymmetric hero. On the left is a puffy multi-colour "Squishy" wordmark with extruded letters and a separate clay i-dot. On the right six clay icons (a smiling star, a sleepy cloud, a heart, a typing chat bubble, a toggle switch and a rocket) bob and wiggle over a soft clay cushion. Clicking an icon squashes it, stretches it into a hop, lands it with a jiggle and bursts it into clay confetti. Below come a component tray, tilted feature cards, a palette of copyable clay swatches, pricing with a squishy billing switch, a bouncy FAQ and a butter-to-peach call to action. Copy is original, and the page states that the product is fictional.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- The clay recipe as CSS tokens: one lilac-tinted outer shadow plus a dark inner shadow bottom-right and a white inner shadow top-left, with radial-gradient highlights. A global --soft multiplier scales every shadow and is driven live by the "Softness" slider. Pressed states flip to deeper inset shadows with a squash scale.
+- One reusable SVG filter (feGaussianBlur and feOffset inner shade and highlight composited "out" against SourceAlpha, plus a feDropShadow) gives the SVG icons, wordmark, feature illustrations and FAQ markers their moulded volume. Each palette colour has a matching radial gradient.
+- The wordmark is measured at runtime (getStartPositionOfChar and getSubStringLength) so it fits whatever rounded font is installed. Each letter is SVG text with a 15-unit round-join stroke painted under its fill for puffy letterforms, a darker offset copy for extrusion, and the clay filter. Letters bob in a wave and wobble on a per-letter spring on hover or click.
+- The hero icons run a small physics model in rAF: a damped spring for squash/stretch (volume-preserving scale around a bottom origin), a rotation spring, and gravity for hops with bounce-on-landing. The "Bounce" slider changes spring stiffness and damping.
+- Clay confetti uses a pooled particle system on a fixed canvas (DPR-capped). It draws pre-rendered sprites (15 gradient-shaded balls, pills and stars across the five colours) with velocity-based squash. It sleeps when idle and is thinned for reduced motion.
+- The jelly progress bar is spring-driven: the fill overshoots, and its velocity is mapped to scaleY squish and skew wobble, with rising bubbles and a confetti pop at 100%.
+- Motion details: switch knobs spring with a squash keyframe, the segmented-control knob stretches as it slides, the pricing switch knob squashes mid-travel, prices squash-bounce as they change, checkmarks draw in, swatch blobs morph their border-radius, and FAQ panels open on a spring-simulated height that overshoots and settles.
+- Sections pop in using the individual translate and scale properties, so the reveal never clobbers each card's own hover transforms or tilt.
+
+=== INTERACTION MODEL ===
+- Hero icons are buttons (mouse, touch, Enter/Space). Pressing squashes, releasing hops and bursts confetti. The toggle icon really flips between peach and mint, and the rocket jumps higher. Wordmark letters wobble on hover and burst on click.
+- Component tray: buttons with pressed states and a sticky aria-pressed toggle; three role="switch" toggles; "Softness" and "Bounce" range sliders that retune the whole page; a jelly progress bar with +25% and Reset (it auto-demos to 75% when scrolled into view); a segmented control (radiogroup, arrow keys); clay checkboxes; a stepper; and a name field that "moulds" your blob with a greeting and confetti.
+- Palette swatches copy their hex to the clipboard (with a guarded fallback) and confirm with a toast.
+- Pricing: a switch changes monthly to yearly billing and the prices animate. FAQ: accessible accordion buttons (aria-expanded and aria-controls) with springy panels.
+- Sound: synthesized Web Audio squishes and boops, off by default, with a visible Sound switch in the nav. The AudioContext is created only after a gesture.
+- Keyboard focus rings throughout. prefers-reduced-motion disables idle animation, hops and springs, and turns the reveals into plain fades.

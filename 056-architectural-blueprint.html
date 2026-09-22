@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casa Lumen — Architectural Blueprint</title>
+<meta name="description" content="An animated technical drawing of Casa Lumen, a fictional modernist house: a floor plan, south elevation and section that draw themselves like hand drafting, with room areas on hover and a graphite pencil mode.">
+<meta name="theme-color" content="#0b3d91">
+<style>
+:root{
+  --g1:#0b3d91; --g2:#134a9e; --line:#e8f1ff; --line2:#9fd3ff; --hover:rgba(159,211,255,.24); --poche:#dcebff;
+  --gridA:rgba(159,211,255,.075); --gridB:rgba(159,211,255,.17); --panel:rgba(8,40,104,.38);
+  --tech:"ISOCPEUR",Osifont,Bahnschrift,"DIN Alternate","DIN 2014","Arial Narrow","Nimbus Sans Narrow","Roboto Condensed","DejaVu Sans Condensed",sans-serif;
+  --mono:Consolas,"SF Mono",Menlo,"Nimbus Mono PS","DejaVu Sans Mono",monospace;
+}
+body.pencil{
+  --line:#333; --line2:#5a5a58; --hover:rgba(60,60,60,.1); --poche:#4a4a48;
+  --gridA:rgba(80,80,80,.05); --gridB:rgba(80,80,80,.1); --panel:rgba(245,243,238,.6);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{color:var(--line);font:13px/1.4 var(--tech);background:#0b3d91;overflow-x:hidden;transition:color .6s}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px dashed var(--line);outline-offset:3px}
+
+.bg{position:fixed;inset:0;z-index:0;transition:opacity .8s ease}
+.bg.bp{background:
+  radial-gradient(ellipse at 30% 20%,rgba(255,255,255,.06),transparent 60%),
+  radial-gradient(ellipse at 80% 90%,rgba(0,10,40,.28),transparent 55%),
+  linear-gradient(135deg,#0b3d91 0%,#0f4396 50%,#134a9e 100%)}
+.grain{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.22;mix-blend-mode:overlay}
+.bg.paper{background:linear-gradient(180deg,#f5f3ee,#efece4);opacity:0}
+.bg.paper .grain{opacity:.16;mix-blend-mode:multiply}
+body.pencil .bg.paper{opacity:1}
+body.pencil .bg.bp{opacity:0}
+
+.sheet{position:relative;z-index:1;margin:16px;min-height:calc(100vh - 32px);border:2px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:auto minmax(0,1fr);transition:border-color .6s;
+  background-image:linear-gradient(var(--gridA) 1px,transparent 1px),linear-gradient(90deg,var(--gridA) 1px,transparent 1px),linear-gradient(var(--gridB) 1px,transparent 1px),linear-gradient(90deg,var(--gridB) 1px,transparent 1px);
+  background-size:12px 12px,12px 12px,60px 60px,60px 60px;background-position:-1px -1px}
+.sheet::before{content:"";position:absolute;inset:6px;border:1px solid var(--line2);pointer-events:none;opacity:.8}
+.zm{position:absolute;font:10px var(--mono);color:var(--line2);pointer-events:none}
+.zm.t{top:-15px}.zm.b{bottom:-15px}.zm.l{left:-12px}.zm.r{right:-12px}
+
+.bar{grid-column:1;display:flex;align-items:center;gap:14px;padding:16px 18px 28px 20px;flex-wrap:wrap;position:relative}
+.tabs{display:flex;border:1.5px solid var(--line)}
+.tab{background:none;border:0;padding:8px 14px 7px;font:600 12px var(--tech);letter-spacing:.16em;text-transform:uppercase;cursor:pointer;color:var(--line);position:relative}
+.tab+.tab{border-left:1.5px solid var(--line)}
+.tab[aria-selected="true"]{background:var(--line);color:var(--g1)}
+body.pencil .tab[aria-selected="true"]{color:#f5f3ee}
+.tab:hover:not([aria-selected="true"]){background:rgba(159,211,255,.14)}
+.tab small{font:10px var(--mono);letter-spacing:.04em;opacity:.7;margin-left:6px}
+.sw{display:flex;align-items:center;gap:10px;background:none;border:0;cursor:pointer;font:600 12px var(--tech);letter-spacing:.16em;text-transform:uppercase;color:var(--line);padding:6px 4px}
+.sw .track{width:42px;height:22px;border:1.5px solid var(--line);border-radius:11px;position:relative;transition:background .3s}
+.sw .track::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:var(--line);transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+.sw[aria-checked="true"] .track::after{transform:translateX(20px)}
+.sw svg{width:16px;height:16px}
+.redraw{margin-left:auto;display:flex;align-items:center;gap:8px;background:none;border:1.5px solid var(--line);padding:7px 12px 6px;cursor:pointer;font:600 12px var(--tech);letter-spacing:.16em;text-transform:uppercase;color:var(--line)}
+.redraw:hover{background:rgba(159,211,255,.14)}
+.redraw svg{width:14px;height:14px}
+.progress{position:absolute;left:20px;right:18px;bottom:0;height:14px;display:flex;align-items:center;gap:10px;font:10px var(--mono);letter-spacing:.12em;color:var(--line2);text-transform:uppercase}
+.progress i{flex:1;height:1px;background:linear-gradient(90deg,var(--line) var(--p,0%),rgba(159,211,255,.25) var(--p,0%))}
+
+.stage{grid-column:1;position:relative;min-height:0;padding:8px 10px 12px 12px;display:flex}
+#dwg{width:100%;height:100%;display:block;flex:1;min-height:0;overflow:visible}
+body.pencil #ink{filter:url(#graphite)}
+.tip{position:absolute;z-index:3;pointer-events:none;padding:8px 12px 9px;border:1.5px solid var(--line);background:var(--panel);backdrop-filter:blur(2px);opacity:0;transform:translateY(6px);transition:opacity .18s,transform .18s;min-width:150px}
+.tip.on{opacity:1;transform:none}
+.tip b{display:block;font:700 13px var(--tech);letter-spacing:.18em;text-transform:uppercase}
+.tip span{display:block;font:22px/1.1 var(--mono);margin-top:3px}
+.tip small{display:block;font:11px var(--mono);color:var(--line2);margin-top:2px}
+.swipe{display:none}
+
+/* drawing kinds */
+.v .d{stroke-dasharray:1 1;stroke-dashoffset:1;transition:stroke-dashoffset calc(var(--du) * var(--k,1)) cubic-bezier(.55,.1,.35,1) calc(var(--de) * var(--k,1)),stroke .6s}
+.v.on .d{stroke-dashoffset:0}
+.v.out .d{stroke-dashoffset:-1;transition:stroke-dashoffset .5s cubic-bezier(.6,0,.9,.6) var(--dr,0s)}
+.v .f,.v .t{opacity:0;transition:opacity calc(var(--du) * var(--k,1)) ease calc(var(--de) * var(--k,1)),fill .6s}
+.v.on .f,.v.on .t{opacity:1}
+.v.out .f,.v.out .t{opacity:0;transition:opacity .3s ease var(--dr,0s)}
+.v.reset .d,.v.reset .f,.v.reset .t{transition:none!important}
+.v.hide{display:none}
+
+.w{stroke:var(--line);stroke-width:1.7;fill:none;stroke-linejoin:miter}
+.w2{stroke:var(--line);stroke-width:1.3;fill:none}
+.gl{stroke:var(--line);stroke-width:2.6;fill:none}
+.th{stroke:var(--line);stroke-width:.85;fill:none}
+.gz{stroke:var(--line2);stroke-width:.8;fill:none}
+.fu{stroke:var(--line2);stroke-width:.85;fill:none;stroke-linejoin:round}
+.fx{stroke:var(--line2);stroke-width:.6;fill:none}
+.ex,.dl{stroke:var(--line2);stroke-width:.7;fill:none}
+.dash{stroke:var(--line2);stroke-width:.8;fill:none;stroke-dasharray:5 3.5}
+.dash2{stroke:var(--line);stroke-width:.8;fill:none;stroke-dasharray:9 3 2 3}
+.cut{stroke:var(--line);stroke-width:3.2;fill:none}
+.ah{fill:var(--line2)}
+.ah1{fill:var(--line)}
+.hf{fill:url(#hatch)}
+.pf{fill:var(--poche);fill-opacity:.9}
+.ef{fill:url(#earth)}
+.gv{fill:url(#gravel)}
+.occl{fill:var(--g2);transition:fill .6s}
+body.pencil .occl{fill:#f2f0ea}
+.sun{stroke:var(--line2);stroke-width:1;stroke-dasharray:7 5;fill:none}
+.cons{stroke:var(--line2);stroke-width:.45;fill:none;stroke-opacity:0}
+body.pencil .cons{stroke-opacity:.45}
+.hp{stroke:var(--line2);stroke-width:.75}
+.epf{stroke:var(--line2);stroke-width:.6;fill:none}
+.gvd{fill:var(--line2)}
+text{font-family:var(--tech);text-transform:uppercase}
+.rm{fill:var(--line);font-size:12.5px;font-weight:600;letter-spacing:.17em}
+.ar{fill:var(--line2);font-size:10.5px;font-family:var(--mono);letter-spacing:.02em;text-transform:none}
+.no{fill:var(--line2);font-size:9px;font-family:var(--mono);letter-spacing:.08em}
+.dt{fill:var(--line);font-size:10.5px;font-family:var(--mono)}
+.lb{fill:var(--line2);font-size:9.5px;letter-spacing:.14em}
+.lbw{fill:var(--line);font-size:9.5px;letter-spacing:.14em}
+.ttl{fill:var(--line);font-size:15px;font-weight:700;letter-spacing:.22em}
+.ttls{fill:var(--line2);font-size:11px;font-family:var(--mono);letter-spacing:.08em}
+.halo{paint-order:stroke;stroke:var(--g2);stroke-width:4px;stroke-linejoin:round}
+body.pencil .halo{stroke:#f3f1eb}
+.zone{fill:transparent;cursor:crosshair;transition:fill .22s;pointer-events:all}
+.zone.hot{fill:var(--hover)}
+.zone:focus{outline:none}
+.zone:focus-visible{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 3}
+
+/* side column */
+.side{grid-column:2;grid-row:1 / 3;border-left:1.5px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow:auto;transition:border-color .6s}
+.box{border-bottom:1.5px solid var(--line);padding:12px 16px 12px;transition:border-color .6s}
+@media (min-width:861px){ .sheet{height:calc(100vh - 32px);min-height:600px} }
+.box h2{margin:0 0 10px;font:700 11px var(--tech);letter-spacing:.24em;text-transform:uppercase;display:flex;justify-content:space-between}
+.box h2 span{font:10px var(--mono);letter-spacing:.06em;color:var(--line2)}
+.sched{width:100%;border-collapse:collapse;font:12px var(--tech);text-transform:uppercase;letter-spacing:.1em}
+.sched td{padding:2px 0;border-bottom:1px dotted rgba(159,211,255,.35)}
+body.pencil .sched td{border-bottom-color:rgba(60,60,60,.25)}
+.sched td:first-child{font:10px var(--mono);color:var(--line2);width:26px}
+.sched td:last-child{text-align:right;font:12px var(--mono);letter-spacing:0;text-transform:none}
+.sched tr{cursor:default;transition:background .15s}
+.sched tr.hot td{background:var(--hover)}
+.sched tfoot td{border-bottom:0;padding-top:7px;font-weight:700}
+.sched tfoot td:first-child{font:inherit}
+.notes{margin:0;padding:0 0 0 16px;font:10px/1.42 var(--tech);letter-spacing:.07em;text-transform:uppercase;color:var(--line2)}
+.notes li{margin-bottom:3px}
+.scalebar{display:block;width:100%;height:34px;margin-top:4px}
+.tb{margin-top:auto;border-top:1.5px solid var(--line);display:grid;grid-template-columns:1fr 1fr;font:10px var(--mono);letter-spacing:.06em;transition:border-color .6s}
+.tb div{padding:5px 10px 6px;border-bottom:1px solid var(--line2);border-right:1px solid var(--line2)}
+.tb .sub{display:block;margin-top:5px;font-size:11px}
+.tb div:nth-child(2n){border-right:0}
+.tb .full{grid-column:1 / 3;border-right:0}
+.tb label,.tb .k{display:block;font-size:8.5px;letter-spacing:.2em;color:var(--line2);text-transform:uppercase;margin-bottom:2px}
+.tb .name{font:700 25px/1 var(--tech);letter-spacing:.2em;text-transform:uppercase}
+.tb .big{font:700 20px/1 var(--mono)}
+.tb .val{font:12px var(--tech);letter-spacing:.14em;text-transform:uppercase}
+.revs{width:100%;border-collapse:collapse;font:9.5px var(--mono);letter-spacing:.04em}
+.revs td{padding:1px 4px 1px 0;vertical-align:top}
+
+@media (max-width:1100px){ .sheet{grid-template-columns:minmax(0,1fr) 260px} }
+@media (max-width:860px){
+  .sheet{grid-template-columns:1fr;grid-template-rows:auto auto auto;margin:10px;min-height:0}
+  .side{grid-column:1;grid-row:3;border-left:0;border-top:1.5px solid var(--line)}
+  .stage{height:auto;display:block;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:6px 6px 10px}
+  #dwg{width:760px;height:auto;max-width:none}
+  .swipe{display:block;font:10px var(--mono);letter-spacing:.14em;color:var(--line2);text-align:center;padding:0 0 8px;text-transform:uppercase}
+  .tb .name{font-size:22px}
+}
+@media (max-width:520px){
+  .bar{gap:10px;padding:14px 10px 18px 12px}
+  .tab{padding:8px 9px 7px;font-size:11px;letter-spacing:.1em}
+  .tab small{display:none}
+  .redraw{margin-left:0}
+  .zm{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .v .d{stroke-dasharray:none;stroke-dashoffset:0!important;transition:none}
+  .v .f,.v .t{transition:none}
+  .tip,.bg,.sw .track::after{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="bg bp" aria-hidden="true"><svg class="grain"><filter id="grainA"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#grainA)"/></svg></div>
+<div class="bg paper" aria-hidden="true"><svg class="grain"><filter id="grainB"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" seed="8" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#grainB)"/></svg></div>
+
+<main class="sheet" aria-labelledby="pname">
+  <span class="zm t" style="left:12%">1</span><span class="zm t" style="left:37%">2</span><span class="zm t" style="left:62%">3</span><span class="zm t" style="left:87%">4</span>
+  <span class="zm b" style="left:12%">1</span><span class="zm b" style="left:37%">2</span><span class="zm b" style="left:62%">3</span><span class="zm b" style="left:87%">4</span>
+  <span class="zm l" style="top:18%">A</span><span class="zm l" style="top:50%">B</span><span class="zm l" style="top:82%">C</span>
+  <span class="zm r" style="top:18%">A</span><span class="zm r" style="top:50%">B</span><span class="zm r" style="top:82%">C</span>
+
+  <div class="bar">
+    <div class="tabs" role="tablist" aria-label="Drawing view">
+      <button type="button" class="tab" role="tab" id="tab-plan" aria-selected="true" aria-controls="dwg" data-view="plan">Floor plan<small>A-101</small></button>
+      <button type="button" class="tab" role="tab" id="tab-elev" aria-selected="false" aria-controls="dwg" data-view="elev" tabindex="-1">Elevation<small>A-201</small></button>
+      <button type="button" class="tab" role="tab" id="tab-sect" aria-selected="false" aria-controls="dwg" data-view="sect" tabindex="-1">Section<small>A-301</small></button>
+    </div>
+    <button type="button" class="sw" id="pencil" role="switch" aria-checked="false">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 14l1-4 8-8 3 3-8 8z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 3.5l3 3" stroke="currentColor" stroke-width="1.3"/></svg>
+      Pencil mode <span class="track" aria-hidden="true"></span>
+    </button>
+    <button type="button" class="redraw" id="redraw"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M12 7a5 5 0 1 1-1.6-3.7M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Redraw</button>
+    <div class="progress" aria-hidden="true"><span id="plabel">Drafting · walls</span><i id="pbar"></i><span id="ppct">0%</span></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <svg id="dwg" viewBox="0 0 960 730" role="img" aria-labelledby="dwgTitle">
+      <title id="dwgTitle">Casa Lumen technical drawing</title>
+      <defs>
+        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="hp" d="M0 0V7"/></pattern>
+        <pattern id="earth" width="14" height="14" patternUnits="userSpaceOnUse"><path class="epf" d="M0 14L14 0M-3.5 3.5l7-7M10.5 17.5l7-7"/><path class="epf" d="M3 12l2-2M9 6l2-2" opacity=".6"/></pattern>
+        <pattern id="gravel" width="9" height="9" patternUnits="userSpaceOnUse"><circle class="gvd" cx="2" cy="2" r=".7"/><circle class="gvd" cx="6.5" cy="5" r=".55"/><circle class="gvd" cx="3" cy="7.5" r=".45"/></pattern>
+        <filter id="graphite" x="-2%" y="-2%" width="104%" height="104%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="1.7" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
+      <g id="ink">
+        <g id="v-plan" class="v"></g>
+        <g id="v-elev" class="v hide"></g>
+        <g id="v-sect" class="v hide"></g>
+      </g>
+      <g id="zones"></g>
+    </svg>
+    <div class="tip" id="tip" role="status" aria-live="polite"><b id="tipName">Room</b><span id="tipArea">0 m²</span><small id="tipDims"></small></div>
+  </div>
+  <div class="swipe" aria-hidden="true">&larr; swipe the drawing &rarr;</div>
+
+  <aside class="side" aria-label="Drawing information">
+    <section class="box" aria-labelledby="schedH">
+      <h2 id="schedH">Room schedule <span>net m²</span></h2>
+      <table class="sched" id="sched">
+        <tbody></tbody>
+        <tfoot>
+          <tr><td></td><td>Ground floor net</td><td>167.7</td></tr>
+          <tr><td></td><td>Gross floor area</td><td>229.0</td></tr>
+        </tfoot>
+      </table>
+    </section>
+    <section class="box" aria-labelledby="notesH">
+      <h2 id="notesH">General notes</h2>
+      <ol class="notes">
+        <li>All dimensions in metres. Do not scale from drawing.</li>
+        <li>In-situ concrete, board-marked finish. Roof slab cantilevers 1.20 over the south terrace.</li>
+        <li>Triple glazing on two sliding tracks; patio open to the sky.</li>
+        <li>Noon sun at lat. 38.5° N: 75° on 21 June, 28° on 21 December.</li>
+        <li>Fictional project for illustration only.</li>
+      </ol>
+      <svg class="scalebar" viewBox="0 0 260 34" aria-label="Scale bar, 0 to 5 metres at 1 to 100">
+        <rect x="10" y="8" width="40" height="6" fill="currentColor"/><rect x="50" y="8" width="40" height="6" fill="none" stroke="currentColor"/><rect x="90" y="8" width="40" height="6" fill="currentColor"/><rect x="130" y="8" width="40" height="6" fill="none" stroke="currentColor"/><rect x="170" y="8" width="40" height="6" fill="currentColor"/>
+        <g fill="currentColor" font-size="9" font-family="Consolas, DejaVu Sans Mono, monospace"><text x="10" y="27" text-anchor="middle">0</text><text x="50" y="27" text-anchor="middle">1</text><text x="90" y="27" text-anchor="middle">2</text><text x="130" y="27" text-anchor="middle">3</text><text x="170" y="27" text-anchor="middle">4</text><text x="210" y="27" text-anchor="middle">5 M</text></g>
+        <text x="250" y="14" text-anchor="end" fill="currentColor" font-size="9" font-family="Consolas, DejaVu Sans Mono, monospace">1:100</text>
+      </svg>
+    </section>
+    <section class="tb" aria-label="Title block">
+      <div class="full"><span class="k">Project</span><span class="name" id="pname">Casa Lumen</span><span class="val sub">Private residence · Atelier Norte</span></div>
+      <div class="full"><span class="k">Drawing</span><span class="val" id="tbDrawing">Ground floor plan</span></div>
+      <div><span class="k">Scale</span><span class="big">1:100</span></div>
+      <div><span class="k">Sheet</span><span class="big" id="tbSheet">A-101</span></div>
+      <div><span class="k">Drawn by</span><span class="val">I. Marlowe</span></div>
+      <div><span class="k">Checked</span><span class="val">R. Okafor</span></div>
+      <div><span class="k">Date</span><span class="val">22.09.2026</span></div>
+      <div><span class="k">Revision</span><span class="val">C</span></div>
+      <div class="full" style="border-bottom:0"><span class="k">Revisions</span>
+        <table class="revs"><tbody>
+          <tr><td>A</td><td>12.05.26</td><td>Planning issue</td></tr>
+          <tr><td>B</td><td>30.06.26</td><td>Patio glazing revised</td></tr>
+          <tr><td>C</td><td>22.09.26</td><td>Construction issue</td></tr>
+        </tbody></table>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<script>
+(function(){
+'use strict';
+var SVGNS = 'http://www.w3.org/2000/svg';
+function $(s){ return document.querySelector(s); }
+function mk(tag, attrs, parent){ var e = document.createElementNS(SVGNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- builder ---------- */
+var views = {
+  plan:{ g:$('#v-plan'), items:[], zones:[], title:'Ground floor plan', sheet:'A-101' },
+  elev:{ g:$('#v-elev'), items:[], zones:[], title:'South elevation', sheet:'A-201' },
+  sect:{ g:$('#v-sect'), items:[], zones:[], title:'Section A–A', sheet:'A-301' }
+};
+var zonesG = $('#zones');
+var cur = null, T = null;
+function use(name, tf){ cur = views[name]; T = tf; }
+function f1(n){ return Math.round(n * 10) / 10; }
+function P(x, y){ var p = T(x, y); return f1(p[0]) + ' ' + f1(p[1]); }
+function add(tag, attrs, grp, kind){
+  var e = mk(tag, attrs, cur.g);
+  if (kind === 'd') e.setAttribute('pathLength', '1');
+  e.classList.add(kind);
+  cur.items.push({ el:e, grp:grp, kind:kind });
+  return e;
+}
+function L(x1, y1, x2, y2, cls, grp){ return add('path', { d:'M' + P(x1, y1) + 'L' + P(x2, y2), class:cls }, grp || 'furn', 'd'); }
+function PL(pts, close, cls, grp, kind){ var d = ''; for (var i = 0; i < pts.length; i++) d += (i ? 'L' : 'M') + P(pts[i][0], pts[i][1]); if (close) d += 'Z'; return add('path', { d:d, class:cls }, grp || 'furn', kind || 'd'); }
+function R(x1, y1, x2, y2, cls, grp, kind){ return PL([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], true, cls, grp, kind); }
+function RR(x1, y1, x2, y2, r, cls, grp){
+  var a = T(x1, y1), b = T(x2, y2), X1 = Math.min(a[0], b[0]), X2 = Math.max(a[0], b[0]), Y1 = Math.min(a[1], b[1]), Y2 = Math.max(a[1], b[1]), rr = r * 40;
+  var d = 'M' + f1(X1 + rr) + ' ' + f1(Y1) + 'H' + f1(X2 - rr) + 'A' + rr + ' ' + rr + ' 0 0 1 ' + f1(X2) + ' ' + f1(Y1 + rr) + 'V' + f1(Y2 - rr) + 'A' + rr + ' ' + rr + ' 0 0 1 ' + f1(X2 - rr) + ' ' + f1(Y2) + 'H' + f1(X1 + rr) + 'A' + rr + ' ' + rr + ' 0 0 1 ' + f1(X1) + ' ' + f1(Y2 - rr) + 'V' + f1(Y1 + rr) + 'A' + rr + ' ' + rr + ' 0 0 1 ' + f1(X1 + rr) + ' ' + f1(Y1) + 'Z';
+  return add('path', { d:d, class:cls }, grp || 'furn', 'd');
+}
+function C(cx, cy, r, cls, grp, kind){ var c = T(cx, cy), R0 = r * 40; return add('path', { d:'M' + f1(c[0] + R0) + ' ' + f1(c[1]) + 'A' + R0 + ' ' + R0 + ' 0 1 1 ' + f1(c[0] - R0) + ' ' + f1(c[1]) + 'A' + R0 + ' ' + R0 + ' 0 1 1 ' + f1(c[0] + R0) + ' ' + f1(c[1]), class:cls }, grp || 'furn', kind || 'd'); }
+function ARC(x1, y1, x2, y2, r, sweep, cls, grp){ return add('path', { d:'M' + P(x1, y1) + 'A' + (r * 40) + ' ' + (r * 40) + ' 0 0 ' + sweep + ' ' + P(x2, y2), class:cls }, grp || 'open', 'd'); }
+function FILL(pts, cls, grp){ return PL(pts, true, cls, grp || 'hatch', 'f'); }
+function FR(x1, y1, x2, y2, cls, grp){ return FILL([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], cls, grp); }
+function TX(x, y, s, cls, grp, anchor, rot){
+  var p = T(x, y), a = { x:f1(p[0]), y:f1(p[1]), class:cls, 'text-anchor':anchor || 'middle' };
+  if (rot) a.transform = 'rotate(' + rot + ' ' + f1(p[0]) + ' ' + f1(p[1]) + ')';
+  var t = add('text', a, grp || 'text', 't'); t.textContent = s; return t;
+}
+function arrowHead(x, y, dx, dy, grp, cls){
+  // tip at (x,y) pointing along (dx,dy) in drawing units (screen space)
+  var p = T(x, y), l = Math.hypot(dx, dy); dx /= l; dy /= l;
+  var bx = p[0] - dx * 8, by = p[1] - dy * 8, nx = -dy * 2.3, ny = dx * 2.3;
+  return add('path', { d:'M' + f1(p[0]) + ' ' + f1(p[1]) + 'L' + f1(bx + nx) + ' ' + f1(by + ny) + 'L' + f1(bx - nx) + ' ' + f1(by - ny) + 'Z', class:cls || 'ah' }, grp || 'dim', 'f');
+}
+function hdim(xs, yd, y0, grp, labelAt){
+  var s = yd < y0 ? -1 : 1, i;
+  for (i = 0; i < xs.length; i++) L(xs[i], y0 + s * 0.15, xs[i], yd + s * 0.22, 'ex', grp || 'dim');
+  for (i = 0; i < xs.length - 1; i++){
+    L(xs[i], yd, xs[i + 1], yd, 'dl', grp || 'dim');
+    var a = T(xs[i], yd), b = T(xs[i + 1], yd), sx = b[0] > a[0] ? 1 : -1;
+    arrowHead(xs[i], yd, -sx, 0, grp); arrowHead(xs[i + 1], yd, sx, 0, grp);
+    TX(labelAt !== undefined ? labelAt : (xs[i] + xs[i + 1]) / 2, yd, (xs[i + 1] - xs[i]).toFixed(2), 'dt', grp || 'dim').setAttribute('dy', '-4');
+  }
+}
+function vdim(ys, xd, x0, grp, flip){
+  var s = xd < x0 ? -1 : 1, i;
+  for (i = 0; i < ys.length; i++) L(x0 + s * 0.15, ys[i], xd + s * 0.22, ys[i], 'ex', grp || 'dim');
+  for (i = 0; i < ys.length - 1; i++){
+    L(xd, ys[i], xd, ys[i + 1], 'dl', grp || 'dim');
+    var a = T(xd, ys[i]), b = T(xd, ys[i + 1]), sy = b[1] > a[1] ? 1 : -1;
+    arrowHead(xd, ys[i], 0, -sy, grp); arrowHead(xd, ys[i + 1], 0, sy, grp);
+    var t = TX(xd, (ys[i] + ys[i + 1]) / 2, Math.abs(ys[i + 1] - ys[i]).toFixed(2), 'dt', grp || 'dim', 'middle', -90);
+    t.setAttribute('dy', '-4');
+  }
+}
+function canopy(cx, cy, r, seed, cls, grp, fillCls){
+  var rnd = (function(s){ return function(){ s = (s * 16807) % 2147483647; return s / 2147483647; }; })(seed);
+  var n = 13, pts = [], i;
+  for (i = 0; i < n; i++){ var a = i / n * Math.PI * 2 + rnd() * 0.2, rr = r * (0.86 + rnd() * 0.16); pts.push(T(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr)); }
+  var c = T(cx, cy), d = 'M' + f1(pts[0][0]) + ' ' + f1(pts[0][1]);
+  for (i = 0; i < n; i++){
+    var p = pts[i], q = pts[(i + 1) % n], mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, ox = mx - c[0], oy = my - c[1], ol = Math.hypot(ox, oy) || 1, bulge = 0.28 * Math.hypot(q[0] - p[0], q[1] - p[1]);
+    d += 'Q' + f1(mx + ox / ol * bulge) + ' ' + f1(my + oy / ol * bulge) + ' ' + f1(q[0]) + ' ' + f1(q[1]);
+  }
+  if (fillCls) add('path', { d:d + 'Z', class:fillCls }, 'furn', 'f');
+  return add('path', { d:d + 'Z', class:cls }, grp || 'furn', 'd');
+}
+function zone(name, info, rects, room){
+  var d = '';
+  rects.forEach(function(r){ var a = T(r[0], r[1]), b = T(r[2], r[3]); d += 'M' + f1(Math.min(a[0], b[0])) + ' ' + f1(Math.min(a[1], b[1])) + 'H' + f1(Math.max(a[0], b[0])) + 'V' + f1(Math.max(a[1], b[1])) + 'H' + f1(Math.min(a[0], b[0])) + 'Z'; });
+  var z = mk('path', { d:d, class:'zone', tabindex:'0', role:'button', 'aria-label':name + ', ' + info.area + (info.dims ? ', ' + info.dims : '') }, zonesG);
+  z.style.display = 'none';
+  z.__info = { name:name, area:info.area, dims:info.dims || '', room:room };
+  cur.zones.push(z);
+  return z;
+}
+
+/* ================= FLOOR PLAN ================= */
+var OX = 120, OY = 132;
+use('plan', function(x, y){ return [OX + x * 40, OY + y * 40]; });
+(function(){
+  var cons = [0, 5, 8, 11, 13, 18];
+  cons.forEach(function(x){ PL([[x, -0.7], [x, 12.9]], false, 'cons', 'thin', 'f'); });
+  [0, 5, 6, 9, 11].forEach(function(y){ PL([[-0.7, y], [18.7, y]], false, 'cons', 'thin', 'f'); });
+  var W = [
+    [0,0,1.2,0.3],[3.8,0,5.8,0.3],[7.2,0,10.6,0.3],[11.6,0,14.0,0.3],[17.0,0,18,0.3],
+    [0,10.7,0.8,11],[7.5,10.7,8.4,11],[10.6,10.7,11.5,11],[17.2,10.7,18,11],
+    [0,0.3,0.3,1.5],[0,3.5,0.3,6.5],[0,9.5,0.3,10.7],
+    [17.7,0.3,18,1.5],[17.7,3.5,18,6.0],[17.7,10.0,18,10.7],
+    [4.94,0.3,5.06,4.94],
+    [0.3,4.94,3.7,5.06],[4.6,4.94,6.2,5.06],[7.0,4.94,8.06,5.06],
+    [5.06,2.94,5.4,3.06],[6.2,2.94,7.94,3.06],
+    [7.94,0.3,8.06,4.94],
+    [12.94,0.3,13.06,2.4],[12.94,4.2,13.06,4.94],
+    [8.06,4.94,9.4,5.06],[12.6,4.94,13.06,5.06],
+    [13.06,4.94,14.0,5.06],[17.0,4.94,17.7,5.06],
+    [7.9,5.9,8.1,6.1],[10.9,5.9,11.1,6.1],[7.9,8.9,8.1,9.1],[10.9,8.9,11.1,9.1]
+  ];
+  W.forEach(function(w){ FR(w[0], w[1], w[2], w[3], 'hf', 'hatch'); });
+  W.forEach(function(w){ R(w[0], w[1], w[2], w[3], 'w', 'wall'); });
+  // windows in horizontal / vertical walls
+  function hwin(xa, xb, y1, y2){ L(xa, y1, xb, y1, 'th', 'open'); L(xa, y2, xb, y2, 'th', 'open'); var m = (y1 + y2) / 2; L(xa, m - 0.035, xb, m - 0.035, 'gz', 'open'); L(xa, m + 0.035, xb, m + 0.035, 'gz', 'open'); }
+  function vwin(ya, yb, x1, x2){ L(x1, ya, x1, yb, 'th', 'open'); L(x2, ya, x2, yb, 'th', 'open'); var m = (x1 + x2) / 2; L(m - 0.035, ya, m - 0.035, yb, 'gz', 'open'); L(m + 0.035, ya, m + 0.035, yb, 'gz', 'open'); }
+  hwin(1.2, 3.8, 0, 0.3); hwin(5.8, 7.2, 0, 0.3); hwin(14.0, 17.0, 0, 0.3);
+  vwin(1.5, 3.5, 0, 0.3); vwin(6.5, 9.5, 0, 0.3); vwin(1.5, 3.5, 17.7, 18); vwin(6.0, 10.0, 17.7, 18);
+  function slider(xa, xb, n){
+    L(xa, 10.7, xb, 10.7, 'th', 'open'); L(xa, 11.0, xb, 11.0, 'th', 'open');
+    var w = (xb - xa) / n;
+    for (var k = 0; k < n; k++){ var yy = k % 2 ? 10.9 : 10.8; R(xa + k * w - (k ? 0.06 : 0), yy - 0.025, xa + (k + 1) * w + (k < n - 1 ? 0.06 : 0), yy + 0.025, 'gz', 'open'); }
+  }
+  slider(0.8, 7.5, 4); slider(8.4, 10.6, 2); slider(11.5, 17.2, 3);
+  // patio glazing
+  L(8.1, 5.97, 10.9, 5.97, 'gz', 'open'); L(8.1, 6.03, 10.9, 6.03, 'gz', 'open');
+  L(8.1, 8.97, 10.9, 8.97, 'gz', 'open'); L(8.1, 9.03, 10.9, 9.03, 'gz', 'open');
+  L(10.97, 6.1, 10.97, 8.9, 'gz', 'open'); L(11.03, 6.1, 11.03, 8.9, 'gz', 'open');
+  L(7.97, 6.1, 7.97, 7.0, 'gz', 'open'); L(8.03, 6.1, 8.03, 7.0, 'gz', 'open');
+  L(7.97, 8.2, 7.97, 8.9, 'gz', 'open'); L(8.03, 8.2, 8.03, 8.9, 'gz', 'open');
+  R(8.06, 6.9, 8.12, 8.2, 'gz', 'open');
+  // doors
+  L(10.6, 0.3, 10.6, 1.3, 'w2', 'open'); ARC(11.6, 0.3, 10.6, 1.3, 1.0, 1, 'fx', 'open');
+  L(4.6, 4.94, 4.6, 4.04, 'w2', 'open'); ARC(3.7, 4.94, 4.6, 4.04, 0.9, 1, 'fx', 'open');
+  L(6.2, 4.94, 6.2, 4.14, 'w2', 'open'); ARC(7.0, 4.94, 6.2, 4.14, 0.8, 0, 'fx', 'open');
+  L(5.4, 2.94, 5.4, 2.14, 'w2', 'open'); ARC(6.2, 2.94, 5.4, 2.14, 0.8, 0, 'fx', 'open');
+  // stair: 16 risers x 206, 15 treads x 270, up to the north
+  L(8.06, 0.55, 8.06, 4.6, 'th', 'stair'); L(9.26, 0.55, 9.26, 4.6, 'th', 'stair');
+  for (var k = 0; k <= 15; k++){ var ty = 4.6 - k * 0.27; if (ty > 3.45) L(8.06, ty, 9.26, ty, 'th', 'stair'); else PL([[8.06, ty], [9.26, ty]], false, 'dash', 'stair', 'f'); }
+  PL([[8.06, 3.72], [8.52, 3.56], [8.6, 3.7], [8.72, 3.42], [8.8, 3.52], [9.26, 3.36]], false, 'th', 'stair');
+  L(8.66, 4.45, 8.66, 0.85, 'fx', 'stair'); arrowHead(8.66, 0.75, 0, -1, 'stair', 'ah');
+  TX(8.66, 4.42, 'UP', 'lb', 'text').setAttribute('dy', '-2');
+  TX(9.05, 2.4, '16R', 'no', 'text', 'middle', -90);
+  // ---- furniture ----
+  // bedroom
+  R(1.0, 0.35, 2.6, 2.35, 'fu'); RR(1.1, 0.45, 1.75, 0.8, 0.08, 'fu'); RR(1.85, 0.45, 2.5, 0.8, 0.08, 'fu'); L(1.0, 1.15, 2.6, 1.15, 'fu'); L(2.6, 1.8, 2.05, 2.35, 'fu');
+  R(0.42, 0.4, 0.9, 0.85, 'fu'); R(2.7, 0.4, 3.18, 0.85, 'fu'); C(0.66, 0.62, 0.12, 'fu'); C(2.94, 0.62, 0.12, 'fu');
+  R(4.3, 0.5, 4.88, 3.4, 'fu'); L(4.3, 0.5, 4.88, 3.4, 'fx'); L(4.88, 0.5, 4.3, 3.4, 'fx');
+  PL([[0.9, 2.7], [3.4, 2.7], [3.4, 4.3], [0.9, 4.3]], true, 'dash', 'furn', 'f');
+  // bath
+  R(5.2, 0.4, 6.95, 1.15, 'fu'); RR(5.3, 0.5, 6.85, 1.05, 0.22, 'fu'); C(6.65, 0.78, 0.05, 'fu');
+  R(7.62, 0.45, 7.88, 1.1, 'fu'); add('path', { d:'M' + P(7.6, 0.58) + 'C' + P(7.05, 0.5) + ' ' + P(7.05, 1.06) + ' ' + P(7.6, 0.98), class:'fu' }, 'furn', 'd');
+  R(7.2, 1.45, 7.88, 2.4, 'fu'); add('path', { d:'M' + P(7.52, 1.68) + 'A8 10 0 1 0 ' + P(7.52, 2.18) + 'A8 10 0 1 0 ' + P(7.52, 1.68), class:'fu' }, 'furn', 'd');
+  // laundry
+  R(7.28, 3.2, 7.86, 3.78, 'fu'); C(7.57, 3.49, 0.2, 'fu'); R(7.28, 3.86, 7.86, 4.44, 'fu'); C(7.57, 4.15, 0.2, 'fu'); R(5.12, 3.2, 5.46, 4.8, 'fu');
+  // hall
+  R(12.35, 0.6, 12.85, 2.1, 'fu'); C(12.52, 4.55, 0.24, 'fu'); C(10.6, 2.8, 0.9, 'dash', 'furn', 'f');
+  // kitchen
+  R(13.06, 0.3, 16.8, 0.95, 'fu'); R(16.88, 0.35, 17.64, 1.1, 'fu'); L(16.88, 0.35, 17.64, 1.1, 'fx');
+  RR(15.0, 0.4, 15.4, 0.85, 0.06, 'fu'); RR(15.5, 0.4, 15.9, 0.85, 0.06, 'fu');
+  C(13.55, 0.48, 0.13, 'fu'); C(13.95, 0.48, 0.13, 'fu'); C(13.55, 0.78, 0.11, 'fu'); C(13.95, 0.78, 0.11, 'fu');
+  R(14.3, 2.4, 16.7, 3.4, 'fu'); [14.7, 15.5, 16.3].forEach(function(x){ C(x, 3.78, 0.2, 'fu'); });
+  // dining
+  R(13.2, 7.3, 15.8, 8.3, 'fu');
+  [13.65, 14.5, 15.35].forEach(function(x){ RR(x - 0.22, 6.82, x + 0.22, 7.22, 0.05, 'fu'); RR(x - 0.22, 8.38, x + 0.22, 8.78, 0.05, 'fu'); });
+  RR(12.72, 7.58, 13.12, 8.02, 0.05, 'fu'); RR(15.88, 7.58, 16.28, 8.02, 0.05, 'fu');
+  C(13.9, 7.8, 0.25, 'dash', 'furn', 'f'); C(15.1, 7.8, 0.25, 'dash', 'furn', 'f');
+  RR(16.35, 9.35, 17.2, 10.2, 0.12, 'fu'); C(17.35, 9.1, 0.16, 'fu');
+  // living
+  PL([[1.0, 6.0], [4.4, 6.0], [4.4, 6.9], [1.9, 6.9], [1.9, 8.9], [1.0, 8.9]], true, 'fu');
+  PL([[1.0, 6.25], [4.4, 6.25]], false, 'fx'); PL([[1.25, 6.25], [1.25, 8.9]], false, 'fx');
+  RR(2.55, 7.4, 3.9, 8.2, 0.08, 'fu');
+  RR(5.2, 7.1, 6.0, 7.9, 0.14, 'fu'); RR(5.2, 8.3, 6.0, 9.1, 0.14, 'fu');
+  PL([[2.1, 7.05], [6.4, 7.05], [6.4, 9.4], [2.1, 9.4]], true, 'dash', 'furn', 'f');
+  R(0.6, 5.1, 3.3, 5.5, 'fu'); C(7.4, 5.62, 0.28, 'fu'); C(0.75, 10.15, 0.28, 'fu');
+  // patio
+  FR(8.12, 6.08, 10.92, 8.92, 'gv', 'thin');
+  canopy(9.5, 7.5, 0.98, 11, 'fu', 'furn');
+  C(9.5, 7.5, 0.13, 'fu'); L(9.5, 7.5, 9.1, 7.0, 'fx'); L(9.5, 7.5, 10.05, 7.25, 'fx'); L(9.5, 7.5, 9.7, 8.12, 'fx'); L(9.5, 7.5, 8.95, 7.9, 'fx');
+  // terrace + overhang
+  L(0, 12.6, 18, 12.6, 'th', 'thin');
+  [11.6, 12.2].forEach(function(y){ PL([[0, y], [18, y]], false, 'fx', 'thin'); });
+  for (var px = 1.5; px < 18; px += 1.5) PL([[px, 11.0], [px, 12.6]], false, 'fx', 'thin');
+  PL([[0, 11], [0, 12.2], [18, 12.2], [18, 11]], false, 'dash2', 'thin', 'f');
+  TX(4.0, 11.95, 'Roof overhang above', 'lb', 'text').setAttribute('dy', '3');
+  TX(14.4, 11.95, 'Covered terrace', 'lb', 'text').setAttribute('dy', '3');
+  // ---- room labels ----
+  function room(n, x, y, name, area){ TX(x, y - 0.42, n, 'no', 'text'); TX(x, y, name, 'rm halo', 'text'); TX(x, y + 0.4, area + ' m²', 'ar halo', 'text'); }
+  room('07', 2.3, 3.6, 'Bedroom', '21.5'); room('08', 6.3, 2.05, 'Bath', '7.6'); room('09', 6.3, 3.95, 'Laundry', '5.4');
+  room('01', 10.95, 1.5, 'Entry hall', '22.6'); room('02', 15.2, 1.85, 'Kitchen', '21.5');
+  room('04', 5.2, 6.35, 'Living', '43.4'); room('06', 9.5, 7.55, 'Patio', '8.3'); room('05', 9.5, 9.95, 'Gallery', '7.9'); room('03', 14.5, 9.45, 'Dining', '37.8');
+  // ---- dimensions ----
+  hdim([0, 5, 8, 13, 18], -1.0, 0); hdim([0, 18], -1.8, -1.15, 'dim', 4.5);
+  vdim([0, 5, 11], -1.0, 0); vdim([0, 11], -1.8, -1.15);
+  vdim([0, 5, 6, 9, 11], 19.0, 18);
+  hdim([0, 8, 11, 18], 13.3, 12.6);
+  // ---- symbols ----
+  add('path', { d:'M' + P(8.66, -2.36) + 'L' + P(8.66, -1.98), class:'cut' }, 'mark', 'd');
+  add('path', { d:'M' + P(8.66, 13.6) + 'L' + P(8.66, 13.98), class:'cut' }, 'mark', 'd');
+  PL([[8.66, -0.4], [8.66, 12.9]], false, 'dash2', 'mark', 'f').style.opacity = '';
+  [[-2.7, 'A'], [14.3, 'A']].forEach(function(t){
+    C(8.66, t[0], 0.32, 'w2', 'mark');
+    FILL([[8.98, t[0] - 0.22], [9.42, t[0]], [8.98, t[0] + 0.22]], 'ah1', 'mark');
+    TX(8.66, t[0], t[1], 'lbw', 'mark').setAttribute('dy', '3.5');
+  });
+  // north arrow
+  var na = [-1.5, 12.7];
+  C(na[0], na[1], 0.55, 'w2', 'mark');
+  FILL([[na[0], na[1] - 0.72], [na[0] + 0.24, na[1] + 0.3], [na[0], na[1] + 0.12]], 'ah1', 'mark');
+  PL([[na[0], na[1] - 0.72], [na[0] - 0.24, na[1] + 0.3], [na[0], na[1] + 0.12]], true, 'w2', 'mark');
+  TX(na[0], na[1] - 0.9, 'N', 'lbw', 'mark');
+  // view title
+  C(10.55, 14.45, 0.3, 'w2', 'mark'); TX(10.55, 14.45, '1', 'lbw', 'mark').setAttribute('dy', '3.5');
+  TX(11.1, 14.45, 'Ground floor plan', 'ttl', 'mark', 'start').setAttribute('dy', '5');
+  TX(16.75, 14.45, 'Scale 1:100', 'ttls', 'mark', 'start').setAttribute('dy', '4');
+  // ---- hover zones ----
+  zone('Entry hall', { area:'22.6 m²', dims:'4.88 × 4.64 m' }, [[8.06, 0.3, 12.94, 4.94]], '01');
+  zone('Kitchen', { area:'21.5 m²', dims:'4.64 × 4.64 m' }, [[13.06, 0.3, 17.7, 4.94]], '02');
+  zone('Dining', { area:'37.8 m²', dims:'6.70 × 5.64 m' }, [[11.0, 5.06, 17.7, 10.7]], '03');
+  zone('Living', { area:'43.4 m²', dims:'7.70 × 5.64 m' }, [[0.3, 5.06, 8.0, 10.7]], '04');
+  zone('Gallery', { area:'7.9 m²', dims:'wraps the patio' }, [[8.0, 5.06, 11.0, 6.0], [8.0, 9.03, 11.0, 10.7]], '05');
+  zone('Patio', { area:'8.3 m²', dims:'2.88 × 2.88 m · open to sky' }, [[8.06, 6.06, 10.94, 8.94]], '06');
+  zone('Bedroom', { area:'21.5 m²', dims:'4.64 × 4.64 m' }, [[0.3, 0.3, 4.94, 4.94]], '07');
+  zone('Bath', { area:'7.6 m²', dims:'2.88 × 2.64 m' }, [[5.06, 0.3, 7.94, 2.94]], '08');
+  zone('Laundry', { area:'5.4 m²', dims:'2.88 × 1.88 m' }, [[5.06, 3.06, 7.94, 4.94]], '09');
+})();
+
+/* ================= SOUTH ELEVATION ================= */
+use('elev', function(x, h){ return [150 + x * 40, 510 - h * 40]; });
+(function(){
+  FR(-3.5, 0, 20.3, -0.6, 'ef', 'hatch');
+  L(-3.5, 0, 20.3, 0, 'gl', 'wall');
+  // main volume
+  R(0, 0, 18, 3.0, 'w', 'wall'); R(0, 3.0, 18, 3.6, 'w', 'wall'); L(0, 3.45, 18, 3.45, 'fx', 'thin');
+  // upper volume (set back 6 m)
+  R(5, 3.6, 13, 6.6, 'w2', 'wall'); L(5, 6.42, 13, 6.42, 'fx', 'thin');
+  [3.9, 4.15, 5.95, 6.2].forEach(function(h){ L(5, h, 13, h, 'fx', 'thin'); });
+  R(5.6, 4.3, 12.4, 5.7, 'w2', 'open');
+  for (var k = 1; k < 4; k++) L(5.6 + k * 1.7, 4.3, 5.6 + k * 1.7, 5.7, 'th', 'open');
+  for (k = 0; k < 4; k++){ var wx = 5.6 + k * 1.7; L(wx + 0.3, 4.55, wx + 0.7, 5.1, 'fx', 'furn'); L(wx + 0.5, 4.5, wx + 0.9, 5.05, 'fx', 'furn'); }
+  // ground-floor glazing
+  function glaze(xa, xb, n){
+    R(xa, 0, xb, 3.0, 'w2', 'open');
+    var w = (xb - xa) / n;
+    for (var i = 1; i < n; i++) L(xa + i * w, 0, xa + i * w, 3.0, 'th', 'open');
+    L(xa, 0.12, xb, 0.12, 'th', 'open');
+    for (i = 0; i < n; i++){ var x0 = xa + i * w; L(x0 + w * 0.25, 1.1, x0 + w * 0.55, 1.9, 'fx', 'furn'); L(x0 + w * 0.42, 0.95, x0 + w * 0.72, 1.75, 'fx', 'furn'); }
+  }
+  glaze(0.8, 7.5, 4); glaze(8.4, 10.6, 2); glaze(11.5, 17.2, 3);
+  // timber cladding on solid piers
+  [[0, 0.8], [7.5, 8.4], [10.6, 11.5], [17.2, 18]].forEach(function(p){ for (var x = p[0] + 0.15; x < p[1] - 0.05; x += 0.15) L(x, 0.05, x, 2.95, 'fx', 'thin'); });
+  // roof-terrace guard rails
+  [[0.15, 4.85], [13.15, 17.85]].forEach(function(r){
+    L(r[0], 4.6, r[1], 4.6, 'th', 'furn'); L(r[0], 4.5, r[1], 4.5, 'fx', 'furn');
+    for (var x = r[0]; x <= r[1] + 0.01; x += (r[1] - r[0]) / 4) L(x, 3.6, x, 4.6, 'fx', 'furn');
+  });
+  // patio tree rising above the roof
+  canopy(9.5, 4.85, 1.15, 5, 'fu', 'furn'); canopy(9.25, 5.05, 0.62, 9, 'fx', 'furn'); L(9.5, 3.6, 9.5, 4.3, 'fx', 'furn');
+  // entourage
+  L(-2.35, 0, -2.35, 2.2, 'fu'); L(-2.2, 0, -2.2, 2.2, 'fu'); canopy(-2.3, 3.4, 1.25, 3, 'fu', 'furn'); canopy(-2.5, 3.2, 0.6, 21, 'fx', 'furn');
+  var man = [[-0.1, 1.52], [-0.22, 1.45], [-0.26, 0.92], [-0.2, 0.9], [-0.16, 1.3], [-0.14, 0.95], [-0.13, 0], [-0.03, 0], [0, 0.78], [0.03, 0], [0.13, 0], [0.14, 0.95], [0.16, 1.3], [0.2, 0.9], [0.26, 0.92], [0.22, 1.45], [0.1, 1.52]];
+  PL(man.map(function(p){ return [12.6 + p[0], p[1]]; }), true, 'fu'); C(12.6, 1.64, 0.11, 'fu');
+  // levels & dims
+  [[0, '±0.00'], [3.6, '+3.60'], [6.6, '+6.60']].forEach(function(l){
+    L(18.15, l[0], 20.1, l[0], 'ex', 'dim');
+    FILL([[19.0, l[0]], [18.85, l[0] + 0.22], [19.15, l[0] + 0.22]], 'ah1', 'dim');
+    TX(19.25, l[0] + 0.12, l[1], 'dt', 'dim', 'start');
+  });
+  vdim([0, 3.0, 3.6, 6.6], 18.7, 18.0);
+  hdim([0, 0.8, 7.5, 8.4, 10.6, 11.5, 17.2, 18], -1.1, -0.6); hdim([0, 18], -1.9, -1.25);
+  TX(4.15, 1.5, 'Living', 'lb halo', 'text'); TX(9.5, 1.5, 'Gallery', 'lb halo', 'text'); TX(14.35, 1.5, 'Dining', 'lb halo', 'text'); TX(6.55, 3.93, 'Studio', 'lb halo', 'text'); TX(9.5, 6.35, 'Patio tree', 'lb halo', 'text');
+  C(-3.1, 8.6, 0.3, 'w2', 'mark'); TX(-3.1, 8.6, '2', 'lbw', 'mark').setAttribute('dy', '3.5');
+  TX(-2.55, 8.6, 'South elevation', 'ttl', 'mark', 'start').setAttribute('dy', '5');
+  TX(3.3, 8.6, 'Scale 1:100', 'ttls', 'mark', 'start').setAttribute('dy', '4');
+  zone('Living glazing', { area:'20.1 m²', dims:'6.70 × 3.00 m · 4 sliding panels' }, [[0.8, 0, 7.5, 3.0]], '04');
+  zone('Gallery doors', { area:'6.6 m²', dims:'2.20 × 3.00 m · 2 panels' }, [[8.4, 0, 10.6, 3.0]], '05');
+  zone('Dining glazing', { area:'17.1 m²', dims:'5.70 × 3.00 m · 3 panels' }, [[11.5, 0, 17.2, 3.0]], '03');
+  zone('Studio ribbon window', { area:'9.5 m²', dims:'6.80 × 1.40 m · sill +4.30' }, [[5.6, 4.3, 12.4, 5.7]], '10');
+  zone('Roof slab & fascia', { area:'18.00 m', dims:'0.60 m fascia · cantilever 1.20 m' }, [[0, 3.0, 18, 3.6]], null);
+})();
+
+/* ================= SECTION A–A (looking east) ================= */
+use('sect', function(y, h){ return [150 + y * 40, 520 - h * 40]; });
+(function(){
+  FR(-1.2, -0.3, 13.8, -1.3, 'ef', 'hatch');
+  L(-1.2, 0, 0, 0, 'gl', 'wall'); L(13.0, -0.15, 13.8, -0.15, 'gl', 'wall');
+  // poché (cut) elements
+  var cutPolys = [
+    [[0, -0.3], [11, -0.3], [11, 0], [0, 0]],
+    [[11, -0.35], [13.0, -0.35], [13.0, -0.15], [11, -0.15]],
+    [[-0.2, -1.0], [0.5, -1.0], [0.5, -0.3], [-0.2, -0.3]], [[4.65, -0.9], [5.35, -0.9], [5.35, -0.3], [4.65, -0.3]], [[10.5, -1.0], [11.2, -1.0], [11.2, -0.35], [10.5, -0.35]],
+    [[0, 0], [0.3, 0], [0.3, 6.6], [0, 6.6]],
+    [[4.94, 0], [5.06, 0], [5.06, 3.0], [4.94, 3.0]],
+    [[0.3, 3.0], [0.55, 3.0], [0.55, 3.3], [0.3, 3.3]], [[3.4, 3.0], [5.0, 3.0], [5.0, 3.3], [3.4, 3.3]],
+    [[4.7, 3.3], [5.0, 3.3], [5.0, 4.3], [4.7, 4.3]], [[4.7, 5.7], [5.0, 5.7], [5.0, 6.6], [4.7, 6.6]],
+    [[0.3, 6.0], [4.7, 6.0], [4.7, 6.3], [0.3, 6.3]],
+    [[5.0, 3.0], [6.0, 3.0], [6.0, 3.6], [5.8, 3.6], [5.8, 3.3], [5.0, 3.3]],
+    [[9.0, 3.0], [12.2, 3.0], [12.2, 3.6], [12.0, 3.6], [12.0, 3.3], [9.2, 3.3], [9.2, 3.6], [9.0, 3.6]]
+  ];
+  // stair cut profile: 16 risers of 0.206, 15 treads of 0.27, rising north
+  var st = [[4.6, 0]], y = 4.6, h = 0, r;
+  for (r = 0; r < 16; r++){ h += 3.3 / 16; st.push([y, h]); if (r < 15){ y -= 0.27; st.push([y, h]); } }
+  st.push([0.55, 3.0]); st.push([4.95, 0]);
+  cutPolys.push(st);
+  cutPolys.forEach(function(p){ FILL(p, 'pf', 'hatch'); });
+  cutPolys.forEach(function(p){ PL(p, true, 'w', 'wall'); });
+  // glazing in cut
+  function glassV(yc, h0, h1){ L(yc - 0.04, h0, yc - 0.04, h1, 'gz', 'open'); L(yc + 0.04, h0, yc + 0.04, h1, 'gz', 'open'); R(yc - 0.09, h0, yc + 0.09, h0 + 0.1, 'th', 'open'); R(yc - 0.09, h1 - 0.1, yc + 0.09, h1, 'th', 'open'); }
+  glassV(6.0, 0, 3.0); glassV(9.0, 0, 3.0); glassV(10.85, 0, 3.0); glassV(4.85, 4.3, 5.7);
+  // handrail
+  L(4.75, 0.95, 0.55, 4.2, 'th', 'stair'); L(4.75, 0.2, 4.75, 0.95, 'fx', 'stair');
+  // beyond (seen, not cut)
+  R(6.0, 0.4, 10.0, 2.6, 'fx', 'thin');
+  // patio tree (beyond) rising through the open roof
+  L(7.44, 0, 7.44, 2.6, 'fu'); L(7.56, 0, 7.56, 2.6, 'fu'); L(7.5, 1.9, 7.05, 2.7, 'fx'); L(7.5, 2.1, 8.0, 2.9, 'fx');
+  canopy(7.5, 3.9, 1.35, 5, 'fu', 'furn'); canopy(7.3, 4.2, 0.72, 13, 'fx', 'furn');
+  // studio desk + figure in hall
+  R(3.6, 3.3, 4.55, 4.05, 'fx', 'thin'); L(3.6, 4.05, 4.55, 4.05, 'fu');
+  var man = [[-0.1, 1.52], [-0.22, 1.45], [-0.26, 0.92], [-0.2, 0.9], [-0.16, 1.3], [-0.14, 0.95], [-0.13, 0], [-0.03, 0], [0, 0.78], [0.03, 0], [0.13, 0], [0.14, 0.95], [0.16, 1.3], [0.2, 0.9], [0.26, 0.92], [0.22, 1.45], [0.1, 1.52]];
+  PL(man.map(function(p){ return [1.55 + p[0], p[1]]; }), true, 'fu'); C(1.55, 1.64, 0.11, 'fu');
+  // sun
+  PL([[13.004, 6.0], [11.396, 0]], false, 'sun', 'mark', 'f'); arrowHead(11.396, 0, -0.268, 1, 'mark', 'ah');
+  PL([[14.457, 4.2], [6.558, 0]], false, 'sun', 'mark', 'f'); arrowHead(6.558, 0, -1.88, 1, 'mark', 'ah');
+  [6.3, 6.9, 7.5].forEach(function(g){ PL([[g + 1.608, 6.0], [g, 0]], false, 'sun', 'mark', 'f'); });
+  TX(13.15, 6.12, '21 Jun · noon 75°', 'lb', 'mark', 'start'); TX(14.6, 4.3, '21 Dec · noon 28°', 'lb', 'mark', 'start');
+  TX(7.5, 6.55, 'Open to sky', 'lb halo', 'mark');
+  // levels & dims
+  [[0, '±0.00'], [3.3, '+3.30'], [6.6, '+6.60']].forEach(function(l){
+    L(-2.4, l[0], -0.15, l[0], 'ex', 'dim');
+    FILL([[-1.5, l[0]], [-1.65, l[0] + 0.22], [-1.35, l[0] + 0.22]], 'ah1', 'dim');
+    TX(-2.35, l[0] + 0.12, l[1], 'dt', 'dim', 'start');
+  });
+  vdim([0, 3.3, 6.6], -0.7, 0);
+  hdim([0, 5, 6, 9, 11, 12.2], -1.8, -1.35);
+  TX(0.15, -2.55, 'North', 'lb', 'text', 'start'); TX(12.2, -2.55, 'South', 'lb', 'text', 'end');
+  TX(2.4, 4.8, 'Studio', 'rm halo', 'text'); TX(3.05, 2.75, 'Entry hall', 'rm halo', 'text'); TX(7.5, 1.1, 'Patio', 'rm halo', 'text'); TX(9.95, 1.8, 'Gallery', 'lb halo', 'text'); TX(11.85, 1.5, 'Terrace', 'lb halo', 'text');
+  C(-2.2, 9.0, 0.3, 'w2', 'mark'); TX(-2.2, 9.0, '3', 'lbw', 'mark').setAttribute('dy', '3.5');
+  TX(-1.65, 9.0, 'Section A–A', 'ttl', 'mark', 'start').setAttribute('dy', '5');
+  TX(3.6, 9.0, 'Scale 1:100 · looking east', 'ttls', 'mark', 'start').setAttribute('dy', '4');
+  zone('Studio', { area:'28.6 m²', dims:'upper floor · FFL +3.30' }, [[0.3, 3.3, 4.7, 6.0]], '10');
+  zone('Entry hall', { area:'22.6 m²', dims:'clear height 3.00 m' }, [[0.3, 0, 4.94, 3.0]], '01');
+  zone('Gallery', { area:'7.9 m²', dims:'wraps the patio' }, [[5.06, 0, 5.96, 3.0], [9.04, 0, 10.8, 3.0]], '05');
+  zone('Patio', { area:'8.3 m²', dims:'open to sky · winter sun reaches the floor' }, [[6.04, 0, 8.96, 3.6]], '06');
+  zone('Covered terrace', { area:'21.6 m²', dims:'18.00 × 1.20 m under cantilever' }, [[10.9, 0, 12.2, 3.0]], null);
+})();
+
+/* ================= TIMING ================= */
+var TIMING = { wall:[0, .75, .5], hatch:[.7, .3, .45], open:[.65, .7, .38], stair:[.95, .4, .3], furn:[1.1, .85, .38], thin:[1.2, .7, .45], dim:[1.6, .65, .32], text:[1.85, .6, .35], mark:[2.1, .4, .38] };
+var LABELS = { wall:'walls & cuts', hatch:'poché', open:'openings', stair:'stair', furn:'furniture & detail', thin:'finishes', dim:'dimensions', text:'lettering', mark:'symbols' };
+var TOTAL = 2.9;
+Object.keys(views).forEach(function(name){
+  var v = views[name], buckets = {};
+  v.items.forEach(function(it){ (buckets[it.grp] = buckets[it.grp] || []).push(it); });
+  Object.keys(buckets).forEach(function(g){
+    var arr = buckets[g], tm = TIMING[g] || TIMING.furn, n = arr.length;
+    arr.forEach(function(it, i){
+      var de = tm[0] + (n > 1 ? tm[1] * i / (n - 1) : 0);
+      it.el.style.setProperty('--de', de.toFixed(3) + 's');
+      it.el.style.setProperty('--du', tm[2] + 's');
+      it.el.style.setProperty('--dr', ((1 - de / TOTAL) * 0.35).toFixed(3) + 's');
+    });
+  });
+});
+
+/* ================= VIEW CONTROL ================= */
+var current = 'plan', busy = false, drawStart = 0, drawK = 1, pbar = $('#pbar'), plabel = $('#plabel'), ppct = $('#ppct');
+function setZones(name){ Object.keys(views).forEach(function(n){ views[n].zones.forEach(function(z){ z.style.display = n === name ? '' : 'none'; }); }); }
+function drawIn(name, k){
+  var v = views[name];
+  v.g.classList.add('reset'); v.g.classList.remove('on', 'out', 'hide');
+  v.g.style.setProperty('--k', k);
+  void v.g.getBoundingClientRect();
+  v.g.classList.remove('reset');
+  requestAnimationFrame(function(){ v.g.classList.add('on'); });
+  drawStart = performance.now(); drawK = k;
+}
+function eraseOut(name, cb){
+  var v = views[name];
+  v.g.classList.remove('on'); v.g.classList.add('out');
+  setTimeout(function(){ v.g.classList.add('reset'); v.g.classList.remove('out'); if (name !== current) v.g.classList.add('hide'); void v.g.getBoundingClientRect(); v.g.classList.remove('reset'); if (cb) cb(); }, reduced ? 0 : 900);
+}
+function show(name){
+  if (name === current && !busy) return;
+  hideTip();
+  var prev = current; current = name;
+  document.querySelectorAll('.tab').forEach(function(t){ var on = t.getAttribute('data-view') === name; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
+  $('#tbDrawing').textContent = views[name].title; $('#tbSheet').textContent = views[name].sheet;
+  $('#dwgTitle').textContent = 'Casa Lumen — ' + views[name].title;
+  setZones(name);
+  if (reduced){ views[prev].g.classList.add('hide'); views[prev].g.classList.remove('on'); drawIn(name, 0); return; }
+  eraseOut(prev);
+  setTimeout(function(){ drawIn(name, 0.62); }, 260);
+}
+function redraw(){
+  hideTip();
+  var v = views[current];
+  if (reduced){ drawIn(current, 0); return; }
+  v.g.classList.remove('on'); v.g.classList.add('out');
+  setTimeout(function(){ v.g.classList.add('reset'); v.g.classList.remove('out'); void v.g.getBoundingClientRect(); v.g.classList.remove('reset'); drawIn(current, 0.62); }, 620);
+}
+document.querySelectorAll('.tab').forEach(function(t, i, all){
+  t.addEventListener('click', function(){ show(t.getAttribute('data-view')); });
+  t.addEventListener('keydown', function(e){
+    var n = null;
+    if (e.key === 'ArrowRight') n = (i + 1) % all.length; else if (e.key === 'ArrowLeft') n = (i - 1 + all.length) % all.length; else return;
+    e.preventDefault(); all[n].focus(); show(all[n].getAttribute('data-view'));
+  });
+});
+$('#redraw').addEventListener('click', redraw);
+var pencilBtn = $('#pencil');
+pencilBtn.addEventListener('click', function(){
+  var on = pencilBtn.getAttribute('aria-checked') !== 'true';
+  pencilBtn.setAttribute('aria-checked', on ? 'true' : 'false');
+  if (reduced){ document.body.classList.toggle('pencil', on); return; }
+  var v = views[current];
+  v.g.classList.remove('on'); v.g.classList.add('out');
+  setTimeout(function(){
+    document.body.classList.toggle('pencil', on);
+    v.g.classList.add('reset'); v.g.classList.remove('out'); void v.g.getBoundingClientRect(); v.g.classList.remove('reset');
+    drawIn(current, 0.62);
+  }, 560);
+});
+
+/* ================= HOVER / TIP ================= */
+var tip = $('#tip'), stage = $('#stage'), schedBody = document.querySelector('#sched tbody');
+var ROOMS = [['01', 'Entry hall', '22.6'], ['02', 'Kitchen', '21.5'], ['03', 'Dining', '37.8'], ['04', 'Living', '43.4'], ['05', 'Gallery', '7.9'], ['06', 'Patio (open)', '8.3'], ['07', 'Bedroom', '21.5'], ['08', 'Bath', '7.6'], ['09', 'Laundry', '5.4'], ['10', 'Studio (upper)', '28.6']];
+var rowByRoom = {};
+ROOMS.forEach(function(r){
+  var tr = document.createElement('tr'); tr.innerHTML = '<td></td><td></td><td></td>';
+  tr.children[0].textContent = r[0]; tr.children[1].textContent = r[1]; tr.children[2].textContent = r[2];
+  schedBody.appendChild(tr); rowByRoom[r[0]] = tr;
+  tr.addEventListener('pointerenter', function(){ var z = findZone(r[0]); if (z) hot(z, true); });
+  tr.addEventListener('pointerleave', function(){ var z = findZone(r[0]); if (z) hot(z, false); });
+});
+function findZone(room){ var zs = views[current].zones; for (var i = 0; i < zs.length; i++) if (zs[i].__info.room === room) return zs[i]; return null; }
+var hotZone = null;
+function hot(z, on){
+  if (on){
+    if (hotZone && hotZone !== z) hot(hotZone, false);
+    hotZone = z; z.classList.add('hot');
+    var inf = z.__info;
+    $('#tipName').textContent = inf.name; $('#tipArea').textContent = inf.area; $('#tipDims').textContent = inf.dims;
+    var br = z.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    tip.classList.add('on');
+    var tw = tip.offsetWidth, th = tip.offsetHeight;
+    var x = br.left - sr.left + stage.scrollLeft + br.width / 2 - tw / 2, y = br.top - sr.top + br.height / 2 - th / 2;
+    x = Math.max(stage.scrollLeft + 6, Math.min(x, stage.scrollLeft + sr.width - tw - 6)); y = Math.max(6, Math.min(y, sr.height - th - 6));
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+    Object.keys(rowByRoom).forEach(function(k){ rowByRoom[k].classList.toggle('hot', k === inf.room); });
+  } else {
+    z.classList.remove('hot');
+    if (hotZone === z){ hotZone = null; tip.classList.remove('on'); Object.keys(rowByRoom).forEach(function(k){ rowByRoom[k].classList.remove('hot'); }); }
+  }
+}
+function hideTip(){ if (hotZone) hot(hotZone, false); }
+Object.keys(views).forEach(function(n){
+  views[n].zones.forEach(function(z){
+    z.addEventListener('pointerenter', function(){ hot(z, true); });
+    z.addEventListener('pointerleave', function(e){ if (e.pointerType === 'mouse') hot(z, false); });
+    z.addEventListener('focus', function(){ hot(z, true); });
+    z.addEventListener('blur', function(){ hot(z, false); });
+    z.addEventListener('click', function(){ hot(z, true); });
+  });
+});
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideTip(); });
+
+/* ================= PROGRESS ================= */
+var order = Object.keys(TIMING).sort(function(a, b){ return TIMING[a][0] - TIMING[b][0]; });
+function tick(){
+  var el = (performance.now() - drawStart) / 1000, total = TOTAL * (drawK || 0.0001), p = drawK ? Math.min(1, el / total) : 1;
+  pbar.style.setProperty('--p', (p * 100).toFixed(1) + '%');
+  ppct.textContent = Math.round(p * 100) + '%';
+  if (p >= 1) plabel.textContent = views[current].sheet + ' · ' + views[current].title + ' · complete';
+  else {
+    var g = order[0];
+    for (var i = 0; i < order.length; i++) if (TIMING[order[i]][0] * drawK <= el) g = order[i];
+    plabel.textContent = 'Drafting · ' + LABELS[g];
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ================= INIT ================= */
+setZones('plan');
+var narrowMQ = window.matchMedia('(max-width: 860px)'), wasNarrow = false;
+function centerScroll(){
+  var n = narrowMQ.matches;
+  if (n && !wasNarrow) requestAnimationFrame(function(){ stage.scrollLeft = (stage.scrollWidth - stage.clientWidth) * 0.42; });
+  wasNarrow = n;
+}
+centerScroll();
+window.addEventListener('resize', function(){ centerScroll(); hideTip(); });
+drawIn('plan', reduced ? 0 : 1);
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

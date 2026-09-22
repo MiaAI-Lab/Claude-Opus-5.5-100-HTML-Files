@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carriage Return — A Typewriter for Letters</title>
+<meta name="description" content="Type a letter on the Marlowe 44, a fictional mint-green portable typewriter: inked, imperfect characters, a moving carriage, a margin bell and a carriage-return lever, all drawn and synthesized in the browser.">
+<meta name="theme-color" content="#3a2212">
+<style>
+:root{
+  --enamel:#9fc9b6;
+  --enamel-deep:#6f9d88;
+  --cream:#f3ead3;
+  --paper:#faf6ec;
+  --ink:#231f1c;
+  --red:#b3261e;
+  --chrome:#d7dcdf;
+  --wood-dark:#2b170b;
+  --lamp:#ffd79a;
+  --mono:"Courier Prime","American Typewriter","Courier New","Nimbus Mono PS",Courier,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:#3a2212;color:var(--ink);font-family:var(--mono);overflow:hidden;-webkit-font-smoothing:antialiased}
+#scene{position:fixed;left:0;top:0;width:100%;height:100%;overflow:hidden;touch-action:manipulation}
+#desk,#motes{position:absolute;inset:0;width:100%;height:100%;display:block}
+#desk{z-index:0}
+#motes{z-index:8;pointer-events:none;mix-blend-mode:screen}
+
+/* ---------- machine layers (positioned by script) ---------- */
+.layer{position:absolute;left:0;top:0;display:block;overflow:visible}
+#shadow{z-index:1;border-radius:50%;background:radial-gradient(closest-side,rgba(12,6,2,.72),rgba(12,6,2,.35) 55%,rgba(12,6,2,0));pointer-events:none}
+#rear{z-index:2;transform-origin:50% 100%;transform:perspective(1100px) rotateX(24deg);
+  background:linear-gradient(180deg,#efe8d6 0%,#e7dfcb 60%,#cfc6b0 100%);
+  box-shadow:0 -1px 0 rgba(255,255,255,.5) inset,0 10px 30px rgba(0,0,0,.25);
+  transition:left 70ms cubic-bezier(.3,1.5,.55,1),height .2s ease-out,top .2s ease-out;pointer-events:none}
+#rear.returning{transition:left .46s cubic-bezier(.22,.9,.3,1.06),height .2s ease-out,top .2s ease-out}
+#rear.instant{transition:none}
+#rear::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(100deg,rgba(255,252,240,.35),rgba(255,252,240,0) 45%,rgba(60,40,20,.1)),
+  repeating-linear-gradient(90deg,rgba(120,100,70,.035) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+#rear::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0))}
+#carBack{z-index:3;pointer-events:none}
+#frontClip{z-index:4;overflow:hidden;pointer-events:none}
+#sheet{position:absolute;top:0;height:100%;pointer-events:auto;cursor:text}
+#paper{position:absolute;left:0;top:0;width:100%;display:block;box-shadow:0 -3px 10px rgba(40,25,10,.28),0 0 0 .5px rgba(90,70,40,.2)}
+.curl{position:absolute;left:-2px;right:-2px;pointer-events:none;background:linear-gradient(180deg,rgba(40,30,20,0) 0%,rgba(40,30,20,.12) 45%,rgba(20,14,8,.45) 100%)}
+#carFront{z-index:5;pointer-events:none}
+#carFront #lever{pointer-events:auto}
+#lever:focus-visible{outline:none}
+#lever:focus-visible .lv{filter:drop-shadow(0 0 3px #ffd79a) drop-shadow(0 0 2px #ffd79a)}
+#body{z-index:6}
+#guide{z-index:7;pointer-events:none}
+.carriage{transition:transform 70ms cubic-bezier(.3,1.5,.55,1)}
+.carriage.returning{transition:transform .46s cubic-bezier(.22,.9,.3,1.06)}
+.carriage.instant,.instant{transition:none!important}
+#paper{transition:transform .2s cubic-bezier(.3,1.3,.5,1)}
+
+/* keys */
+.kc{transition:transform 90ms ease-out;transform-box:fill-box;transform-origin:50% 50%}
+.key{cursor:pointer}
+.key.down .kc{transform:translateY(4px) scale(.965)}
+.key.down .cap{filter:brightness(.93)}
+.key:hover .cap{filter:brightness(1.03)}
+.key.on .cap{fill:url(#capLit)}
+#lever{cursor:pointer;transform-box:view-box;transform-origin:84px 44px;transition:transform .12s ease-out}
+#lever.pull{animation:pull .5s cubic-bezier(.3,.9,.4,1)}
+@keyframes pull{0%{transform:rotate(0)}30%{transform:rotate(26deg)}100%{transform:rotate(0)}}
+#lever:hover .lv{filter:brightness(1.08)}
+#typebar{opacity:0}
+#typebar.strike{animation:strike .11s ease-out}
+@keyframes strike{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+#spark{opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+#spark.strike{animation:spark .16s ease-out}
+@keyframes spark{0%{opacity:0;transform:scale(.4)}30%{opacity:.8}100%{opacity:0;transform:scale(1.4)}}
+.ding{position:absolute;z-index:9;font-family:var(--mono);font-size:15px;color:#ffe6ae;letter-spacing:.2em;pointer-events:none;text-shadow:0 0 12px rgba(255,200,110,.8);animation:ding 1.3s ease-out forwards}
+@keyframes ding{0%{opacity:0;transform:translateY(6px) scale(.9)}15%{opacity:1}100%{opacity:0;transform:translateY(-34px) scale(1.05)}}
+
+/* sheet pull-out */
+.pulling{animation:pullout .75s cubic-bezier(.55,0,.8,.4) forwards}
+@keyframes pullout{to{transform:translateY(-120vh) rotate(-4deg)}}
+#rear.pulling{animation:pullrear .75s cubic-bezier(.55,0,.8,.4) forwards}
+@keyframes pullrear{to{transform:perspective(1100px) rotateX(24deg) translateY(-120vh)}}
+.feeding{animation:feedin .7s cubic-bezier(.2,.8,.3,1)}
+@keyframes feedin{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+
+/* ---------- header ---------- */
+header.top{position:absolute;z-index:9;left:0;right:0;top:0;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:22px 28px 0;pointer-events:none}
+.label{pointer-events:auto;position:relative;background:linear-gradient(180deg,#fbf6e8,#f1e8d2);padding:14px 22px 12px;transform:rotate(-1.4deg);box-shadow:0 12px 24px -10px rgba(0,0,0,.65),0 1px 0 rgba(255,255,255,.7) inset}
+.label::before,.label::after{content:"";position:absolute;top:-10px;width:62px;height:22px;background:rgba(236,224,190,.72);box-shadow:0 1px 2px rgba(0,0,0,.15);transform:rotate(-5deg)}
+.label::before{left:-14px}
+.label::after{right:-12px;transform:rotate(6deg)}
+.label h1{margin:0;font-size:clamp(20px,2.1vw,30px);letter-spacing:.14em;font-weight:700;color:#2a2421;text-transform:uppercase;text-shadow:.4px .3px 0 rgba(35,31,28,.35)}
+.label p{margin:4px 0 0;font-size:13px;color:var(--red);letter-spacing:.06em}
+.controls{pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;align-items:center;max-width:760px}
+.btn{
+  appearance:none;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 16px 9px;cursor:pointer;
+  font:700 12.5px/1 var(--mono);letter-spacing:.08em;color:#2a2421;
+  background:radial-gradient(120% 140% at 50% 20%,#fffaf0 0%,#f2e7cc 62%,#dccfae 100%);
+  border:0;border-radius:999px;
+  box-shadow:0 0 0 2px #b9c0c4,0 0 0 3px #eef1f2,0 0 0 4px #7d868b,0 6px 14px -4px rgba(0,0,0,.7),inset 0 -3px 0 rgba(120,100,60,.22);
+  transition:transform .09s,box-shadow .09s,filter .2s;
+}
+.btn:hover{filter:brightness(1.04)}
+.btn:active,.btn.pressed{transform:translateY(2px);box-shadow:0 0 0 2px #b9c0c4,0 0 0 3px #eef1f2,0 0 0 4px #7d868b,0 3px 8px -4px rgba(0,0,0,.7),inset 0 -1px 0 rgba(120,100,60,.22)}
+.btn svg{width:15px;height:15px;flex:none}
+.btn:focus-visible,.seg button:focus-visible{outline:none}
+.btn:focus-visible,.seg button:focus-visible{box-shadow:0 0 0 2px #b9c0c4,0 0 0 3px #eef1f2,0 0 0 4px #7d868b,0 0 0 7px #ffd79a}
+.seg{display:inline-flex;align-items:center;gap:0;padding:4px;border-radius:999px;background:linear-gradient(180deg,#2b2320,#16110f);box-shadow:0 0 0 1px #7d868b,0 6px 14px -4px rgba(0,0,0,.7)}
+.seg .lbl{font-size:10.5px;letter-spacing:.2em;color:#d9cdb2;text-transform:uppercase;padding:0 10px 0 12px}
+.seg button{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;background:transparent;color:#cfc3a8;font:700 12px/1 var(--mono);letter-spacing:.06em;transition:background .2s,color .2s}
+.seg button .dot{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 -2px 2px rgba(0,0,0,.4)}
+.seg button[aria-pressed="true"]{background:radial-gradient(120% 140% at 50% 20%,#fffaf0,#e8dcbd);color:#2a2421}
+
+/* ---------- desk props ---------- */
+.prop{position:absolute;z-index:1;pointer-events:none}
+.card{width:262px;padding:12px 20px 10px;background:
+  repeating-linear-gradient(180deg,transparent 0 21px,rgba(90,130,190,.3) 21px 22px) 0 12px/100% calc(100% - 12px) no-repeat,
+  linear-gradient(180deg,#fdf9ef,#f2ead6);
+  box-shadow:0 18px 30px -12px rgba(0,0,0,.7);transform:rotate(-4deg);font-size:12px;line-height:22px;color:#2c2622}
+.card::before{content:"";position:absolute;left:0;right:0;top:32px;height:1px;background:rgba(200,60,60,.6)}
+.card::after{content:"";position:absolute;top:0;bottom:0;left:13px;width:1px;background:rgba(200,60,60,.35)}
+.card h2{margin:0;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);line-height:22px;white-space:nowrap}
+.card p{margin:0;white-space:nowrap}
+.card kbd{font-family:inherit;font-weight:700}
+.tag{width:230px;padding:14px 16px 14px 36px;background:linear-gradient(180deg,#f6ecd2,#e9dcbc);clip-path:polygon(22px 0,100% 0,100% 100%,22px 100%,0 50%);box-shadow:0 12px 24px -10px rgba(0,0,0,.6);transform:rotate(3deg);font-size:12px;line-height:1.75;color:#3a3029}
+.tag::before{content:"";position:absolute;left:12px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:#3a2212;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+.tag b{color:var(--red);font-weight:700}
+.tag .row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed rgba(90,70,50,.3)}
+.tag .row:last-child{border-bottom:0}
+.pencil{width:210px;height:14px;transform:rotate(-24deg)}
+
+/* toast */
+.toast{position:absolute;z-index:10;left:50%;top:92px;transform:translate(-50%,-10px);opacity:0;pointer-events:none;background:#fbf6e8;color:#2a2421;padding:10px 18px;font-size:13px;letter-spacing:.04em;box-shadow:0 14px 30px -12px rgba(0,0,0,.75);transition:opacity .35s,transform .35s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast b{color:var(--red)}
+
+#ghost{position:absolute;z-index:0;left:50%;bottom:40%;width:2px;height:2px;opacity:0;border:0;padding:0;resize:none;font-size:16px;background:transparent;color:transparent;caret-color:transparent}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.kbtn{display:none}
+@media (max-width:1199px){.prop{display:none}}
+@media (max-width:700px){
+  .prop.card{display:block;width:232px;font-size:11px;line-height:20px;padding:10px 16px 8px;transform:rotate(-2.5deg);
+    background:repeating-linear-gradient(180deg,transparent 0 19px,rgba(90,130,190,.3) 19px 20px) 0 10px/100% calc(100% - 10px) no-repeat,linear-gradient(180deg,#fdf9ef,#f2ead6)}
+  .card::before{top:29px}
+  .card h2{line-height:20px;font-size:10.5px}
+  .card .m-hide{display:none}
+}
+@media (max-width:700px){
+  header.top{flex-direction:column;align-items:stretch;gap:12px;padding:14px 14px 0}
+  .label{align-self:flex-start;padding:10px 16px 9px}
+  .label h1{font-size:19px}
+  .label p{font-size:11.5px}
+  .controls{justify-content:flex-start;gap:8px;max-width:none}
+  .btn{min-height:36px;padding:7px 11px 8px;font-size:11px;gap:6px}
+  .seg .lbl{display:none}
+  .seg button{padding:6px 9px;font-size:11px}
+  .kbtn{display:inline-flex}
+  .toast{top:auto;bottom:46%}
+}
+@media (prefers-reduced-motion:reduce){
+  .carriage,.carriage.returning,#paper,#rear,.kc{transition:none}
+  #lever.pull,.pulling,#rear.pulling,.feeding,.ding{animation-duration:.01s}
+}
+</style>
+</head>
+<body>
+<main id="scene" aria-label="Marlowe 44 typewriter on a desk">
+  <canvas id="desk" aria-hidden="true"></canvas>
+
+  <aside class="prop card" id="card" aria-label="Operator's card">
+    <h2>Marlowe 44 · operator</h2>
+    <p>Type away, or tap the keys.</p>
+    <p><kbd>Return</kbd> / lever: new line.</p>
+    <p><kbd>Backspace</kbd> steps back.</p>
+    <p class="m-hide">(It never erases a thing.)</p>
+    <p><kbd>Tab</kbd> jumps five spaces.</p>
+    <p>Bell: six from the margin.</p>
+  </aside>
+  <svg class="prop pencil" id="pencil" viewBox="0 0 210 14" aria-hidden="true">
+    <defs><linearGradient id="pencilBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0c24a"/><stop offset=".5" stop-color="#d9a11f"/><stop offset="1" stop-color="#a8770f"/></linearGradient></defs>
+    <path d="M0 7L22 1.5V12.5Z" fill="#e7c9a0"/><path d="M0 7L7 5.2V8.8Z" fill="#3b3430"/>
+    <rect x="22" y="1.5" width="160" height="11" fill="url(#pencilBody)"/>
+    <path d="M22 5.2H182M22 8.8H182" stroke="rgba(120,80,10,.35)" stroke-width=".6"/>
+    <rect x="182" y="1" width="12" height="12" fill="#c7cbcd"/><path d="M185 1v12M189 1v12" stroke="#8f979b" stroke-width=".8"/>
+    <rect x="194" y="1.5" width="15" height="11" rx="3" fill="#e58f95"/>
+  </svg>
+  <aside class="prop tag" id="tag" aria-label="Letter status">
+    <div class="row"><span>Sheet</span><b id="stSheet">No. 1</b></div>
+    <div class="row"><span>Line</span><b id="stLine">5 / 26</b></div>
+    <div class="row"><span>Column</span><b id="stCol">1 / 48</b></div>
+    <div class="row"><span>Keystrokes</span><b id="stCount">0</b></div>
+  </aside>
+
+  <div id="shadow" class="layer" aria-hidden="true"></div>
+  <div id="rear" class="layer carriage" aria-hidden="true"></div>
+
+  <!-- carriage, rear half: platen -->
+  <svg id="carBack" class="layer carriage" viewBox="0 0 1000 120" aria-hidden="true">
+    <defs>
+      <linearGradient id="platen" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1a1716"/><stop offset=".22" stop-color="#4a4441"/><stop offset=".34" stop-color="#6d6562"/>
+        <stop offset=".46" stop-color="#2e2a28"/><stop offset=".8" stop-color="#141211"/><stop offset="1" stop-color="#0a0908"/>
+      </linearGradient>
+      <linearGradient id="railG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f6"/><stop offset=".45" stop-color="#9aa2a7"/><stop offset=".6" stop-color="#e1e5e7"/><stop offset="1" stop-color="#6c747a"/></linearGradient>
+      <linearGradient id="tableG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b6d8c7"/><stop offset="1" stop-color="#7fae98"/></linearGradient>
+    </defs>
+    <path d="M150 34 Q500 14 850 34 L850 44 L150 44Z" fill="url(#tableG)" opacity=".95"/>
+    <rect x="96" y="36" width="808" height="68" rx="10" fill="url(#platen)"/>
+    <path d="M100 58H900" stroke="rgba(255,255,255,.12)" stroke-width="2"/>
+    <rect x="70" y="98" width="860" height="10" rx="4" fill="url(#railG)"/>
+  </svg>
+
+  <div id="frontClip" class="layer" aria-hidden="false">
+    <div id="sheet" class="carriage">
+      <canvas id="paper" width="1200" height="1552" role="img" aria-label="The letter on the typewriter paper"></canvas>
+      <div class="curl" id="curl"></div>
+    </div>
+  </div>
+
+  <!-- carriage, front half: bail, scale, knobs, return lever -->
+  <svg id="carFront" class="layer carriage" viewBox="0 0 1000 120" aria-label="Carriage">
+    <defs>
+      <linearGradient id="chromeV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfcfc"/><stop offset=".35" stop-color="#b3babe"/><stop offset=".55" stop-color="#eef1f2"/><stop offset=".8" stop-color="#7e878c"/><stop offset="1" stop-color="#c9ced1"/></linearGradient>
+      <linearGradient id="chromeH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7e878c"/><stop offset=".3" stop-color="#f6f8f8"/><stop offset=".55" stop-color="#aab2b6"/><stop offset=".8" stop-color="#e9ecee"/><stop offset="1" stop-color="#6f777c"/></linearGradient>
+      <linearGradient id="knobG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3533"/><stop offset=".3" stop-color="#6b6461"/><stop offset=".5" stop-color="#2a2624"/><stop offset="1" stop-color="#0d0c0b"/></linearGradient>
+    </defs>
+    <!-- paper bail -->
+    <!-- the rod sits in the gap between two typed lines, so it never hides the writing -->
+    <rect x="116" y="61.6" width="768" height="3.2" rx="1.6" fill="url(#chromeV)"/>
+    <rect id="rollL" x="216" y="58.6" width="30" height="9" rx="4" fill="#1b1817"/>
+    <rect id="rollR" x="754" y="58.6" width="30" height="9" rx="4" fill="#1b1817"/>
+    <path d="M216 60.2H246M754 60.2H784" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
+    <path d="M116 63.2 Q104 63.2 100 74M884 63.2 Q896 63.2 900 74" stroke="url(#chromeV)" stroke-width="3.4" fill="none"/>
+    <!-- margin scale -->
+    <rect x="130" y="89" width="740" height="12" rx="2" fill="url(#chromeV)"/>
+    <path d="M130 89.6H870" stroke="rgba(255,255,255,.8)" stroke-width=".8"/>
+    <g id="scaleTicks"></g>
+    <!-- knobs -->
+    <g>
+      <rect x="44" y="40" width="46" height="60" rx="10" fill="url(#knobG)"/>
+      <path d="M50 44v52M56 43v54M62 43v54M68 43v54M74 43v54M80 43v54M86 44v52" stroke="rgba(255,255,255,.1)" stroke-width="1.5"/>
+      <rect x="88" y="56" width="10" height="28" rx="3" fill="url(#chromeH)"/>
+    </g>
+    <g>
+      <rect x="904" y="34" width="62" height="72" rx="12" fill="url(#knobG)"/>
+      <path d="M912 38v64M920 37v66M928 37v66M936 37v66M944 37v66M952 37v66M960 38v64" stroke="rgba(255,255,255,.1)" stroke-width="1.6"/>
+      <rect x="900" y="54" width="10" height="32" rx="3" fill="url(#chromeH)"/>
+    </g>
+    <!-- carriage return lever -->
+    <g id="lever" role="button" tabindex="0" aria-label="Carriage return lever">
+      <g class="lv">
+        <path d="M84 42 C70 34 44 20 20 8" stroke="url(#chromeV)" stroke-width="9" stroke-linecap="round" fill="none"/>
+        <path d="M84 42 C70 34 44 20 20 8" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round" fill="none" transform="translate(-1 -2)"/>
+        <ellipse cx="18" cy="7" rx="14" ry="10" fill="url(#chromeV)"/>
+        <ellipse cx="15" cy="4" rx="6" ry="3" fill="rgba(255,255,255,.7)"/>
+        <circle cx="84" cy="44" r="9" fill="url(#chromeV)" stroke="#6f777c" stroke-width="1"/>
+      </g>
+      <rect x="0" y="-8" width="100" height="62" fill="transparent"/>
+    </g>
+  </svg>
+
+  <!-- the body -->
+  <svg id="body" class="layer" viewBox="0 0 1000 350" role="group" aria-label="Marlowe 44 keyboard — tap keys to type">
+    <defs>
+      <linearGradient id="enamel" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#c3e2d2"/><stop offset=".18" stop-color="#a9d1be"/><stop offset=".55" stop-color="#9fc9b6"/><stop offset="1" stop-color="#78a792"/>
+      </linearGradient>
+      <linearGradient id="enamelSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7aa893"/><stop offset="1" stop-color="#4f7766"/></linearGradient>
+      <linearGradient id="deck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d3ecdf"/><stop offset="1" stop-color="#a3cdb9"/></linearGradient>
+      <linearGradient id="well" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5f8a77"/><stop offset=".25" stop-color="#83b19c"/><stop offset="1" stop-color="#8dbba6"/></linearGradient>
+      <radialGradient id="basket" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#050404"/><stop offset=".7" stop-color="#1c1917"/><stop offset="1" stop-color="#2d2825"/></radialGradient>
+      <radialGradient id="cap" cx=".42" cy=".32" r=".75"><stop offset="0" stop-color="#fffcf4"/><stop offset=".6" stop-color="#f3ead3"/><stop offset="1" stop-color="#d9caa5"/></radialGradient>
+      <radialGradient id="capLit" cx=".42" cy=".32" r=".75"><stop offset="0" stop-color="#fff6dc"/><stop offset=".6" stop-color="#f5d98f"/><stop offset="1" stop-color="#d2ad5c"/></radialGradient>
+      <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".4" stop-color="#a7afb4"/><stop offset=".62" stop-color="#e8ebed"/><stop offset="1" stop-color="#5f676c"/></linearGradient>
+      <linearGradient id="chromeB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfcfc"/><stop offset=".35" stop-color="#b3babe"/><stop offset=".55" stop-color="#eef1f2"/><stop offset=".8" stop-color="#7e878c"/><stop offset="1" stop-color="#c9ced1"/></linearGradient>
+      <radialGradient id="spoolG" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#8b9297"/><stop offset=".25" stop-color="#2b2725"/><stop offset=".3" stop-color="#151211"/><stop offset=".92" stop-color="#231f1d"/><stop offset="1" stop-color="#3b3532"/></radialGradient>
+      <linearGradient id="spacebar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".6" stop-color="#efe4c8"/><stop offset="1" stop-color="#cdbd96"/></linearGradient>
+      <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.55)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/></linearGradient>
+    </defs>
+    <!-- side cheek (three-quarter view) -->
+    <path d="M900 16 L936 30 L992 292 Q994 306 978 312 L964 314 Z" fill="url(#enamelSide)"/>
+    <!-- main shell -->
+    <path d="M96 16 Q102 0 132 0 H868 Q898 0 904 16 L968 296 Q974 330 938 332 H62 Q26 330 32 296 Z" fill="url(#enamel)"/>
+    <path d="M110 6 H890" stroke="rgba(255,255,255,.55)" stroke-width="2"/>
+    <!-- top deck with ribbon cups -->
+    <path d="M104 12 Q108 4 132 4 H868 Q892 4 896 12 L906 70 Q700 88 500 88 Q300 88 94 70 Z" fill="url(#deck)"/>
+    <path d="M94 70 Q300 88 500 88 Q700 88 906 70" stroke="rgba(60,100,85,.45)" stroke-width="2" fill="none"/>
+    <!-- basket opening + fanned typebars -->
+    <path d="M330 4 Q330 74 500 76 Q670 74 670 4 Z" fill="url(#basket)"/>
+    <g stroke="#9aa2a6" stroke-width="2.2" stroke-linecap="round" opacity=".9">
+      <path d="M500 70L352 8M500 70L364 8M500 70L377 8M500 70L390 7M500 70L403 7M500 70L416 6M500 70L429 6M500 70L442 6M500 70L455 5M500 70L468 5M500 70L481 5M500 70L494 5"/>
+      <path d="M500 70L648 8M500 70L636 8M500 70L623 8M500 70L610 7M500 70L597 7M500 70L584 6M500 70L571 6M500 70L558 6M500 70L545 5M500 70L532 5M500 70L519 5M500 70L506 5"/>
+    </g>
+    <path d="M330 4 Q330 74 500 76 Q670 74 670 4" fill="none" stroke="url(#rim)" stroke-width="4"/>
+    <!-- ribbon cups -->
+    <g>
+      <ellipse cx="220" cy="30" rx="78" ry="23" fill="url(#chromeB)"/>
+      <ellipse cx="220" cy="29" rx="66" ry="17" fill="url(#spoolG)"/>
+      <ellipse cx="220" cy="29" rx="11" ry="4" fill="#c9ced1"/>
+      <ellipse cx="780" cy="30" rx="78" ry="23" fill="url(#chromeB)"/>
+      <ellipse cx="780" cy="29" rx="66" ry="17" fill="url(#spoolG)"/>
+      <ellipse cx="780" cy="29" rx="11" ry="4" fill="#c9ced1"/>
+      <path id="ribbonL" d="M286 26 Q420 8 488 2" stroke="#1d1a19" stroke-width="7" fill="none"/>
+      <path id="ribbonR" d="M714 26 Q580 8 512 2" stroke="#1d1a19" stroke-width="7" fill="none"/>
+      <path class="ribbonRed" d="M286 29 Q420 11 488 5M714 29 Q580 11 512 5" stroke="#9e2019" stroke-width="3" fill="none"/>
+    </g>
+    <!-- badge -->
+    <g transform="translate(500 106)">
+      <rect x="-86" y="-16" width="172" height="30" rx="15" fill="url(#chromeB)" stroke="#6f777c" stroke-width="1"/>
+      <rect x="-80" y="-11" width="160" height="20" rx="10" fill="#1e3a33"/>
+      <text x="-14" y="5" text-anchor="middle" font-family="'Brush Script MT','Snell Roundhand','URW Chancery L','Z003',cursive" font-style="italic" font-size="20" fill="#e9eef0">Marlowe</text>
+      <circle cx="52" cy="-1" r="11" fill="#b3261e" stroke="#e9eef0" stroke-width="1.2"/>
+      <text x="52" y="3.5" text-anchor="middle" font-family="'Courier New','Nimbus Mono PS',monospace" font-weight="700" font-size="11.5" fill="#fff5e6">44</text>
+    </g>
+    <!-- keyboard well -->
+    <path d="M86 128 Q88 120 104 120 H896 Q912 120 914 128 L944 300 Q946 314 930 314 H70 Q54 314 56 300 Z" fill="url(#well)" opacity=".85"/>
+    <g id="keys"></g>
+    <!-- space bar -->
+    <g class="key" id="spaceKey" data-k=" " role="button" aria-label="Space bar">
+      <rect x="300" y="302" width="400" height="9" rx="3" fill="#3d3a37"/>
+      <g class="kc">
+        <rect x="292" y="284" width="416" height="24" rx="12" fill="url(#rim)"/>
+        <rect x="298" y="287" width="404" height="17" rx="8.5" fill="url(#spacebar)" class="cap"/>
+      </g>
+    </g>
+    <!-- chrome skirt + feet -->
+    <path d="M36 318 H964" stroke="url(#chromeB)" stroke-width="7" stroke-linecap="round"/>
+    <rect x="58" y="326" width="80" height="16" rx="7" fill="#1a1512"/>
+    <rect x="862" y="326" width="80" height="16" rx="7" fill="#1a1512"/>
+    <path d="M40 300 Q30 250 70 140" stroke="url(#gloss)" stroke-width="10" fill="none" opacity=".35"/>
+  </svg>
+
+  <!-- fixed parts at the printing point -->
+  <svg id="guide" class="layer" viewBox="0 0 1000 450" aria-hidden="true">
+    <defs>
+      <linearGradient id="barG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b7378"/><stop offset=".5" stop-color="#f3f5f6"/><stop offset="1" stop-color="#6b7378"/></linearGradient>
+    </defs>
+    <line id="typebar" x1="500" y1="168" x2="500" y2="80" stroke="url(#barG)" stroke-width="6" stroke-linecap="round"/>
+    <g id="guidePt" transform="translate(500 0)">
+      <!-- ribbon vibrator: black over red -->
+      <g id="vibrator">
+        <rect x="-17" y="81.5" width="34" height="3.8" fill="#1d1a19"/>
+        <rect x="-17" y="85.3" width="34" height="3.8" fill="#a4221b"/>
+      </g>
+      <!-- type guide prongs -->
+      <path d="M-24 89.5 V79 Q-24 76 -21 76 M24 89.5 V79 Q24 76 21 76" stroke="#e5e9eb" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <!-- column pointer across the margin scale -->
+      <path d="M0 88.5 V101" stroke="#b3261e" stroke-width="1.6"/>
+      <path d="M-3.4 86 H3.4 L0 90.2 Z" fill="#b3261e"/>
+      <circle id="spark" cx="0" cy="72" r="9" fill="rgba(255,240,200,.7)"/>
+    </g>
+  </svg>
+
+  <canvas id="motes" aria-hidden="true"></canvas>
+
+  <header class="top">
+    <div class="label">
+      <h1>Carriage Return</h1>
+      <p>a typewriter for letters — the Marlowe 44</p>
+    </div>
+    <nav class="controls" aria-label="Typewriter controls">
+      <div class="seg" role="group" aria-label="Ribbon colour">
+        <span class="lbl">Ribbon</span>
+        <button type="button" id="inkBlack" aria-pressed="true"><span class="dot" style="background:#231f1c"></span>Black</button>
+        <button type="button" id="inkRed" aria-pressed="false"><span class="dot" style="background:#b3261e"></span>Red</button>
+      </div>
+      <button type="button" class="btn" id="btnSound" aria-pressed="true" aria-label="Sound on — press to mute">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10L5 10H2z" fill="currentColor"/><path id="sndWaves" d="M11 5.5a3.5 3.5 0 010 5M12.8 3.5a6 6 0 010 9" stroke="currentColor" stroke-width="1.4" fill="none"/></svg><span id="sndLbl">Sound</span>
+      </button>
+      <button type="button" class="btn kbtn" id="btnKeyboard"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="4" width="14" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4 7h1M7 7h1M10 7h1M4 10h8" stroke="currentColor" stroke-width="1.3"/></svg>Keys</button>
+      <button type="button" class="btn" id="btnNew"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5h7l3 3v10H3z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7v5M5.5 9.5h5" stroke="currentColor" stroke-width="1.3"/></svg>New sheet</button>
+      <button type="button" class="btn" id="btnSave"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5v8.5M4.5 6.8L8 10.3l3.5-3.5M2 12v2.5h12V12" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>Save letter</button>
+    </nav>
+  </header>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <textarea id="ghost" aria-label="Type your letter" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+  <p class="sr-only" id="announce" aria-live="polite"></p>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+const scene=$('scene'),deskC=$('desk'),motesC=$('motes'),paperC=$('paper');
+const rear=$('rear'),carBack=$('carBack'),carFront=$('carFront'),bodyS=$('body'),guide=$('guide'),frontClip=$('frontClip'),sheet=$('sheet'),curl=$('curl'),shadow=$('shadow');
+const reduceMQ=window.matchMedia('(prefers-reduced-motion: reduce)');
+let reduced=reduceMQ.matches;
+const MONO='"Courier Prime","American Typewriter","Courier New","Nimbus Mono PS",Courier,monospace';
+const STORE='marlowe44.letter.v1';
+
+/* ---------- paper geometry, in paper units (600 × 776, drawn at 2×) ---------- */
+const PW=600,PH=776,ML=60,TM=76,CW=10,LH=26,COLS=48,LINES=26,FS=16.6;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ---------- state ---------- */
+let col=0,line=0,red=false,sheetNo=1,bellRung=false,shiftOn=false,lockOn=false;
+let strokes=[]; // [ch,col,line,red,seed]
+let muted=false;
+
+/* ---------- paper canvas ---------- */
+const P=paperC.getContext('2d');
+const glyph=document.createElement('canvas');glyph.width=glyph.height=72;const G=glyph.getContext('2d');
+const weave=document.createElement('canvas');weave.width=weave.height=144;
+(function(){const w=weave.getContext('2d');const r=mulberry32(4);
+  for(let i=0;i<1700;i++){w.fillStyle='rgba(0,0,0,'+(0.25+r()*0.75)+')';const x=r()*144,y=r()*144;w.fillRect(x,y,1+r()*1.6,1+r()*1.2);}
+  w.globalAlpha=.35;w.strokeStyle='#000';w.lineWidth=.7;
+  for(let i=-144;i<288;i+=4){w.beginPath();w.moveTo(i,0);w.lineTo(i+144,144);w.stroke();}
+})();
+function paintPaper(seed){
+  const r=mulberry32(seed*7919+13);
+  P.setTransform(2,0,0,2,0,0);P.globalCompositeOperation='source-over';P.globalAlpha=1;
+  P.fillStyle='#faf6ec';P.fillRect(0,0,PW,PH);
+  // cloudy formation of the sheet
+  for(let i=0;i<60;i++){const x=r()*PW,y=r()*PH,rad=30+r()*90;const g=P.createRadialGradient(x,y,0,x,y,rad);const d=r()<.5;g.addColorStop(0,d?'rgba(214,200,170,0.07)':'rgba(255,255,250,0.1)');g.addColorStop(1,'rgba(255,255,255,0)');P.fillStyle=g;P.fillRect(x-rad,y-rad,rad*2,rad*2);}
+  // fibres
+  P.lineCap='round';
+  for(let i=0;i<900;i++){
+    const x=r()*PW,y=r()*PH,a=r()*Math.PI,l=2+r()*9;
+    P.strokeStyle=r()<.7?'rgba(160,140,105,'+(0.05+r()*0.08)+')':'rgba(120,135,160,'+(0.04+r()*0.05)+')';
+    P.lineWidth=.3+r()*.4;P.beginPath();P.moveTo(x,y);P.quadraticCurveTo(x+Math.cos(a+.6)*l*.5,y+Math.sin(a+.6)*l*.5,x+Math.cos(a)*l,y+Math.sin(a)*l);P.stroke();
+  }
+  for(let i=0;i<5200;i++){P.fillStyle=r()<.5?'rgba(120,100,70,0.06)':'rgba(255,255,255,0.18)';P.fillRect(r()*PW,r()*PH,.5+r()*.6,.5+r()*.6);}
+  // watermark (fictional paper maker)
+  P.save();P.translate(PW/2,PH*0.62);P.globalAlpha=.045;P.fillStyle='#7a6a4a';P.textAlign='center';
+  P.font='italic 30px Georgia,"Times New Roman",serif';P.fillText('Marlowe Bond',0,0);
+  P.font='11px '+MONO;P.fillText('25% COTTON FIBRE · No. 44',0,22);
+  P.strokeStyle='#7a6a4a';P.lineWidth=1;P.beginPath();P.ellipse(0,-8,122,40,0,0,Math.PI*2);P.stroke();
+  P.restore();
+  // edge darkening + deckle shading
+  const eg=P.createLinearGradient(0,0,PW,0);eg.addColorStop(0,'rgba(150,125,85,0.1)');eg.addColorStop(.04,'rgba(150,125,85,0)');eg.addColorStop(.96,'rgba(150,125,85,0)');eg.addColorStop(1,'rgba(150,125,85,0.1)');
+  P.fillStyle=eg;P.fillRect(0,0,PW,PH);
+  const tg=P.createLinearGradient(0,0,0,PH);tg.addColorStop(0,'rgba(150,125,85,0.1)');tg.addColorStop(.03,'rgba(150,125,85,0)');tg.addColorStop(.97,'rgba(150,125,85,0)');tg.addColorStop(1,'rgba(150,125,85,0.12)');
+  P.fillStyle=tg;P.fillRect(0,0,PW,PH);
+}
+const inkRGB=[[35,31,28],[176,36,28]];
+function stampOne(s){
+  const [ch,c,l,isRed,seed]=s;
+  if(ch===' ')return;
+  const r=mulberry32(seed);
+  const rgb=inkRGB[isRed?1:0];
+  let dens=0.8+r()*0.2;
+  if(r()<0.07)dens*=0.58;                                  // a timid keystroke
+  dens*=0.9+0.1*Math.sin(c*0.31+l*1.7+seed%7);             // ribbon wear along the line
+  if(/[A-Z0-9#%&@$]/.test(ch))dens=Math.min(1,dens*1.06);   // heavier letters strike harder
+  const x=ML+c*CW+(r()-0.5)*0.9;
+  const y=TM+l*LH+(r()-0.5)*1.7;
+  // glyph on its own little plate (units ×2)
+  G.setTransform(1,0,0,1,0,0);G.globalCompositeOperation='source-over';G.globalAlpha=1;G.clearRect(0,0,72,72);
+  G.translate(36,48);G.rotate((r()-0.5)*0.045);
+  G.font='700 '+(FS*2)+'px '+MONO;G.textAlign='center';G.textBaseline='alphabetic';
+  G.shadowColor='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0.55)';G.shadowBlur=1.6;
+  G.fillStyle='rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+  G.fillText(ch,0,0);
+  G.shadowBlur=0;G.setTransform(1,0,0,1,0,0);
+  // fabric ribbon: knock out specks of ink
+  G.globalCompositeOperation='destination-out';
+  G.globalAlpha=0.3+(1-dens)*0.9;G.drawImage(weave,-r()*72,-r()*72);
+  // uneven platen contact: one half of the letter prints lighter
+  if(r()<0.4){const top=r()<.5;const g=G.createLinearGradient(0,top?20:52,0,top?52:20);g.addColorStop(0,'rgba(0,0,0,'+(0.25+r()*0.35)+')');g.addColorStop(1,'rgba(0,0,0,0)');G.globalAlpha=1;G.fillStyle=g;G.fillRect(0,0,72,72);}
+  G.globalCompositeOperation='source-over';G.globalAlpha=1;
+  // onto the paper
+  P.setTransform(2,0,0,2,0,0);P.globalCompositeOperation='multiply';
+  P.globalAlpha=Math.min(1,dens);P.drawImage(glyph,x+CW/2-18,y-24,36,36);
+  if(r()<0.06){P.globalAlpha=dens*0.3;P.drawImage(glyph,x+CW/2-18+0.9,y-24+0.35,36,36);} // faint double strike
+  P.globalAlpha=1;P.globalCompositeOperation='source-over';
+}
+function redrawAll(){paintPaper(sheetNo);for(const s of strokes)stampOne(s);}
+
+/* ---------- layout ---------- */
+let SW=0,SH=0,MW=0,U=1,MX=0,MY=0,S=1,mobile=false,K=1,X0=0,PRINTY=0;
+function layout(){
+  const vv=window.visualViewport;
+  SW=scene.clientWidth;SH=Math.round(vv&&mobile?Math.min(scene.clientHeight,vv.height):scene.clientHeight);
+  mobile=SW<700;
+  const hFit=(SH*(mobile?0.36:0.46))/0.45;
+  MW=Math.round(mobile?Math.min(SW-8,hFit):Math.min(920,SW*0.64,hFit));
+  U=MW/1000;
+  MX=Math.round((SW-MW)/2);
+  MY=Math.round(SH-450*U-(mobile?6:10));
+  const paperFrac=mobile?0.86:0.6;
+  S=paperFrac*MW/PW;
+  const travel=COLS*CW*S;
+  K=mobile?Math.max(0,Math.min(1,(SW-PW*S-16)/travel)):1;
+  X0=SW/2-(1-K)*travel/2;
+  PRINTY=MY+80*U;
+  const place=(el,x,y,w,h)=>{el.style.left=x+'px';el.style.top=y+'px';el.style.width=w+'px';if(h!==undefined)el.style.height=h+'px';};
+  place(carBack,MX,MY,MW,120*U);place(carFront,MX,MY,MW,120*U);
+  place(bodyS,MX,MY+100*U,MW,350*U);
+  place(guide,MX,MY,MW,450*U);
+  place(shadow,MX-MW*0.06,MY+300*U,MW*1.12,210*U);
+  frontClip.style.left='0px';frontClip.style.top='0px';frontClip.style.width=SW+'px';frontClip.style.height=Math.round(MY+104*U)+'px';
+  sheet.style.width=PW*S+'px';
+  paperC.style.width=PW*S+'px';paperC.style.height=PH*S+'px';
+  curl.style.top=(PRINTY-8*U)+'px';curl.style.height=(34*U)+'px';
+  rear.style.width=PW*S+'px';
+  buildScale();
+  paintDesk();sizeMotes();
+  placeProps();
+  update(true);
+}
+function paperLeftFor(c){const px=X0+(1-K)*c*CW*S;return px-(ML+c*CW)*S;}
+function update(instant){
+  const els=[sheet,rear,carBack,carFront];
+  if(instant)els.forEach(e=>e.classList.add('instant'));
+  const cc=Math.min(col,COLS);
+  const left=paperLeftFor(cc);
+  const mid=SW/2-(PW/2)*S; // paper centred over the machine
+  const shift=left-mid;
+  sheet.style.left='0px';sheet.style.transform='translateX('+left+'px)';
+  rear.style.left=left+'px';
+  const carShift=shift+(SW/2-(MX+MW/2));
+  carBack.style.transform=carFront.style.transform='translateX('+carShift+'px)';
+  const baseY=TM+line*LH;
+  paperC.style.transform='translateY('+(PRINTY-baseY*S)+'px)';
+  const unfed=Math.max(0,PH-baseY-34);
+  rear.style.height=(unfed*S*0.94)+'px';
+  rear.style.top=(MY+62*U-unfed*S*0.94)+'px';
+  // printing point (fixed on desktop, travels a little on phones)
+  const px=X0+(1-K)*cc*CW*S;
+  $('guidePt').setAttribute('transform','translate('+((px-MX)/U).toFixed(1)+' 0)');
+  $('typebar').setAttribute('x2',((px-MX)/U).toFixed(1));
+  if(instant){void sheet.offsetWidth;els.forEach(e=>e.classList.remove('instant'));}
+  status();
+}
+function buildScale(){
+  const g=$('scaleTicks');g.innerHTML='';
+  const ns='http://www.w3.org/2000/svg';
+  const rel=S/U;           // paper units → carriage units
+  const mid=500-(PW/2)*rel;
+  for(let c=0;c<=COLS;c++){
+    const x=mid+(ML+c*CW+CW/2)*rel;
+    const t=document.createElementNS(ns,'path');
+    const big=c%5===0;t.setAttribute('d','M'+x.toFixed(1)+' 90v'+(big?4.5:2.6));t.setAttribute('stroke','#3b3634');t.setAttribute('stroke-width',big?1.1:.7);g.appendChild(t);
+    if(big){const tx=document.createElementNS(ns,'text');tx.setAttribute('x',x.toFixed(1));tx.setAttribute('y','99.4');tx.setAttribute('text-anchor','middle');tx.setAttribute('font-size','5.2');tx.setAttribute('font-family','monospace');tx.setAttribute('fill','#2b2725');tx.textContent=c;g.appendChild(tx);}
+  }
+  const bell=mid+(ML+(COLS-6)*CW+CW/2)*rel;
+  const m=document.createElementNS(ns,'path');m.setAttribute('d','M'+bell.toFixed(1)+' 94l2.6 -4.2h-5.2z');m.setAttribute('fill','#b3261e');g.appendChild(m);
+}
+
+/* ---------- the desk: procedural walnut + lamplight ---------- */
+function paintDesk(){
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  deskC.width=Math.round(SW*dpr);deskC.height=Math.round(scene.clientHeight*dpr);
+  const d=deskC.getContext('2d');d.setTransform(dpr,0,0,dpr,0,0);
+  const w=SW,h=scene.clientHeight;const r=mulberry32(21);
+  let y=-20,i=0;
+  const tones=[[92,52,26],[104,60,31],[86,48,24],[98,56,28]];
+  while(y<h){
+    const ph=190+r()*80;const t=tones[i%4];
+    const g=d.createLinearGradient(0,y,0,y+ph);
+    g.addColorStop(0,'rgb('+(t[0]+6)+','+(t[1]+4)+','+(t[2]+2)+')');g.addColorStop(1,'rgb('+(t[0]-8)+','+(t[1]-6)+','+(t[2]-4)+')');
+    d.fillStyle=g;d.fillRect(0,y,w,ph);
+    const n=Math.round(ph/2.4);
+    for(let k=0;k<n;k++){
+      const gy=y+r()*ph,amp=1+r()*5,f=0.0016+r()*0.005,p0=r()*6.28,dark=r()<.62;
+      d.strokeStyle=dark?'rgba(38,18,6,'+(0.08+r()*0.2)+')':'rgba(176,112,60,'+(0.05+r()*0.12)+')';
+      d.lineWidth=0.5+r()*1.7;d.beginPath();
+      for(let x=0;x<=w+12;x+=12){const yy=gy+Math.sin(x*f+p0)*amp+Math.sin(x*f*3.3+p0*2)*amp*0.35;x?d.lineTo(x,yy):d.moveTo(x,yy);}
+      d.stroke();
+    }
+    // a knot now and then
+    if(r()<.55){const kx=r()*w,ky=y+ph*(.3+r()*.4);for(let q=10;q>0;q--){d.strokeStyle='rgba(40,18,6,'+(0.05+q*0.012)+')';d.lineWidth=1;d.beginPath();d.ellipse(kx,ky,q*7,q*2.2,0,0,Math.PI*2);d.stroke();}}
+    d.fillStyle='rgba(18,8,2,.6)';d.fillRect(0,y+ph-2,w,2);
+    d.fillStyle='rgba(255,196,130,.08)';d.fillRect(0,y+ph,w,1);
+    y+=ph;i++;
+  }
+  // lamplight from the upper left + warm bloom behind the machine
+  const L=d.createRadialGradient(w*0.18,-h*0.12,0,w*0.18,-h*0.12,Math.hypot(w,h)*0.95);
+  L.addColorStop(0,'rgba(255,214,150,0.5)');L.addColorStop(.35,'rgba(255,190,120,0.2)');L.addColorStop(.75,'rgba(40,18,6,0.15)');L.addColorStop(1,'rgba(10,4,1,0.62)');
+  d.fillStyle=L;d.fillRect(0,0,w,h);
+  const B=d.createRadialGradient(w/2,h*0.62,0,w/2,h*0.62,Math.max(w,h)*0.5);
+  B.addColorStop(0,'rgba(255,200,130,0.14)');B.addColorStop(1,'rgba(255,200,130,0)');
+  d.fillStyle=B;d.fillRect(0,0,w,h);
+  // coffee ring, long dried
+  if(!mobile){d.strokeStyle='rgba(60,28,8,0.22)';d.lineWidth=3;d.beginPath();d.arc(w*0.9,h*0.3,44,0.3,5.9);d.stroke();d.lineWidth=1;d.strokeStyle='rgba(60,28,8,0.14)';d.beginPath();d.arc(w*0.9+2,h*0.3+1,40,0,6.28);d.stroke();}
+}
+function placeProps(){
+  const card=$('card'),tag=$('tag'),pencil=$('pencil');
+  if(mobile){
+    const hb=document.querySelector('header.top').getBoundingClientRect().bottom;
+    card.style.left='18px';card.style.top=(hb+22)+'px';return;
+  }
+  card.style.left=Math.max(24,MX*0.5-140)+'px';card.style.top=(SH*0.44)+'px';
+  pencil.style.left=Math.max(20,MX*0.5-110)+'px';pencil.style.top=(SH*0.44+236)+'px';
+  tag.style.left=(MX+MW+Math.max(18,(SW-MX-MW)*0.5-140))+'px';tag.style.top=(MY+175*U)+'px';
+}
+
+/* ---------- dust motes in the lamp beam ---------- */
+const M=motesC.getContext('2d');const motes=[];let mdpr=1;
+function sizeMotes(){mdpr=Math.min(2,window.devicePixelRatio||1);motesC.width=Math.round(SW*mdpr);motesC.height=Math.round(scene.clientHeight*mdpr);
+  if(!motes.length){const r=mulberry32(9);for(let i=0;i<46;i++)motes.push({x:r(),y:r(),z:.4+r()*.9,p:r()*6.28,s:.3+r()*.7});}}
+function drawMotes(t){
+  const w=SW,h=scene.clientHeight;M.setTransform(mdpr,0,0,mdpr,0,0);M.clearRect(0,0,w,h);
+  for(const m of motes){
+    if(!reduced){m.y-=0.00004*m.s*16;m.x+=Math.sin(t*0.0003+m.p)*0.00008;if(m.y<-0.05){m.y=1.05;m.x=Math.random();}}
+    const x=m.x*w,y=m.y*h;
+    const beam=Math.max(0,1-Math.hypot(x/w-0.2,y/h-0.05)*1.35);
+    if(beam<=0)continue;
+    const a=beam*(0.35+0.35*Math.sin(t*0.002+m.p*3));
+    M.fillStyle='rgba(255,226,170,'+a.toFixed(3)+')';M.beginPath();M.arc(x,y,m.z*1.3,0,6.283);M.fill();
+  }
+}
+let raf=0;function loop(t){raf=requestAnimationFrame(loop);drawMotes(t);}
+function startLoop(){if(!raf)raf=requestAnimationFrame(loop);}
+function stopLoop(){if(raf){cancelAnimationFrame(raf);raf=0;}}
+document.addEventListener('visibilitychange',()=>document.hidden?stopLoop():startLoop());
+
+/* ---------- keyboard (built at runtime from the Marlowe layout) ---------- */
+const SHIFTED={'1':'!','2':'"','3':'#','4':'$','5':'%','6':'_','7':'&','8':"'",'9':'(','0':')','-':'*',';':':',',':',','.':'.','/':'?'};
+const ROWS=[
+  {y:150,r:16.5,sp:58,dx:10,keys:['1','2','3','4','5','6','7','8','9','0','-','BS']},
+  {y:190,r:17.5,sp:61,dx:6,keys:['TAB','q','w','e','r','t','y','u','i','o','p']},
+  {y:230,r:18.5,sp:64,dx:3,keys:['LOCK','a','s','d','f','g','h','j','k','l',';']},
+  {y:270,r:19.5,sp:67,dx:0,keys:['SHIFT','z','x','c','v','b','n','m',',','.','/','SHIFT']}
+];
+const keyEls=new Map();
+function buildKeys(){
+  const ns='http://www.w3.org/2000/svg',host=$('keys');
+  const mk=(t,a)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  ROWS.forEach((row,ri)=>{
+    const n=row.keys.length,x0=500+row.dx-(n-1)*row.sp/2;
+    row.keys.forEach((k,i)=>{
+      const x=x0+i*row.sp,y=row.y,r=row.r,ry=r*0.8;
+      const outer=mk('g',{transform:'translate('+x+' '+y+')'});
+      const g=mk('g',{class:'key','data-k':k,role:'button','aria-label':k==='BS'?'Back space':k==='TAB'?'Tab':k==='LOCK'?'Shift lock':k==='SHIFT'?'Shift':'Key '+k.toUpperCase()});
+      g.appendChild(mk('rect',{x:-2.6,y:0,width:5.2,height:26+ri*2,fill:'#34302d'}));
+      const kc=mk('g',{class:'kc'});
+      kc.appendChild(mk('ellipse',{cx:0,cy:3,rx:r+3.5,ry:ry+3.5,fill:'rgba(20,30,25,.35)'}));
+      kc.appendChild(mk('ellipse',{cx:0,cy:0,rx:r+3,ry:ry+3,fill:'url(#rim)'}));
+      kc.appendChild(mk('ellipse',{cx:0,cy:-.6,rx:r,ry:ry,fill:'url(#cap)',class:'cap'}));
+      const long=k.length>1;
+      const label=k==='BS'?'⌫':(long?k:k.toUpperCase());
+      const tx=mk('text',{x:0,y:long?2.6:r*0.34,'text-anchor':'middle','font-family':MONO,'font-weight':'700','font-size':long?(k==='SHIFT'?6.6:7.4):r*0.95,fill:'#2b2724'});
+      tx.textContent=label;kc.appendChild(tx);
+      if(SHIFTED[k]&&!/[a-z]/.test(k)&&SHIFTED[k]!==k){const st=mk('text',{x:r*0.52,y:-r*0.22,'text-anchor':'middle','font-family':MONO,'font-size':r*0.5,fill:'#8a2a22'});st.textContent=SHIFTED[k];kc.appendChild(st);}
+      g.appendChild(kc);outer.appendChild(g);host.appendChild(outer);
+      if(!keyEls.has(k))keyEls.set(k,[]);keyEls.get(k).push(g);
+    });
+  });
+  keyEls.set(' ',[$('spaceKey')]);
+}
+function flashKey(k){
+  const list=keyEls.get(k);if(!list)return;
+  for(const g of list){g.classList.add('down');setTimeout(()=>g.classList.remove('down'),reduced?40:110);}
+}
+function keyFor(ch){
+  if(/[a-z]/.test(ch))return ch;
+  if(/[A-Z]/.test(ch))return ch.toLowerCase();
+  if(ch===' ')return ' ';
+  for(const k in SHIFTED){if(SHIFTED[k]===ch)return k;}
+  return keyEls.has(ch)?ch:null;
+}
+
+/* ---------- sound (Web Audio, synthesized) ---------- */
+let AC=null,master=null,noise=null;
+function audio(){
+  if(AC){if(AC.state==='suspended')AC.resume();return;}
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain();master.gain.value=muted?0:0.6;master.connect(AC.destination);
+    noise=AC.createBuffer(1,AC.sampleRate*0.6|0,AC.sampleRate);const d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  }catch(e){AC=null;}
+}
+function burst(t,dur,type,freq,q,gain){
+  const s=AC.createBufferSource();s.buffer=noise;const f=AC.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;
+  const g=AC.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+0.002);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  s.connect(f);f.connect(g);g.connect(master);s.start(t,Math.random()*0.5);s.stop(t+dur+0.03);
+}
+function thump(t,f0,f1,dur,gain){
+  const o=AC.createOscillator();o.type='triangle';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  const g=AC.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+0.003);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.03);
+}
+const snd={
+  key(){if(!AC||muted)return;const t=AC.currentTime;burst(t,0.035,'bandpass',2100+Math.random()*1500,1.1,0.9);thump(t,210,85,0.05,0.45);burst(t+0.024,0.018,'highpass',5400,0.7,0.22);},
+  space(){if(!AC||muted)return;const t=AC.currentTime;burst(t,0.05,'bandpass',850,0.8,0.45);thump(t,150,60,0.07,0.5);burst(t+0.03,0.02,'highpass',4800,0.7,0.2);},
+  soft(){if(!AC||muted)return;const t=AC.currentTime;burst(t,0.03,'bandpass',1400,1,0.35);},
+  bell(){if(!AC||muted)return;const t=AC.currentTime;
+    [[2093,0.32,1.9],[2093*2.76,0.1,0.8],[2093*5.4,0.05,0.35],[2093*1.5,0.04,0.6]].forEach(([f,gv,d])=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;const g=AC.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(gv,t+0.004);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+0.05);});
+    burst(t,0.02,'highpass',6000,0.7,0.2);},
+  ret(){if(!AC||muted)return;const t=AC.currentTime;
+    for(let i=0;i<6;i++)burst(t+i*0.028,0.016,'highpass',3600,0.8,0.3);
+    const s=AC.createBufferSource();s.buffer=noise;const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=0.9;f.frequency.setValueAtTime(1400,t+0.1);f.frequency.exponentialRampToValueAtTime(380,t+0.45);
+    const g=AC.createGain();g.gain.setValueAtTime(0.0001,t+0.1);g.gain.exponentialRampToValueAtTime(0.16,t+0.16);g.gain.exponentialRampToValueAtTime(0.0001,t+0.46);
+    s.connect(f);f.connect(g);g.connect(master);s.start(t+0.1);s.stop(t+0.5);
+    thump(t+0.45,130,48,0.1,0.75);burst(t+0.45,0.05,'bandpass',1500,1,0.55);},
+  paper(){if(!AC||muted)return;const t=AC.currentTime;
+    const s=AC.createBufferSource();s.buffer=noise;s.loop=true;const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=0.6;f.frequency.setValueAtTime(900,t);f.frequency.exponentialRampToValueAtTime(3800,t+0.55);
+    const g=AC.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.28,t+0.08);g.gain.exponentialRampToValueAtTime(0.0001,t+0.7);
+    s.connect(f);f.connect(g);g.connect(master);s.start(t);s.stop(t+0.75);
+    for(let i=0;i<9;i++)burst(t+0.05+i*0.05,0.012,'highpass',4200,0.8,0.12);}
+};
+
+/* ---------- typing ---------- */
+let seedCounter=1;
+function strike(){
+  const tb=$('typebar'),sp=$('spark');
+  tb.classList.remove('strike');sp.classList.remove('strike');void tb.getBBox;
+  requestAnimationFrame(()=>{tb.classList.add('strike');sp.classList.add('strike');});
+}
+function typeChar(ch){
+  audio();
+  if(line>=LINES){toast('The sheet is full — press <b>New sheet</b> for a fresh page');snd.soft();return;}
+  const c=Math.min(col,COLS);
+  const s=[ch,c,line,red?1:0,(Date.now()+seedCounter++*7919)%2147483647];
+  strokes.push(s);stampOne(s);
+  flashKey(keyFor(ch));strike();snd.key();
+  if(col<COLS)col++;
+  else toast('Margin locked — pull the lever or press <b>Return</b>');
+  checkBell();update(false);persist();
+  if(shiftOn&&!lockOn){shiftOn=false;syncShift();}
+}
+function space(){audio();flashKey(' ');snd.space();if(col<COLS)col++;checkBell();update(false);persist();}
+function backspace(){audio();flashKey('BS');snd.soft();if(col>0)col--;update(false);persist();}
+function tab(){audio();flashKey('TAB');snd.space();col=Math.min(COLS,(Math.floor(col/5)+1)*5);checkBell();update(false);persist();}
+function carriageReturn(){
+  audio();
+  const lv=$('lever');lv.classList.remove('pull');void lv.getBBox;requestAnimationFrame(()=>lv.classList.add('pull'));
+  snd.ret();
+  [sheet,rear,carBack,carFront].forEach(e=>e.classList.add('returning'));
+  setTimeout(()=>[sheet,rear,carBack,carFront].forEach(e=>e.classList.remove('returning')),520);
+  col=0;bellRung=false;
+  if(line<LINES)line++;
+  if(line>=LINES)toast('Last line reached — the sheet is full');
+  update(false);persist();
+  announce('New line, line '+(line+1));
+}
+function checkBell(){
+  if(!bellRung&&col>=COLS-6){bellRung=true;snd.bell();ding();}
+}
+function ding(){
+  const d=document.createElement('div');d.className='ding';d.textContent='ding';
+  const px=X0+(1-K)*Math.min(col,COLS)*CW*S;
+  d.style.left=(px+40*U)+'px';d.style.top=(MY+20*U)+'px';scene.appendChild(d);setTimeout(()=>d.remove(),1400);
+}
+
+/* ---------- ribbon ---------- */
+function setRibbon(isRed){
+  red=isRed;$('inkBlack').setAttribute('aria-pressed',String(!red));$('inkRed').setAttribute('aria-pressed',String(red));
+  $('vibrator').setAttribute('transform',red?'translate(0 -3.8)':'translate(0 0)');
+  audio();snd.soft();persist();
+}
+$('inkBlack').addEventListener('click',()=>setRibbon(false));
+$('inkRed').addEventListener('click',()=>setRibbon(true));
+
+/* ---------- shift ---------- */
+function syncShift(){
+  (keyEls.get('SHIFT')||[]).forEach(g=>g.classList.toggle('on',shiftOn&&!lockOn));
+  (keyEls.get('LOCK')||[]).forEach(g=>g.classList.toggle('on',lockOn));
+}
+function onScreenKey(k){
+  if(k==='BS'){backspace();return;}
+  if(k==='TAB'){tab();return;}
+  if(k==='SHIFT'){shiftOn=!shiftOn;audio();snd.soft();flashKey('SHIFT');syncShift();return;}
+  if(k==='LOCK'){lockOn=!lockOn;shiftOn=lockOn;audio();snd.soft();syncShift();return;}
+  if(k===' '){space();return;}
+  const up=shiftOn||lockOn;
+  let ch=k;
+  if(/[a-z]/.test(k))ch=up?k.toUpperCase():k;
+  else if(up&&SHIFTED[k])ch=SHIFTED[k];
+  typeChar(ch);
+}
+
+/* ---------- input: physical keyboard, on-screen keys, phone keyboard ---------- */
+const ghost=$('ghost');
+window.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const tgt=e.target,tag=tgt&&tgt.tagName;
+  const onButton=tag==='BUTTON'||(tgt&&tgt.getAttribute&&tgt.getAttribute('role')==='button');
+  if(e.key==='Enter'){
+    if(onButton&&tgt.id!=='lever')return;
+    e.preventDefault();carriageReturn();return;
+  }
+  if(e.key==='Backspace'){e.preventDefault();backspace();return;}
+  if(e.key==='Tab'&&tgt===ghost){e.preventDefault();tab();return;}
+  if(e.key==='Unidentified'||e.isComposing)return;
+  if(e.key.length===1){
+    if(onButton&&e.key===' ')return;
+    e.preventDefault();
+    if(e.key===' ')space();else typeChar(e.key);
+  }
+});
+ghost.addEventListener('input',()=>{
+  const v=ghost.value;ghost.value='';
+  for(const ch of v){if(ch==='\n')carriageReturn();else if(ch===' ')space();else typeChar(ch);}
+});
+function focusGhost(){try{ghost.focus({preventScroll:true});}catch(e){ghost.focus();}}
+sheet.addEventListener('pointerdown',e=>{audio();if(e.pointerType!=='mouse')focusGhost();});
+$('btnKeyboard').addEventListener('click',()=>{audio();focusGhost();toast('Your phone keyboard now types onto the sheet');});
+bodyS.addEventListener('pointerdown',e=>{
+  const g=e.target.closest&&e.target.closest('.key');if(!g)return;
+  e.preventDefault();onScreenKey(g.getAttribute('data-k'));
+});
+const lever=$('lever');
+lever.addEventListener('pointerdown',e=>{e.preventDefault();carriageReturn();});
+lever.addEventListener('keydown',e=>{if(e.key===' '){e.preventDefault();carriageReturn();}});
+
+/* ---------- controls ---------- */
+const btnSound=$('btnSound');
+btnSound.addEventListener('click',()=>{
+  muted=!muted;audio();if(master)master.gain.value=muted?0:0.6;
+  btnSound.setAttribute('aria-pressed',String(!muted));btnSound.setAttribute('aria-label',muted?'Sound muted — press to unmute':'Sound on — press to mute');
+  $('sndLbl').textContent=muted?'Muted':'Sound';$('sndWaves').style.opacity=muted?0.15:1;
+  try{localStorage.setItem('marlowe44.muted',muted?'1':'0');}catch(e){}
+});
+$('btnNew').addEventListener('click',newSheet);
+// a mouse click should not leave focus on a control, or the next space bar would press it again
+document.querySelectorAll('.controls button').forEach(b=>b.addEventListener('click',e=>{if(e.detail>0)b.blur();}));
+let busy=false;
+function newSheet(){
+  if(busy)return;busy=true;audio();snd.paper();
+  sheet.classList.add('pulling');rear.classList.add('pulling');
+  setTimeout(()=>{
+    sheetNo++;strokes=[];col=0;line=0;bellRung=false;
+    redrawAll();
+    sheet.classList.remove('pulling');rear.classList.remove('pulling');
+    update(true);
+    sheet.classList.add('feeding');rear.classList.add('feeding');
+    setTimeout(()=>{sheet.classList.remove('feeding');rear.classList.remove('feeding');busy=false;},720);
+    persist();toast('Sheet No. '+sheetNo+' is in the machine');
+  },reduced?60:760);
+}
+$('btnSave').addEventListener('click',()=>{
+  try{
+    paperC.toBlob(b=>{
+      if(!b){toast('This browser would not hand over the page');return;}
+      const u=makeObj.call(URL,b),a=document.createElement('a');a.href=u;a.download='marlowe44-letter-sheet'+sheetNo+'.png';
+      document.body.appendChild(a);a.click();a.remove();setTimeout(()=>dropObj.call(URL,u),5000);
+      toast('Letter saved as a PNG — <b>ready to post</b>');
+    },'image/png');
+  }catch(e){toast('This browser would not hand over the page');}
+});
+const makeObj=URL.createObjectURL,dropObj=URL.revokeObjectURL;
+
+/* ---------- status, toast, persistence ---------- */
+let toastT=0;
+function toast(html){const t=$('toast');t.innerHTML=html;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+function announce(s){$('announce').textContent=s;}
+function status(){
+  $('stSheet').textContent='No. '+sheetNo;
+  $('stLine').textContent=Math.min(line+1,LINES)+' / '+LINES;
+  $('stCol').textContent=Math.min(col+1,COLS+1)+' / '+COLS;
+  $('stCount').textContent=strokes.length;
+}
+let saveT=0;
+function persist(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(STORE,JSON.stringify({strokes:strokes.slice(-3000),col,line,red,sheetNo,bellRung}));}catch(e){}},350);}
+function restore(){
+  try{
+    const raw=localStorage.getItem(STORE);if(!raw)return false;
+    const d=JSON.parse(raw);if(!d||!Array.isArray(d.strokes))return false;
+    strokes=d.strokes.filter(s=>Array.isArray(s)&&s.length===5);col=d.col|0;line=d.line|0;red=!!d.red;sheetNo=d.sheetNo|0||1;bellRung=!!d.bellRung;
+    return true;
+  }catch(e){return false;}
+}
+function openingLines(){
+  // the machine arrives with the date and a salutation already on the sheet
+  const now=new Date();
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const date=now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  let seed=424242;
+  const put=(txt,c0,l)=>{for(let i=0;i<txt.length;i++){if(txt[i]!==' ')strokes.push([txt[i],c0+i,l,0,seed+=7919]);}};
+  put(date,COLS-date.length,0);
+  put('Dear friend,',0,2);
+  put('Forgive the smudges; the Marlowe and I are',5,4);
+  put('still getting acquainted.',0,5);
+  col=26;line=5;
+}
+
+/* ---------- boot ---------- */
+buildKeys();
+try{muted=localStorage.getItem('marlowe44.muted')==='1';}catch(e){}
+if(muted){btnSound.setAttribute('aria-pressed','false');$('sndLbl').textContent='Muted';$('sndWaves').style.opacity=0.15;btnSound.setAttribute('aria-label','Sound muted — press to unmute');}
+if(!restore())openingLines();
+$('inkBlack').setAttribute('aria-pressed',String(!red));$('inkRed').setAttribute('aria-pressed',String(red));
+$('vibrator').setAttribute('transform',red?'translate(0 -3.8)':'translate(0 0)');
+redrawAll();
+layout();
+startLoop();
+let rz=0;
+window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(layout,80);});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(layout,80);});
+reduceMQ.addEventListener&&reduceMQ.addEventListener('change',e=>{reduced=e.matches;});
+})();
+</script>
+</body>
+</html>

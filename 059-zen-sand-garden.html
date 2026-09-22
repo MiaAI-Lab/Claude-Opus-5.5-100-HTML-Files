@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Karesansui — A Zen Sand Garden</title>
+<meta name="description" content="Karesansui: a raked gravel garden to tend by hand. Drag a five-tined rake through lit sand, ring stones with ripples, place and lift stones, smooth the gravel and return it to calm while maple leaves drift down.">
+<meta name="theme-color" content="#1b1c18">
+<style>
+:root{
+  --sand:#e8e0cf; --wood:#5b3f2a; --moss:#6b7d4b; --ink:#2f2922; --paper:#ece4d3; --ground:#1b1c18; --shu:#b5452d;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","P052","URW Palladio L",Georgia,serif;
+  --mincho:"Hiragino Mincho ProN","Hiragino Mincho Pro","Yu Mincho",YuMincho,"Noto Serif CJK JP","Noto Serif JP","MS Mincho",serif;
+  --fw:clamp(16px, 2.1vw, 30px);
+}
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; height:100%; overflow:hidden; }
+body{
+  background:
+    radial-gradient(80% 70% at 52% 48%, rgba(120,110,86,.16), rgba(0,0,0,0) 70%),
+    radial-gradient(140% 120% at 50% 50%, #22231e 0%, #191a16 60%, #121310 100%);
+  color:#d8cfbd; font-family:var(--serif);
+  -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
+}
+.page{
+  height:100vh; height:100dvh;
+  display:grid; grid-template-columns:minmax(76px, 118px) minmax(0, 1fr) 84px; grid-template-rows:minmax(0, 1fr);
+}
+
+/* ---------------------------------------------------------- vertical title */
+.title-col{
+  writing-mode:vertical-rl; display:flex; align-items:center; justify-content:flex-start; gap:18px;
+  padding:clamp(28px, 6vh, 64px) 0; margin:0 auto; user-select:none;
+}
+.title{ margin:0; font-weight:400; display:flex; gap:12px; align-items:center; }
+.kanji{ font-family:var(--mincho); font-size:clamp(30px, 3.4vw, 46px); letter-spacing:.32em; color:#efe6d4; line-height:1; }
+.latin{ font-family:var(--serif); font-size:13px; letter-spacing:.42em; text-transform:uppercase; color:#b7ad98; }
+.sub{ margin:0; font-style:italic; font-size:13px; letter-spacing:.06em; color:#8d8573; }
+.seal{
+  writing-mode:horizontal-tb; margin-top:auto; width:30px; height:30px; display:grid; place-items:center;
+  background:var(--shu); color:#f6e9dc; font-family:var(--mincho); font-size:18px; line-height:1; border-radius:3px;
+  box-shadow:inset 0 0 0 2px rgba(246,233,220,.35), 0 2px 8px rgba(0,0,0,.35); transform:rotate(-3deg);
+}
+
+/* ---------------------------------------------------------- garden */
+.garden{ min-width:0; min-height:0; display:flex; flex-direction:column; padding:clamp(20px, 4.4vh, 44px) 0 clamp(14px, 3vh, 30px); }
+.frame{
+  position:relative; flex:1; min-height:0; padding:var(--fw); border-radius:3px;
+  box-shadow:0 40px 80px rgba(0,0,0,.55), 0 10px 24px rgba(0,0,0,.4);
+}
+.plank{ position:absolute; display:block; background-color:var(--wood); }
+.plank.pt{ left:0; right:0; top:0; height:var(--fw); clip-path:polygon(0 0, 100% 0, calc(100% - var(--fw)) 100%, var(--fw) 100%);
+  background-image:linear-gradient(180deg, rgba(255,236,210,.2) 0, rgba(255,236,210,0) 30%, rgba(0,0,0,.34) 100%), var(--woodH); }
+.plank.pb{ left:0; right:0; bottom:0; height:var(--fw); clip-path:polygon(var(--fw) 0, calc(100% - var(--fw)) 0, 100% 100%, 0 100%);
+  background-image:linear-gradient(0deg, rgba(0,0,0,.4) 0, rgba(0,0,0,0) 40%, rgba(255,236,210,.14) 100%), var(--woodH); }
+.plank.pl{ top:0; bottom:0; left:0; width:var(--fw); clip-path:polygon(0 0, 100% var(--fw), 100% calc(100% - var(--fw)), 0 100%);
+  background-image:linear-gradient(90deg, rgba(255,236,210,.16) 0, rgba(255,236,210,0) 30%, rgba(0,0,0,.34) 100%), var(--woodV); }
+.plank.pr{ top:0; bottom:0; right:0; width:var(--fw); clip-path:polygon(0 var(--fw), 100% 0, 100% 100%, 0 calc(100% - var(--fw)));
+  background-image:linear-gradient(270deg, rgba(0,0,0,.4) 0, rgba(0,0,0,0) 40%, rgba(255,236,210,.12) 100%), var(--woodV); }
+.bed{
+  position:relative; width:100%; height:100%; overflow:hidden; background:var(--sand);
+  touch-action:none; cursor:crosshair; box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);
+}
+.bed canvas{ position:absolute; left:0; top:0; width:100%; height:100%; display:block; }
+.bed .grainov{ position:absolute; inset:0; pointer-events:none; opacity:.34; mix-blend-mode:multiply; background-size:180px 180px; }
+.bed .vig{ position:absolute; inset:0; pointer-events:none; background:radial-gradient(120% 110% at 50% 45%, rgba(0,0,0,0) 62%, rgba(40,30,15,.16) 100%); }
+.bed:focus-visible{ outline:2px solid #e9c9a0; outline-offset:4px; }
+.caption{
+  display:flex; justify-content:space-between; align-items:baseline; gap:20px; margin:14px 4px 0; min-height:20px;
+  font-size:14px; line-height:1.4;
+}
+.cap-tool{ font-style:italic; color:#d3c9b5; transition:opacity .4s; }
+.cap-tool b{ font-style:normal; font-weight:400; letter-spacing:.18em; text-transform:uppercase; font-size:11px; color:#efe4cf; margin-right:8px; }
+.cap-sun{ font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#8d8573; white-space:nowrap; }
+.cap-sun i{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; background:#e8b86a; box-shadow:0 0 8px #e8b86a; vertical-align:1px; }
+
+/* ---------------------------------------------------------- tools */
+.tools{ display:flex; align-items:center; justify-content:center; }
+.bar{
+  display:flex; flex-direction:column; gap:6px; padding:12px 7px; border-radius:30px;
+  background:
+    repeating-linear-gradient(97deg, rgba(120,100,70,.04) 0 2px, rgba(0,0,0,0) 2px 7px),
+    linear-gradient(180deg, #efe8d8, #e6ddca);
+  box-shadow:0 20px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.6), inset 0 0 0 1px rgba(90,70,40,.12);
+}
+.bar hr{ width:24px; margin:6px auto; border:0; border-top:1px solid rgba(60,48,32,.2); }
+.tbtn{
+  position:relative; width:44px; height:44px; border-radius:50%; border:0; padding:0; background:transparent; color:var(--ink);
+  display:grid; place-items:center; cursor:pointer; transition:background .25s, color .25s, transform .15s;
+}
+.tbtn svg{ width:24px; height:24px; overflow:visible; }
+.tbtn:hover{ background:rgba(60,48,32,.08); }
+.tbtn:active{ transform:scale(.92); }
+.tbtn[aria-pressed="true"]{ background:var(--ink); color:#f3ead8; }
+.tbtn.act-on{ color:var(--shu); }
+.tbtn:focus-visible{ outline:2px solid var(--shu); outline-offset:2px; }
+.tbtn .tip{
+  position:absolute; right:calc(100% + 16px); top:50%; transform:translate(6px, -50%); white-space:nowrap; pointer-events:none;
+  font-family:var(--serif); font-style:italic; font-size:13px; color:#e8dfcd; opacity:0; transition:opacity .25s, transform .25s;
+  background:rgba(22,22,19,.86); padding:5px 10px; border-radius:4px;
+}
+.tbtn .tip kbd{ font-family:var(--serif); font-style:normal; font-size:10px; margin-left:8px; padding:1px 5px; border:1px solid rgba(232,223,205,.3); border-radius:3px; color:#b8ae99; }
+.tbtn:hover .tip, .tbtn:focus-visible .tip{ opacity:1; transform:translate(0, -50%); }
+
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+
+@media (max-width: 760px){
+  :root{ --fw:13px; }
+  .page{ grid-template-columns:40px minmax(0, 1fr); grid-template-rows:minmax(0, 1fr) auto; }
+  .title-col{ padding:18px 0 12px; gap:10px; }
+  .kanji{ font-size:22px; letter-spacing:.24em; }
+  .latin{ font-size:10px; letter-spacing:.34em; }
+  .sub{ display:none; }
+  .seal{ width:22px; height:22px; font-size:13px; }
+  .garden{ padding:14px 12px 6px 0; }
+  .caption{ margin-top:8px; font-size:12.5px; }
+  .cap-sun{ display:none; }
+  .tools{ grid-column:1 / -1; padding:6px 10px calc(10px + env(safe-area-inset-bottom)); }
+  .bar{ flex-direction:row; padding:6px 8px; gap:3px; border-radius:26px; }
+  .bar hr{ width:1px; height:22px; margin:auto 3px; border-top:0; border-left:1px solid rgba(60,48,32,.2); }
+  .tbtn{ width:40px; height:40px; }
+  .tbtn .tip{ display:none; }
+}
+@media (max-height: 760px) and (min-width: 761px){
+  .sub{ display:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .tbtn, .cap-tool, .tbtn .tip{ transition:none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="title-col">
+    <h1 class="title"><span class="kanji" lang="ja" aria-hidden="true">枯山水</span><span class="latin">Karesansui</span></h1>
+    <p class="sub">a dry garden of gravel, stone and moss</p>
+    <span class="seal" lang="ja" aria-hidden="true">静</span>
+  </header>
+
+  <main class="garden">
+    <div class="frame" id="frame">
+      <div class="bed" id="bed" role="img" tabindex="0" aria-label="Top-down view of a raked gravel garden with stones and moss. Drag to use the selected tool; press 1 to 5 to change tools.">
+        <canvas id="sand" aria-hidden="true"></canvas>
+        <canvas id="objects" aria-hidden="true"></canvas>
+        <canvas id="fx" aria-hidden="true"></canvas>
+        <div class="grainov" id="grainov"></div>
+        <div class="vig"></div>
+      </div>
+      <i class="plank pt" aria-hidden="true"></i><i class="plank pb" aria-hidden="true"></i><i class="plank pl" aria-hidden="true"></i><i class="plank pr" aria-hidden="true"></i>
+    </div>
+    <p class="caption"><span class="cap-tool" id="capTool" aria-live="polite"></span><span class="cap-sun" id="capSun"><i></i>afternoon light</span></p>
+  </main>
+
+  <nav class="tools" aria-label="Garden tools">
+    <div class="bar">
+      <button type="button" class="tbtn" data-tool="rake" aria-pressed="true" aria-label="Rake">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2.5v11"/><path d="M4.5 13.5h15"/><path d="M5 13.5v5M8.5 13.5v6M12 13.5v6.5M15.5 13.5v6M19 13.5v5"/></svg>
+        <span class="tip">Rake<kbd>1</kbd></span></button>
+      <button type="button" class="tbtn" data-tool="ripple" aria-pressed="false" aria-label="Ripple">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="5.6"/><circle cx="12" cy="12" r="9"/></svg>
+        <span class="tip">Ripple<kbd>2</kbd></span></button>
+      <button type="button" class="tbtn" data-tool="stone" aria-pressed="false" aria-label="Place stone">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 15.5c0-4 3.4-8.2 8.2-8.2 4.6 0 7.8 3.3 7.8 6.9 0 2.9-2.6 4.4-8 4.4-5.1 0-8-1-8-3.1z"/><path d="M8.5 11.2c1-1.2 2.3-1.8 3.8-1.9" opacity=".6"/></svg>
+        <span class="tip">Place stone<kbd>3</kbd></span></button>
+      <button type="button" class="tbtn" data-tool="smooth" aria-pressed="false" aria-label="Smooth">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17.5h16l-2.2-4.2H6.2z"/><path d="M12 13.3V7.5"/><path d="M9.2 6.2h5.6"/><path d="M3 21c2.2-1 4.4-1 6.6 0s4.4 1 6.6 0" opacity=".45"/></svg>
+        <span class="tip">Smooth<kbd>4</kbd></span></button>
+      <hr>
+      <button type="button" class="tbtn" id="calm" aria-label="Return to calm">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.8 5.2A8.6 8.6 0 1 0 20.4 13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19.6 10.2c.5 1 .8 2 .8 2.8" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+        <span class="tip">Return to calm<kbd>5</kbd></span></button>
+      <button type="button" class="tbtn" id="chime" aria-pressed="false" aria-label="Wind chime sound">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M12 1.8v2.6"/><path d="M5.5 4.8h13"/><path d="M7.5 4.8v8M10.5 4.8v11M13.5 4.8v9.5M16.5 4.8v7"/><path d="M12 12.5v4"/><path d="M10.4 16.5h3.2l-.4 5h-2.4z" fill="currentColor" stroke="none" opacity=".8"/></svg>
+        <span class="tip">Wind chime<kbd>B</kbd></span></button>
+      <button type="button" class="tbtn" id="save" aria-label="Save garden as image">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11M7.5 10l4.5 4.5 4.5-4.5"/><path d="M4 16.5v3h16v-3"/></svg>
+        <span class="tip">Save image<kbd>S</kbd></span></button>
+    </div>
+  </nav>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+const bed = $('#bed'), sandC = $('#sand'), objC = $('#objects'), fxC = $('#fx');
+const sctx = sandC.getContext('2d'), octx = objC.getContext('2d'), fctx = fxC.getContext('2d');
+const URLF = s => 'url("' + s + '")';
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+/* ============================================================ seeded noise */
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function makeNoise(rand){
+  const perm = new Uint8Array(512), base = [];
+  for (let i = 0; i < 256; i++) base.push(i);
+  for (let i = 255; i > 0; i--){ const j = Math.floor(rand() * (i + 1)); const t = base[i]; base[i] = base[j]; base[j] = t; }
+  for (let i = 0; i < 512; i++) perm[i] = base[i & 255];
+  const grad = (h, x, y) => { switch (h & 7){ case 0: return x + y; case 1: return -x + y; case 2: return x - y; case 3: return -x - y; case 4: return x; case 5: return -x; case 6: return y; default: return -y; } };
+  const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+  return (x, y) => {
+    const xf = Math.floor(x), yf = Math.floor(y), X = xf & 255, Y = yf & 255; x -= xf; y -= yf;
+    const u = fade(x), v = fade(y);
+    const g1 = grad(perm[perm[X] + Y], x, y), g2 = grad(perm[perm[X + 1] + Y], x - 1, y);
+    const g3 = grad(perm[perm[X] + Y + 1], x, y - 1), g4 = grad(perm[perm[X + 1] + Y + 1], x - 1, y - 1);
+    const l1 = g1 + u * (g2 - g1), l2 = g3 + u * (g4 - g3);
+    return (l1 + v * (l2 - l1)) * .7;
+  };
+}
+const N1 = makeNoise(mulberry32(1101));
+const hash = (x, y, s) => { let h = (x * 374761393 + y * 668265263 + s * 2246822519) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+const fbm = (x, y, o) => { let s = 0, a = .5, f = 1; for (let i = 0; i < o; i++){ s += a * N1(x * f, y * f); f *= 2.02; a *= .5; } return s; };
+
+/* ============================================================ wood texture for the frame */
+function woodTex(w, h, vertical, seed){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'), img = x.createImageData(w, h), d = img.data;
+  const N = makeNoise(mulberry32(seed));
+  for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++){
+    const u = vertical ? yy : xx, v = vertical ? xx : yy;
+    const n = N(u * .006, v * .05) * 1.4 + N(u * .02, v * .12) * .4;
+    const ring = Math.sin(v * .42 + n * 8);
+    const fiber = N(u * .05, v * .9) * .5;
+    let t = .5 + .5 * ring; t = t * t * .75 + fiber * .35 + .12;
+    const i = (yy * w + xx) * 4;
+    d[i] = lerp(56, 124, t); d[i + 1] = lerp(37, 88, t); d[i + 2] = lerp(24, 58, t); d[i + 3] = 255;
+  }
+  x.putImageData(img, 0, 0); return c.toDataURL();
+}
+function grainTex(){
+  const c = document.createElement('canvas'); c.width = c.height = 180;
+  const x = c.getContext('2d'), img = x.createImageData(180, 180), d = img.data, R = mulberry32(9);
+  for (let i = 0; i < d.length; i += 4){
+    let v = 200 + R() * 55;
+    if (R() < .018) v = 120 + R() * 50;
+    d[i] = v; d[i + 1] = v * .985; d[i + 2] = v * .96; d[i + 3] = 255;
+  }
+  x.putImageData(img, 0, 0); return c.toDataURL();
+}
+const frameEl = $('#frame');
+frameEl.style.setProperty('--woodH', URLF(woodTex(1800, 64, false, 31)));
+frameEl.style.setProperty('--woodV', URLF(woodTex(64, 1400, true, 47)));
+$('#grainov').style.backgroundImage = URLF(grainTex());
+
+/* ============================================================ state */
+let DPR = Math.min(2, window.devicePixelRatio || 1);
+let W = 0, H = 0, K = 1, SW = 0, SH = 0, M = 0;
+let hm = null, grain = null, target = null, img = null;
+const simC = document.createElement('canvas'), simX = simC.getContext('2d');
+let SP = 12, AMP = 1.6;
+const sun = { t: 0, p: .7, az: 0, el: 0, lx: 0, ly: 0, lz: 0, warm: 0, lastAz: 999, shadedAz: 999 };
+let tool = 'rake';
+let dirty = null, objectsDirty = true, fxDirty = true;
+const ripples = [];
+let calmAnim = null;
+
+/* features: moss islands and stones, in normalised garden coordinates */
+const islands = [
+  { nx: .255, ny: .47, rel: .145, seed: 3, rings: 4 },
+  { nx: .79, ny: .69, rel: .118, seed: 8, rings: 3 }
+];
+const stones = [
+  { nx: .235, ny: .43, rel: .085, asp: 1.25, rot: .5, seed: 11, pal: 0, moss: true, island: 0 },
+  { nx: .315, ny: .56, rel: .042, asp: 1.1, rot: 2.1, seed: 12, pal: 1, moss: false, island: 0 },
+  { nx: .6, ny: .28, rel: .062, asp: 1.35, rot: -.4, seed: 21, pal: 2, moss: true, island: -1, rings: 3 },
+  { nx: .8, ny: .66, rel: .066, asp: 1.2, rot: 1.2, seed: 31, pal: 0, moss: true, island: 1 },
+  { nx: .715, ny: .755, rel: .034, asp: 1.3, rot: .3, seed: 32, pal: 1, moss: false, island: 1 },
+  { nx: .865, ny: .59, rel: .026, asp: 1.1, rot: 2.6, seed: 33, pal: 2, moss: false, island: 1 }
+];
+const PALS = [[124, 122, 116], [146, 134, 116], [96, 100, 104]];
+
+/* ============================================================ shapes */
+function shapeCoefs(seed){
+  const R = mulberry32(seed * 97 + 5);
+  return [[2, .1 + R() * .08, R() * TAU], [3, .05 + R() * .06, R() * TAU], [5, .02 + R() * .025, R() * TAU], [7, .01 + R() * .012, R() * TAU]];
+}
+function buildLUT(coefs, asp, rot){
+  const lut = new Float32Array(360).fill(0);
+  for (let k = 0; k < 1440; k++){
+    const f = k / 1440 * TAU;
+    let r = 1; for (const [n, a, p] of coefs) r += a * Math.cos(n * f + p);
+    const lx = r * Math.cos(f) * asp, ly = r * Math.sin(f);
+    const X = lx * Math.cos(rot) - ly * Math.sin(rot), Y = lx * Math.sin(rot) + ly * Math.cos(rot);
+    const th = Math.atan2(Y, X), rho = Math.hypot(X, Y);
+    const b = Math.floor((th + Math.PI) / TAU * 360) % 360;
+    if (rho > lut[b]) lut[b] = rho;
+  }
+  for (let i = 0; i < 360; i++) if (!lut[i]) lut[i] = (lut[(i + 359) % 360] + lut[(i + 1) % 360]) / 2;
+  const out = new Float32Array(360);
+  for (let i = 0; i < 360; i++) out[i] = (lut[(i + 358) % 360] + lut[(i + 359) % 360] * 2 + lut[i] * 3 + lut[(i + 1) % 360] * 2 + lut[(i + 2) % 360]) / 9;
+  return out;
+}
+const lutAt = (lut, th) => { const f = (th + Math.PI) / TAU * 360; const i = Math.floor(f), t = f - i; return lerp(lut[((i % 360) + 360) % 360], lut[((i + 1) % 360 + 360) % 360], t); };
+function prepFeatures(){
+  for (const is of islands){
+    if (!is.coefs){ const R = mulberry32(is.seed * 13 + 1); is.coefs = [[2, .08 + R() * .06, R() * TAU], [3, .06 + R() * .05, R() * TAU], [4, .03, R() * TAU], [6, .02, R() * TAU]]; is.lut = buildLUT(is.coefs, 1.18, R() * TAU); }
+    is.R = is.rel * M;
+  }
+  for (const s of stones){
+    if (!s.coefs){ s.coefs = shapeCoefs(s.seed); s.lut = buildLUT(s.coefs, s.asp, s.rot); }
+    s.R = s.rel * M; s.hgt = s.R * .72;
+  }
+}
+function featureOf(s){ return s.island >= 0 && islands[s.island] ? islands[s.island] : s; }
+
+/* ============================================================ sizing + heightmap */
+function setup(){
+  const r = bed.getBoundingClientRect();
+  const nW = Math.max(40, Math.round(r.width)), nH = Math.max(40, Math.round(r.height));
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  const oldHm = hm, oSW = SW, oSH = SH;
+  W = nW; H = nH; M = Math.min(W, H);
+  K = Math.max(1, Math.sqrt(W * H / 430000));
+  SW = Math.ceil(W / K) + 2; SH = Math.ceil(H / K) + 2;
+  SP = clamp(M * .0165, 8.5, 14);
+  AMP = SP * .135;
+  for (const c of [sandC, objC, fxC]){ c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); }
+  simC.width = SW; simC.height = SH;
+  img = simX.createImageData(SW, SH);
+  grain = new Float32Array(SW * SH);
+  const R = mulberry32(77);
+  for (let i = 0; i < grain.length; i++){ let g = (R() - .5) * .07; if (R() < .012) g -= .1 + R() * .08; grain[i] = g; }
+  prepFeatures();
+  buildTarget();
+  if (oldHm && oSW > 2 && Math.abs((W / H) / (oSW / oSH) - 1) < .08){
+    hm = new Float32Array(SW * SH);
+    for (let y = 0; y < SH; y++) for (let x = 0; x < SW; x++){
+      const fx = x / (SW - 1) * (oSW - 1), fy = y / (SH - 1) * (oSH - 1);
+      const x0 = Math.floor(fx), y0 = Math.floor(fy), x1 = Math.min(oSW - 1, x0 + 1), y1 = Math.min(oSH - 1, y0 + 1), tx = fx - x0, ty = fy - y0;
+      hm[y * SW + x] = lerp(lerp(oldHm[y0 * oSW + x0], oldHm[y0 * oSW + x1], tx), lerp(oldHm[y1 * oSW + x0], oldHm[y1 * oSW + x1], tx), ty);
+    }
+  } else hm = target.slice();
+  shadeSprites();
+  relightAll();
+  objectsDirty = true; fxDirty = true;
+}
+function ringInto(arr, f, rings, reveal, strength){
+  const sp = SP / K, cx = f.nx * W / K, cy = f.ny * H / K, Rr = f.R / K;
+  let mx = 0; for (let i = 0; i < 360; i++) mx = Math.max(mx, f.lut[i]);
+  const reach = mx * Rr + rings * sp + sp;
+  const x0 = Math.max(1, Math.floor(cx - reach)), x1 = Math.min(SW - 2, Math.ceil(cx + reach));
+  const y0 = Math.max(1, Math.floor(cy - reach)), y1 = Math.min(SH - 2, Math.ceil(cy + reach));
+  const D = rings * sp, lim = reveal == null ? 1e9 : reveal;
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++){
+    const dx = x - cx, dy = y - cy, rho = Math.sqrt(dx * dx + dy * dy);
+    const d = rho - lutAt(f.lut, Math.atan2(dy, dx)) * Rr;
+    if (d > D + sp * .5 || d > lim) continue;
+    const i = y * SW + x;
+    if (d < 0){ arr[i] = lerp(arr[i], 0, strength); continue; }
+    const prof = -AMP * Math.cos(TAU * d / sp);
+    const w = (1 - smooth(D - sp * .5, D + sp * .5, d)) * strength;
+    arr[i] = lerp(arr[i], prof, w);
+  }
+  return [x0, y0, x1 + 1, y1 + 1];
+}
+function buildTarget(){
+  target = new Float32Array(SW * SH);
+  const sp = SP / K;
+  const off = (SH % sp) / 2;
+  const wob = sp * .22, fq = K / 520;
+  for (let y = 0; y < SH; y++){
+    for (let x = 0; x < SW; x++){
+      const yy = y - off + N1(x * fq * 1.3, y * .004 * K) * wob + N1(x * fq * 6, y * .02 * K + 40) * wob * .25;
+      target[y * SW + x] = -AMP * Math.cos(TAU * yy / sp);
+    }
+  }
+  for (const is of islands) ringInto(target, is, is.rings, null, 1);
+  for (const s of stones) if (s.island < 0) ringInto(target, s, s.rings || 3, null, 1);
+}
+
+/* ============================================================ sun + lighting */
+function updateSun(){
+  const p = sun.p;
+  sun.az = -p * Math.PI;
+  sun.el = (10 + Math.sin(p * Math.PI) * 48) * Math.PI / 180;
+  sun.lx = Math.cos(sun.az) * Math.cos(sun.el); sun.ly = Math.sin(sun.az) * Math.cos(sun.el); sun.lz = Math.sin(sun.el);
+  sun.warm = 1 - Math.sin(p * Math.PI);
+  const cap = p < .3 ? 'morning · light from the east' : p < .43 ? 'late morning' : p < .57 ? 'midday · short shadows' : p < .7 ? 'afternoon light' : 'evening · long shadows';
+  const el = $('#capSun'); if (el.dataset.c !== cap){ el.dataset.c = cap; el.lastChild.textContent = cap; }
+}
+function relight(x0, y0, x1, y1){
+  x0 = Math.max(1, x0 | 0); y0 = Math.max(1, y0 | 0); x1 = Math.min(SW - 1, Math.ceil(x1)); y1 = Math.min(SH - 1, Math.ceil(y1));
+  if (x1 <= x0 || y1 <= y0) return;
+  const d = img.data, Lx = sun.lx, Ly = sun.ly, Lz = sun.lz, amb = .44, flat = amb + (1 - amb) * Lz;
+  const inv2k = 1 / (2 * K), warm = sun.warm, cav = .045 / AMP;
+  const wr = 16 * warm, wb = -10 * warm;
+  for (let y = y0; y < y1; y++){
+    let i = y * SW + x0;
+    for (let x = x0; x < x1; x++, i++){
+      const hx = (hm[i + 1] - hm[i - 1]) * inv2k, hy = (hm[i + SW] - hm[i - SW]) * inv2k;
+      const inv = 1 / Math.sqrt(hx * hx + hy * hy + 1);
+      let dif = (-hx * Lx - hy * Ly + Lz) * inv; if (dif < 0) dif = 0;
+      let s = (amb + (1 - amb) * dif) / flat;
+      s *= 1 + hm[i] * cav;
+      const g = 1 + grain[i], sh = 1 - s, hi = s > 1 ? s - 1 : 0;
+      const j = i << 2;
+      d[j] = (232 * s - sh * 16 + hi * wr) * g;
+      d[j + 1] = (224 * s - sh * 9 + hi * wr * .45) * g;
+      d[j + 2] = (207 * s + sh * 10 + hi * wb) * g;
+      d[j + 3] = 255;
+    }
+  }
+  simX.putImageData(img, 0, 0, x0, y0, x1 - x0, y1 - y0);
+  const e = 2, sx = Math.max(0, x0 - e), sy = Math.max(0, y0 - e), sw = Math.min(SW, x1 + e) - sx, sh2 = Math.min(SH, y1 + e) - sy;
+  const f = K * DPR;
+  sctx.imageSmoothingEnabled = true;
+  sctx.drawImage(simC, sx, sy, sw, sh2, sx * f, sy * f, sw * f, sh2 * f);
+}
+function relightAll(){ updateSun(); relight(1, 1, SW - 1, SH - 1); sun.lastAz = sun.az; }
+function markDirty(r){
+  if (!dirty) dirty = r.slice();
+  else { dirty[0] = Math.min(dirty[0], r[0]); dirty[1] = Math.min(dirty[1], r[1]); dirty[2] = Math.max(dirty[2], r[2]); dirty[3] = Math.max(dirty[3], r[3]); }
+}
+
+/* ============================================================ stone, moss and leaf sprites */
+function spriteStone(s){
+  const sd = Math.min(DPR, 1.5), R = s.R;
+  let mx = 0; for (let i = 0; i < 360; i++) mx = Math.max(mx, s.lut[i]);
+  const half = Math.ceil(mx * R + 3), S = Math.ceil(half * 2 * sd);
+  const c = s.spr && s.spr.width === S ? s.spr : document.createElement('canvas'); c.width = c.height = S;
+  const ctx = c.getContext('2d'), im = ctx.createImageData(S, S), d = im.data;
+  const z = new Float32Array(S * S), q = new Float32Array(S * S), N = makeNoise(mulberry32(s.seed * 3 + 7));
+  const ctr = S / 2;
+  for (let py = 0; py < S; py++) for (let px = 0; px < S; px++){
+    const X = (px + .5 - ctr) / sd, Y = (py + .5 - ctr) / sd;
+    const edge = lutAt(s.lut, Math.atan2(Y, X)) * R, rho = Math.hypot(X, Y), qq = rho / edge;
+    const k = py * S + px; q[k] = qq;
+    if (qq < 1.03){
+      const b = Math.max(0, 1 - Math.pow(Math.min(1, qq), 2.3));
+      z[k] = Math.pow(b, .55) * s.hgt * (1 + N(X * .07, Y * .07) * .12) + N(X * .2, Y * .2) * .55 * b;
+    }
+  }
+  const Lx = sun.lx, Ly = sun.ly, Lz = sun.lz;
+  const hx0 = Lx, hy0 = Ly, hz0 = Lz + 1, hl = Math.hypot(hx0, hy0, hz0);
+  const base = PALS[s.pal];
+  for (let py = 1; py < S - 1; py++) for (let px = 1; px < S - 1; px++){
+    const k = py * S + px, qq = q[k];
+    if (qq >= 1.03) continue;
+    const X = (px + .5 - ctr) / sd, Y = (py + .5 - ctr) / sd;
+    const gx = (z[k + 1] - z[k - 1]) * sd / 2, gy = (z[k + S] - z[k - S]) * sd / 2;
+    const inv = 1 / Math.sqrt(gx * gx + gy * gy + 1);
+    const nx = -gx * inv, ny = -gy * inv, nz = inv;
+    const dif = Math.max(0, nx * Lx + ny * Ly + nz * Lz);
+    const spec = Math.pow(Math.max(0, (nx * hx0 + ny * hy0 + nz * hz0) / hl), 26) * .32;
+    const ao = .72 + .28 * (1 - Math.pow(Math.min(1, qq), 5));
+    const mott = N(X * .05 + 9, Y * .05) * .16 + (hash(px, py, s.seed) - .5) * .1;
+    let r = base[0] * (1 + mott), g = base[1] * (1 + mott), bb = base[2] * (1 + mott);
+    if (s.moss){
+      const m = N(X * .09 + 30, Y * .09 - 12) + nz * .3 - .4;
+      if (m > 0 && qq < .92){ const t = Math.min(.9, m * 4); r = lerp(r, 88 + (hash(px, py, 5) - .5) * 30, t); g = lerp(g, 102 + (hash(py, px, 6) - .5) * 28, t); bb = lerp(bb, 62 + (hash(px + 3, py, 7) - .5) * 20, t); }
+    }
+    const L = (.3 + .95 * dif) * ao;
+    const j = k * 4;
+    d[j] = r * L + spec * 255; d[j + 1] = g * L + spec * 250; d[j + 2] = bb * L + spec * 240;
+    d[j + 3] = clamp((1.0 - qq) * (lutAt(s.lut, Math.atan2(Y, X)) * R) * sd * 1.2 + .5, 0, 1) * 255;
+  }
+  ctx.putImageData(im, 0, 0);
+  s.spr = c; s.half = half;
+  if (!s.sil || s.silSize !== S){
+    const sc = document.createElement('canvas'); sc.width = S + 60; sc.height = S + 60;
+    const sx = sc.getContext('2d');
+    sx.shadowColor = 'rgba(0,0,0,1)'; sx.shadowBlur = 7 * sd; sx.shadowOffsetX = 4000;
+    sx.drawImage(c, 30 - 4000, 30);
+    s.sil = sc; s.silSize = S;
+  }
+}
+function spriteIsland(is){
+  const sd = Math.min(DPR, 1.5), R = is.R;
+  let mx = 0; for (let i = 0; i < 360; i++) mx = Math.max(mx, is.lut[i]);
+  const half = Math.ceil(mx * R + 6), S = Math.ceil(half * 2 * sd);
+  const c = is.spr && is.spr.width === S ? is.spr : document.createElement('canvas'); c.width = c.height = S;
+  const ctx = c.getContext('2d'), im = ctx.createImageData(S, S), d = im.data, N = makeNoise(mulberry32(is.seed * 5 + 3));
+  const ctr = S / 2, Lx = sun.lx, Ly = sun.ly, Lz = sun.lz;
+  for (let py = 0; py < S; py++) for (let px = 0; px < S; px++){
+    const X = (px + .5 - ctr) / sd, Y = (py + .5 - ctr) / sd;
+    const th = Math.atan2(Y, X), edge = lutAt(is.lut, th) * R, rho = Math.hypot(X, Y);
+    const fuzz = N(X * .25, Y * .25) * 3.2 + N(X * .9, Y * .9) * 1.4;
+    const dd = edge - rho + fuzz;
+    if (dd < -1.5) continue;
+    const qq = rho / edge;
+    const dome = Math.sqrt(Math.max(0, 1 - qq * qq));
+    const tuft = N(X * .35, Y * .35), fine = N(X * 1.3 + 7, Y * 1.3);
+    const nx = (X / edge) * .5 + tuft * .35, ny = (Y / edge) * .5 + fine * .2;
+    const nz = Math.max(.2, dome + .4);
+    const nl = Math.hypot(nx, ny, nz);
+    const dif = Math.max(0, (nx * Lx + ny * Ly + nz * Lz) / nl);
+    const blot = N(X * .08 + 50, Y * .08 - 20);
+    const hv = hash(px, py, is.seed), v = .8 + blot * .45 + tuft * .38 + fine * .26 + (hv - .5) * .32;
+    const L = (.38 + .62 * dif) * v;
+    const j = (py * S + px) * 4;
+    d[j] = 107 * L; d[j + 1] = 125 * L; d[j + 2] = 75 * L;
+    if (hv > .88){ d[j] = 158 * L; d[j + 1] = 172 * L; d[j + 2] = 98 * L; } else if (hv < .1){ d[j] = 62 * L; d[j + 1] = 74 * L; d[j + 2] = 42 * L; }
+    d[j + 3] = clamp((dd + 1.5) / 3, 0, 1) * 255;
+  }
+  ctx.putImageData(im, 0, 0);
+  is.spr = c; is.half = half;
+}
+function shadeSprites(){
+  for (const is of islands) spriteIsland(is);
+  for (const s of stones) spriteStone(s);
+  sun.shadedAz = sun.az;
+}
+
+/* maple leaves */
+const LEAF_HUES = [[4, 78, 44], [14, 82, 47], [28, 85, 50], [356, 70, 38]];
+function leafSprite(size, hue){
+  const sd = 2, S = Math.ceil(size * 2.3 * sd);
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const x = c.getContext('2d');
+  x.translate(S / 2, S / 2); x.scale(sd, sd);
+  const R = size;
+  const lobes = [[-128, .5], [-86, .8], [-43, .95], [0, 1], [43, .95], [86, .8], [128, .5]];
+  const P = (a, r) => [Math.sin(a * Math.PI / 180) * r * R, -Math.cos(a * Math.PI / 180) * r * R];
+  const path = new Path2D();
+  let start = P(-160, .16); path.moveTo(start[0], start[1]);
+  for (let i = 0; i < lobes.length; i++){
+    const [a, L] = lobes[i];
+    const prevA = i ? lobes[i - 1][0] : -170, nextA = i < lobes.length - 1 ? lobes[i + 1][0] : 170;
+    const v0 = P((a + prevA) / 2, i ? .3 : .16), v1 = P((a + nextA) / 2, i < lobes.length - 1 ? .3 : .16);
+    const tip = P(a, L);
+    const c1 = P(a - 13, L * .62), c2 = P(a + 13, L * .62);
+    if (i === 0) path.lineTo(v0[0], v0[1]);
+    path.quadraticCurveTo(c1[0], c1[1], tip[0], tip[1]);
+    path.quadraticCurveTo(c2[0], c2[1], v1[0], v1[1]);
+  }
+  path.closePath();
+  const [h, s, l] = hue;
+  const g = x.createRadialGradient(0, 0, 0, 0, 0, R);
+  g.addColorStop(0, `hsl(${h + 8},${s}%,${l + 8}%)`); g.addColorStop(.7, `hsl(${h},${s}%,${l}%)`); g.addColorStop(1, `hsl(${h - 6},${s - 8}%,${l - 10}%)`);
+  x.fillStyle = g; x.fill(path);
+  x.strokeStyle = `hsla(${h - 10},60%,${l - 22}%,.55)`; x.lineWidth = .55;
+  for (const [a, L] of lobes){ const t = P(a, L * .9); x.beginPath(); x.moveTo(0, 0); x.lineTo(t[0], t[1]); x.stroke(); }
+  x.lineWidth = .9; x.beginPath(); x.moveTo(0, 0); x.quadraticCurveTo(R * .06, R * .4, R * .02, R * .78); x.stroke();
+  const sil = document.createElement('canvas'); sil.width = sil.height = S;
+  const sx = sil.getContext('2d'); sx.drawImage(c, 0, 0); sx.globalCompositeOperation = 'source-in'; sx.fillStyle = '#000'; sx.fillRect(0, 0, S, S);
+  return { c, sil, S, sd };
+}
+
+/* ============================================================ drawing objects (moss, stones, shadows, frame shade) */
+function shadowVec(){
+  const len = clamp(1 / Math.tan(sun.el), .3, 5);
+  return [-Math.cos(sun.az) * len, -Math.sin(sun.az) * len];
+}
+function drawObjects(){
+  const f = DPR;
+  octx.setTransform(1, 0, 0, 1, 0, 0);
+  octx.clearRect(0, 0, objC.width, objC.height);
+  octx.setTransform(f, 0, 0, f, 0, 0);
+  const [vx, vy] = shadowVec();
+  const fw = parseFloat(getComputedStyle(frameEl).paddingLeft) || 20;
+  const fh = fw * .55;
+  const sx = vx * fh, sy = vy * fh;
+  const shade = (x0, y0, x1, y1, len) => {
+    if (len <= 0) return;
+    const g = octx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, 'rgba(40,32,20,.3)'); g.addColorStop(1, 'rgba(40,32,20,0)');
+    octx.fillStyle = g;
+  };
+  octx.fillStyle = 'rgba(40,32,20,.22)';
+  if (sy > 0){ shade(0, 0, 0, sy + 6, sy); octx.fillRect(0, 0, W, sy + 6); }
+  if (sy < 0){ shade(0, H, 0, H + sy - 6, -sy); octx.fillRect(0, H + sy - 6, W, -sy + 6); }
+  if (sx > 0){ shade(0, 0, sx + 6, 0, sx); octx.fillRect(0, 0, sx + 6, H); }
+  if (sx < 0){ shade(W, 0, W + sx - 6, 0, -sx); octx.fillRect(W + sx - 6, 0, -sx + 6, H); }
+  for (const is of islands){
+    if (!is.spr) continue;
+    const sd = is.spr.width / (is.half * 2), cx = is.nx * W, cy = is.ny * H;
+    octx.globalAlpha = .3; octx.filter = "brightness(0)";
+    octx.drawImage(is.spr, cx - is.half + vx * 5, cy - is.half + vy * 5, is.half * 2, is.half * 2);
+    octx.globalAlpha = 1;
+    octx.filter = 'none';
+    octx.drawImage(is.spr, cx - is.half, cy - is.half, is.half * 2, is.half * 2);
+    void sd;
+  }
+  for (const s of stones){
+    if (!s.sil) continue;
+    const cx = s.nx * W, cy = s.ny * H, S = s.spr.width, sdv = S / (s.half * 2);
+    const pad = 30 / sdv, full = (S + 60) / sdv;
+    octx.globalAlpha = .42;
+    octx.drawImage(s.sil, cx - s.half - pad + vx * s.hgt * .9, cy - s.half - pad + vy * s.hgt * .9, full, full);
+    octx.globalAlpha = .35;
+    octx.drawImage(s.sil, cx - s.half - pad + vx * 2, cy - s.half - pad + vy * 2, full, full);
+    octx.globalAlpha = 1;
+  }
+  for (const s of stones){
+    if (!s.spr) continue;
+    octx.drawImage(s.spr, s.nx * W - s.half, s.ny * H - s.half, s.half * 2, s.half * 2);
+  }
+  objectsDirty = false;
+}
+
+/* ============================================================ tools on the heightmap */
+const RAKE = { tines: 5 };
+function stampRake(ax, ay, bx, by){
+  const k = 1 / K;
+  ax *= k; ay *= k; bx *= k; by *= k;
+  const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy);
+  if (len < .01) return;
+  const ux = dx / len, uy = dy / len, px = -uy, py = ux;
+  const sp = SP / K, half = sp * 2.5, edge = sp * .9, hw = half + edge;
+  const x0 = Math.max(1, Math.floor(Math.min(ax, bx) - hw - 1)), x1 = Math.min(SW - 2, Math.ceil(Math.max(ax, bx) + hw + 1));
+  const y0 = Math.max(1, Math.floor(Math.min(ay, by) - hw - 1)), y1 = Math.min(SH - 2, Math.ceil(Math.max(ay, by) + hw + 1));
+  for (let y = y0; y <= y1; y++){
+    for (let x = x0; x <= x1; x++){
+      const rx = x - ax, ry = y - ay;
+      const t = rx * ux + ry * uy;
+      if (t < -1.2 || t > len + .6) continue;
+      const u = rx * px + ry * py, au = Math.abs(u);
+      if (au > hw) continue;
+      const i = y * SW + x;
+      let prof, w;
+      if (au <= half){ prof = -AMP * Math.cos(TAU * u / sp); w = .92 * (1 - smooth(half - sp * .3, half, au) * .35); }
+      else { const e = (au - half) / edge; prof = AMP * (1 - e) * .9; w = .55 * (1 - e); }
+      if (t < 0) w *= 1 + t / 1.2;
+      hm[i] = hm[i] * (1 - w) + prof * w;
+    }
+  }
+  markDirty([x0 - 1, y0 - 1, x1 + 2, y1 + 2]);
+}
+function smoothAt(cx, cy, r){
+  const k = 1 / K; cx *= k; cy *= k; r *= k;
+  const x0 = Math.max(2, Math.floor(cx - r)), x1 = Math.min(SW - 3, Math.ceil(cx + r));
+  const y0 = Math.max(2, Math.floor(cy - r)), y1 = Math.min(SH - 3, Math.ceil(cy + r));
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++){
+    const d = Math.hypot(x - cx, y - cy); if (d > r) continue;
+    const i = y * SW + x;
+    const w = Math.pow(1 - d / r, 1.1) * .5;
+    const avg = (hm[i - 1] + hm[i + 1] + hm[i - SW] + hm[i + SW] + hm[i] * 2) / 6;
+    hm[i] = lerp(hm[i], avg * .62, w);
+  }
+  markDirty([x0 - 1, y0 - 1, x1 + 2, y1 + 2]);
+}
+function nearestFeature(x, y, maxRings){
+  let best = null, bd = 1e9;
+  const cands = islands.map(is => is).concat(stones.filter(s => s.island < 0));
+  for (const f of cands){
+    const cx = f.nx * W, cy = f.ny * H;
+    const d = Math.hypot(x - cx, y - cy) - lutAt(f.lut, Math.atan2(y - cy, x - cx)) * f.R;
+    if (d < bd){ bd = d; best = f; }
+  }
+  return bd < maxRings * SP ? best : null;
+}
+function stoneAt(x, y){
+  for (let i = stones.length - 1; i >= 0; i--){
+    const s = stones[i], cx = s.nx * W, cy = s.ny * H;
+    if (Math.hypot(x - cx, y - cy) < lutAt(s.lut, Math.atan2(y - cy, x - cx)) * s.R) return i;
+  }
+  return -1;
+}
+function addRipple(f, rings){
+  ripples.push({ f, rings, t0: performance.now(), dur: reduced.matches ? 1 : 1100 + rings * 160 });
+}
+function placeStone(x, y){
+  const R = mulberry32((Date.now() & 0xffff) + stones.length * 131);
+  const rel = (.03 + R() * .035) * (M < 420 ? 1.15 : 1);
+  const s = { nx: clamp(x / W, .06, .94), ny: clamp(y / H, .06, .94), rel, asp: 1.05 + R() * .4, rot: R() * TAU, seed: 1000 + Math.floor(R() * 90000), pal: Math.floor(R() * 3), moss: R() < .45, island: -1, rings: 3 };
+  s.coefs = shapeCoefs(s.seed); s.lut = buildLUT(s.coefs, s.asp, s.rot);
+  s.R = s.rel * M; s.hgt = s.R * .72;
+  stones.push(s);
+  spriteStone(s);
+  addRipple(s, 3);
+  objectsDirty = true;
+  chimeNote(.5);
+  if (stones.length > 14){ const old = stones.findIndex(q => q.island < 0); if (old >= 0) liftStone(old); }
+}
+function liftStone(i){
+  const s = stones[i];
+  stones.splice(i, 1);
+  if (s.island >= 0){
+    const same = stones.filter(q => q.island === s.island);
+    if (!same.length){
+      const is = islands[s.island];
+      is.gone = true;
+    }
+  }
+  const cx = s.nx * W / K, cy = s.ny * H / K, Rr = s.R / K;
+  const r = Rr * 1.4;
+  for (let y = Math.max(1, Math.floor(cy - r)); y < Math.min(SH - 1, cy + r); y++) for (let x = Math.max(1, Math.floor(cx - r)); x < Math.min(SW - 1, cx + r); x++){
+    const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy) - lutAt(s.lut, Math.atan2(dy, dx)) * Rr;
+    if (d < 0) hm[y * SW + x] = lerp(hm[y * SW + x], -AMP * .35, .9);
+    else if (d < 2) hm[y * SW + x] = lerp(hm[y * SW + x], AMP * .5, .5);
+  }
+  markDirty([cx - r - 2, cy - r - 2, cx + r + 2, cy + r + 2]);
+  objectsDirty = true;
+}
+
+/* ============================================================ leaves */
+const leaves = [];
+function spawnLeaf(opts){
+  const R = Math.random;
+  const size = M * (.024 + R() * .012) + 7;
+  const hue = LEAF_HUES[Math.floor(R() * LEAF_HUES.length)];
+  const L = Object.assign({
+    x: -size * 2, y: H * (.1 + R() * .6), z: 1, rot: R() * TAU, vr: (R() - .5) * 2.2,
+    vx: W / (9 + R() * 5), vy: (R() - .35) * H / 30, t: R() * 10, flip: 1, state: 'fall', alpha: 1, size,
+    dur: 8 + R() * 4
+  }, opts || {});
+  L.spr = leafSprite(size, hue);
+  L.fallRate = 1 / L.dur;
+  leaves.push(L);
+  if (leaves.length > 7){ const s = leaves.find(l => l.state === 'rest'); if (s){ s.state = 'fade'; } }
+  fxDirty = true;
+}
+function updateLeaves(dt){
+  let moving = false;
+  for (let i = leaves.length - 1; i >= 0; i--){
+    const L = leaves[i];
+    if (L.state === 'fall'){
+      moving = true;
+      L.t += dt;
+      L.z -= dt * L.fallRate;
+      const sway = Math.sin(L.t * 1.6) * 38 * L.z;
+      L.x += (L.vx * (.35 + L.z * .9)) * dt + sway * dt;
+      L.y += L.vy * dt + Math.cos(L.t * 1.1) * 12 * dt;
+      L.rot += L.vr * dt * (.3 + L.z);
+      const fc = Math.cos(L.t * 2.3); L.flip = Math.abs(fc) < .14 ? (fc < 0 ? -.14 : .14) : fc;
+      if (L.z <= 0){
+        L.z = 0; L.state = 'rest'; L.flip = L.flip < 0 ? -1 : 1;
+        if (L.x < -20 || L.x > W + 20 || L.y < -20 || L.y > H + 20) leaves.splice(i, 1);
+        else chimeNote(.35);
+      }
+    } else if (L.state === 'blown' || L.state === 'fade'){
+      moving = true;
+      L.t += dt;
+      if (L.state === 'blown'){ L.x += L.vx * dt; L.y += L.vy * dt; L.vx *= .97; L.vy *= .97; L.rot += L.vr * dt; L.z = Math.max(0, L.z - dt * .3); }
+      L.alpha -= dt * (L.state === 'fade' ? .5 : .7);
+      if (L.alpha <= 0) leaves.splice(i, 1);
+    }
+  }
+  return moving;
+}
+function drawFx(){
+  const f = DPR;
+  fctx.setTransform(1, 0, 0, 1, 0, 0);
+  fctx.clearRect(0, 0, fxC.width, fxC.height);
+  fctx.setTransform(f, 0, 0, f, 0, 0);
+  const [vx, vy] = shadowVec();
+  for (const L of leaves){
+    const sc = 1 + L.z * .35, S = L.spr.S / L.spr.sd;
+    fctx.save();
+    fctx.globalAlpha = (L.z > 0 ? .22 - L.z * .08 : .26) * L.alpha;
+    fctx.translate(L.x + vx * (L.z * 80 + 1.5), L.y + vy * (L.z * 80 + 1.5));
+    fctx.rotate(L.rot); fctx.scale(L.flip, 1);
+    fctx.drawImage(L.spr.sil, -S / 2, -S / 2, S, S);
+    fctx.restore();
+    fctx.save();
+    fctx.globalAlpha = L.alpha;
+    fctx.translate(L.x, L.y); fctx.rotate(L.rot); fctx.scale(L.flip * sc, sc);
+    fctx.drawImage(L.spr.c, -S / 2, -S / 2, S, S);
+    fctx.restore();
+  }
+  if (cursor.show){
+    fctx.save();
+    fctx.translate(cursor.x, cursor.y);
+    if (tool === 'rake'){
+      fctx.rotate(cursor.ang);
+      const half = SP * 2.5;
+      fctx.fillStyle = 'rgba(70,48,30,' + (cursor.down ? .55 : .3) + ')';
+      fctx.fillRect(-4, -half - 3, 8, half * 2 + 6);
+      if (cursor.down){ fctx.fillStyle = 'rgba(70,48,30,.35)'; fctx.fillRect(-2, -1.5, -46, 3); }
+      fctx.fillStyle = 'rgba(40,28,18,' + (cursor.down ? .6 : .32) + ')';
+      for (let k = -2; k <= 2; k++){ fctx.beginPath(); fctx.arc(3, k * SP, 1.6, 0, TAU); fctx.fill(); }
+    } else if (tool === 'smooth'){
+      fctx.strokeStyle = 'rgba(70,48,30,.35)'; fctx.lineWidth = 1.2; fctx.setLineDash([3, 4]);
+      fctx.beginPath(); fctx.arc(0, 0, brushR(), 0, TAU); fctx.stroke();
+    } else if (tool === 'ripple'){
+      fctx.strokeStyle = 'rgba(70,48,30,.3)'; fctx.lineWidth = 1;
+      for (let r = 1; r <= 3; r++){ fctx.beginPath(); fctx.arc(0, 0, r * SP * .8, 0, TAU); fctx.stroke(); }
+    } else if (tool === 'stone'){
+      fctx.strokeStyle = 'rgba(70,48,30,.35)'; fctx.lineWidth = 1.2; fctx.setLineDash([2, 4]);
+      fctx.beginPath(); fctx.ellipse(0, 0, M * .045, M * .036, .3, 0, TAU); fctx.stroke();
+    }
+    fctx.restore();
+  }
+  if (calmAnim && calmAnim.phase === 'rake'){
+    const x = calmAnim.front * K;
+    const g = fctx.createLinearGradient(x - 30, 0, x + 6, 0);
+    g.addColorStop(0, 'rgba(90,60,30,0)'); g.addColorStop(1, 'rgba(90,60,30,.22)');
+    fctx.fillStyle = g; fctx.fillRect(x - 30, 0, 36, H);
+  }
+  fxDirty = false;
+}
+const brushR = () => clamp(M * .045, 18, 34);
+
+/* ============================================================ pointer input */
+const cursor = { x: 0, y: 0, show: false, down: false, ang: 0 };
+let stroke = null;
+function local(e){ const r = bed.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+bed.addEventListener('pointerdown', e => {
+  if (!e.isPrimary || e.button > 0) return;
+  bed.focus({ preventScroll: true });
+  try { bed.setPointerCapture(e.pointerId); } catch (err) {}
+  const p = local(e);
+  ensureAudio();
+  cursor.x = p.x; cursor.y = p.y; cursor.show = true; cursor.down = true; fxDirty = true;
+  if (tool === 'rake' || tool === 'smooth'){
+    stroke = { tx: p.x, ty: p.y, hx: p.x, hy: p.y, ang: cursor.ang, lastT: performance.now(), dist: 0 };
+    if (tool === 'smooth') smoothAt(p.x, p.y, brushR());
+  } else if (tool === 'ripple'){
+    const f = nearestFeature(p.x, p.y, 5);
+    if (f) addRipple(f, f.rings || 3);
+    else addRipple({ nx: p.x / W, ny: p.y / H, R: SP * .45, lut: new Float32Array(360).fill(1) }, 4);
+    chimeNote(.4);
+    setCaption('ripple', true);
+  } else if (tool === 'stone'){
+    const i = stoneAt(p.x, p.y);
+    if (i >= 0) liftStone(i); else placeStone(p.x, p.y);
+  }
+});
+bed.addEventListener('pointermove', e => {
+  if (!e.isPrimary) return;
+  const p = local(e);
+  cursor.x = p.x; cursor.y = p.y; cursor.show = e.pointerType !== 'touch' || !!stroke; fxDirty = true;
+  if (stroke){ stroke.tx = p.x; stroke.ty = p.y; }
+});
+const endStroke = e => {
+  if (e && !e.isPrimary) return;
+  if (stroke && tool === 'rake') advanceRake(1);
+  stroke = null; cursor.down = false; fxDirty = true;
+  if (e && e.pointerType === 'touch') cursor.show = false;
+  scrapeLevel(0);
+};
+bed.addEventListener('pointerup', endStroke);
+bed.addEventListener('pointercancel', endStroke);
+bed.addEventListener('pointerleave', e => { if (!stroke){ cursor.show = false; fxDirty = true; } void e; });
+
+function advanceRake(k){
+  const s = stroke; if (!s) return;
+  const dx = s.tx - s.hx, dy = s.ty - s.hy, dist = Math.hypot(dx, dy);
+  if (dist < .3) return;
+  const nx = s.hx + dx * k, ny = s.hy + dy * k;
+  const stepMax = Math.max(2, SP * .35);
+  const n = Math.ceil(Math.hypot(nx - s.hx, ny - s.hy) / stepMax);
+  let px = s.hx, py = s.hy;
+  for (let i = 1; i <= n; i++){
+    const qx = lerp(s.hx, nx, i / n), qy = lerp(s.hy, ny, i / n);
+    stampRake(px, py, qx, qy);
+    px = qx; py = qy;
+  }
+  const a = Math.atan2(ny - s.hy, nx - s.hx);
+  let da = a - cursor.ang; while (da > Math.PI) da -= TAU; while (da < -Math.PI) da += TAU;
+  cursor.ang += da * .35;
+  s.dist += Math.hypot(nx - s.hx, ny - s.hy);
+  sweepLeaves(nx, ny, nx - s.hx, ny - s.hy);
+  s.hx = nx; s.hy = ny;
+  cursor.x = nx; cursor.y = ny;
+}
+function sweepLeaves(x, y, dx, dy){
+  const l = Math.hypot(dx, dy) || 1;
+  for (const L of leaves){
+    if (L.state !== 'rest') continue;
+    if (Math.hypot(L.x - x, L.y - y) < SP * 2.8 + L.size){
+      L.state = 'blown'; L.vx = dx / l * 150 + (Math.random() - .5) * 60; L.vy = dy / l * 150 + (Math.random() - .5) * 60; L.vr = (Math.random() - .5) * 8; L.z = .25; L.alpha = 1;
+    }
+  }
+}
+
+/* ============================================================ return to calm */
+function startCalm(){
+  if (calmAnim) return;
+  ensureAudio();
+  buildTarget();
+  calmAnim = { phase: 'smooth', t: 0, front: 0 };
+  ripples.length = 0;
+  for (const L of leaves) if (L.state === 'rest'){ L.state = 'blown'; L.vx = 60 + Math.random() * 90; L.vy = (Math.random() - .5) * 60; L.vr = (Math.random() - .5) * 5; L.alpha = 1; }
+  setCaption('calm', true);
+  $('#calm').classList.add('act-on');
+  chimeNote(.6, 0); chimeNote(.4, .5);
+}
+function stepCalm(dt){
+  const a = calmAnim;
+  if (reduced.matches){ hm.set(target); relightAll(); endCalm(); return; }
+  if (a.phase === 'smooth'){
+    a.t += dt;
+    const k = Math.pow(.12, dt);
+    for (let i = 0; i < hm.length; i++) hm[i] *= k;
+    markDirty([1, 1, SW - 1, SH - 1]);
+    if (a.t > 1.5){ a.phase = 'rake'; a.front = 0; a.t = 0; }
+  } else {
+    a.t += dt;
+    const speed = SW / 2.6;
+    const prev = a.front;
+    a.front = Math.min(SW + 20, a.front + speed * dt);
+    const x0 = Math.max(0, Math.floor(prev) - 1), x1 = Math.min(SW, Math.ceil(a.front));
+    for (let y = 0; y < SH; y++){ const row = y * SW; for (let x = x0; x < x1; x++) hm[row + x] = target[row + x]; }
+    markDirty([x0 - 1, 1, x1 + 1, SH - 1]);
+    fxDirty = true;
+    if (a.front >= SW + 20) endCalm();
+  }
+}
+function endCalm(){
+  calmAnim = null; fxDirty = true;
+  $('#calm').classList.remove('act-on');
+  setCaption(tool);
+  const el = $('#capTool'); el.textContent = ''; const b = document.createElement('b'); b.textContent = 'Calm';
+  el.append(b, 'the gravel is smoothed and raked anew. Take up the rake when you are ready.');
+}
+
+/* ============================================================ captions + tools */
+const CAPS = {
+  rake: ['Rake', 'drag through the gravel to draw five parallel furrows.'],
+  ripple: ['Ripple', 'tap beside a stone to ring it with circles, or anywhere for a lone ripple.'],
+  stone: ['Stone', 'tap the sand to set a stone; tap a stone to lift it.'],
+  smooth: ['Smooth', 'brush softly over the furrows to erase them.'],
+  calm: ['Returning to calm', 'the gravel settles, then the rake passes once more.']
+};
+function setCaption(k){
+  const el = $('#capTool'); const c = CAPS[k] || CAPS.rake;
+  el.textContent = ''; const b = document.createElement('b'); b.textContent = c[0]; el.append(b, c[1]);
+}
+function selectTool(t){
+  tool = t;
+  document.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
+  bed.style.cursor = t === 'rake' || t === 'smooth' ? 'crosshair' : 'pointer';
+  setCaption(t); fxDirty = true;
+}
+document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => selectTool(b.dataset.tool)));
+$('#calm').addEventListener('click', startCalm);
+$('#chime').addEventListener('click', () => setChime(!chimeOn));
+$('#save').addEventListener('click', saveImage);
+window.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  const map = { '1': 'rake', '2': 'ripple', '3': 'stone', '4': 'smooth', r: 'rake', p: 'ripple', o: 'stone', m: 'smooth' };
+  if (map[k]){ selectTool(map[k]); }
+  else if (k === '5' || k === 'c'){ startCalm(); }
+  else if (k === 'b'){ setChime(!chimeOn); }
+  else if (k === 's'){ saveImage(); }
+  else if ((k === 'enter' || k === ' ') && document.activeElement === bed){
+    e.preventDefault();
+    const cand = islands.filter(i => !i.gone).concat(stones.filter(s => s.island < 0));
+    if (cand.length){ const f = cand[Math.floor(Math.random() * cand.length)]; addRipple(f, f.rings || 3); ensureAudio(); chimeNote(.4); }
+  }
+});
+
+function saveImage(){
+  const c = document.createElement('canvas'); c.width = sandC.width; c.height = sandC.height;
+  const x = c.getContext('2d');
+  x.drawImage(sandC, 0, 0); x.drawImage(objC, 0, 0);
+  const wasShow = cursor.show; cursor.show = false; drawFx(); x.drawImage(fxC, 0, 0); cursor.show = wasShow; fxDirty = true;
+  const done = url => { const a = document.createElement('a'); a.href = url; a.download = 'karesansui-garden.png'; document.body.appendChild(a); a.click(); a.remove(); };
+  const U = window.URL, mkLink = U.createObjectURL.bind(U), rmLink = U.revokeObjectURL.bind(U);
+  try { c.toBlob(b => { if (!b) return; const u = mkLink(b); done(u); setTimeout(() => rmLink(u), 4000); }, "image/png"); }
+  catch (err) { try { done(c.toDataURL()); } catch (e2) {} }
+}
+
+/* ============================================================ audio: distant wind chime + gravel scrape */
+let actx = null, bus = null, rev = null, chimeOn = false, nextGust = 0, scrape = null;
+function ensureAudio(){
+  if (!chimeOn) return null;
+  if (!actx){
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    try { actx = new AC(); } catch (e) { return null; }
+    bus = actx.createGain(); bus.gain.value = .5;
+    const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200;
+    rev = actx.createConvolver();
+    const len = Math.floor(actx.sampleRate * 3.2), ir = actx.createBuffer(2, len, actx.sampleRate);
+    for (let ch = 0; ch < 2; ch++){ const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+    rev.buffer = ir;
+    const wet = actx.createGain(); wet.gain.value = .55; const dry = actx.createGain(); dry.gain.value = .5;
+    bus.connect(lp); lp.connect(dry).connect(actx.destination); lp.connect(rev); rev.connect(wet).connect(actx.destination);
+  }
+  if (actx.state === 'suspended') actx.resume().catch(() => {});
+  return actx;
+}
+const NOTES = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66];
+function chimeNote(vol, delay){
+  if (!chimeOn) return;
+  const a = ensureAudio(); if (!a) return;
+  const f0 = NOTES[Math.floor(Math.random() * NOTES.length)];
+  const t = a.currentTime + (delay || 0) + .01;
+  const parts = [[1, 1, 4.2], [2.756, .42, 2.6], [5.404, .2, 1.5], [8.933, .08, .8]];
+  for (const [r, g, dec] of parts){
+    const o = a.createOscillator(), gn = a.createGain();
+    o.type = 'sine'; o.frequency.value = f0 * r * (1 + (Math.random() - .5) * .002);
+    gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(g * vol * .18, t + .006);
+    gn.gain.exponentialRampToValueAtTime(.00008, t + dec);
+    o.connect(gn).connect(bus); o.start(t); o.stop(t + dec + .05);
+  }
+}
+function gust(){
+  const n = 1 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < n; i++) chimeNote(.35 + Math.random() * .35, i * (.18 + Math.random() * .5));
+}
+function scrapeLevel(v){
+  if (!chimeOn || !actx){ return; }
+  if (!scrape){
+    const len = actx.sampleRate * 2, buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+    let last = 0; for (let i = 0; i < len; i++){ last = last * .6 + (Math.random() * 2 - 1) * .4; d[i] = last * (Math.random() < .02 ? 3 : 1); }
+    const src = actx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = .7;
+    const g = actx.createGain(); g.gain.value = 0;
+    src.connect(bp).connect(g).connect(actx.destination); src.start();
+    scrape = { g };
+  }
+  scrape.g.gain.setTargetAtTime(v * .05, actx.currentTime, .06);
+}
+function setChime(on){
+  chimeOn = on;
+  const b = $('#chime'); b.setAttribute('aria-pressed', String(on)); b.classList.toggle('act-on', on);
+  if (on){ ensureAudio(); gust(); nextGust = performance.now() + 7000 + Math.random() * 8000; }
+  else if (scrape && actx){ scrape.g.gain.setTargetAtTime(0, actx.currentTime, .05); }
+}
+
+/* ============================================================ main loop */
+let last = performance.now(), sunAcc = 0, nextLeaf = performance.now() + 9000;
+function loop(now){
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (!document.hidden){
+    if (!reduced.matches){
+      sun.t += dt;
+      sun.p = .5 + .3 * Math.sin(.9 + sun.t * TAU / 540);
+      sunAcc += dt;
+      if (sunAcc > .5){
+        sunAcc = 0;
+        updateSun();
+        if (Math.abs(sun.az - sun.lastAz) > .003){
+          relight(1, 1, SW - 1, SH - 1); sun.lastAz = sun.az; objectsDirty = true; fxDirty = true;
+          if (Math.abs(sun.az - sun.shadedAz) > .07){ shadeSprites(); }
+        }
+      }
+      if (now > nextLeaf){ spawnLeaf(); nextLeaf = now + 14000 + Math.random() * 16000; }
+    }
+    if (stroke){
+      if (tool === 'rake'){
+        const before = stroke.dist;
+        advanceRake(1 - Math.exp(-dt * 16));
+        scrapeLevel(clamp((stroke.dist - before) / dt / 400, 0, 1));
+      } else if (tool === 'smooth'){
+        const dx = stroke.tx - stroke.hx, dy = stroke.ty - stroke.hy;
+        const n = Math.ceil(Math.hypot(dx, dy) / 6);
+        for (let i = 1; i <= n; i++) smoothAt(stroke.hx + dx * i / n, stroke.hy + dy * i / n, brushR());
+        stroke.hx = stroke.tx; stroke.hy = stroke.ty;
+        cursor.x = stroke.tx; cursor.y = stroke.ty;
+      }
+    }
+    for (let i = ripples.length - 1; i >= 0; i--){
+      const r = ripples[i];
+      const k = clamp((now - r.t0) / r.dur, 0, 1), e = 1 - Math.pow(1 - k, 2.2);
+      const sp = SP / K, reveal = e * (r.rings + .6) * sp;
+      markDirty(ringInto(hm, r.f, r.rings, reveal, 1));
+      if (k >= 1) ripples.splice(i, 1);
+    }
+    if (calmAnim) stepCalm(dt);
+    if (dirty){ relight(dirty[0], dirty[1], dirty[2], dirty[3]); dirty = null; }
+    if (objectsDirty) drawObjects();
+    if (updateLeaves(dt)) fxDirty = true;
+    if (fxDirty) drawFx();
+    if (chimeOn && now > nextGust){ gust(); nextGust = now + 8000 + Math.random() * 12000; }
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================ boot */
+let rzT = 0;
+function onResize(){
+  clearTimeout(rzT);
+  rzT = setTimeout(() => {
+    const r = bed.getBoundingClientRect();
+    if (Math.abs(r.width - W) < 1 && Math.abs(r.height - H) < 1) return;
+    const oW = W, oH = H;
+    setup();
+    for (const L of leaves){ L.x *= W / oW; L.y *= H / oH; }
+  }, 120);
+}
+window.addEventListener('resize', onResize);
+setup();
+setCaption('rake');
+spawnLeaf({ state: 'rest', z: 0, x: W * .47, y: H * .63, rot: .7, flip: 1 });
+if (!reduced.matches) spawnLeaf({ x: W * .12, y: H * .2, z: .62, t: 1.2, dur: 11 });
+else spawnLeaf({ state: 'rest', z: 0, x: W * .66, y: H * .45, rot: 2.1, flip: -1 });
+requestAnimationFrame(t => { last = t; loop(t); });
+})();
+</script>
+</body>
+</html>

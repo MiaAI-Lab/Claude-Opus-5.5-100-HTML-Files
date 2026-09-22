@@ -1,0 +1,36 @@
+TITLE: ASCII TIDES
+FILE: 067-ascii-tides.html
+
+=== PROMPT (exact prompt used) ===
+Create "ASCII TIDES", an animated ocean scene made entirely of monospace characters rendered into a <pre> or a canvas character grid. Characters map to wave height and foam (e.g. " .,:;~=≈*#@"). Layers: a sky with slowly drifting ASCII clouds and a sun or moon made of characters, a horizon, rolling swells (sum of sines plus noise), foam crests, and a small character-built boat bobbing on the surface. Palette: amber phosphor #ffb000 on #140c00 by default, switchable to "Seafoam" (#7fffd4 on #001414) and "Paper" (ink #222 on #f2ecdc). Pointer/touch disturbances create ripples that propagate across the water (2D wave equation on the grid). A time-of-day slider changes the sky (stars at night). Typography: a monospace stack with tight line-height; the grid adapts to the viewport to keep characters crisp. A tiny caption in the corner inside an ASCII box-drawing frame. Smooth at 30–60fps with efficient string building.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+ASCII TIDES is a living seascape drawn only with monospace characters, glowing like amber phosphor (#ffb000 on #140c00) by default, with Seafoam (#7fffd4 on #001414) and Paper (ink #222 on #f2ecdc) palettes. Rows of tildes, dashes, colons and dots form real rolling swells that rise, occlude the water behind them and break into frothy '*', '#' and '@' foam along their crests. A small character-built sailboat bobs and leans on the waves, and a glitter path of '+' and '*' sparkles beneath a character sun, or at night a gibbous moon. Clouds drift across the sky, gulls flap by during the day, and stars twinkle (with the occasional shooting star) after dark. A time-of-day dial moves the sun across the sky from dawn to dusk and night, pointer or touch drags ripples through the water, and a box-drawn caption in the corner reports the time, the light and the swell.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Canvas character grid rendered from a pre-built glyph atlas: every character is drawn once per palette with its phosphor glow baked in, then blitted per cell with per-cell brightness, so a 180 x 65 grid stays smooth; cell size snaps to device pixels and the grid re-derives from the viewport on resize
+- The sea is ray-marched per column, voxel-landscape style: each column marches outward through a perspective heightfield (5 Stokes-shaped swells with deep-water dispersion, wave-group modulation, value-noise wind chop), so near crests genuinely hide the troughs behind them
+- Character choice comes from lighting, not just height: the sun is ahead, so the backs of swells shine as '~' and '≈' crest lines, the faces turned toward you fade through ';', ':', ',', '.' into empty troughs, far water thins to '-' and '.', and breaking crests froth into '*', '#', '@', '°'
+- A damped 2D wave equation on a world-space grid in front of the viewer adds ripples to the heightfield, so pointer disturbances spread as rings of characters that respect perspective
+- The sky from noise: two-octave drifting clouds using the " .,:;~=≈*#@" ramp, dusk and dawn horizon glow, a sun disc of '@#*' with a flickering ':.' halo, a gibbous moon with maria, and twinkling stars
+- The glitter path narrows with distance under the sun or moon; the boat is stamped in depth order inside the march (nearer water can hide its hull, while the gaps in its sail show the sea behind) and switches between leaning sprites with the local slope; a lamp lights on its masthead at night
+- Box-drawing lines are drawn by hand into the atlas so the corner caption frame joins perfectly; CSS scanlines and vignette for the phosphor palettes, a warm paper vignette for Paper
+
+=== INTERACTION MODEL ===
+- Move the pointer over the water to trail ripples; click or tap to splash (bigger rings); Space drops a random splash
+- Time slider (0–24 h) sets the sun or moon position, light level, stars and glitter; "let time pass" runs the day (T key), and Left/Right arrows nudge the clock
+- Palette radio group: Amber, Seafoam, Paper (keys 1, 2, 3; arrow keys inside the group); the choice persists in localStorage (guarded)
+- Rain toggle (R key) adds falling '/' streaks that pepper the water with tiny impacts and raises the swell
+- The controls box can be collapsed; the animation pauses while the tab is hidden, and prefers-reduced-motion slows the sea to a calm drift with no shooting stars

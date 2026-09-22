@@ -1,0 +1,35 @@
+TITLE: Rule 30 — Tapestries of Elementary Cellular Automata
+FILE: 086-cellular-tapestry.html
+
+=== PROMPT (exact prompt used) ===
+Build "Rule 30 — Tapestries of Elementary Cellular Automata". Explore all 256 Wolfram elementary cellular-automaton rules rendered as woven textiles: each cell is a small woven block with warp/weft shading, so Rule 30's chaos, Rule 90's Sierpiński triangles and Rule 110's structures read as jacquard fabric. Palette sets: "Kilim" (madder red #a4161a, indigo #1b263b, saffron #f4a300, cream #f1e9da), "Monochrome linen" and "Neon loom". The rule is displayed as its eight neighbourhood patterns → output, each clickable to toggle a bit, building a custom rule number live. The tapestry scrolls continuously upward as new rows are generated (like a loom producing cloth), with a shuttle illustration moving across. Controls: rule number input/slider, random or single-cell start, speed, palette, and "famous rules" chips (30, 90, 110, 184, 150, 45, 73). Hovering the tapestry shows the rule applied at that cell. Typography: a textile-label serif with monospace numbers.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Rule 30" is presented as a museum installation: a cream, linen-textured gallery label on the left (a textile-label serif with monospace numbers), a working loom hung on a dark gallery wall in the centre, and a column of loom controls on the right. The loom weaves an elementary cellular automaton live: every pick of the shuttle computes one new generation from the row above, and the cloth scrolls upward out of the loom as it grows, so Rule 30's chaos, Rule 90's Sierpiński triangles and Rule 110's gliders appear as jacquard fabric. In the default Kilim palette the ground is indigo #1b263b warp, the pattern floats in madder #a4161a weft with a saffron #f4a300 band every 36 picks, and cream #f1e9da selvedges and marker stripes frame it; Monochrome linen and Neon loom re-dye the whole cloth.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Woven-cell sprites pre-rendered per palette: "on" cells are weft-faced (horizontal rounded threads with gradient shading), "off" cells warp-faced (vertical threads), each with the crossing thread peeking through in a twill offset, four jittered variants and fibre flecks, so the automaton reads as jacquard
+- Ring-buffer cloth canvas: each new generation is drawn once as a row of sprites (plus striped selvedges); every frame the visible cloth is blitted in at most two drawImage calls with a sub-row offset, giving smooth continuous upward motion at any speed
+- The pick in progress is revealed only behind the travelling shuttle, which carries a wound bobbin of the current weft colour and trails a curved weft thread from the selvedge; the reed/beater snaps toward the fell at each completed pick
+- Canvas-drawn loom: wooden cloth beam, side posts, reed dents, beater and bottom beam with grain lines; loose warp threads fan out below the fell (pre-rendered once); cloth edges are shaded like fabric under light
+- Rule changes weave a cream checkered marker stripe into the cloth, so a single tapestry can record several rules in sequence
+- Rule table of eight neighbourhood tiles (CSS-drawn cells in the live palette colours) with the rule's binary digits aligned beneath; wall colour, tiles and swatches follow the palette through CSS custom properties
+
+=== INTERACTION MODEL ===
+- Rule controls: number field, −/+ steppers, a 0–255 slider with a wooden shuttle-shaped thumb, Arrow Left/Right keys, and the eight clickable tiles that flip individual output bits to build any rule live
+- Famous-rule chips (30, 90, 110, 184, 150, 45, 73) with an accurate one-line note for each; the label lists the rule's mirror, complement and mirror-complement equivalents as clickable links (e.g. 86, 135, 149 for Rule 30)
+- First row: single centred cell or random (re-threads the loom); loom speed 1–40 picks per second; Pause/Weave (Space); Rethread (R); palettes Kilim, Monochrome linen, Neon loom (1/2/3, radio group with arrow keys); Save swatch exports the current loom as PNG
+- Hovering the tapestry outlines the three parent threads and the chosen cell, shows a tooltip with the pick number, the neighbourhood → result in thread colours and the rule bit used, and highlights the matching tile in the rule table
+- Rule and palette persist in guarded localStorage; the cloth is pre-woven on load so the first frame is already a full tapestry; reduced motion halves the weaving speed

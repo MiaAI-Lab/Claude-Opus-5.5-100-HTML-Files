@@ -1,0 +1,37 @@
+TITLE: Orbital — N-Body Gravity Playground
+FILE: 030-gravity-sandbox.html
+
+=== PROMPT (exact prompt used) ===
+Create "Orbital — N-Body Gravity Playground". A full-screen canvas of deep space (#03040a) with a subtle nebula (layered noise gradients in #1b1464 and #5f0f40) and parallax stars. Click and drag to fling a new body: the drag vector sets its velocity, shown as a dotted aiming line with a predicted trajectory that accounts for existing masses. Bodies attract with softened Newtonian gravity, leave glowing fading trails, and merge on collision (conserving momentum and mass, mixing colours) with a flash. Colour and glow reflect mass (small icy blue → large hot orange/white). Presets: "Binary star", "Solar system", "Figure-eight three-body", "Galaxy collision" (hundreds of light particles around two cores). A minimal monospace HUD shows body count, total energy and simulation speed. Controls: mass selector for new bodies, pause, slow motion, trail length, clear, and "follow" (camera tracks the heaviest body). Scroll/pinch to zoom, right-drag or two-finger drag to pan. Use a fixed-timestep velocity-Verlet integrator.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Orbital is a full-screen n-body gravity playground set in deep space (#03040a). A procedurally generated nebula of domain-warped value noise in indigo (#1b1464) and plum (#5f0f40), crossed by dark dust lanes, sits behind three parallax star layers that twinkle and drift as the camera moves. Bodies attract with softened Newtonian gravity, integrated by a fixed-timestep velocity-Verlet scheme; they leave glowing trails that fade along their length and merge on contact, conserving mass and momentum, blending their colours and releasing a flash and shock ring. Colour and glow follow mass on a logarithmic scale, from icy blue pebbles through white to hot orange giants with soft diffraction spikes. The page opens on a live galaxy collision: two cores, each wrapped in a disk of 420 massless dust particles on circular orbits, fall together and throw out tidal debris. A quiet mission-control HUD in monospace and a single floating dock hold every control.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Canvas 2D at viewport × devicePixelRatio (capped at 2), with a world-space camera (pan, zoom, follow) applied through setTransform for trails and manual projection for sprites.
+- Offscreen nebula generated once from 5-octave fbm with domain warping and a dust-lane mask, drawn with slow parallax; three star layers with different parallax factors, tints, twinkle and cross-flares on the brightest.
+- Additive ('lighter') compositing for radial-gradient glows sized by mass, trail polylines drawn in 12 fading chunks from ring buffers, dust particles as motion streaks built from their velocity, and merge flashes.
+- Solid body cores with an offset radial gradient: a lit limb and dark terminator for cool bodies, a white-hot centre for stars; a one-time pulse ring on freshly placed bodies.
+- Aiming overlay: dotted drag vector with arrowhead and speed label, a ghost of the new body, and a fading dotted predicted trajectory. The prediction integrates the new body together with every existing mass (a fixed field above 40 bodies) and ends in an impact marker if it would collide.
+- HUD with body and dust counts, total energy (kinetic plus softened potential), speed, zoom, sim time, relative energy drift and a drift sparkline showing the integrator's bounded error.
+- Geometric wide-tracked wordmark, hairline panels, mass swatches whose dot size and colour match the simulation's mass palette.
+
+=== INTERACTION MODEL ===
+- Drag on empty space to fling a body: it spawns at the press point and its velocity follows the drag vector. A tap without dragging drops it into a circular orbit around the strongest local attractor, in the same direction as that attractor's companions.
+- Mass selector (radio group, arrow-key navigable): 5, 40, 250, 1.2k and 5k.
+- Presets: Binary star with circumbinary planets and a disrupted dust ring; Solar system with six planets, a moon around the giant and an asteroid belt; the Chenciner–Montgomery figure-eight three-body orbit; Galaxy collision.
+- Pause/play (Space), slow motion ×0.25 (S), follow the heaviest body (F), clear (C), trail-length slider ([ and ]), presets 1–4, zoom with + and −, pan with the arrow keys, and optional synthesized sound (M) for launches and merger thumps, off by default.
+- Mouse wheel zooms around the cursor; right-drag, middle-drag or Shift-drag pans. On touch, pinch zooms and a two-finger drag pans, cancelling any aim in progress.
+- Rendering stops while the tab is hidden; prefers-reduced-motion slows the simulation and removes twinkle, shock rings, birth pulses and camera easing.

@@ -1,0 +1,38 @@
+TITLE: Rosée — Eau de Parfum
+FILE: 082-perfume-rosee.html
+
+=== PROMPT (exact prompt used) ===
+Create a product page for "Rosée — Eau de Parfum" by a fictional maison. Palette: blush #f4d6d0, rose gold #b76e79 → #e8b4a0, cream #fff8f3, deep plum text #3b1f2b. Hero: a tall faceted glass bottle drawn in SVG with realistic refraction highlights and a gold cap, holding pink liquid whose surface sloshes in a gentle wave and responds to pointer tilt (the liquid level tilts against the pointer). Rose petals (gradient SVG shapes) drift down the page with a 3D flutter, staying clear of the text column. Sections: the fragrance pyramid (top/heart/base notes) as an elegant layered triangle where each note appears on hover with a small botanical line illustration; "The Story" editorial paragraph; a size selector (30/50/100 ml) that resizes the bottle smoothly and updates the price; and a luxurious "Add to bag" button with a shimmering sweep. Typography: a refined high-contrast serif with wide-tracked sans captions.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A quiet-luxury product page for Rosée, an eau de parfum from the fictional Maison Élorine, in blush #f4d6d0, cream #fff8f3, rose gold #b76e79 to #e8b4a0 and deep plum #3b1f2b. The hero pairs a tall, octagonal faceted glass bottle with a jewel-cut gold cap, standing on a cream plinth inside a soft halo, with a rose-gold Didone wordmark "ROSÉE" drawn in SVG (hairline serifs, heavy stems, a light sweep of shine). The pink liquid inside is alive: its surface ripples gently, and as the pointer moves the bottle leans slightly toward it while the liquid lags, sloshes and settles, tilting against the pointer. Rose petals flutter down in 3D and steer around every text block. Below the hero, a layered pyramid presents the top, heart and base notes, each revealed with hand-drawn botanical line illustrations that draw themselves. An editorial "Story" follows, with a drop cap, a pull quote and a fictional perfumer's signature. Wide-tracked sans captions set off the high-contrast serif throughout.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Custom SVG Didone wordmark built from rectangles, evenodd bowls and a lens-shaped S spine, filled with a rose-gold gradient; a masked highlight bar sweeps across it
+- Faceted bottle: octagonal outline with front face, side facets, shoulder and base bevels. One live liquid path is reused through <use> in three clip regions, and the side-facet copies are shifted and re-tinted to fake refraction, so the surface line breaks at each facet edge. Streak highlights, facet edge lines, a thick pink base, suspended glints and a meniscus band complete the glass
+- Liquid physics: the bottle tilt follows the pointer on a damped spring, the surface angle chases the opposite tilt on a softer spring (visible slosh), and two travelling sine waves ripple the surface; the path is rebuilt every frame
+- Size changes (30/50/100 ml) scale the bottle on a critically damped spring about its base, and resize the plinth shadow and pink caustic; the price counts to the new value with an ease-out
+- Petals: pooled DOM elements holding a gradient SVG petal symbol, moved with translate3d plus rotateX/Y/Z under perspective for a true 3D flutter; each frame they read the rectangles of all [data-clear] text blocks and steer sideways around them, and respawn in free columns
+- Pyramid tiers are real buttons shaped with clip-path trapezoids under a shared drop-shadow; the active tier turns plum
+- Nine botanical line drawings (bergamot, pink pepper, pear, damask rose, peony, lily of the valley, sandalwood, vanilla, ambrette) drawn with pathLength-normalised stroke-dashoffset transitions, with a delayed blush fill
+- The "Add to bag" button is a layered rose-gold gradient with a skewed light sweep (faster on hover), a success state, a petal burst from the button and a springy bag-badge pop
+
+=== INTERACTION MODEL ===
+- Move the pointer or a finger anywhere: the bottle leans toward it and the liquid sloshes and tilts against it; when idle, the bottle sways gently
+- Choose 30, 50 or 100 ml (a radio group with arrow keys): the bottle grows or shrinks smoothly, the label and price update, and the change is announced to screen readers
+- "Add to bag" increments a bag badge (saved in localStorage inside try/catch), shows a confirmation, bursts petals and announces the new total; the bag button reads back its contents
+- Hover, focus or tap a pyramid tier to reveal its notes as cards whose line illustrations draw themselves in
+- Header links jump to the product, notes and story sections; all controls have visible focus styles; the loop pauses while the tab is hidden, and reduced motion keeps the bottle still, slows and simplifies the petals and disables shimmer and line-draw animation

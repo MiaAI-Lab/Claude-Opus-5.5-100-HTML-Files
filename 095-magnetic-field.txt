@@ -1,0 +1,42 @@
+TITLE: Lines of Force — Magnetic Field Explorer
+FILE: 095-magnetic-field.html
+
+=== PROMPT (exact prompt used) ===
+Create "Lines of Force — Magnetic Field Explorer". A lab-styled canvas where you place and drag bar magnets (red N / blue S halves, #d62828 / #1d4e89) on a sheet of paper; the field is computed from magnetic dipoles (or magnetic charges at the poles) and rendered in three switchable styles: (1) iron filings — thousands of tiny dark filings aligned with the field, denser where it is stronger, like the classic school experiment on off-white paper; (2) field lines — smooth streamlines traced from the poles with arrowheads, in elegant ink; (3) a heat map of field magnitude in a refined sequential palette. A small compass follows the pointer and points along the field. Interaction: drag magnets; rotate with the wheel, R key or a handle; double-click to flip polarity; add/remove magnets; presets (single bar, attracting pair, repelling pair, quadrupole, horseshoe). Short explanatory captions in a sidebar. Palette: steel grey #6c757d, paper #f8f6f1, red/blue poles. Typography: a clean scientific sans.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Lines of Force is a physics bench in steel grey: a sheet of millimetre paper, pinned at the corners, lies on a brushed-metal table beside an off-white lab notebook of controls and notes. Red-and-blue bar magnets and a steel horseshoe sit on the paper, and their field is drawn live in one of three styles: tens of thousands of iron filings that swing into alignment like the classic classroom experiment, ink field lines with arrowheads traced from pole to pole, or a heat map of field strength in a paper-to-teal-to-navy sequential palette with contour lines. A brass-rimmed compass follows the pointer and settles along the field with a damped swing, a monospace readout reports |B| and its angle, and a figure caption beneath the sheet describes the arrangement and view, like a plate in a physics textbook.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Gilbert (magnetic-charge) model: each pole is a cluster of three softened inverse-square charges spread across the magnet's end, giving realistic fields for bars, a horseshoe and multi-magnet arrangements
+- Iron filings: a jittered grid of around 25,000 slivers with random resting angles; each aligns to the local field by an amount set by log |B|, grows longer and darker when aligned, becomes sparser in weak regions, and rotates toward its new angle over a few frames, drawn as four batched Path2D alpha buckets
+- Field lines: midpoint (RK2) streamline integration from seeds laid just outside each north pole face, stopping at magnet bodies or the paper edge; an occupancy grid keeps lines evenly spaced; backward traces from south poles add only the lines that arrive from beyond the sheet; arrowheads are placed by arc length
+- Heat map: |B| sampled on a coarse grid, mapped through a log scale and an 8-stop palette lookup table, with band edges darkened into contour lines, then smoothed as it is scaled up (coarser while dragging, finer at rest)
+- Magnets drawn on canvas with rounded bodies, bevel gradients, drop shadows, a light outline for contrast, counter-rotated N/S labels and a flip animation that squeezes the magnet end over end while its poles swap
+- Selection shown by a dashed outline and a ring rotation handle on a dotted stem
+- SVG compass with generated tick marks, a red/blue needle on a spring, and glass highlight; the heat-map legend and preset icons are small inline SVGs
+- Paper made from layered repeating gradients (5 mm and 1 mm grid), a vignette and metal pins; the bench is brushed steel from fine repeating gradients
+
+=== INTERACTION MODEL ===
+- Drag any magnet to move it; the field, filings, lines or heat map update continuously (coarser while dragging, then refined on release)
+- Rotate with the mouse wheel over a magnet (5° steps, or 1° with Shift), by dragging the ring handle (Shift snaps to 15°), with the R key (Shift+R for the other direction) or the Rotate 15° button
+- Double-click a magnet, press F or use Flip poles to swap north and south, with an end-over-end flip animation
+- Add bar places a new magnet at the emptiest spot; Remove or Delete takes away the selected one; [ and ] cycle the selection; arrow keys nudge it (Shift for larger steps)
+- A strength slider scales the selected magnet's pole strength from 0.3× to 2×
+- View switcher (radio group, arrow keys supported) cross-fades between iron filings, field lines and the heat map, and updates the explanatory notes and legend
+- Presets: single bar, attracting pair, repelling pair, quadrupole, horseshoe and a closed circuit of four magnets, each with a short caption; editing a preset turns it into a new numbered figure
+- The compass follows the mouse or the finger (dragging on empty paper moves it on touch screens) and parks in a corner when the pointer leaves; the readout gives |B| in arbitrary units and the field angle
+- Rendering only runs while something is changing and pauses when the tab is hidden; prefers-reduced-motion snaps filings and the needle instead of animating them

@@ -1,0 +1,38 @@
+TITLE: Atelier Noire — Autumn/Winter
+FILE: 043-fashion-lookbook.html
+
+=== PROMPT (exact prompt used) ===
+Design "ATELIER NOIRE — Autumn/Winter Collection" (fictional), a high-fashion editorial lookbook. Palette: bone #efe9e1, blush #e8c4b8, oxblood #5a1a1d, black #0d0d0d. Typography is the star: an ultra-high-contrast Didone display stack (Didot, "Bodoni 72", "Bodoni MT", "C059", serif) set enormous and overlapping the imagery, mixed with tiny tracked sans labels. Since no photographs are allowed, each "look" is an abstract fashion illustration built from CSS/SVG — elongated silhouettes, draped fabric shapes with gradient folds, a hat brim, the geometry of a coat — elegant and minimal like fashion croquis. Layout: a horizontal-scroll gallery on desktop (the wheel drives horizontal movement) and vertical on mobile; asymmetric compositions with numbered looks ("LOOK 07"), material captions, and a giant word ("RESTRAINT") sliding in parallax behind. Interaction: hovering a look reveals a detail-zoom fabric swatch (procedural tweed, silk sheen, herringbone); a custom cursor becomes a thin ring labelled "VIEW"; a progress bar. Page-load intro: a curtain wipe.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+ATELIER NOIRE is an editorial lookbook for a fictional couture house's Autumn/Winter collection. It uses four colours: bone #efe9e1, blush #e8c4b8, oxblood #5a1a1d and black #0d0d0d. The page opens with a two-layer curtain wipe (oxblood, then black) that lifts off an "AN" monogram. Behind it is a cover where a giant Didone "ATELIER" sits behind a tall coated figure and an italic oxblood "Noire" overprints in front of it. On desktop the collection runs as one long horizontal strip driven by the ordinary vertical wheel. The strip holds eight numbered looks with asymmetric layouts, an italic manifesto ("Take away until the silhouette holds its breath."), a Materials plate of eight woven swatches, and a "Fin." colophon. A blush "RESTRAINT" set at 66vh slides behind everything at its own parallax rate. Each look is an original SVG fashion croquis drawn with elongated proportions from gradient-folded cloth, a hat brim, lapels, capes, drapes and trains. Giant Didone numerals ("01"–"08") sit behind the figures. Tiny tracked sans labels carry the look number and the material notes. On phones the same content becomes a vertical editorial scroll.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- The display type is a Didone stack (Didot, Bodoni 72, Bodoni MT, C059) set at 25–66vh with tight negative tracking, contrasted with 10px sans labels tracked at 0.34em.
+- Horizontal scrolling uses a sticky stage. The scroller's height is set to the track width, so the native vertical scroll (wheel, keys, scrollbar) is translated into a lerped translate3d on the track. Sideways trackpad swipes are folded into the same position.
+- Parallax has three layers: the RESTRAINT word (0.36×), per-look numerals that drift against their panel, and the moving panels themselves.
+- Nine hand-drawn inline SVG figures use shared defs. Multi-stop linear gradients act as fabric folds (oxblood wool, bone silk, blush tulle, black velvet, bone gabardine, oxblood duchess satin), with a vertical shade gradient for weight. SVG patterns provide the herringbone and fantasy tweed.
+- Procedural cloth is drawn per pixel with ImageData on canvases: sheen bands for silk charmeuse, broken-twill chevrons for herringbone, flecked twill with slubs for tweed, looped yarn arcs for bouclé, crushed sine-noise pile for velvet, steep twill for gabardine, low-lustre highlight waves for satin, and felted fibres for cashmere.
+- Each look has a fabric "loupe", a circular magnified swatch with a bone mat ring, a leader line with a dot and a tracked caption. It scales in on hover or focus, pins on click, and appears automatically when the look scrolls into view on touch devices.
+- The header, progress bar and cursor use mix-blend-mode: difference so they stay legible over bone and oxblood panels.
+- The curtain is a clip-path inset wipe on two staggered layers, and the monogram lifts away before it.
+- The custom cursor is a small dot that eases after the pointer and becomes an 88px hairline ring labelled "VIEW" over a look.
+
+=== INTERACTION MODEL ===
+- Desktop: the mouse wheel, trackpad (vertical or sideways), arrow keys (←/→ snap panel by panel), Page Up/Down and the scrollbar all move the horizontal gallery smoothly. The progress bar fills and the counter reads "Look 03 / 08", "Interlude", "Cover" or "Fin".
+- Hovering a look scales the figure slightly and reveals its fabric loupe. Clicking, or pressing Enter/Space on the focused figure, pins the loupe open.
+- The header nav (Looks, Materials, Atelier), the wordmark and "Return to the cover" jump through the collection.
+- Materials swatches tilt and grow on hover.
+- Phones and portrait tablets get a vertical layout. Touch devices get in-view loupes and no custom cursor. Reduced motion shortens the curtain and removes lerped easing and transitions.

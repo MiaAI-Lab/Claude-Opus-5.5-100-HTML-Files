@@ -1,0 +1,41 @@
+TITLE: Formlehre — Bauhaus Composer
+FILE: 021-bauhaus-composer.html
+
+=== PROMPT (exact prompt used) ===
+Build "Formlehre — Bauhaus Composer", a tactile composition toy honouring Bauhaus design. A board on warm cream (#f1ead8) with a tray of primary shapes — circle, square, triangle, semicircle, quarter-circle, bar — in the Bauhaus triad red #d62d20, yellow #f4c20d and blue #1d4e9e, plus black #111. Drag shapes onto the board; they snap to a hidden 8×8 grid with a satisfying spring; rotate with the wheel or R key, scale with handles, recolour by clicking a swatch, bring to front. A "Kandinsky" button auto-composes a balanced composition using Kandinsky's colour–form associations (yellow triangle, red square, blue circle) with a short explanatory caption. Typography: a geometric sans stack (Futura, "Century Gothic", "Avenir Next", "URW Gothic", sans-serif) with lowercase-only headings in the Bayer "universal" spirit and large numeral section markers. The toolbar is made of coloured geometric buttons. Export the composition as PNG. Keyboard: Delete removes, arrows nudge. Works with touch.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"formlehre — bauhaus composer" is a tactile composition toy laid out like a printed Bauhaus sheet: a deep-cream paper page with a heavy black rule under an oversized lowercase masthead, and five-plus numbered sections whose giant numerals each sit on a coloured primary form (1 tray, 2 board, 3 colour, 4 actions, 5 notes, 6 balance). The centre of the page is a warm cream board (#f1ead8) with a hard black offset shadow and chess-style a–h / 1–8 edge labels; forms in red #d62d20, yellow #f4c20d, blue #1d4e9e and black #111 are dragged onto it from a tray, caught by a hidden 8×8 grid with a springy settle, and edited with handles, swatches and geometric toolbar buttons. A "kandinsky" button composes a balanced arrangement from his colour–form pairings, and a live balance map shows where the composition's visual weight sits. All headings and UI copy are lowercase in the spirit of Herbert Bayer's universal alphabet, set in a geometric sans stack (Futura, Century Gothic, Avenir Next, URW Gothic).
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Board rendered as an 800-unit SVG; every form is a single path (circle, square, equilateral triangle, semicircle, quarter circle, bar) placed with translate / rotate / scale, so position, angle and size can all be sprung independently
+- Damped-spring physics (semi-implicit Euler, 120 Hz substeps) for position, rotation and size: drops overshoot and settle, recolours and size changes "pulse", deleted forms shrink away, Kandinsky compositions pop in with a staggered cascade
+- Grid snapping by bounding-box parity (odd-sized forms centre on cells, even-sized on grid lines, bars ride the lines) with rotated-bbox handling; the hidden grid and a dashed snap preview fade in only while dragging
+- Selection frame with non-scaling dashed stroke, four resize handles and a yellow rotate knob, all kept a constant on-screen size via a units-per-pixel factor
+- Printed-paper feel: a runtime-generated noise tile multiplied over the page and over the board (so the flat colours read as ink), a soft top-left paper sheen, hard 11px black offset shadows, flat drop-shadows on lifted forms
+- Numeral section markers built from CSS pseudo-elements clipped into triangle, square, circle, semicircle and quarter-circle shapes behind heavy digits; toolbar and swatches drawn as coloured geometric SVG buttons
+- Balance map: a miniature ghost of the board with a crosshair at the centre of visual weight (area × colour heaviness) that springs into place, plus a stacked colour-weight bar
+- PNG export drawn to a 1600px canvas with Path2D from the same path data, with a black rule and lowercase caption band
+
+=== INTERACTION MODEL ===
+- Drag a form from the tray (mouse or touch) onto the board; a ghost follows the pointer at true board scale and lands where you drop it, then springs to the snapped cell. Tap or press Enter on a tray tile to place it in the emptiest spot
+- Drag forms on the board to move them; drop one outside the board to remove it
+- Rotate with the mouse wheel (15° steps), the R key (45°, Shift+R back), the "turn" button, or by dragging the yellow knob (15° snaps); resize with the corner handles, + / − keys or buttons
+- Click a swatch to recolour the selected form; with nothing selected the swatch recolours the tray (click again to return to Kandinsky's pairings). Keys 1–4 recolour too
+- Toolbar: turn, larger, smaller, front, copy, remove, undo, clear, plus "kandinsky" (also the K key) and "png" export
+- Keyboard: Tab to a form to select it, arrows nudge by one cell, Delete/Backspace removes, F brings to front, D duplicates, Escape deselects, Ctrl/Cmd+Z undoes (80-step history)
+- The composition and composition number persist in localStorage (guarded with try/catch); first visit opens on a seeded Kandinsky composition
+- The live readout names the selected form in German and English with its grid span, angle and size; prefers-reduced-motion switches the springs to critically damped and removes the stagger

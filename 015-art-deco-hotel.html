@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Aurelian — A Grand Hotel of 1928</title>
+<meta name="description" content="The Aurelian, a fictional 1928 Art Deco grand hotel: gilded suites, the Gilded Fan supper club, an elevator-dial floor directory and a reservation desk in black lacquer, emerald and gold.">
+<meta name="theme-color" content="#0b0b0c">
+<style>
+:root{
+  --lacquer:#0b0b0c;
+  --lacquer-2:#121213;
+  --lacquer-3:#19191b;
+  --emerald:#0f3d33;
+  --emerald-deep:#092a23;
+  --emerald-ink:#06201a;
+  --gold:#d4af37;
+  --gold-pale:#f5e3a1;
+  --gold-deep:#9a7a22;
+  --gold-soft:rgba(212,175,55,.38);
+  --gold-faint:rgba(212,175,55,.12);
+  --ivory:#efe6cc;
+  --ivory-dim:rgba(239,230,204,.72);
+  --ivory-mute:rgba(239,230,204,.5);
+  --display:Didot,"Bodoni 72","Bodoni MT","C059",Georgia,serif;
+  --text:Baskerville,"Baskerville Old Face","Libre Baskerville","P052",Palatino,"Palatino Linotype",Georgia,serif;
+  --foil:linear-gradient(100deg,#8c6d1c 0%,#d4af37 22%,#f5e3a1 38%,#fffaf0 46%,#f5e3a1 54%,#d4af37 70%,#8c6d1c 100%);
+  --ease-deco:cubic-bezier(.62,.04,.26,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--lacquer);color:var(--ivory);
+  font-family:var(--text);font-size:clamp(16px,1.05vw + 11px,18.5px);line-height:1.65;
+  overflow-x:hidden;
+}
+img,svg{display:block}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+::selection{background:var(--gold);color:var(--lacquer)}
+:focus-visible{outline:2px solid var(--gold-pale);outline-offset:4px}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:50%;top:-80px;transform:translateX(-50%);z-index:100;background:var(--gold);color:var(--lacquer);padding:10px 18px;font-variant-caps:all-small-caps;letter-spacing:.2em;text-decoration:none;transition:top .3s}
+.skip:focus{top:10px}
+
+/* ---------- shared deco type ---------- */
+.caps{font-variant-caps:all-small-caps;letter-spacing:.24em}
+.foil{
+  background:var(--foil);background-size:260% 100%;background-position:100% 0;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:foil 9s var(--ease-deco) infinite;
+}
+@keyframes foil{0%,58%{background-position:100% 0}100%{background-position:-60% 0}}
+.eyebrow{
+  display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 18px;
+  font-variant-caps:all-small-caps;letter-spacing:.34em;color:var(--gold);font-size:.95rem;
+}
+.eyebrow::before,.eyebrow::after{
+  content:"";width:clamp(34px,6vw,70px);height:8px;flex:none;
+  background:
+    linear-gradient(to bottom right,transparent 50%,var(--gold) 50%) right 4px top 0/4px 4px no-repeat,
+    linear-gradient(to bottom left,transparent 50%,var(--gold) 50%) right 0 top 0/4px 4px no-repeat,
+    linear-gradient(to top right,transparent 50%,var(--gold) 50%) right 4px bottom 0/4px 4px no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--gold) 50%) right 0 bottom 0/4px 4px no-repeat,
+    linear-gradient(90deg,rgba(212,175,55,0),var(--gold)) left center/calc(100% - 13px) 1px no-repeat;
+}
+.eyebrow::after{transform:scaleX(-1)}
+.sec-title{
+  font-family:var(--display);font-weight:400;text-transform:uppercase;text-align:center;
+  font-size:clamp(2.2rem,5.2vw,4.4rem);letter-spacing:.16em;line-height:1.05;margin:0;
+  padding-left:.16em;
+}
+.sec-title .tall{display:inline-block;transform:scaleY(1.22);transform-origin:50% 60%}
+.chev-rule{width:180px;height:26px;margin:22px auto 0;color:var(--gold)}
+.lede{max-width:40rem;margin:26px auto 0;text-align:center;color:var(--ivory-dim);font-size:1.08em}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:absolute;top:0;left:0;right:0;z-index:5;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:24px;
+  padding:34px clamp(56px,6vw,96px) 0;
+}
+.topbar ul{padding-top:88px!important}
+.topbar ul{list-style:none;display:flex;gap:clamp(18px,3vw,44px);margin:0;padding:0}
+.topbar ul:last-child{justify-content:flex-end}
+.topbar a{
+  text-decoration:none;font-variant-caps:all-small-caps;letter-spacing:.3em;font-size:.95rem;color:var(--ivory-dim);
+  position:relative;padding:6px 0;transition:color .4s;
+}
+.topbar a::after{content:"";position:absolute;left:50%;right:50%;bottom:0;height:1px;background:var(--gold);transition:left .45s var(--ease-deco),right .45s var(--ease-deco)}
+.topbar a:hover,.topbar a:focus-visible{color:var(--gold-pale)}
+.topbar a:hover::after,.topbar a:focus-visible::after{left:0;right:.3em}
+.monogram{width:54px;height:54px;color:var(--gold)}
+.monogram-link{display:block;border-radius:50%}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;min-height:max(100svh,660px);overflow:hidden;isolation:isolate;
+  display:grid;place-items:center;text-align:center;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 50%,rgba(15,61,51,.95) 0%,rgba(9,42,35,.75) 38%,rgba(11,11,12,0) 75%),
+    repeating-linear-gradient(90deg,rgba(212,175,55,.035) 0 1px,transparent 1px 56px),
+    var(--lacquer);
+}
+.sunburst{
+  position:absolute;left:50%;top:50%;width:max(150vmin,980px);aspect-ratio:1;
+  transform:translate(-50%,-50%);z-index:-1;pointer-events:none;
+  opacity:0;animation:fadeIn 1.4s .1s ease-out forwards;
+}
+.sunburst .spin{animation:spin 140s linear infinite;transform-origin:0 0}
+.sunburst .spin-rev{animation:spin 90s linear infinite reverse;transform-origin:0 0}
+.sunburst .pulse{transform-origin:0 0;animation:pulse 7s ease-out infinite;opacity:0}
+.sunburst .pulse:nth-of-type(2){animation-delay:2.33s}
+.sunburst .pulse:nth-of-type(3){animation-delay:4.66s}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%{transform:scale(.25);opacity:0}15%{opacity:.55}100%{transform:scale(1.05);opacity:0}}
+@keyframes fadeIn{to{opacity:1}}
+.frame{position:absolute;inset:22px;z-index:0;pointer-events:none}
+.frame svg{width:100%;height:100%;overflow:visible}
+.frame path{fill:none;stroke-linecap:square;stroke-linejoin:miter}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.5s var(--ease-deco) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.hero-inner{position:relative;z-index:2;padding:120px 24px 110px;max-width:980px}
+.hero .eyebrow{opacity:0;animation:rise 1s .25s var(--ease-deco) forwards}
+.hero h1{
+  margin:0;font-family:var(--display);font-weight:400;line-height:.9;text-transform:uppercase;
+  opacity:0;animation:rise 1.2s .35s var(--ease-deco) forwards;
+}
+.hero h1 .the{display:block;font-size:clamp(1rem,1.6vw,1.35rem);letter-spacing:1.1em;padding-left:1.1em;color:var(--gold);margin-bottom:.9em}
+.hero h1 .name{
+  display:inline-block;font-size:clamp(2.7rem,10.4vw,9.4rem);letter-spacing:.17em;padding-left:.17em;
+  transform:scaleY(1.32);transform-origin:50% 55%;margin:.1em 0 .2em;
+  text-shadow:none;
+}
+.hero h1 .name.foil{animation:foil 7s 1.2s var(--ease-deco) infinite}
+.hero .sub{
+  margin:34px 0 0;font-variant-caps:all-small-caps;letter-spacing:.46em;padding-left:.46em;color:var(--gold-pale);
+  font-size:clamp(.92rem,1.4vw,1.15rem);opacity:0;animation:rise 1s .6s var(--ease-deco) forwards;
+}
+.hero .tagline{
+  max-width:34rem;margin:22px auto 0;color:var(--ivory-dim);font-style:italic;font-size:1.05em;
+  opacity:0;animation:rise 1s .75s var(--ease-deco) forwards;
+}
+.cta-row{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-top:38px;opacity:0;animation:rise 1s .9s var(--ease-deco) forwards}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.btn{
+  position:relative;display:inline-flex;align-items:center;gap:12px;cursor:pointer;
+  padding:15px 30px;border:1px solid var(--gold);background:transparent;color:var(--gold-pale);
+  font-variant-caps:all-small-caps;letter-spacing:.3em;font-size:1rem;text-decoration:none;
+  transition:color .4s,background-color .4s,transform .4s var(--ease-deco),box-shadow .4s;
+}
+.btn::before{content:"";position:absolute;inset:4px;border:1px solid rgba(212,175,55,.35);pointer-events:none;transition:inset .4s var(--ease-deco),border-color .4s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 14px 34px -14px rgba(212,175,55,.55)}
+.btn:hover::before{inset:-5px;border-color:rgba(245,227,161,.5)}
+.btn-gold{background:linear-gradient(180deg,#f5e3a1,#d4af37 55%,#b8932a);color:var(--lacquer);border-color:#f5e3a1}
+.btn-gold::before{border-color:rgba(11,11,12,.45)}
+.btn-gold:hover::before{border-color:rgba(245,227,161,.7)}
+.btn .gl{font-size:.75em;letter-spacing:0}
+.descend{
+  position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;
+  font-variant-caps:all-small-caps;letter-spacing:.4em;padding-left:.4em;font-size:.82rem;color:var(--gold);
+  opacity:0;animation:fadeIn 1s 1.3s forwards;
+}
+.descend svg{width:18px;height:22px;animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(5px)}}
+
+/* ---------- section scaffolding ---------- */
+.floor{position:relative;padding:clamp(90px,12vw,150px) clamp(20px,5vw,72px)}
+.floor-head{text-align:center;margin-bottom:clamp(48px,6vw,80px)}
+.divider{display:flex;align-items:center;justify-content:center;gap:0;height:70px;position:relative}
+.divider::before,.divider::after{content:"";flex:1;max-width:420px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-soft))}
+.divider::after{transform:scaleX(-1)}
+.divider .fan{width:110px;height:58px;margin:0 18px}
+
+/* fans that open */
+.fan .blade{transform:rotate(0deg);transform-origin:0 0;transition:transform 1.1s var(--ease-deco);transition-delay:var(--d,0s)}
+.fan.open .blade{transform:rotate(var(--a))}
+.fan .fan-arc{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.2s .25s var(--ease-deco)}
+.fan.open .fan-arc{stroke-dashoffset:0}
+.fan .fan-hub{transform:scale(.2);transform-origin:0 0;transition:transform .8s var(--ease-deco)}
+.fan.open .fan-hub{transform:scale(1)}
+
+/* ---------- suites ---------- */
+#suites{background:
+  radial-gradient(ellipse 70% 40% at 50% 0%,rgba(15,61,51,.55),transparent 70%),
+  repeating-linear-gradient(90deg,rgba(212,175,55,.03) 0 1px,transparent 1px 48px),
+  var(--lacquer)}
+.suites{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,44px);max-width:1180px;margin:0 auto;align-items:end}
+.suite{
+  position:relative;border:1px solid var(--gold-soft);border-radius:1000px 1000px 3px 3px;
+  background:linear-gradient(180deg,var(--lacquer-3),var(--lacquer-2) 60%,#0d0d0e);
+  padding:14px 14px 0;overflow:hidden;isolation:isolate;
+  transition:transform .6s var(--ease-deco),border-color .5s,box-shadow .6s var(--ease-deco);
+}
+.suite:nth-child(2){transform:translateY(-34px)}
+.suite::before{
+  content:"";position:absolute;inset:7px;border:1px solid rgba(212,175,55,.2);border-radius:1000px 1000px 2px 2px;pointer-events:none;z-index:3;
+  transition:border-color .5s,inset .6s var(--ease-deco);
+}
+.suite::after{
+  content:"";position:absolute;top:0;bottom:0;left:0;width:60%;z-index:4;pointer-events:none;
+  background:linear-gradient(105deg,transparent 0%,rgba(245,227,161,0) 30%,rgba(255,244,205,.26) 50%,rgba(245,227,161,0) 70%,transparent 100%);
+  transform:translateX(-120%) skewX(-8deg);
+}
+.suite:hover,.suite:focus-within{border-color:var(--gold);box-shadow:0 0 0 1px rgba(212,175,55,.35),0 40px 80px -30px rgba(212,175,55,.35),inset 0 0 60px -20px rgba(212,175,55,.25);transform:translateY(-10px)}
+.suite:nth-child(2):hover,.suite:nth-child(2):focus-within{transform:translateY(-44px)}
+.suite:hover::before,.suite:focus-within::before{border-color:rgba(245,227,161,.6);inset:5px}
+.suite:hover::after{animation:sheen 1.2s var(--ease-deco)}
+@keyframes sheen{to{transform:translateX(190%) skewX(-8deg)}}
+.arch{position:relative;border-radius:1000px 1000px 0 0;overflow:hidden;aspect-ratio:1/1.02;background:var(--emerald-ink)}
+.arch svg{width:100%;height:100%}
+.arch .rays-h{transform-origin:150px 300px;transition:transform 1.4s var(--ease-deco),opacity .6s;opacity:.55}
+.suite:hover .arch .rays-h{transform:rotate(14deg);opacity:1}
+.arch .glint{opacity:0;transition:opacity .6s}
+.suite:hover .arch .glint{opacity:1}
+.suite-body{padding:26px 16px 30px;text-align:center}
+.suite-kicker{margin:0;color:var(--gold);font-variant-caps:all-small-caps;letter-spacing:.34em;font-size:.85rem}
+.suite h3{margin:10px 0 6px;font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.14em;font-size:clamp(1.3rem,1.9vw,1.65rem);line-height:1.2}
+.suite-meta{margin:0;color:var(--ivory-mute);font-variant-caps:all-small-caps;letter-spacing:.16em;font-size:.95rem}
+.suite-copy{margin:16px 0 0;color:var(--ivory-dim);font-size:.96em;min-height:5.2em}
+.suite-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(212,175,55,.2)}
+.rate{margin:0;text-align:left;font-family:var(--display);font-size:1.5rem;color:var(--gold-pale);line-height:1}
+.rate small{display:block;font-family:var(--text);font-size:.72rem;color:var(--ivory-mute);font-variant-caps:all-small-caps;letter-spacing:.2em;margin-bottom:6px}
+.btn-sm{padding:10px 18px;font-size:.9rem;letter-spacing:.26em}
+
+/* ---------- salon ---------- */
+#salon{
+  background:
+    radial-gradient(circle at 50% 100%,transparent 0 21px,rgba(212,175,55,.09) 22px 23px,transparent 24px 29px,rgba(212,175,55,.06) 30px 31px,transparent 32px) 0 0/64px 32px,
+    radial-gradient(circle at 50% 100%,transparent 0 21px,rgba(212,175,55,.09) 22px 23px,transparent 24px 29px,rgba(212,175,55,.06) 30px 31px,transparent 32px) 32px 16px/64px 32px,
+    linear-gradient(180deg,var(--emerald-deep),var(--emerald) 50%,var(--emerald-deep));
+  border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft);
+}
+#salon::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 45%,rgba(9,42,35,.92),rgba(9,42,35,.55) 60%,rgba(9,42,35,.2));pointer-events:none}
+#salon > *{position:relative}
+.fan-frieze{display:flex;align-items:flex-end;justify-content:center;gap:clamp(4px,1.2vw,18px);margin:0 auto clamp(40px,5vw,64px);max-width:1100px}
+.fan-frieze .fan{flex:0 1 auto;height:auto}
+.fan-frieze .fan:nth-child(1),.fan-frieze .fan:nth-child(7){width:9%}
+.fan-frieze .fan:nth-child(2),.fan-frieze .fan:nth-child(6){width:12%}
+.fan-frieze .fan:nth-child(3),.fan-frieze .fan:nth-child(5){width:15%}
+.fan-frieze .fan:nth-child(4){width:22%}
+.salon-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(36px,6vw,90px);max-width:1120px;margin:0 auto;align-items:start}
+.salon-story p{margin:0 0 1.2em;color:var(--ivory-dim)}
+.salon-story p:first-child::first-letter{
+  float:left;font-family:var(--display);font-size:4.4em;line-height:.82;padding:.06em .12em 0 0;color:var(--gold);
+}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:34px 0 0;border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft)}
+.stats div{padding:22px 10px;text-align:center}
+.stats div + div{border-left:1px solid rgba(212,175,55,.22)}
+.stats dt{order:2;font-variant-caps:all-small-caps;letter-spacing:.22em;color:var(--ivory-mute);font-size:.85rem}
+.stats dd{margin:0 0 4px;font-family:var(--display);font-size:clamp(1.9rem,3vw,2.6rem);color:var(--gold-pale);line-height:1.1}
+.stats div{display:flex;flex-direction:column}
+.timeline{list-style:none;margin:0;padding:0;position:relative}
+.timeline::before{content:"";position:absolute;left:62px;top:8px;bottom:8px;width:1px;background:linear-gradient(var(--gold),rgba(212,175,55,.1))}
+.timeline li{display:grid;grid-template-columns:62px 1fr;gap:26px;padding:0 0 28px;position:relative}
+.timeline li::before{content:"";position:absolute;left:58px;top:9px;width:9px;height:9px;background:var(--emerald-deep);border:1px solid var(--gold);transform:rotate(45deg)}
+.timeline .yr{font-family:var(--display);color:var(--gold);font-size:1.15rem;letter-spacing:.06em;text-align:right;padding-right:14px;line-height:1.5}
+.timeline h3{margin:0 0 4px;font-weight:400;font-variant-caps:all-small-caps;letter-spacing:.2em;font-size:1.05rem;color:var(--gold-pale)}
+.timeline p{margin:0;color:var(--ivory-dim);font-size:.95em}
+.fiction-note{text-align:center;margin:44px auto 0;color:var(--ivory-mute);font-style:italic;font-size:.88rem}
+
+/* ---------- dining ---------- */
+#dining{background:
+  linear-gradient(90deg,transparent calc(50% - .5px),rgba(212,175,55,.1) calc(50% - .5px) calc(50% + .5px),transparent calc(50% + .5px)),
+  radial-gradient(ellipse 50% 60% at 78% 50%,rgba(15,61,51,.55),transparent 70%),
+  var(--lacquer)}
+.dining-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:clamp(36px,6vw,96px);max-width:1160px;margin:0 auto;align-items:center}
+.dining-intro .eyebrow{justify-content:flex-start}
+.dining-intro .eyebrow::before{display:none}
+.dining-intro h2{text-align:left;padding-left:0;font-size:clamp(2.1rem,3.7vw,3.3rem);letter-spacing:.12em;margin-bottom:.5em}
+.dining-intro p{color:var(--ivory-dim)}
+.hours{list-style:none;padding:0;margin:30px 0 0;border-top:1px solid rgba(212,175,55,.25)}
+.hours li{display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid rgba(212,175,55,.25)}
+.hours span:first-child{font-variant-caps:all-small-caps;letter-spacing:.24em;color:var(--gold);white-space:nowrap}
+.hours span:last-child{color:var(--ivory-dim);font-style:italic;text-align:right}
+.menu-card{
+  position:relative;color:#1b2a25;padding:clamp(34px,4.5vw,56px) clamp(24px,4vw,54px);
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%,#f8f1de,rgba(248,241,222,0) 70%),
+    radial-gradient(ellipse 120% 80% at 50% 120%,#e2d3ad,rgba(226,211,173,0) 70%),
+    #f0e6cc;
+  box-shadow:0 50px 90px -40px rgba(0,0,0,.9),0 0 0 1px #b8962e,0 0 0 7px #f0e6cc,0 0 0 8px #a8872a;
+  text-align:center;isolation:isolate;
+}
+.menu-card::before{content:"";position:absolute;inset:14px;border:3px double rgba(154,122,34,.7);pointer-events:none}
+.menu-card .corner{position:absolute;width:34px;height:34px;pointer-events:none;color:#9a7a22}
+.menu-card .corner.tl{top:6px;left:6px}.menu-card .corner.tr{top:6px;right:6px;transform:scaleX(-1)}
+.menu-card .corner.bl{bottom:6px;left:6px;transform:scaleY(-1)}.menu-card .corner.br{bottom:6px;right:6px;transform:scale(-1,-1)}
+.guilloche{position:absolute;left:50%;top:18px;width:300px;height:300px;transform:translateX(-50%);z-index:-1;opacity:.35;color:#b8962e}
+.engrave{text-shadow:0 1px 0 rgba(255,255,255,.75),0 -1px 0 rgba(90,64,10,.12)}
+.menu-house{margin:0;font-variant-caps:all-small-caps;letter-spacing:.42em;padding-left:.42em;font-size:.85rem;color:#8a6d1c}
+.menu-title{margin:10px 0 2px;font-family:var(--display);font-weight:400;font-size:clamp(2.4rem,4vw,3.4rem);letter-spacing:.2em;padding-left:.2em;text-transform:uppercase;line-height:1.1;color:#14231f}
+.menu-title span{display:inline-block;transform:scaleY(1.2)}
+.menu-when{margin:0;font-style:italic;color:#4a4a3a;font-size:.95rem}
+.menu-fan{width:90px;height:40px;margin:16px auto 10px;color:#9a7a22}
+.course{margin:22px 0 0}
+.course h3{margin:0 0 10px;font-weight:400;font-variant-caps:all-small-caps;letter-spacing:.38em;padding-left:.38em;font-size:.95rem;color:#8a6d1c;display:flex;align-items:center;gap:12px}
+.course h3::before,.course h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(154,122,34,.6))}
+.course h3::after{transform:scaleX(-1)}
+.course ul{list-style:none;margin:0;padding:0;text-align:left}
+.course li{padding:7px 0}
+.dish{display:flex;align-items:baseline;gap:8px;font-family:var(--display);font-size:1.06rem;letter-spacing:.04em;color:#14231f}
+.dish .dots{flex:1;border-bottom:1px dotted rgba(20,35,31,.45);transform:translateY(-4px);min-width:20px}
+.dish .price{font-variant-numeric:oldstyle-nums;color:#6e5616}
+.desc{display:block;font-style:italic;font-size:.86rem;color:#5a5646;line-height:1.4;margin-top:2px}
+.menu-foot{margin:26px 0 0;font-size:.78rem;color:#6d6752;font-variant-caps:all-small-caps;letter-spacing:.2em}
+
+/* ---------- reserve ---------- */
+#reserve{
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 110%,rgba(212,175,55,.14),transparent 60%),
+    linear-gradient(180deg,var(--lacquer),var(--emerald-deep) 45%,var(--emerald-ink));
+  border-top:1px solid var(--gold-soft);
+}
+.desk{position:relative;max-width:900px;margin:0 auto;padding:clamp(34px,5vw,64px) clamp(20px,5vw,64px);background:rgba(6,32,26,.72);border:1px solid var(--gold-soft)}
+.desk::before{content:"";position:absolute;inset:8px;border:1px solid rgba(212,175,55,.18);pointer-events:none}
+.desk-crown{position:absolute;left:50%;top:-1px;transform:translate(-50%,-100%);width:240px;height:46px;color:var(--gold)}
+form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 28px}
+.field{display:flex;flex-direction:column;gap:9px;min-width:0}
+.field.wide{grid-column:1/-1}
+.field label{font-variant-caps:all-small-caps;letter-spacing:.28em;color:var(--gold);font-size:.92rem}
+.deco-input{position:relative}
+.deco-input::before{
+  content:"";position:absolute;inset:-6px;pointer-events:none;opacity:.55;
+  transition:inset .45s var(--ease-deco),opacity .45s;
+  --c:var(--gold);
+  background:
+    linear-gradient(var(--c),var(--c)) 0 0/16px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/1px 16px no-repeat,
+    linear-gradient(var(--c),var(--c)) 4px 4px/7px 1px no-repeat,linear-gradient(var(--c),var(--c)) 4px 4px/1px 7px no-repeat,
+    linear-gradient(var(--c),var(--c)) 100% 0/16px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/1px 16px no-repeat,
+    linear-gradient(var(--c),var(--c)) calc(100% - 4px) 4px/7px 1px no-repeat,linear-gradient(var(--c),var(--c)) calc(100% - 4px) 4px/1px 7px no-repeat,
+    linear-gradient(var(--c),var(--c)) 0 100%/16px 1px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/1px 16px no-repeat,
+    linear-gradient(var(--c),var(--c)) 4px calc(100% - 4px)/7px 1px no-repeat,linear-gradient(var(--c),var(--c)) 4px calc(100% - 4px)/1px 7px no-repeat,
+    linear-gradient(var(--c),var(--c)) 100% 100%/16px 1px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/1px 16px no-repeat,
+    linear-gradient(var(--c),var(--c)) calc(100% - 4px) calc(100% - 4px)/7px 1px no-repeat,linear-gradient(var(--c),var(--c)) calc(100% - 4px) calc(100% - 4px)/1px 7px no-repeat;
+}
+.deco-input:focus-within::before{inset:-10px;opacity:1;--c:var(--gold-pale)}
+.deco-input input,.deco-input select,.deco-input textarea{
+  width:100%;display:block;padding:14px 16px;background:rgba(0,0,0,.38);border:1px solid rgba(212,175,55,.34);border-radius:0;
+  color:var(--ivory);letter-spacing:.04em;color-scheme:dark;transition:border-color .4s,background-color .4s,box-shadow .4s;
+}
+.deco-input textarea{resize:vertical;min-height:96px}
+.deco-input select{appearance:none;-webkit-appearance:none;padding-right:44px;cursor:pointer;
+  background:
+    linear-gradient(45deg,transparent 45%,var(--gold) 45% 55%,transparent 55%) calc(100% - 22px) 50%/8px 8px no-repeat,
+    linear-gradient(-45deg,transparent 45%,var(--gold) 45% 55%,transparent 55%) calc(100% - 16px) 50%/8px 8px no-repeat,
+    rgba(0,0,0,.38)}
+.deco-input select option{background:#0b0b0c;color:var(--ivory)}
+.deco-input input:focus,.deco-input select:focus,.deco-input textarea:focus{outline:none;border-color:var(--gold-pale);background-color:rgba(0,0,0,.55);box-shadow:0 0 0 1px rgba(245,227,161,.25),0 0 26px -6px rgba(212,175,55,.45)}
+.deco-input input::placeholder,.deco-input textarea::placeholder{color:rgba(239,230,204,.32);font-style:italic}
+.field-err{min-height:1.2em;margin:0;font-size:.82rem;color:#e7b98b;font-style:italic}
+.form-foot{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;margin-top:10px}
+.estimate{margin:0;color:var(--ivory-dim);font-style:italic}
+.estimate b{font-style:normal;font-family:var(--display);color:var(--gold-pale);font-weight:400;font-size:1.3em;letter-spacing:.04em}
+.keycard{
+  display:none;margin-top:34px;padding:28px;text-align:center;border:1px solid var(--gold);position:relative;
+  background:linear-gradient(135deg,rgba(212,175,55,.12),rgba(212,175,55,.02));
+}
+.keycard.show{display:block;animation:rise .8s var(--ease-deco)}
+.keycard h3{margin:0;font-family:var(--display);font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:1.35rem}
+.keycard .code{font-family:var(--display);font-size:1.9rem;letter-spacing:.18em;margin:10px 0}
+.keycard p{margin:6px 0 0;color:var(--ivory-dim)}
+
+/* ---------- footer ---------- */
+footer{padding:80px 24px 150px;text-align:center;background:var(--lacquer);border-top:1px solid rgba(212,175,55,.2)}
+footer .monogram{width:72px;height:72px;margin:0 auto 18px}
+footer .addr{margin:0;font-variant-caps:all-small-caps;letter-spacing:.34em;color:var(--gold);font-size:.95rem}
+footer p{margin:8px 0 0;color:var(--ivory-mute);font-size:.9rem}
+
+/* ---------- the lift dial ---------- */
+.lift{
+  position:fixed;right:22px;bottom:22px;z-index:40;width:212px;
+  padding:12px 14px 12px;background:linear-gradient(180deg,rgba(25,25,27,.94),rgba(11,11,12,.96));
+  border:1px solid var(--gold-soft);box-shadow:0 24px 50px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(245,227,161,.1);
+  transform-origin:100% 100%;opacity:0;animation:fadeIn .9s 1s forwards;
+}
+.lift::before{content:"";position:absolute;inset:4px;border:1px solid rgba(212,175,55,.16);pointer-events:none}
+.lift-title{margin:0 0 2px;text-align:center;font-variant-caps:all-small-caps;letter-spacing:.42em;padding-left:.42em;font-size:.72rem;color:var(--gold)}
+.lift-face{position:relative;width:184px;height:108px;margin:0 auto}
+.lift-face svg{width:184px;height:108px}
+.lift-floors{list-style:none;margin:0;padding:0}
+.lift-floors button{
+  position:absolute;left:92px;top:96px;width:28px;height:28px;margin:-14px 0 0 -14px;padding:0;
+  display:grid;place-items:center;border-radius:50%;border:1px solid transparent;background:transparent;cursor:pointer;
+  font-family:var(--display);font-size:1rem;color:var(--ivory-mute);
+  transform:rotate(var(--a)) translateY(-70px) rotate(calc(-1 * var(--a)));
+  transition:color .4s,border-color .4s,background-color .4s,text-shadow .4s;
+}
+.lift-floors button:hover{color:var(--gold-pale);border-color:rgba(212,175,55,.4)}
+.lift-floors button.on{color:var(--lacquer);background:radial-gradient(circle at 40% 35%,#fff4c9,#d4af37 60%,#9a7a22);border-color:var(--gold-pale);text-shadow:none;box-shadow:0 0 16px rgba(245,227,161,.55)}
+#needle{transform-origin:92px 96px;will-change:transform}
+.lift-plaque{margin:4px 0 0;text-align:center;font-family:var(--display);letter-spacing:.22em;text-transform:uppercase;font-size:.8rem;color:var(--gold-pale);border-top:1px solid rgba(212,175,55,.25);border-bottom:1px solid rgba(212,175,55,.25);padding:5px 0;white-space:nowrap;overflow:hidden}
+.lift-ctl{display:flex;justify-content:space-between;align-items:center;margin-top:9px}
+.lift-ctl button{
+  width:34px;height:34px;border-radius:50%;cursor:pointer;display:grid;place-items:center;padding:0;
+  border:1px solid rgba(212,175,55,.55);background:radial-gradient(circle at 40% 30%,#2a2a2c,#0e0e0f);color:var(--gold);
+  box-shadow:inset 0 1px 0 rgba(245,227,161,.2),0 2px 6px rgba(0,0,0,.6);transition:transform .15s,box-shadow .3s,color .3s;
+}
+.lift-ctl button:active{transform:scale(.92)}
+.lift-ctl button:hover{box-shadow:inset 0 1px 0 rgba(245,227,161,.2),0 0 14px rgba(212,175,55,.45);color:var(--gold-pale)}
+.lift-ctl button svg{width:14px;height:14px}
+.lift-ctl #liftChime{width:auto;border-radius:17px;padding:0 14px;white-space:nowrap;gap:6px;display:flex;font-variant-caps:all-small-caps;letter-spacing:.2em;font-size:.78rem}
+.lift-toggle{display:none;position:absolute;inset:0;z-index:6;width:100%;height:100%;border:0;padding:0;background:transparent;cursor:pointer}
+.lift-ctl #liftChime[aria-pressed="true"]{color:var(--lacquer);background:radial-gradient(circle at 40% 30%,#fff4c9,#d4af37 70%);border-color:var(--gold-pale)}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .suites{grid-template-columns:1fr;max-width:420px}
+  .suite:nth-child(2){transform:none}
+  .suite:nth-child(2):hover,.suite:nth-child(2):focus-within{transform:translateY(-10px)}
+  .salon-grid,.dining-grid{grid-template-columns:1fr}
+  .dining-intro .eyebrow{justify-content:center}
+  .dining-intro .eyebrow::before{display:block}
+  .dining-intro h2{text-align:center;padding-left:.16em}
+  .dining-intro{text-align:center}
+  .menu-card{max-width:520px;margin:0 auto;width:100%}
+  #dining{background:radial-gradient(ellipse 80% 40% at 50% 70%,rgba(15,61,51,.55),transparent 70%),var(--lacquer)}
+}
+@media (max-width:760px){
+  .topbar{grid-template-columns:auto;justify-content:center;padding-top:30px}
+  .topbar ul{display:none}
+  .frame{inset:12px}
+  .hero-inner{padding:110px 18px 150px}
+  .hero h1 .the{letter-spacing:.8em;padding-left:.8em}
+  .hero h1 .name{letter-spacing:.1em;padding-left:.1em;font-size:clamp(2.5rem,12.4vw,4rem)}
+  .hero .sub{letter-spacing:.3em;padding-left:.3em}
+  .descend{display:none}
+  .lift{right:10px;bottom:10px;transform:scale(.56);transition:transform .45s var(--ease-deco)}
+  .lift:not(.open) .lift-title,.lift:not(.open) .lift-ctl{display:none}
+  .lift.open{transform:scale(.92)}
+  .lift:not(.open) .lift-toggle{display:block}
+  form{grid-template-columns:1fr}
+  .stats dd{font-size:1.7rem}
+  .timeline::before{left:48px}
+  .timeline li{grid-template-columns:48px 1fr;gap:22px}
+  .timeline li::before{left:44px}
+  .timeline .yr{font-size:.98rem;padding-right:8px}
+  .fan-frieze .fan:nth-child(1),.fan-frieze .fan:nth-child(7){display:none}
+  .fan-frieze .fan:nth-child(2),.fan-frieze .fan:nth-child(6){width:16%}
+  .fan-frieze .fan:nth-child(3),.fan-frieze .fan:nth-child(5){width:21%}
+  .fan-frieze .fan:nth-child(4){width:30%}
+  footer{padding-bottom:170px}
+}
+@media (max-width:420px){
+  .dish{font-size:.98rem}
+  .btn{padding:14px 22px;letter-spacing:.22em}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
+  .foil,.hero h1 .name.foil{animation:none!important;background-position:40% 0}
+  .sunburst .pulse{display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#suites">Skip to the suites</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9a7a22"/>
+      <stop offset=".35" stop-color="#d4af37"/>
+      <stop offset=".5" stop-color="#f5e3a1">
+        <animate attributeName="offset" values=".05;.95;.05" dur="9s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset=".65" stop-color="#d4af37"/>
+      <stop offset="1" stop-color="#9a7a22"/>
+    </linearGradient>
+    <linearGradient id="gGoldV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5e3a1"/>
+      <stop offset=".55" stop-color="#d4af37"/>
+      <stop offset="1" stop-color="#8c6d1c"/>
+    </linearGradient>
+    <radialGradient id="gRay" cx="0" cy="0" r="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f5e3a1" stop-opacity=".55"/>
+      <stop offset=".3" stop-color="#d4af37" stop-opacity=".32"/>
+      <stop offset=".75" stop-color="#d4af37" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#d4af37" stop-opacity="0"/>
+    </radialGradient>
+    <symbol id="mono" viewBox="-50 -50 100 100">
+      <path d="M0 -46 L46 0 L0 46 L-46 0 Z" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M0 -39 L39 0 L0 39 L-39 0 Z" fill="none" stroke="currentColor" stroke-width=".7"/>
+      <path d="M-15 22 L0 -24 L15 22 M-9 5 H9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="miter"/>
+      <path d="M-22 22 H-9 M9 22 H22" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M0 -39 V-30 M0 30 V39 M-39 0 H-30 M30 0 H39" stroke="currentColor" stroke-width=".8"/>
+    </symbol>
+    <symbol id="chev" viewBox="0 0 180 26">
+      <path d="M0 13 H62 M118 13 H180" stroke="currentColor" stroke-width="1"/>
+      <path d="M66 4 L78 13 L66 22 M74 4 L86 13 L74 22" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M114 4 L102 13 L114 22 M106 4 L94 13 L106 22" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M90 7 L96 13 L90 19 L84 13 Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="corner" viewBox="0 0 34 34">
+      <path d="M1 33 V1 H33" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M6 33 V12 H12 V6 H33" fill="none" stroke="currentColor" stroke-width=".9"/>
+      <path d="M12 12 L17 12 L12 17 Z" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="hero" id="lobby" data-floor="Lobby">
+  <nav class="topbar" aria-label="Primary">
+    <ul>
+      <li><a href="#suites">Suites</a></li>
+      <li><a href="#salon">The Salon</a></li>
+    </ul>
+    <a class="monogram-link" href="#lobby" aria-label="The Aurelian, back to the lobby"><svg class="monogram" aria-hidden="true"><use href="#mono"/></svg></a>
+    <ul>
+      <li><a href="#dining">Dining</a></li>
+      <li><a href="#reserve">Reserve</a></li>
+    </ul>
+  </nav>
+
+  <svg class="sunburst" viewBox="-500 -500 1000 1000" aria-hidden="true">
+    <g class="spin" id="rays"></g>
+    <g class="spin-rev">
+      <circle r="176" fill="none" stroke="#d4af37" stroke-opacity=".28" stroke-width="1" stroke-dasharray="2 9"/>
+      <circle r="300" fill="none" stroke="#d4af37" stroke-opacity=".14" stroke-width="1" stroke-dasharray="1 14"/>
+    </g>
+    <circle class="pulse" r="420" fill="none" stroke="#f5e3a1" stroke-width="1.2"/>
+    <circle class="pulse" r="420" fill="none" stroke="#f5e3a1" stroke-width="1.2"/>
+    <circle class="pulse" r="420" fill="none" stroke="#f5e3a1" stroke-width="1.2"/>
+  </svg>
+
+  <div class="frame" aria-hidden="true"><svg id="frameSvg"></svg></div>
+
+  <div class="hero-inner">
+    <p class="eyebrow">Est. MCMXXVIII</p>
+    <h1><span class="the">The</span><span class="name foil">Aurelian</span></h1>
+    <p class="sub">Grand Hotel &amp; Residences</p>
+    <p class="tagline">Twenty-eight floors of lacquer, jazz and hand-laid gold leaf, kept exactly as the architects drew them on the last night of 1928.</p>
+    <div class="cta-row">
+      <a class="btn btn-gold" href="#reserve"><span class="gl" aria-hidden="true">&#9670;</span> Reserve a Suite</a>
+      <a class="btn" href="#suites">Tour the Floors <span class="gl" aria-hidden="true">&#9660;</span></a>
+    </div>
+  </div>
+  <a class="descend" href="#suites" aria-label="Going up, to the suites">Going up
+    <svg viewBox="0 0 18 22" aria-hidden="true"><path d="M1 2 L9 9 L17 2 M1 10 L9 17 L17 10" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+  </a>
+</header>
+
+<main id="main">
+  <section class="floor" id="suites" data-floor="The Suites" aria-labelledby="suitesTitle">
+    <div class="floor-head">
+      <p class="eyebrow">Floor II</p>
+      <h2 class="sec-title" id="suitesTitle"><span class="tall foil">The Suites</span></h2>
+      <svg class="chev-rule" aria-hidden="true"><use href="#chev"/></svg>
+      <p class="lede">Three residences crown the tower, each finished by hand in walnut burl, polished nickel and gilt — and each with a window framed like a proscenium.</p>
+    </div>
+
+    <div class="suites">
+      <article class="suite" aria-labelledby="s1">
+        <div class="arch">
+          <svg viewBox="0 0 300 306" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="skyE" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#03130f"/><stop offset=".7" stop-color="#0f3d33"/><stop offset="1" stop-color="#1c5a4a"/></linearGradient>
+            </defs>
+            <rect width="300" height="306" fill="url(#skyE)"/>
+            <g class="rays-h" stroke="#d4af37" stroke-opacity=".25">
+              <path d="M150 300 L10 60 M150 300 L60 20 M150 300 L150 0 M150 300 L240 20 M150 300 L290 60"/>
+            </g>
+            <g fill="#f5e3a1">
+              <circle cx="58" cy="92" r="1.2"/><circle cx="96" cy="58" r="1"/><circle cx="210" cy="70" r="1.3"/><circle cx="240" cy="118" r=".9"/><circle cx="120" cy="110" r=".8"/><circle cx="182" cy="40" r="1"/><circle cx="76" cy="140" r=".9"/>
+            </g>
+            <path d="M214 78 a26 26 0 1 0 22 40 a21 21 0 1 1 -22 -40 Z" fill="#f5e3a1" opacity=".9"/>
+            <g fill="#07100d">
+              <path d="M0 306 V214 H26 V190 H40 V214 H58 V306 Z"/>
+              <path d="M56 306 V168 H68 V150 H76 V132 H82 V150 H90 V168 H102 V306 Z"/>
+              <path d="M100 306 V206 H124 V224 H136 V306 Z"/>
+              <path d="M180 306 V196 H192 V176 H198 V120 L203 104 L208 120 V176 H214 V196 H226 V306 Z"/>
+              <path d="M226 306 V226 H252 V204 H272 V230 H300 V306 Z"/>
+            </g>
+            <g fill="#d4af37" opacity=".85">
+              <rect x="62" y="176" width="3" height="4"/><rect x="72" y="176" width="3" height="4"/><rect x="82" y="190" width="3" height="4"/><rect x="92" y="200" width="3" height="4"/><rect x="62" y="220" width="3" height="4"/><rect x="72" y="240" width="3" height="4"/><rect x="186" y="210" width="3" height="4"/><rect x="200" y="186" width="3" height="4"/><rect x="214" y="222" width="3" height="4"/><rect x="194" y="250" width="3" height="4"/><rect x="232" y="246" width="3" height="4"/><rect x="258" y="238" width="3" height="4"/><rect x="12" y="232" width="3" height="4"/><rect x="30" y="258" width="3" height="4"/>
+            </g>
+            <g fill="none" stroke="#d4af37" stroke-width="1.2">
+              <path d="M150 306 V36"/><path d="M20 306 V160 A130 130 0 0 1 280 160 V306"/><path d="M20 196 H280"/>
+            </g>
+            <path class="glint" d="M20 160 A130 130 0 0 1 150 30" fill="none" stroke="#fff6d4" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="suite-body">
+          <p class="suite-kicker">Residence No. 1</p>
+          <h3 id="s1">The Emerald Suite</h3>
+          <p class="suite-meta">1,040 sq ft · Park view · Sleeps two</p>
+          <p class="suite-copy">Malachite-green walls, a sunken salon and a bath hewn from a single block of veined marble, with the whole park laid out under the moon.</p>
+          <div class="suite-foot">
+            <p class="rate"><small>From, per night</small>$1,150</p>
+            <button type="button" class="btn btn-sm" data-suite="The Emerald Suite">Select</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="suite" aria-labelledby="s2">
+        <div class="arch">
+          <svg viewBox="0 0 300 306" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="skyS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a2a23"/><stop offset=".55" stop-color="#1a4a3c"/><stop offset=".85" stop-color="#7a6a2a"/><stop offset="1" stop-color="#d4af37"/></linearGradient>
+              <radialGradient id="sunS" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="#fff6d4"/><stop offset=".5" stop-color="#f5e3a1"/><stop offset="1" stop-color="#d4af37"/></radialGradient>
+            </defs>
+            <rect width="300" height="306" fill="url(#skyS)"/>
+            <g class="rays-h" fill="#f5e3a1" fill-opacity=".16">
+              <path d="M150 250 L-20 90 L-20 130 Z"/><path d="M150 250 L0 20 L30 10 Z"/><path d="M150 250 L90 -10 L120 -10 Z"/><path d="M150 250 L180 -10 L210 -10 Z"/><path d="M150 250 L270 10 L300 20 Z"/><path d="M150 250 L320 90 L320 130 Z"/>
+            </g>
+            <circle cx="150" cy="250" r="62" fill="url(#sunS)"/>
+            <g fill="none" stroke="#0a2a23" stroke-width="2" opacity=".55"><path d="M88 236 H212 M92 222 H208 M100 208 H200 M112 196 H188"/></g>
+            <path d="M0 306 V262 H40 V250 H70 V240 H100 V252 H200 V240 H230 V250 H260 V262 H300 V306 Z" fill="#07100d"/>
+            <path d="M0 262 H40 V250 H70 V240 H100 V252 H200 V240 H230 V250 H260 V262 H300" fill="none" stroke="#d4af37" stroke-width="1"/>
+            <g fill="none" stroke="#d4af37" stroke-width="1.2">
+              <path d="M20 306 V160 A130 130 0 0 1 280 160 V306"/>
+              <path d="M40 306 V168 A110 110 0 0 1 260 168 V306" stroke-opacity=".45"/>
+            </g>
+            <path class="glint" d="M150 30 A130 130 0 0 1 280 160" fill="none" stroke="#fff6d4" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="suite-body">
+          <p class="suite-kicker">Residence No. 2</p>
+          <h3 id="s2">The Sunburst Suite</h3>
+          <p class="suite-meta">1,380 sq ft · East light · Sleeps four</p>
+          <p class="suite-copy">Facing due east, so each morning arrives exactly as the gilded ceiling promises: in rays. A cocktail cabinet hides behind the marquetry.</p>
+          <div class="suite-foot">
+            <p class="rate"><small>From, per night</small>$1,480</p>
+            <button type="button" class="btn btn-sm" data-suite="The Sunburst Suite">Select</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="suite" aria-labelledby="s3">
+        <div class="arch">
+          <svg viewBox="0 0 300 306" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="skyP" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050807"/><stop offset="1" stop-color="#0f3d33"/></linearGradient>
+              <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f5e3a1" stop-opacity=".5"/><stop offset="1" stop-color="#f5e3a1" stop-opacity="0"/></linearGradient>
+            </defs>
+            <rect width="300" height="306" fill="url(#skyP)"/>
+            <g class="rays-h">
+              <path d="M150 120 L30 -20 L70 -20 Z" fill="url(#beam)"/>
+              <path d="M150 120 L230 -20 L270 -20 Z" fill="url(#beam)"/>
+            </g>
+            <g fill="#f5e3a1"><circle cx="40" cy="120" r="1"/><circle cx="262" cy="98" r="1.2"/><circle cx="88" cy="70" r=".8"/><circle cx="226" cy="150" r=".9"/></g>
+            <path d="M150 58 L154 96 H158 V124 H166 V150 H176 V180 H188 V306 H112 V180 H124 V150 H134 V124 H142 V96 H146 Z" fill="#07100d" stroke="#d4af37" stroke-width="1.2"/>
+            <g stroke="#d4af37" stroke-width="1" fill="none" opacity=".8">
+              <path d="M150 100 V306 M138 132 V306 M162 132 V306 M128 160 V306 M172 160 V306"/>
+              <path d="M112 196 L150 176 L188 196 M112 216 L150 196 L188 216"/>
+            </g>
+            <path d="M0 306 V250 H40 V230 H64 V250 H90 V306 Z M210 306 V246 H236 V226 H262 V240 H300 V306 Z" fill="#07100d"/>
+            <g fill="none" stroke="#d4af37" stroke-width="1.2"><path d="M20 306 V160 A130 130 0 0 1 280 160 V306"/></g>
+            <circle class="glint" cx="150" cy="58" r="4" fill="#fff6d4"/>
+          </svg>
+        </div>
+        <div class="suite-body">
+          <p class="suite-kicker">Residence No. 3</p>
+          <h3 id="s3">The Aurelian Penthouse</h3>
+          <p class="suite-meta">3,200 sq ft · Two floors · Sleeps six</p>
+          <p class="suite-copy">A private lift, a terrace ringed by stepped parapets, and a black lacquer baby grand beneath the spire's own searchlights.</p>
+          <div class="suite-foot">
+            <p class="rate"><small>From, per night</small>$4,200</p>
+            <button type="button" class="btn btn-sm" data-suite="The Aurelian Penthouse">Select</button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="floor" id="salon" data-floor="The Salon" aria-labelledby="salonTitle">
+    <div class="fan-frieze" aria-hidden="true">
+      <svg class="fan" data-blades="9" viewBox="-104 -104 208 108"></svg>
+      <svg class="fan" data-blades="11" viewBox="-104 -104 208 108"></svg>
+      <svg class="fan" data-blades="13" viewBox="-104 -104 208 108"></svg>
+      <svg class="fan" data-blades="17" viewBox="-104 -104 208 108"></svg>
+      <svg class="fan" data-blades="13" viewBox="-104 -104 208 108"></svg>
+      <svg class="fan" data-blades="11" viewBox="-104 -104 208 108"></svg>
+      <svg class="fan" data-blades="9" viewBox="-104 -104 208 108"></svg>
+    </div>
+    <div class="floor-head">
+      <p class="eyebrow">Floor III</p>
+      <h2 class="sec-title" id="salonTitle"><span class="tall foil">The Salon</span></h2>
+      <svg class="chev-rule" aria-hidden="true"><use href="#chev"/></svg>
+    </div>
+    <div class="salon-grid">
+      <div class="salon-story">
+        <p>On the last night of 1928, the brass doors of The Aurelian opened onto a lobby of black lacquer and emerald, and an orchestra that did not stop playing until the milk carts were out. Nearly a century later the Salon still keeps that hour: the fans on its walls unfold at dusk, the lift dial still ticks from floor to floor, and every chevron is polished by hand before the first guest comes down.</p>
+        <p>The building was drawn as a single idea — a sunburst climbing a ziggurat — and nothing was allowed to break its symmetry. Even the elevator needle swings the same distance left and right of centre.</p>
+        <dl class="stats">
+          <div><dt>Floors</dt><dd>28</dd></div>
+          <div><dt>Rooms &amp; suites</dt><dd>211</dd></div>
+          <div><dt>Leaves of gold</dt><dd id="leafCount">4,000</dd></div>
+        </dl>
+      </div>
+      <ol class="timeline">
+        <li><span class="yr">1928</span><div><h3>Opening night</h3><p>New Year's Eve. Nine hundred guests, one orchestra, and a ribbon cut with the architect's drafting knife.</p></div></li>
+        <li><span class="yr">1936</span><div><h3>The ceiling is re-gilded</h3><p>Six gilders spend a winter on scaffolds laying four thousand leaves over the Salon's sunburst.</p></div></li>
+        <li><span class="yr">1974</span><div><h3>Named a landmark</h3><p>The city protects the tower, its lacquer lobby and its brass lift dials from any change at all.</p></div></li>
+        <li><span class="yr">Today</span><div><h3>Restored, not renewed</h3><p>A four-year restoration returns every sconce, fan and needle to working order — nothing replaced that could be mended.</p></div></li>
+      </ol>
+    </div>
+    <p class="fiction-note">The Aurelian, its history and its guests are a work of fiction.</p>
+  </section>
+
+  <div class="divider" aria-hidden="true"><svg class="fan" data-blades="11" viewBox="-104 -104 208 108"></svg></div>
+
+  <section class="floor" id="dining" data-floor="Dining" aria-labelledby="diningTitle">
+    <div class="dining-grid">
+      <div class="dining-intro">
+        <p class="eyebrow">Floor IV</p>
+        <h2 class="sec-title" id="diningTitle"><span class="tall foil">The Gilded Fan</span></h2>
+        <p>Our supper club sits beneath a half-dome of gold fans that open, one by one, as the lights come down. The kitchen cooks the grand-hotel canon without irony — consommé, sole, tournedos — and the band plays from ten.</p>
+        <p>Jackets are admired but not required. Dancing is required but not policed.</p>
+        <ul class="hours">
+          <li><span>Supper</span><span>Nightly from seven</span></li>
+          <li><span>The late set</span><span>Thursday to Saturday, ten until one</span></li>
+          <li><span>Afternoon tea</span><span>In the Salon, three o'clock</span></li>
+        </ul>
+      </div>
+
+      <article class="menu-card engrave" aria-labelledby="menuTitle">
+        <svg class="corner tl" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner tr" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner bl" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner br" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="guilloche" id="guilloche" viewBox="-150 -150 300 300" aria-hidden="true"></svg>
+        <p class="menu-house">The Gilded Fan</p>
+        <h3 class="menu-title" id="menuTitle"><span>Supper</span></h3>
+        <p class="menu-when">Served nightly from seven o'clock</p>
+        <svg class="menu-fan fan" data-blades="9" data-ink="1" viewBox="-104 -104 208 108" aria-hidden="true"></svg>
+        <div class="course">
+          <h3>To Begin</h3>
+          <ul>
+            <li><span class="dish">Oysters Aurelian<span class="dots"></span><span class="price">24</span></span><span class="desc">six on ice, champagne mignonette</span></li>
+            <li><span class="dish">Consommé Madrilène<span class="dots"></span><span class="price">18</span></span><span class="desc">chilled tomato consommé, crème fraîche</span></li>
+          </ul>
+        </div>
+        <div class="course">
+          <h3>The Main Affair</h3>
+          <ul>
+            <li><span class="dish">Sole Véronique<span class="dots"></span><span class="price">46</span></span><span class="desc">poached sole, white grapes, sauce vin blanc</span></li>
+            <li><span class="dish">Tournedos Rossini<span class="dots"></span><span class="price">68</span></span><span class="desc">fillet on a crouton, foie gras, Madeira sauce</span></li>
+          </ul>
+        </div>
+        <div class="course">
+          <h3>To Finish</h3>
+          <ul>
+            <li><span class="dish">Baked Alaska<span class="dots"></span><span class="price">22</span></span><span class="desc">flambéed at the table, for two</span></li>
+            <li><span class="dish">The Sidecar<span class="dots"></span><span class="price">19</span></span><span class="desc">cognac, orange liqueur, lemon, sugared rim</span></li>
+          </ul>
+        </div>
+        <p class="menu-foot">Prices in dollars · A fictional menu</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="floor" id="reserve" data-floor="Reservations" aria-labelledby="reserveTitle">
+    <div class="floor-head">
+      <p class="eyebrow">Floor V</p>
+      <h2 class="sec-title" id="reserveTitle"><span class="tall foil">Reservations</span></h2>
+      <svg class="chev-rule" aria-hidden="true"><use href="#chev"/></svg>
+      <p class="lede">Tell the front desk when you will arrive. We will have the lift waiting, the lamps lit and the key polished.</p>
+    </div>
+    <div class="desk">
+      <svg class="desk-crown" viewBox="0 0 240 46" aria-hidden="true">
+        <path d="M0 45 H70 V33 H86 V21 H102 V9 H138 V21 H154 V33 H170 V45 H240" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M120 44 L106 30 M120 44 L112 26 M120 44 V24 M120 44 L128 26 M120 44 L134 30" stroke="currentColor" stroke-width="1"/>
+        <path d="M120 2 L124 6 L120 10 L116 6 Z" fill="currentColor"/>
+      </svg>
+      <form id="resForm" novalidate>
+        <div class="field">
+          <label for="arrive">Arrival</label>
+          <div class="deco-input"><input id="arrive" name="arrive" type="date" required></div>
+        </div>
+        <div class="field">
+          <label for="depart">Departure</label>
+          <div class="deco-input"><input id="depart" name="depart" type="date" required></div>
+        </div>
+        <div class="field">
+          <label for="suite">Residence</label>
+          <div class="deco-input">
+            <select id="suite" name="suite">
+              <option value="The Emerald Suite" data-rate="1150">The Emerald Suite — $1,150</option>
+              <option value="The Sunburst Suite" data-rate="1480">The Sunburst Suite — $1,480</option>
+              <option value="The Aurelian Penthouse" data-rate="4200">The Aurelian Penthouse — $4,200</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="guests">Guests</label>
+          <div class="deco-input">
+            <select id="guests" name="guests">
+              <option value="1">One guest</option>
+              <option value="2" selected>Two guests</option>
+              <option value="3">Three guests</option>
+              <option value="4">Four guests</option>
+              <option value="6">Six guests</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="gname">Name</label>
+          <div class="deco-input"><input id="gname" name="gname" type="text" autocomplete="name" placeholder="As it should appear on the key" required></div>
+          <p class="field-err" id="errName" aria-live="polite"></p>
+        </div>
+        <div class="field">
+          <label for="gmail">Email</label>
+          <div class="deco-input"><input id="gmail" name="gmail" type="email" autocomplete="email" placeholder="For the confirmation card" required></div>
+          <p class="field-err" id="errMail" aria-live="polite"></p>
+        </div>
+        <div class="field wide">
+          <label for="occasion">A note for the concierge</label>
+          <div class="deco-input"><textarea id="occasion" name="occasion" rows="3" placeholder="An anniversary, a late train, a preference for the quiet side of the tower…"></textarea></div>
+        </div>
+        <div class="form-foot">
+          <p class="estimate" id="estimate" aria-live="polite">Three nights · <b>$4,440</b></p>
+          <button type="submit" class="btn btn-gold"><span class="gl" aria-hidden="true">&#9670;</span> Request the Key</button>
+        </div>
+      </form>
+      <div class="keycard" id="keycard" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <svg class="monogram" aria-hidden="true"><use href="#mono"/></svg>
+  <p class="addr">One Aurelian Place · Meridian City</p>
+  <p>A fictional grand hotel, drawn in lacquer, emerald and gold. No reservation is ever sent.</p>
+</footer>
+
+<nav class="lift" id="lift" aria-label="Floor selector">
+  <button type="button" class="lift-toggle" id="liftToggle" aria-expanded="false" aria-controls="lift" aria-label="Open the floor selector"></button>
+  <p class="lift-title">Floor Indicator</p>
+  <div class="lift-face">
+    <svg viewBox="0 0 184 108" aria-hidden="true">
+      <path d="M8 96 A84 84 0 0 1 176 96" fill="none" stroke="url(#gGold)" stroke-width="2"/>
+      <path d="M22 96 A70 70 0 0 1 162 96" fill="none" stroke="#d4af37" stroke-opacity=".25" stroke-width="16"/>
+      <g id="ticks" stroke="#d4af37"></g>
+      <path d="M40 96 H144" stroke="#d4af37" stroke-opacity=".35"/>
+      <g id="needle">
+        <path d="M92 96 L89.2 60 L92 30 L94.8 60 Z" fill="url(#gGoldV)" stroke="#8c6d1c" stroke-width=".6"/>
+        <path d="M92 96 L90 108 L94 108 Z" fill="#8c6d1c"/>
+        <circle cx="92" cy="106" r="4" fill="none" stroke="#d4af37" stroke-width="1"/>
+      </g>
+      <circle cx="92" cy="96" r="7" fill="url(#gGoldV)" stroke="#8c6d1c" stroke-width=".8"/>
+      <circle cx="92" cy="96" r="2.4" fill="#0f3d33"/>
+    </svg>
+    <ol class="lift-floors">
+      <li><button type="button" data-go="0" style="--a:-72deg" aria-label="Lobby">L</button></li>
+      <li><button type="button" data-go="1" style="--a:-36deg" aria-label="Floor 2, the suites">2</button></li>
+      <li><button type="button" data-go="2" style="--a:0deg" aria-label="Floor 3, the salon">3</button></li>
+      <li><button type="button" data-go="3" style="--a:36deg" aria-label="Floor 4, dining">4</button></li>
+      <li><button type="button" data-go="4" style="--a:72deg" aria-label="Floor 5, reservations">5</button></li>
+    </ol>
+  </div>
+  <p class="lift-plaque" id="liftName" aria-live="polite">Lobby</p>
+  <div class="lift-ctl">
+    <button type="button" id="liftDown" aria-label="Down one floor"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 4 H12 L7 11 Z" fill="currentColor"/></svg></button>
+    <button type="button" id="liftChime" aria-pressed="false" aria-label="Lift chime sound">
+      <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.5 C4.4 1.5 3.5 3.6 3.5 6 V8.5 L2 10.5 H12 L10.5 8.5 V6 C10.5 3.6 9.6 1.5 7 1.5 Z M5.6 11.6 A1.5 1.5 0 0 0 8.4 11.6" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>
+      <span>Chime</span>
+    </button>
+    <button type="button" id="liftUp" aria-label="Up one floor"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 10 H12 L7 3 Z" fill="currentColor"/></svg></button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function el(tag, attrs, parent){
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function f(n){ return Math.round(n * 10) / 10; }
+
+  /* ---------- sunburst rays ---------- */
+  (function(){
+    var g = document.getElementById("rays");
+    var N = 72, i;
+    for (i = 0; i < N; i++){
+      var a = i / N * Math.PI * 2;
+      var long = i % 2 === 0, major = i % 6 === 0;
+      var r0 = major ? 150 : 190, r1 = major ? 500 : (long ? 440 : 300);
+      var w = (major ? 0.022 : long ? 0.014 : 0.01);
+      var p1x = Math.cos(a - w) * r0, p1y = Math.sin(a - w) * r0;
+      var p2x = Math.cos(a + w) * r0, p2y = Math.sin(a + w) * r0;
+      var tx = Math.cos(a) * r1, ty = Math.sin(a) * r1;
+      el("path", {d:"M"+f(p1x)+" "+f(p1y)+" L"+f(tx)+" "+f(ty)+" L"+f(p2x)+" "+f(p2y)+" Z", fill:"url(#gRay)"}, g);
+    }
+    el("circle", {r:"150", fill:"none", stroke:"#d4af37", "stroke-opacity":".35", "stroke-width":"1"}, g);
+    el("circle", {r:"158", fill:"none", stroke:"#d4af37", "stroke-opacity":".18", "stroke-width":"6", "stroke-dasharray":"1 7"}, g);
+  })();
+
+  /* ---------- the self-drawing deco frame ---------- */
+  var frameSvg = document.getElementById("frameSvg");
+  var frameDrawn = false;
+  function pts(list){ return list.map(function(p, i){ return (i ? "L" : "M") + f(p[0]) + " " + f(p[1]); }).join(" "); }
+  function mirror(list, W){ return list.map(function(p){ return [W - p[0], p[1]]; }); }
+  function buildFrame(){
+    var r = frameSvg.getBoundingClientRect();
+    var W = Math.max(200, r.width), H = Math.max(300, r.height);
+    var small = W < 700;
+    frameSvg.setAttribute("viewBox", "0 0 " + f(W) + " " + f(H));
+    while (frameSvg.firstChild) frameSvg.removeChild(frameSvg.firstChild);
+    var cx = W / 2;
+    var stepW = small ? Math.max(24, W * 0.085) : Math.min(150, W * 0.095);
+    var stepH = small ? 15 : 22;
+    var ch = small ? 18 : 30;
+    function half(m){
+      return [[cx, H - m], [m + ch, H - m], [m, H - m - ch], [m, m + 3 * stepH], [m + stepW, m + 3 * stepH], [m + stepW, m + 2 * stepH],
+        [m + 2 * stepW, m + 2 * stepH], [m + 2 * stepW, m + stepH], [m + 3 * stepW, m + stepH], [m + 3 * stepW, m], [cx, m]];
+    }
+    var paths = [];
+    var outer = half(0.5), inner = half(small ? 7 : 10);
+    paths.push({d: pts(outer), w: 1.6, delay: 0});
+    paths.push({d: pts(mirror(outer, W)), w: 1.6, delay: 0});
+    paths.push({d: pts(inner), w: 0.8, delay: 0.18, o: 0.7});
+    paths.push({d: pts(mirror(inner, W)), w: 0.8, delay: 0.18, o: 0.7});
+    // pilasters rising on each side
+    var pil = small ? [16, 21] : [24, 31, 38];
+    var top = 3 * stepH + (small ? 50 : 80), bottom = H - (small ? 60 : 110);
+    pil.forEach(function(x, k){
+      var d = "M" + f(x) + " " + f(bottom) + " L" + f(x) + " " + f(top + k * 12);
+      paths.push({d: d, w: 0.7, delay: 0.5 + k * 0.08, o: 0.55});
+      paths.push({d: "M" + f(W - x) + " " + f(bottom) + " L" + f(W - x) + " " + f(top + k * 12), w: 0.7, delay: 0.5 + k * 0.08, o: 0.55});
+    });
+    // corner quarter-sunbursts
+    var cr = small ? 44 : 78, cxo = small ? 7 : 10;
+    var n = small ? 6 : 8;
+    for (var i = 0; i <= n; i++){
+      var a = -Math.PI / 2 + (i / n) * Math.PI / 2;
+      var len = cr * (i % 2 ? 0.66 : 1);
+      var ox = cxo + (small ? 0 : 4), oy = H - cxo - (small ? 0 : 4);
+      var ex = ox + Math.cos(a) * len, ey = oy + Math.sin(a) * len;
+      paths.push({d: "M" + f(ox) + " " + f(oy) + " L" + f(ex) + " " + f(ey), w: 0.8, delay: 0.7 + i * 0.03, o: 0.8});
+      paths.push({d: "M" + f(W - ox) + " " + f(oy) + " L" + f(W - ex) + " " + f(ey), w: 0.8, delay: 0.7 + i * 0.03, o: 0.8});
+    }
+    // keystone fan hanging from the crown
+    var kr = small ? 36 : 58, ky = small ? 7 : 10;
+    var kn = 12;
+    var arc = "M" + f(cx - kr) + " " + f(ky) + " A" + kr + " " + kr + " 0 0 0 " + f(cx + kr) + " " + f(ky);
+    paths.push({d: arc, w: 1, delay: 0.55});
+    var arc2 = "M" + f(cx - kr * 0.55) + " " + f(ky) + " A" + f(kr * 0.55) + " " + f(kr * 0.55) + " 0 0 0 " + f(cx + kr * 0.55) + " " + f(ky);
+    paths.push({d: arc2, w: 0.8, delay: 0.65, o: 0.7});
+    for (var j = 1; j < kn; j++){
+      var b = Math.PI - (j / kn) * Math.PI;
+      paths.push({d: "M" + f(cx + Math.cos(b) * kr * 0.55) + " " + f(ky + Math.sin(b) * kr * 0.55) + " L" + f(cx + Math.cos(b) * kr) + " " + f(ky + Math.sin(b) * kr), w: 0.8, delay: 0.75 + Math.abs(j - kn / 2) * 0.03, o: 0.85});
+    }
+    // chevrons at the foot
+    var fy = H - (small ? 22 : 30), fw = small ? 16 : 26;
+    for (var c = 0; c < 3; c++){
+      var yy = fy - c * (small ? 7 : 9);
+      paths.push({d: "M" + f(cx - fw) + " " + f(yy - fw * 0.5) + " L" + f(cx) + " " + f(yy) + " L" + f(cx + fw) + " " + f(yy - fw * 0.5), w: 0.9, delay: 0.9 + c * 0.08, o: 0.9 - c * 0.2});
+    }
+    paths.forEach(function(p){
+      var node = el("path", {d: p.d, pathLength: "1", stroke: "url(#gGold)", "stroke-width": p.w, "stroke-opacity": p.o || 1}, frameSvg);
+      if (!frameDrawn && !reduced){
+        node.setAttribute("class", "draw");
+        node.style.animationDelay = (0.15 + p.delay) + "s";
+      }
+    });
+    frameDrawn = true;
+  }
+
+  /* ---------- fans that unfold ---------- */
+  var fans = Array.prototype.slice.call(document.querySelectorAll("svg.fan"));
+  fans.forEach(function(svg){
+    var n = parseInt(svg.getAttribute("data-blades"), 10) || 9;
+    var ink = svg.hasAttribute("data-ink");
+    var gold = ink ? "#9a7a22" : "#d4af37";
+    var spread = 170;
+    el("path", {class: "fan-arc", d: "M-100 0 A100 100 0 0 1 100 0", fill: "none", stroke: gold, "stroke-width": "1.2", pathLength: "1"}, svg);
+    el("path", {class: "fan-arc", d: "M-86 0 A86 86 0 0 1 86 0", fill: "none", stroke: gold, "stroke-opacity": ".45", "stroke-width": ".8", pathLength: "1"}, svg);
+    var mid = (n - 1) / 2;
+    for (var i = 0; i < n; i++){
+      var ang = -spread / 2 + (i / (n - 1)) * spread;
+      var blade = el("path", {
+        class: "blade",
+        d: "M0 0 L-" + (i % 2 ? 7 : 9) + " -34 L0 -" + (i % 2 ? 84 : 96) + " L" + (i % 2 ? 7 : 9) + " -34 Z",
+        fill: i % 2 ? (ink ? "#e9dcb6" : "#0f3d33") : "url(#gGoldV)",
+        stroke: gold, "stroke-width": ".8"
+      }, svg);
+      blade.style.setProperty("--a", f(ang) + "deg");
+      blade.style.setProperty("--d", (Math.abs(i - mid) * 0.045) + "s");
+      if (i % 2 === 0) el("path", {d: "M0 -40 V-" + (ink ? 70 : 80), stroke: ink ? "#f0e6cc" : "#0b0b0c", "stroke-width": ".8", "stroke-opacity": ".5", class: "blade", style: "--a:" + f(ang) + "deg;--d:" + (Math.abs(i - mid) * 0.045) + "s"}, svg);
+    }
+    var hub = el("g", {class: "fan-hub"}, svg);
+    el("path", {d: "M-18 0 A18 18 0 0 1 18 0 Z", fill: ink ? "#9a7a22" : "#0b0b0c", stroke: gold, "stroke-width": "1.2"}, hub);
+    el("circle", {cy: "-6", r: "3", fill: ink ? "#f0e6cc" : "#d4af37"}, hub);
+    el("path", {d: "M-104 0 H104", stroke: gold, "stroke-width": "1"}, svg);
+  });
+  if ("IntersectionObserver" in window && !reduced){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add("open"); }
+        else if (e.boundingClientRect.top > 0){ e.target.classList.remove("open"); }
+      });
+    }, {threshold: 0.35});
+    fans.forEach(function(s){ io.observe(s); });
+  } else {
+    fans.forEach(function(s){ s.classList.add("open"); });
+  }
+
+  /* ---------- guilloche rosette on the menu card ---------- */
+  (function(){
+    var g = document.getElementById("guilloche");
+    var K = 36;
+    for (var i = 0; i < K; i++){
+      var e = el("ellipse", {rx: "120", ry: "46", fill: "none", stroke: "currentColor", "stroke-width": ".5"}, g);
+      e.setAttribute("transform", "rotate(" + f(i * 180 / K) + ")");
+    }
+    for (var j = 0; j < 24; j++){
+      var e2 = el("ellipse", {rx: "70", ry: "22", fill: "none", stroke: "currentColor", "stroke-width": ".4"}, g);
+      e2.setAttribute("transform", "rotate(" + f(j * 7.5) + ")");
+    }
+    el("circle", {r: "132", fill: "none", stroke: "currentColor", "stroke-width": ".7"}, g);
+    el("circle", {r: "140", fill: "none", stroke: "currentColor", "stroke-width": "1.4", "stroke-dasharray": "1 4"}, g);
+  })();
+
+  /* ---------- the lift dial ---------- */
+  var ticks = document.getElementById("ticks");
+  for (var t = -80; t <= 80; t += 4){
+    var ra = (t - 90) * Math.PI / 180;
+    var major = t % 36 === 0 && Math.abs(t) <= 72;
+    var r0 = major ? 74 : 79, r1 = 84;
+    el("line", {x1: f(92 + Math.cos(ra) * r0), y1: f(96 + Math.sin(ra) * r0), x2: f(92 + Math.cos(ra) * r1), y2: f(96 + Math.sin(ra) * r1), "stroke-width": major ? "1.4" : ".6", "stroke-opacity": major ? "1" : ".55"}, ticks);
+  }
+  var floors = Array.prototype.slice.call(document.querySelectorAll("[data-floor]"));
+  var floorBtns = Array.prototype.slice.call(document.querySelectorAll(".lift-floors button"));
+  var needle = document.getElementById("needle");
+  var liftName = document.getElementById("liftName");
+  var ANG = [-72, -36, 0, 36, 72];
+  var tops = [];
+  var cur = -72, vel = 0, target = -72, active = 0, needleRAF = 0, first = true;
+  function measure(){
+    tops = floors.map(function(s){ return s.getBoundingClientRect().top + window.pageYOffset; });
+  }
+  function smooth(x){ x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); }
+  function computeTarget(){
+    var y = window.pageYOffset, vh = window.innerHeight;
+    var probe = y + vh * 0.42;
+    var idx = 0;
+    for (var i = 0; i < tops.length; i++){ if (probe >= tops[i]) idx = i; }
+    var ang = ANG[idx];
+    if (idx < tops.length - 1){
+      var span = tops[idx + 1] - tops[idx];
+      var frac = (probe - tops[idx]) / span;
+      ang = ANG[idx] + (ANG[idx + 1] - ANG[idx]) * smooth((frac - 0.62) / 0.38);
+    }
+    var docH = document.documentElement.scrollHeight;
+    if (y + vh >= docH - 4){ ang = ANG[ANG.length - 1]; }
+    target = ang;
+    var near = Math.round((ang + 72) / 36);
+    near = Math.max(0, Math.min(4, near));
+    if (near !== active || first){ setActive(near, !first); }
+    first = false;
+    kick();
+  }
+  function setActive(i, chime){
+    active = i;
+    floorBtns.forEach(function(b, k){
+      b.classList.toggle("on", k === i);
+      if (k === i) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
+    });
+    liftName.textContent = floors[i].getAttribute("data-floor");
+    if (chime) ding();
+  }
+  function stepNeedle(){
+    needleRAF = 0;
+    if (reduced){ cur = target; vel = 0; }
+    else {
+      vel += (target - cur) * 0.09;
+      vel *= 0.74;
+      cur += vel;
+    }
+    needle.style.transform = "rotate(" + cur.toFixed(2) + "deg)";
+    if (Math.abs(target - cur) > 0.05 || Math.abs(vel) > 0.05) kick();
+  }
+  function kick(){ if (!needleRAF) needleRAF = requestAnimationFrame(stepNeedle); }
+  var scrollQueued = false;
+  window.addEventListener("scroll", function(){
+    if (scrollQueued) return;
+    scrollQueued = true;
+    requestAnimationFrame(function(){ scrollQueued = false; computeTarget(); });
+  }, {passive: true});
+  function goFloor(i){
+    i = Math.max(0, Math.min(floors.length - 1, i));
+    floors[i].scrollIntoView({behavior: reduced ? "auto" : "smooth", block: "start"});
+  }
+  var lift = document.getElementById("lift"), liftToggle = document.getElementById("liftToggle");
+  var compact = window.matchMedia("(max-width: 760px)");
+  function openLift(v){
+    lift.classList.toggle("open", v);
+    liftToggle.setAttribute("aria-expanded", String(v));
+  }
+  liftToggle.addEventListener("click", function(){ openLift(true); try { floorBtns[active].focus({preventScroll: true}); } catch (e){} });
+  document.addEventListener("pointerdown", function(e){ if (lift.classList.contains("open") && !lift.contains(e.target)) openLift(false); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && lift.classList.contains("open")){ openLift(false); liftToggle.focus(); } });
+  floorBtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      goFloor(parseInt(b.getAttribute("data-go"), 10));
+      if (compact.matches) setTimeout(function(){ openLift(false); }, 700);
+    });
+  });
+  document.getElementById("liftUp").addEventListener("click", function(){ goFloor(active + 1); });
+  document.getElementById("liftDown").addEventListener("click", function(){ goFloor(active - 1); });
+
+  /* ---------- the chime (Web Audio, opt-in) ---------- */
+  var actx = null, chimeOn = false;
+  var chimeBtn = document.getElementById("liftChime");
+  chimeBtn.addEventListener("click", function(){
+    chimeOn = !chimeOn;
+    chimeBtn.setAttribute("aria-pressed", String(chimeOn));
+    if (chimeOn){
+      try {
+        if (!actx){ var AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); }
+        if (actx && actx.state === "suspended") actx.resume();
+      } catch (e){ actx = null; }
+      ding();
+    }
+  });
+  function ding(){
+    if (!chimeOn || !actx) return;
+    var now = actx.currentTime;
+    var master = actx.createGain();
+    master.gain.value = 0.16;
+    master.connect(actx.destination);
+    [[1318.5, 1, 1.8], [1318.5 * 2.76, 0.28, 0.6], [1318.5 * 5.4, 0.08, 0.3], [659.25, 0.35, 1.4]].forEach(function(p){
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine"; o.frequency.value = p[0];
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(p[1], now + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + p[2]);
+      o.connect(g); g.connect(master);
+      o.start(now); o.stop(now + p[2] + 0.05);
+    });
+  }
+
+  /* ---------- suites feed the reservation form ---------- */
+  var suiteSel = document.getElementById("suite");
+  Array.prototype.forEach.call(document.querySelectorAll("[data-suite]"), function(b){
+    b.addEventListener("click", function(){
+      suiteSel.value = b.getAttribute("data-suite");
+      if (b.getAttribute("data-suite") === "The Aurelian Penthouse") document.getElementById("guests").value = "4";
+      updateEstimate();
+      goFloor(4);
+      setTimeout(function(){ try { document.getElementById("gname").focus({preventScroll: true}); } catch (e){} }, reduced ? 50 : 900);
+    });
+  });
+
+  /* ---------- reservation form ---------- */
+  var arrive = document.getElementById("arrive"), depart = document.getElementById("depart");
+  var estimate = document.getElementById("estimate");
+  function iso(d){ return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  var today = new Date(); today.setHours(12, 0, 0, 0);
+  var a0 = new Date(today.getTime() + 21 * 864e5), d0 = new Date(today.getTime() + 24 * 864e5);
+  arrive.value = iso(a0); depart.value = iso(d0); arrive.min = iso(today); depart.min = iso(new Date(today.getTime() + 864e5));
+  var WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen"];
+  function nights(){
+    var a = new Date(arrive.value + "T12:00:00"), b = new Date(depart.value + "T12:00:00");
+    if (isNaN(a) || isNaN(b)) return 0;
+    return Math.round((b - a) / 864e5);
+  }
+  function money(n){ return "$" + n.toLocaleString("en-US"); }
+  function updateEstimate(){
+    var n = nights();
+    var rate = parseInt(suiteSel.options[suiteSel.selectedIndex].getAttribute("data-rate"), 10);
+    if (n <= 0){ estimate.innerHTML = "Choose a departure after your arrival"; return; }
+    var word = n < WORDS.length ? WORDS[n] : String(n);
+    estimate.innerHTML = word + (n === 1 ? " night · " : " nights · ") + "<b>" + money(n * rate) + "</b>";
+  }
+  [arrive, depart, suiteSel].forEach(function(x){ x.addEventListener("change", updateEstimate); x.addEventListener("input", updateEstimate); });
+  arrive.addEventListener("change", function(){
+    if (nights() <= 0){
+      var a = new Date(arrive.value + "T12:00:00");
+      if (!isNaN(a)){ depart.value = iso(new Date(a.getTime() + 2 * 864e5)); updateEstimate(); }
+    }
+  });
+  updateEstimate();
+  try { var saved = localStorage.getItem("aurelian-guest"); if (saved) document.getElementById("gname").value = saved; } catch (e){}
+
+  var form = document.getElementById("resForm"), keycard = document.getElementById("keycard");
+  form.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var name = document.getElementById("gname"), mail = document.getElementById("gmail");
+    var ok = true;
+    document.getElementById("errName").textContent = "";
+    document.getElementById("errMail").textContent = "";
+    if (name.value.trim().length < 2){ document.getElementById("errName").textContent = "The key needs a name to be engraved."; ok = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.value.trim())){ document.getElementById("errMail").textContent = "A valid address, please, for the card."; ok = false; }
+    if (nights() <= 0){ estimate.textContent = "Departure must follow arrival."; ok = false; }
+    if (!ok){ (name.value.trim().length < 2 ? name : mail).focus(); return; }
+    try { localStorage.setItem("aurelian-guest", name.value.trim()); } catch (e){}
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", code = "";
+    for (var i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    var n = nights();
+    var rate = parseInt(suiteSel.options[suiteSel.selectedIndex].getAttribute("data-rate"), 10);
+    var fmt = function(v){ var d = new Date(v + "T12:00:00"); return d.toLocaleDateString("en-US", {weekday: "long", month: "long", day: "numeric"}); };
+    keycard.innerHTML = "";
+    var h = document.createElement("h3"); h.className = "foil"; h.textContent = "Your key is being polished";
+    var c = document.createElement("p"); c.className = "code"; c.textContent = "AUR-28-" + code;
+    var p1 = document.createElement("p"); p1.textContent = name.value.trim() + " · " + suiteSel.value + " · " + n + (n === 1 ? " night" : " nights") + " from " + fmt(arrive.value) + " · " + money(n * rate);
+    var p2 = document.createElement("p"); p2.style.fontStyle = "italic"; p2.textContent = "A fictional confirmation: nothing has been sent anywhere, and the lift is only a drawing.";
+    keycard.appendChild(h); keycard.appendChild(c); keycard.appendChild(p1); keycard.appendChild(p2);
+    keycard.classList.remove("show"); void keycard.offsetWidth; keycard.classList.add("show");
+    ding();
+  });
+
+  /* ---------- layout ---------- */
+  var rz = 0;
+  function relayout(){ buildFrame(); measure(); computeTarget(); }
+  window.addEventListener("resize", function(){ cancelAnimationFrame(rz); rz = requestAnimationFrame(relayout); });
+  window.addEventListener("load", function(){ measure(); computeTarget(); });
+  document.addEventListener("visibilitychange", function(){
+    Array.prototype.forEach.call(document.querySelectorAll(".sunburst .spin, .sunburst .spin-rev, .sunburst .pulse"), function(n){
+      n.style.animationPlayState = document.hidden ? "paused" : "running";
+    });
+  });
+  relayout();
+  needle.style.transform = "rotate(-72deg)";
+})();
+</script>
+</body>
+</html>

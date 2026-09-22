@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Horologe — The Word Clock</title>
+<meta name="description" content="Horologe is a typographic word clock that spells the time on an 11×10 letter grid, in English or Spanish, with four faces: Obsidian, Paper, Copper and Neon.">
+<meta name="theme-color" content="#0b0b0b">
+<style>
+:root{
+  --S:min(88vw,calc(100vh - 222px),1000px);
+  --sans:"Futura","Avenir Next","Century Gothic","URW Gothic","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Nimbus Mono PS","DejaVu Sans Mono",monospace;
+  --serif:"Iowan Old Style","Palatino Linotype","P052",Georgia,serif;
+}
+/* ---------- faces: every colour lives here ---------- */
+body[data-face="obsidian"]{
+  --bg:radial-gradient(120% 90% at 50% 30%,#171717,#0b0b0b 55%,#050505);
+  --ui:#b9b2a4;--ui-dim:#6d685f;--line:rgba(255,246,229,.1);--accent:#fff6e5;
+  --off:#2a2a2a;--off-sh:0 0 0 transparent;
+  --on:#fff6e5;--on-sh:0 0 .06em rgba(255,246,229,.95),0 0 .3em rgba(255,226,180,.55),0 0 .8em rgba(255,200,130,.28);
+  --panel:radial-gradient(130% 100% at 22% 0%,#1b1b1b,#111 50%,#0c0c0c);
+  --panel-sh:0 60px 120px -40px rgba(0,0,0,.95),0 20px 40px -20px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07),inset 0 0 0 1px #1d1d1d;
+  --radius:1.6%;
+  --sheen:linear-gradient(118deg,rgba(255,255,255,.034) 0 33.6%,rgba(255,255,255,0) 34.4%);
+}
+body[data-face="paper"]{
+  --bg:radial-gradient(120% 90% at 50% 25%,#efe9dd,#e3dccd 60%,#d4ccbb);
+  --ui:#4a4238;--ui-dim:#8f8575;--line:rgba(40,30,20,.14);--accent:#1c1a17;
+  --off:#d9d1c1;--off-sh:0 1px 0 rgba(255,255,255,.85),0 -1px 0 rgba(90,70,40,.08);
+  --on:#1f1c18;--on-sh:0 0 .02em rgba(31,28,24,.6),0 .02em .03em rgba(31,28,24,.25);
+  --panel:radial-gradient(140% 110% at 30% 0%,#f8f5ee,#f3efe6 55%,#ebe5d8);
+  --panel-sh:0 40px 80px -36px rgba(70,50,20,.45),0 8px 18px -8px rgba(70,50,20,.2),inset 0 0 0 1px rgba(120,100,70,.12);
+  --radius:.6%;
+  --sheen:linear-gradient(180deg,rgba(255,255,255,.4),rgba(255,255,255,0) 30%);
+}
+body[data-face="copper"]{
+  --bg:radial-gradient(110% 90% at 50% 20%,#2a1a10,#150d08 60%,#0b0604);
+  --ui:#d9b28c;--ui-dim:#8b6a4c;--line:rgba(255,190,130,.14);--accent:#ffb877;
+  --off:rgba(46,17,3,.66);--off-sh:0 1px 0 rgba(255,200,150,.3),0 -1px 0 rgba(30,10,0,.45);
+  --on:#fffaf0;--on-sh:0 0 .04em #fff,0 0 .14em #ffd79a,0 0 .34em rgba(255,150,50,.95),0 0 .8em rgba(255,110,20,.7),0 0 1.5em rgba(255,90,10,.35);
+  --panel:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,rgba(0,0,0,.06) 1px 2px,transparent 2px 4px),linear-gradient(118deg,#4f260f 0%,#8f4f25 20%,#b8713f 36%,#86461f 54%,#a2602f 72%,#51280f 100%);
+  --panel-sh:0 50px 100px -36px rgba(0,0,0,.9),inset 0 2px 1px rgba(255,226,190,.55),inset 0 -3px 3px rgba(40,14,2,.45),inset 0 0 0 1px rgba(60,24,6,.6);
+  --radius:2.4%;
+  --sheen:radial-gradient(90% 60% at 30% 10%,rgba(255,226,190,.2),rgba(255,226,190,0) 60%);
+}
+body[data-face="neon"]{
+  --bg:linear-gradient(rgba(8,5,11,.86),rgba(8,5,11,.93)),repeating-linear-gradient(0deg,#1b1320 0 2px,transparent 2px 38px),repeating-linear-gradient(90deg,#1b1320 0 2px,transparent 2px 76px),#120c16;
+  --ui:#d7a9cc;--ui-dim:#7d5a74;--line:rgba(255,79,216,.18);--accent:#ff4fd8;
+  --off:#2c1128;--off-sh:0 0 .03em rgba(255,79,216,.28);
+  --on:#ffe8fa;--on-sh:0 0 .03em #fff,0 0 .12em #ff4fd8,0 0 .32em #ff4fd8,0 0 .7em rgba(255,79,216,.75),0 0 1.4em rgba(255,40,190,.45);
+  --panel:radial-gradient(120% 100% at 50% 0%,#150e19,#0d0910 60%,#09060b);
+  --panel-sh:0 0 0 1px rgba(255,79,216,.14),0 0 70px -10px rgba(255,79,216,.28),0 50px 100px -40px rgba(0,0,0,.95);
+  --radius:3.2%;
+  --sheen:linear-gradient(180deg,rgba(255,79,216,.05),rgba(255,79,216,0) 40%);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{background:#0b0b0b;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;background:var(--bg);color:var(--ui);font-family:var(--sans);overflow-x:hidden;transition:color .6s}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+
+/* ---------- top bar ---------- */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(16px,3vw,36px);transition:opacity .6s}
+.brand{display:flex;align-items:baseline;gap:14px;min-width:0}
+.brand .name{font-size:14px;font-weight:500;letter-spacing:.62em;color:var(--accent);padding-left:.1em}
+.brand .sub{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ui-dim);white-space:nowrap}
+.ctrls{display:flex;align-items:center;gap:10px}
+.faces{display:flex;gap:6px;padding:4px;border-radius:999px;border:1px solid var(--line)}
+.fb{position:relative;width:30px;height:30px;border-radius:50%;border:0;padding:0;cursor:pointer;background:none;display:grid;place-items:center}
+.fb i{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.fb[data-f="obsidian"] i{background:radial-gradient(circle at 35% 30%,#3a3a3a,#0d0d0d);box-shadow:inset 0 0 0 1px #555}
+.fb[data-f="paper"] i{background:#f3efe6;box-shadow:inset 0 0 0 1px #bdb4a2}
+.fb[data-f="copper"] i{background:linear-gradient(135deg,#e8a46a,#b0642f 55%,#7a3f1c)}
+.fb[data-f="neon"] i{background:#1a0f1a;box-shadow:inset 0 0 0 2px #ff4fd8,0 0 8px #ff4fd8}
+.fb::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 1.5px var(--accent);opacity:0;transform:scale(.8);transition:opacity .3s,transform .35s}
+.fb[aria-pressed="true"]::after{opacity:1;transform:scale(1)}
+.fb:hover i{transform:scale(1.15)}
+.tb{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--ui);transition:background .3s,border-color .3s,color .3s}
+.tb:hover{border-color:var(--accent);color:var(--accent)}
+.tb svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tb[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#0b0b0b}
+body[data-face="paper"] .tb[aria-pressed="true"]{color:#f3efe6}
+.tb.icon{width:38px;padding:0;justify-content:center}
+.lang b{font-weight:500;opacity:.4;transition:opacity .3s}
+.lang b.cur{opacity:1}
+
+/* ---------- the face ---------- */
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(14px,2.4vh,26px);padding:0 12px 8px}
+.face{position:relative;width:var(--S);height:var(--S);border:0;padding:0;cursor:pointer;border-radius:var(--radius);background:var(--panel);box-shadow:var(--panel-sh);font-family:var(--sans);transition:border-radius .6s,box-shadow .6s;-webkit-tap-highlight-color:transparent}
+.face::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--sheen);pointer-events:none}
+.face:focus-visible{outline-offset:8px}
+.grid{position:absolute;left:9.5%;right:9.5%;top:10%;bottom:10%;display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(10,1fr);font-size:calc(var(--S) * .047);font-weight:500;line-height:1;perspective:600px}
+.c{--sw:calc((var(--r) + var(--c)) * 16ms);display:grid;place-items:center;color:var(--off);text-shadow:var(--off-sh);
+  transition:color .95s cubic-bezier(.4,0,.2,1) var(--dl,0ms),text-shadow .95s cubic-bezier(.4,0,.2,1) var(--dl,0ms),opacity .24s ease var(--sw),transform .24s ease var(--sw)}
+.c.on{color:var(--on);text-shadow:var(--on-sh)}
+.grid.out .c{opacity:0;transform:rotateX(85deg) scale(.92)}
+.grid.instant .c{transition:opacity .24s ease var(--sw),transform .24s ease var(--sw)}
+body[data-face="neon"] .c.on{animation:tube .75s linear var(--dl,0ms) backwards}
+@keyframes tube{0%{opacity:.15}8%{opacity:1}12%{opacity:.3}18%{opacity:1}26%{opacity:.55}32%,100%{opacity:1}}
+.c.egg{color:var(--accent);text-shadow:0 0 .3em var(--accent);transition-delay:0ms}
+body[data-face="paper"] .c.egg{color:#b3402a;text-shadow:none}
+.dot{position:absolute;width:calc(var(--S) * .016);height:calc(var(--S) * .016);border-radius:50%;background:var(--off);box-shadow:var(--off-sh);transition:background .8s,box-shadow .8s}
+.dot.on{background:var(--on);box-shadow:0 0 calc(var(--S) * .01) var(--on),0 0 calc(var(--S) * .03) var(--accent)}
+body[data-face="paper"] .dot.on{box-shadow:none}
+.dot.d1{left:4.4%;top:4.4%}
+.dot.d2{right:4.4%;top:4.4%}
+.dot.d3{right:4.4%;bottom:4.4%}
+.dot.d4{left:4.4%;bottom:4.4%}
+
+/* ---------- caption ---------- */
+.caption{text-align:center;min-height:52px}
+.date{margin:0;font-family:var(--serif);font-style:italic;font-size:clamp(16px,1.7vw,21px);color:var(--ui);letter-spacing:.01em}
+.year{margin:4px 0 0;font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--ui-dim)}
+.readout{margin:6px 0 0;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--accent)}
+.readout[hidden]{display:none}
+.facewrap{position:relative}
+.progress{position:absolute;left:0;right:0;bottom:calc(var(--S) * -.022 - 2px);height:2px;border-radius:2px;background:var(--line);overflow:hidden;opacity:0;transition:opacity .4s}
+.progress i{display:block;height:100%;width:100%;background:var(--accent);transform-origin:0 50%;transform:scaleX(0)}
+body.demo .progress{opacity:1}
+
+.foot{padding:12px clamp(16px,3vw,36px) 18px;display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ui-dim);transition:opacity .6s}
+.foot kbd{font-family:var(--mono);font-size:10px;letter-spacing:0;padding:1px 5px;border-radius:4px;border:1px solid var(--line);color:var(--ui)}
+
+body.demo .c{transition-duration:.14s,.14s,.24s,.24s}
+body.demo .c.on{animation:none}
+body.fs.idle .bar,body.fs.idle .foot{opacity:0}
+body.fs{cursor:default}
+body.fs.idle{cursor:none}
+
+@media (max-width:760px){
+  :root{--S:min(94vw,calc(100svh - 250px))}
+  .bar{flex-direction:column;align-items:center;gap:12px;padding-top:16px}
+  .brand{flex-direction:column;align-items:center;gap:6px}
+  .ctrls{flex-wrap:wrap;justify-content:center}
+  .foot .k{display:none}
+  #demoBtn span{display:none}
+  #demoBtn{width:38px;padding:0;justify-content:center}
+  .ctrls{gap:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  .c{transition-duration:.25s,.25s,.01ms,.01ms}
+  body[data-face="neon"] .c.on{animation:none}
+}
+</style>
+</head>
+<body data-face="obsidian">
+<header class="bar">
+  <div class="brand"><span class="name">HOROLOGE</span><span class="sub">the word clock</span></div>
+  <nav class="ctrls" aria-label="Clock controls">
+    <div class="faces" role="group" aria-label="Clock face">
+      <button type="button" class="fb" data-f="obsidian" aria-pressed="true" aria-label="Obsidian face" title="Obsidian"><i></i></button>
+      <button type="button" class="fb" data-f="paper" aria-pressed="false" aria-label="Paper face" title="Paper"><i></i></button>
+      <button type="button" class="fb" data-f="copper" aria-pressed="false" aria-label="Copper face" title="Copper"><i></i></button>
+      <button type="button" class="fb" data-f="neon" aria-pressed="false" aria-label="Neon face" title="Neon"><i></i></button>
+    </div>
+    <button type="button" class="tb lang" id="langBtn" aria-label="Switch language"><b class="cur" data-l="en">EN</b><b data-l="es">ES</b></button>
+    <button type="button" class="tb" id="demoBtn" aria-pressed="false"><svg viewBox="0 0 14 14" aria-hidden="true"><path class="ic" d="M4 2.5l7.5 4.5L4 11.5Z"/></svg><span>Demo</span></button>
+    <button type="button" class="tb icon" id="fsBtn" aria-label="Enter fullscreen"><svg viewBox="0 0 14 14" aria-hidden="true"><path class="ic" d="M1.5 5V1.5H5M9 1.5h3.5V5M12.5 9v3.5H9M5 12.5H1.5V9"/></svg></button>
+  </nav>
+</header>
+
+<main class="stage">
+  <h1 class="sr-title" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Horologe, the word clock</h1>
+  <div class="facewrap">
+    <button type="button" class="face" id="face" aria-label="Word clock">
+      <span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span><span class="dot d4"></span>
+      <span class="grid" id="grid" aria-hidden="true"></span>
+    </button>
+    <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+  </div>
+  <div class="caption">
+    <p class="date" id="date"></p>
+    <p class="year" id="year"></p>
+    <p class="readout" id="readout" hidden></p>
+  </div>
+  <p id="live" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)" aria-live="polite"></p>
+</main>
+
+<footer class="foot">
+  <span>Tap the clock · English ⇄ Español</span>
+  <span class="k"><kbd>1</kbd>–<kbd>4</kbd> faces · <kbd>L</kbd> language · <kbd>D</kbd> demo · <kbd>F</kbd> fullscreen · <kbd>M</kbd> a secret</span>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+  /* ================= the two layouts (original) ================= */
+  const LAYOUT = {
+    en: {
+      rows: ['ITMISOHALFM', 'TWENTYEFIVE', 'QUARTERNTEN', 'PASTTOSEVEN', 'THREEELEVEN', 'TWELVEFIVET', 'EIGHTSIXTWO', 'NINEFOURONE', 'TENMIDNIGHT', 'NOONSOCLOCK'],
+      words: {
+        IT: [0, 0, 2], IS: [0, 3, 2], HALF: [0, 6, 4], TWENTY: [1, 0, 6], FIVE_M: [1, 7, 4], QUARTER: [2, 0, 7], TEN_M: [2, 8, 3],
+        PAST: [3, 0, 4], TO: [3, 4, 2], SEVEN: [3, 6, 5], THREE: [4, 0, 5], ELEVEN: [4, 5, 6], TWELVE: [5, 0, 6], FIVE: [5, 6, 4],
+        EIGHT: [6, 0, 5], SIX: [6, 5, 3], TWO: [6, 8, 3], NINE: [7, 0, 4], FOUR: [7, 4, 4], ONE: [7, 8, 3], TEN: [8, 0, 3],
+        MIDNIGHT: [8, 3, 8], NOON: [9, 0, 4], OCLOCK: [9, 5, 6]
+      },
+      hours: [null, 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE'],
+      secret: 'MOMENTS'
+    },
+    es: {
+      rows: ['ESONLASUNAM', 'DOSTRESSEIS', 'CUATROCINCO', 'SIETENUEVEO', 'OCHODIEZMEN', 'ONCEDOCETYO', 'MENOSVEINTE', 'VEINTICINCO', 'CUARTOMEDIA', 'DIEZENPUNTO'],
+      words: {
+        ES: [0, 0, 2], SON: [0, 1, 3], LA: [0, 4, 2], LAS: [0, 4, 3], UNA: [0, 7, 3], DOS: [1, 0, 3], TRES: [1, 3, 4], SEIS: [1, 7, 4],
+        CUATRO: [2, 0, 6], CINCO: [2, 6, 5], SIETE: [3, 0, 5], NUEVE: [3, 5, 5], OCHO: [4, 0, 4], DIEZ: [4, 4, 4], ONCE: [5, 0, 4],
+        DOCE: [5, 4, 4], Y: [5, 9, 1], MENOS: [6, 0, 5], VEINTE: [6, 5, 6], VEINTI: [7, 0, 6], CINCO_M: [7, 6, 5], CUARTO: [8, 0, 6],
+        MEDIA: [8, 6, 5], DIEZ_M: [9, 0, 4], EN: [9, 4, 2], PUNTO: [9, 6, 5]
+      },
+      hours: [null, 'UNA', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE', 'DIEZ', 'ONCE', 'DOCE'],
+      secret: 'MOMENTO'
+    }
+  };
+  const h12 = h => (h % 12) || 12;
+
+  function phrase(lang, h24, m) {
+    const m5 = Math.floor(m / 5) * 5;
+    if (lang === 'en') {
+      const w = ['IT', 'IS'];
+      if (m5 === 0) {
+        if (h24 === 0) w.push('MIDNIGHT');
+        else if (h24 === 12) w.push('NOON');
+        else w.push(LAYOUT.en.hours[h12(h24)], 'OCLOCK');
+        return w;
+      }
+      const M = { 5: ['FIVE_M', 'PAST'], 10: ['TEN_M', 'PAST'], 15: ['QUARTER', 'PAST'], 20: ['TWENTY', 'PAST'], 25: ['TWENTY', 'FIVE_M', 'PAST'], 30: ['HALF', 'PAST'], 35: ['TWENTY', 'FIVE_M', 'TO'], 40: ['TWENTY', 'TO'], 45: ['QUARTER', 'TO'], 50: ['TEN_M', 'TO'], 55: ['FIVE_M', 'TO'] };
+      const hr = m5 >= 35 ? (h24 + 1) % 24 : h24;
+      return w.concat(M[m5], [LAYOUT.en.hours[h12(hr)]]);
+    }
+    const hr = m5 >= 35 ? (h24 + 1) % 24 : h24;
+    const hh = h12(hr);
+    const w = hh === 1 ? ['ES', 'LA'] : ['SON', 'LAS'];
+    w.push(LAYOUT.es.hours[hh]);
+    if (m5 === 0) return w.concat(['EN', 'PUNTO']);
+    const M = { 5: ['Y', 'CINCO_M'], 10: ['Y', 'DIEZ_M'], 15: ['Y', 'CUARTO'], 20: ['Y', 'VEINTE'], 25: ['Y', 'VEINTI', 'CINCO_M'], 30: ['Y', 'MEDIA'], 35: ['MENOS', 'VEINTI', 'CINCO_M'], 40: ['MENOS', 'VEINTE'], 45: ['MENOS', 'CUARTO'], 50: ['MENOS', 'DIEZ_M'], 55: ['MENOS', 'CINCO_M'] };
+    return w.concat(M[m5]);
+  }
+  function spoken(lang, words) {
+    if (lang === 'en') {
+      return words.map(k => (k === 'OCLOCK' ? "o'clock" : k.split('_')[0].toLowerCase())).join(' ').replace(/^it/, 'It');
+    }
+    let s = words.map(k => k.split('_')[0].toLowerCase()).join(' ').replace('veinti cinco', 'veinticinco');
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  /* ================= dates in words ================= */
+  const EN_ONES = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+  const EN_TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+  const enNum = n => (n < 20 ? EN_ONES[n] : EN_TENS[Math.floor(n / 10)] + (n % 10 ? '-' + EN_ONES[n % 10] : ''));
+  const ORD = { one: 'first', two: 'second', three: 'third', five: 'fifth', eight: 'eighth', nine: 'ninth', twelve: 'twelfth' };
+  function enOrd(n) {
+    const w = enNum(n);
+    const parts = w.split('-');
+    let last = parts.pop();
+    if (ORD[last]) last = ORD[last];
+    else if (last.endsWith('y')) last = last.slice(0, -1) + 'ieth';
+    else last += 'th';
+    parts.push(last);
+    return parts.join('-');
+  }
+  const ES_N = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte', 'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve'];
+  const ES_T = ['', '', '', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+  const esNum = n => (n < 30 ? ES_N[n] : ES_T[Math.floor(n / 10)] + (n % 10 ? ' y ' + ES_N[n % 10] : ''));
+  const EN_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const ES_DAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const ES_MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  function yearWords(lang, y) {
+    const hi = Math.floor(y / 1000), rest = y % 1000;
+    if (lang === 'en') {
+      let s = enNum(hi) + ' thousand';
+      if (rest >= 100) s += ' ' + enNum(Math.floor(rest / 100)) + ' hundred';
+      if (rest % 100) s += ' ' + enNum(rest % 100);
+      return s;
+    }
+    let s = hi === 1 ? 'mil' : esNum(hi) + ' mil';
+    if (rest % 100 && rest < 100) s += ' ' + esNum(rest % 100);
+    return s;
+  }
+  function dateWords(lang, d) {
+    if (lang === 'en') return EN_DAYS[d.getDay()] + ', the ' + enOrd(d.getDate()) + ' of ' + EN_MONTHS[d.getMonth()];
+    const s = ES_DAYS[d.getDay()] + ', ' + (d.getDate() === 1 ? 'primero' : esNum(d.getDate())) + ' de ' + ES_MONTHS[d.getMonth()];
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  /* ================= build the grid ================= */
+  const body = document.body;
+  const grid = document.getElementById('grid');
+  const face = document.getElementById('face');
+  const dots = [...document.querySelectorAll('.dot')];
+  const cells = [];
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 11; c++) {
+      const s = document.createElement('span');
+      s.className = 'c';
+      s.style.setProperty('--r', r);
+      s.style.setProperty('--c', c);
+      grid.appendChild(s);
+      cells.push(s);
+    }
+  }
+  const store = {
+    get(k) { try { return localStorage.getItem('horologe.' + k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem('horologe.' + k, v); } catch (e) { /* storage unavailable */ } }
+  };
+  const rmq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  let lang = store.get('lang') === 'es' ? 'es' : 'en';
+  let faceName = ['obsidian', 'paper', 'copper', 'neon'].includes(store.get('face')) ? store.get('face') : 'obsidian';
+
+  function writeLetters() {
+    const rows = LAYOUT[lang].rows;
+    for (let i = 0; i < 110; i++) cells[i].textContent = rows[Math.floor(i / 11)][i % 11];
+    document.documentElement.lang = lang;
+  }
+  function litSet(words) {
+    const set = new Set();
+    for (const k of words) {
+      const w = LAYOUT[lang].words[k];
+      if (!w) continue;
+      for (let i = 0; i < w[2]; i++) set.add(w[0] * 11 + w[1] + i);
+    }
+    return set;
+  }
+
+  /* ================= render ================= */
+  let shown = { h: -1, m: -1, lang: '' };
+  function render(h, m, opts) {
+    opts = opts || {};
+    const words = phrase(lang, h, m);
+    const on = litSet(words);
+    const stagger = opts.stagger !== false && !rmq.matches;
+    const offs = [], ons = [];
+    for (let i = 0; i < 110; i++) {
+      const was = cells[i].classList.contains('on');
+      const will = on.has(i);
+      if (was && !will) offs.push(i);
+      if (!was && will) ons.push(i);
+    }
+    offs.forEach((i, k) => { cells[i].style.setProperty('--dl', (stagger ? k * 22 : 0) + 'ms'); cells[i].classList.remove('on'); });
+    const step = opts.fast ? 34 : 55;
+    const base = stagger && offs.length ? 420 + offs.length * 12 : (stagger ? (opts.fast ? 60 : 120) : 0);
+    ons.forEach((i, k) => { cells[i].style.setProperty('--dl', (stagger ? base + k * step : 0) + 'ms'); cells[i].classList.add('on'); });
+    const rest = m % 5;
+    dots.forEach((d, i) => {
+      d.style.transitionDelay = stagger ? (base + ons.length * step + i * 90) + 'ms' : '0ms';
+      d.classList.toggle('on', i < rest);
+    });
+    const text = spoken(lang, words);
+    const extra = rest ? (lang === 'en' ? ' and ' + EN_ONES[rest] + ' minute' + (rest > 1 ? 's' : '') : ' y ' + ES_N[rest] + (rest > 1 ? ' minutos' : ' minuto')) : '';
+    face.setAttribute('aria-label', text + extra + '. ' + (lang === 'en' ? 'Activate to show the Spanish layout.' : 'Activa para ver la versión en inglés.'));
+    if (!opts.silent && (shown.m !== m || shown.h !== h)) document.getElementById('live').textContent = text + extra;
+    shown = { h, m, lang };
+  }
+  function renderDate(d) {
+    document.getElementById('date').textContent = dateWords(lang, d);
+    document.getElementById('year').textContent = yearWords(lang, d.getFullYear());
+  }
+
+  /* ================= real time ================= */
+  let lastKey = '';
+  function tick(force) {
+    if (demo) return;
+    const d = new Date();
+    const key = lang + d.getHours() + ':' + d.getMinutes();
+    if (key !== lastKey || force) {
+      lastKey = key;
+      render(d.getHours(), d.getMinutes(), { stagger: true, silent: force === 'boot', fast: force === 'boot' });
+      renderDate(d);
+    }
+  }
+  let timer = setInterval(tick, 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { clearInterval(timer); timer = 0; }
+    else if (!timer) { tick(); timer = setInterval(tick, 1000); }
+  });
+
+  /* ================= language swap: letters flip over in a diagonal wave ================= */
+  let swapping = false;
+  function setLang(next) {
+    if (swapping || next === lang) return;
+    swapping = true;
+    const flipOut = rmq.matches ? 0 : 16 * 19 + 260;
+    grid.classList.add('out');
+    setTimeout(() => {
+      lang = next;
+      store.set('lang', lang);
+      grid.classList.add('instant');
+      writeLetters();
+      const d = new Date();
+      const hm = demo ? demo.cur : [d.getHours(), d.getMinutes()];
+      cells.forEach(c => c.classList.remove('on'));
+      render(hm[0], hm[1], { stagger: false });
+      renderDate(d);
+      lastKey = lang + d.getHours() + ':' + d.getMinutes();
+      void grid.offsetWidth;
+      grid.classList.remove('out');
+      setTimeout(() => { grid.classList.remove('instant'); swapping = false; }, flipOut);
+      syncLang();
+    }, flipOut);
+  }
+  function syncLang() {
+    document.querySelectorAll('.lang b').forEach(b => b.classList.toggle('cur', b.dataset.l === lang));
+    document.getElementById('langBtn').setAttribute('aria-label', lang === 'en' ? 'Switch to Spanish layout' : 'Switch to English layout');
+  }
+  face.addEventListener('click', () => setLang(lang === 'en' ? 'es' : 'en'));
+  document.getElementById('langBtn').addEventListener('click', () => setLang(lang === 'en' ? 'es' : 'en'));
+
+  /* ================= faces ================= */
+  const fbs = [...document.querySelectorAll('.fb')];
+  function setFace(n) {
+    faceName = n;
+    body.dataset.face = n;
+    store.set('face', n);
+    fbs.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === n)));
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', { obsidian: '#0b0b0b', paper: '#e7e1d4', copper: '#150d08', neon: '#08050b' }[n]);
+    // replay the lighting on the new face
+    if (n === 'neon' && !rmq.matches) cells.forEach(c => { if (c.classList.contains('on')) { c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); } });
+  }
+  fbs.forEach(b => b.addEventListener('click', () => setFace(b.dataset.f)));
+
+  /* ================= demo: a whole day in twenty seconds ================= */
+  let demo = null;
+  const demoBtn = document.getElementById('demoBtn');
+  const readout = document.getElementById('readout');
+  const prog = document.getElementById('prog');
+  function startDemo() {
+    demo = { t0: performance.now(), last: -1, cur: [0, 0] };
+    body.classList.add('demo');
+    demoBtn.setAttribute('aria-pressed', 'true');
+    demoBtn.querySelector('span').textContent = 'Stop';
+    demoBtn.querySelector('.ic').setAttribute('d', 'M3.5 3.5h7v7h-7Z');
+    readout.hidden = false;
+    requestAnimationFrame(demoFrame);
+  }
+  function stopDemo() {
+    if (!demo) return;
+    demo = null;
+    body.classList.remove('demo');
+    demoBtn.setAttribute('aria-pressed', 'false');
+    demoBtn.querySelector('span').textContent = 'Demo';
+    demoBtn.querySelector('.ic').setAttribute('d', 'M4 2.5l7.5 4.5L4 11.5Z');
+    readout.hidden = true;
+    prog.style.transform = 'scaleX(0)';
+    tick(true);
+  }
+  function demoFrame(now) {
+    if (!demo) return;
+    const k = (now - demo.t0) / 20000;
+    if (k >= 1) { stopDemo(); return; }
+    const mins = Math.floor(k * 1440);
+    if (mins !== demo.last) {
+      demo.last = mins;
+      const h = Math.floor(mins / 60), m = mins % 60;
+      demo.cur = [h, m];
+      render(h, m, { stagger: false, silent: true });
+      readout.textContent = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
+    prog.style.transform = 'scaleX(' + k.toFixed(4) + ')';
+    requestAnimationFrame(demoFrame);
+  }
+  demoBtn.addEventListener('click', () => (demo ? stopDemo() : startDemo()));
+
+  /* ================= fullscreen ================= */
+  const fsBtn = document.getElementById('fsBtn');
+  function toggleFS() {
+    try {
+      if (!document.fullscreenElement) { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); }
+      else if (document.exitFullscreen) document.exitFullscreen();
+    } catch (e) { /* fullscreen unavailable */ }
+  }
+  fsBtn.addEventListener('click', toggleFS);
+  let idleT = 0;
+  function wake() {
+    body.classList.remove('idle');
+    clearTimeout(idleT);
+    if (body.classList.contains('fs')) idleT = setTimeout(() => body.classList.add('idle'), 2200);
+  }
+  document.addEventListener('fullscreenchange', () => {
+    const on = !!document.fullscreenElement;
+    body.classList.toggle('fs', on);
+    fsBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Enter fullscreen');
+    fsBtn.querySelector('.ic').setAttribute('d', on ? 'M5 1.5V5H1.5M12.5 5H9V1.5M9 12.5V9h3.5M1.5 9H5v3.5' : 'M1.5 5V1.5H5M9 1.5h3.5V5M12.5 9v3.5H9M5 12.5H1.5V9');
+    wake();
+  });
+  document.addEventListener('pointermove', wake, { passive: true });
+
+  /* ================= keyboard + the secret ================= */
+  function secret() {
+    const word = LAYOUT[lang].secret;
+    const used = new Set();
+    for (const k in LAYOUT[lang].words) { const w = LAYOUT[lang].words[k]; for (let i = 0; i < w[2]; i++) used.add(w[0] * 11 + w[1] + i); }
+    const fill = [];
+    for (let i = 0; i < 110; i++) if (!used.has(i)) fill.push(i);
+    fill.forEach((i, n) => setTimeout(() => cells[i].classList.add('egg'), n * 140));
+    setTimeout(() => fill.forEach(i => cells[i].classList.remove('egg')), fill.length * 140 + 2200);
+    document.getElementById('live').textContent = word;
+  }
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === 'f') toggleFS();
+    else if (k === 'd') (demo ? stopDemo() : startDemo());
+    else if (k === 'l') setLang(lang === 'en' ? 'es' : 'en');
+    else if (k === 'm') secret();
+    else if (['1', '2', '3', '4'].includes(k)) setFace(['obsidian', 'paper', 'copper', 'neon'][+k - 1]);
+  });
+
+  /* ================= boot: letters glow on in reading order ================= */
+  setFace(faceName);
+  writeLetters();
+  syncLang();
+  tick('boot');
+})();
+</script>
+</body>
+</html>

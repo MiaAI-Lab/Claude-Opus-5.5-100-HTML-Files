@@ -1,0 +1,36 @@
+TITLE: Planet Forge — Procedural World Generator
+FILE: 066-planet-forge.html
+
+=== PROMPT (exact prompt used) ===
+Build "Planet Forge — Procedural World Generator". A canvas renders a rotating sphere with per-pixel shading (ray–sphere intersection or a pre-baked equirectangular texture sampled by rotation): terrain from fractal noise mapped to biomes (deep ocean, shallows, beaches, forests, deserts, mountains, ice caps by latitude), an animated cloud layer, an atmospheric rim glow, a day/night terminator with city lights on the night side, and optional rings casting a shadow. A cosmic black background with a faint nebula and stars. A sci-fi control panel (thin lines, cyan #4cc9f0 accents, glass panels) with sliders for sea level, temperature, cloud cover, terrain roughness, ring toggle, moon count, rotation speed and seed, plus presets (Earthlike, Desert world, Ocean world, Lava world, Ice world, banded Gas giant). Each planet receives a catalogue designation (e.g. "KX-4471 b") and playful stats. Interaction: drag to rotate, "Randomize", PNG download. Keep rendering efficient (render at lower resolution and upscale smoothly).
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Planet Forge is a procedural world generator styled as a deep-space survey console. The left stage is a cosmic black field with a painted nebula and seeded starfield, where a slowly rotating planet is shaded per pixel: fractal terrain mapped to biomes, drifting clouds, a soft day/night terminator with sparkling city lights on the night side, an atmospheric rim and halo, and optional rings that cast a real shadow band across the globe while the planet shadows the rings in turn. Moons orbit on faint traced ellipses and pass in front of and behind the planet. A survey record in the top-left gives each world a catalogue designation ("JH-4471 e"), a class, playful but plausible stats and a fictional field note; the right-hand console of thin cyan (#4cc9f0) lines and clipped-corner glass panels holds presets, sliders, toggles, seed and export.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Seeded 3D Perlin noise sampled on the unit sphere (no seams or pole pinching) into 512x256 equirectangular fields: domain-warped fBm heights with a ridged mountain term, moisture, cloud and settlement fields; sea level is set by a latitude-weighted height quantile so the slider maps to real ocean coverage
+- Biome colouring per world type (terrestrial, ocean, desert, magma, cryogenic, banded gas giant) from temperature (latitude + altitude lapse) and moisture, with hill-shade relief, smooth sea-ice/snow transitions, magma seas with floating crust, and a gas giant with warped bands, latitude-dependent wind shear and a great storm
+- Ray-sphere rendering in a low-resolution buffer: per-pixel normals, texture coordinates, diffuse, night factor, Fresnel rim, Blinn-Phong ocean glint and ring-shadow factors are precomputed for the current tilt, so each frame is only texture sampling (bilinear) plus lighting, then smoothly upscaled
+- Coastlines are cut along the bilinearly interpolated height contour inside mixed land/sea texels, giving antialiased sub-texel shorelines; clouds are bilinear and drift faster than the ground; city lights get a sub-texel hash sparkle
+- Rings rendered in the same pass by ray-plane intersection with a seeded band profile (including a Cassini-style gap), correct depth against the sphere, lit/unlit face shading, the planet's shadow on the rings and the rings' shadow on the planet
+- Moons are pre-rendered cratered sprites lit from the same sun, depth-sorted around the planet; a rotating ticked HUD arc, corner brackets and a canvas nebula with additive wisps complete the frame
+- Sci-fi console: clip-path panels with diagonal corner accents, diamond slider thumbs with glow, tick-marked tracks, square toggles and steppers
+
+=== INTERACTION MODEL ===
+- Drag to spin the planet (with inertia); with a mouse, vertical drag tilts the view (re-projecting rings and shadows); arrow keys rotate/tilt when the canvas is focused; wheel or +/- zooms
+- Hovering the globe reads out latitude, longitude, biome and elevation or depth under the cursor; hovering the rings reports the particle band
+- Presets: Earthlike, Desert, Ocean, Lava, Ice, Gas giant; sliders for sea level, temperature, terrain roughness, cloud cover and rotation speed; toggles for rings and a survey grid (15-degree graticule drawn in the shader); moon stepper 0-4
+- Seed field + Forge regenerates the world and its designation; Randomize (or R) rolls a new type, seed and parameters; PNG (or D) exports the current view with a caption; G toggles the grid
+- Expensive regeneration is batched through a dirty-flag pump so dragging sliders stays responsive; reduced-motion slows rotation and removes HUD motion and inertia

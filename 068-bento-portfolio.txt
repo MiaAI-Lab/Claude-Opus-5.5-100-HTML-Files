@@ -1,0 +1,50 @@
+TITLE: Mira Okafor — Bento Portfolio
+FILE: 068-bento-portfolio.html
+
+=== PROMPT (exact prompt used) ===
+Design a bento-grid portfolio for "Mira Okafor — Product Designer" (fictional). Neutral palette: #f5f5f7 page, #ffffff tiles, #1d1d1f text, one vivid lime accent #c3f53c and a deep indigo feature tile #1b1f3b. A responsive bento grid of 10–12 tiles of varied sizes with 24px radii and delicate shadows: an intro tile with name and role; a local-time tile with a live analog clock; a "Now playing" tile with an animated equalizer; a project tile containing a mini animated UI mockup (a CSS-drawn phone screen scrolling); a stats tile with counting numbers; a location tile with a stylised abstract SVG map and a pulsing pin; a tools tile with floating chips; a testimonial tile; a "Currently reading" tile with a CSS book; a contact tile with a magnetic button; and a dark tile with a generative gradient mesh. Interaction: tiles lift and reveal extra detail on hover; a cursor spotlight glides across tile surfaces; clicking a project tile expands it into a full-screen case-study overlay with a smooth shared-element transition. Typography: a system sans with tight tracking.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+A bento-grid portfolio for Mira Okafor, a fictional product designer. It is a calm, gallery-like grid on #f5f5f7 with white 24px-radius tiles, hairline-soft shadows, tight system-sans typography, one vivid lime accent (#c3f53c) and a deep indigo (#1b1f3b) feature tile. Twelve tiles of varied sizes sit on a 4-column named-area grid:
+- an intro with an illustrated avatar, availability ping and oversized tight-tracked name
+- a live analog and digital Lisbon clock with day/night glyph
+- a "Now playing" card with an equalizer
+- the indigo Tandem case-study tile, with a CSS-drawn phone rising from its bottom edge and its app feed scrolling
+- counting stats
+- an abstract SVG street map of Lisbon with a pulsing pin
+- floating tool chips
+- a generative gradient-mesh poster tile
+- rotating testimonials
+- a 3D CSS book for "Currently reading"
+- a wide Fieldnote case-study tile with an animated mini dashboard
+- a dark contact tile with a magnetic lime button
+Project tiles expand into full-screen case studies through a shared-element transition. All people, projects, quotes and numbers are fictional and labelled as such.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- CSS grid with grid-template-areas that reflows from 4 to 2 to 1 column. Tiles enter with a staggered fade-rise that uses the independent translate property, so it never fights the hover lift.
+- Cursor spotlight: pointer position is written to per-tile --mx/--my custom properties (rAF-throttled), driving a radial surface glow (::before) and a lime rim light (::after) built with a padding-box mask-composite border.
+- Clock: 60 SVG ticks generated in JS, hands rotated each frame with a smooth-sweep lime second hand, and the Europe/Lisbon time derived from Intl.DateTimeFormat.formatToParts as a UTC offset that is refreshed every minute (so DST is handled).
+- Scalable mockups: the phone and dashboard are built entirely in em units, so the same DOM can be cloned and rendered larger in the case study. The phone feed scrolls with a stepped keyframe loop, and the dashboard bars grow while a line chart draws in.
+- Shared-element case-study transition: the overlay opens with a clip-path inset() that grows from the tile's exact rectangle and radius to full screen, while a FLIP transform morphs the cloned mockup from its tile position to its final spot. Content fades in behind it, and closing reverses all of this.
+- Generative mesh: a DPR-aware canvas that composites pre-rendered radial-gradient sprites with additive ("lighter") blending on Lissajous paths. One blob drifts toward the pointer. It adds a darkening gradient and a pre-built grain pattern, and there are four palettes to shuffle through.
+- Details: a CSS 3D book (cover, spine and page edge in preserve-3d, opening wider on hover), a double-pulse map pin, floating chips with individual drift periods, a pinging availability dot, a highlighter-style lime mark and a book progress bar.
+
+=== INTERACTION MODEL ===
+- Hover or focus lifts tiles and reveals extra detail lines (always shown on touch devices). The spotlight follows a mouse pointer across every tile surface.
+- Project tiles use a stretched button over the whole tile, so mouse, touch and keyboard can all open them. The case study is a modal dialog with a focus trap, Esc or × to close, scroll lock and focus return.
+- "Now playing": the play button is a visible sound toggle. It starts a small live Web Audio synth sketch (pentatonic arpeggio, bass and delay), and the equalizer switches from CSS animation to real AnalyserNode levels. Audio is only created after that click.
+- Testimonials rotate every 6 s (pausing on hover or focus), with pill-dot controls. "Shuffle" reseeds the gradient mesh.
+- The magnetic "Say hello" button eases toward the pointer inside the contact tile. It and the Copy button copy the obfuscated address with a guarded clipboard fallback and a toast.
+- Stats count up once visible. Canvas, clock and song timers pause when offscreen or when the tab is hidden. prefers-reduced-motion removes the transitions and loops.

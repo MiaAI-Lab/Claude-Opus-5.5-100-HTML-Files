@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skyward — A Brief History of Flight</title>
+<meta name="description" content="Skyward is an interactive horizontal timeline of flight from the Montgolfier balloon in 1783 to Apollo 11 in 1969, with line illustrations, parallax clouds, a paper plane and a year altimeter.">
+<meta name="theme-color" content="#bde0fe">
+<style>
+:root{
+  --dawn:#bde0fe;
+  --cer:#3a86ff;
+  --cloud:#ffffff;
+  --sun:#ff8fab;
+  --ink:#1d3557;
+  --fg:#1d3557;
+  --fg-soft:rgba(29,53,87,.62);
+  --line:rgba(29,53,87,.35);
+  --avi:"DIN Alternate","DIN Condensed","Bahnschrift","D-DIN","Barlow Semi Condensed","Arial Narrow","Nimbus Sans Narrow","Helvetica Neue",sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","P052",Georgia,serif;
+  --ease:cubic-bezier(.2,.75,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--dawn);color:var(--fg);font-family:var(--serif);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+button{font:inherit;color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.cap{font-family:var(--avi);text-transform:uppercase;letter-spacing:.16em;font-size:11px}
+#sky,#fx{position:fixed;inset:0;width:100%;height:100%;display:block}
+#sky{z-index:0}
+#fx{z-index:4;pointer-events:none}
+
+/* ---------- header ---------- */
+.hdr{position:fixed;left:0;right:0;top:0;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px clamp(16px,3vw,40px);pointer-events:none;transition:color .6s}
+.hdr > *{pointer-events:auto}
+.brand{display:flex;align-items:baseline;gap:12px;white-space:nowrap}
+.brand b{font-family:var(--avi);font-weight:700;font-size:20px;letter-spacing:.3em}
+.brand span{font-style:italic;font-size:14px;color:var(--fg-soft)}
+.route{display:flex;align-items:center;gap:12px;min-width:0;flex:0 1 380px}
+.route .rl{position:relative;flex:1;height:1px;background:var(--line)}
+.route .rl i{position:absolute;left:0;top:-1px;height:3px;background:var(--sun);width:0;border-radius:2px}
+.route .rl svg{position:absolute;top:-8px;width:16px;height:16px;margin-left:-8px;left:0;fill:var(--fg)}
+
+/* ---------- timeline ---------- */
+.timeline{position:fixed;inset:0;z-index:2;overflow:hidden;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.timeline.drag{cursor:grabbing}
+.track{position:absolute;left:0;top:0;height:100%;will-change:transform}
+.intro{position:absolute;top:0;left:0;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 clamp(18px,4vw,64px);gap:18px}
+.intro .kick{color:var(--fg-soft)}
+.intro h1{font-family:var(--avi);font-weight:700;text-transform:uppercase;font-size:clamp(64px,11vw,176px);line-height:.82;letter-spacing:.02em;color:var(--ink)}
+.intro h1 em{display:block;font-family:var(--serif);font-style:italic;font-weight:400;text-transform:none;letter-spacing:0;font-size:.2em;line-height:1.2;margin-top:.35em;color:var(--ink)}
+.intro p.lede{max-width:34ch;font-size:clamp(15px,1.25vw,18px);line-height:1.55;color:var(--ink)}
+.intro .hint{display:flex;align-items:center;gap:14px;color:var(--ink);margin-top:6px}
+.intro .hint svg{width:52px;height:16px;overflow:visible}
+.intro .hint path{fill:none;stroke:var(--sun);stroke-width:2;stroke-linecap:round;stroke-dasharray:4 6;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-20}}
+.axis{position:absolute;left:0;height:2px;background:var(--fg);opacity:.55;transition:background-color .6s}
+.tick{position:absolute;width:1px;background:var(--fg);opacity:.45}
+.tick.major{opacity:.8}
+.tlabel{position:absolute;font-family:var(--avi);font-size:11px;letter-spacing:.08em;color:var(--fg);opacity:.72;transform:translateX(-50%);white-space:nowrap}
+.gap{position:absolute;font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--fg-soft);transform:translateX(-50%);white-space:nowrap}
+
+.stops{list-style:none}
+.ms{position:absolute;display:flex;flex-direction:column;align-items:center}
+.card{
+  appearance:none;-webkit-appearance:none;border:0;cursor:pointer;text-align:left;width:100%;
+  background:rgba(255,255,255,.93);color:var(--ink);border-radius:4px;padding:14px 16px 16px;
+  box-shadow:0 1px 0 rgba(29,53,87,.08),0 18px 40px -22px rgba(29,53,87,.55);
+  display:grid;gap:6px;position:relative;
+  transition:transform .6s var(--ease),box-shadow .6s var(--ease),background-color .4s;
+}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;border-radius:4px 4px 0 0;background:linear-gradient(90deg,var(--cer),var(--sun));transform:scaleX(.18);transform-origin:0 50%;transition:transform .8s var(--ease)}
+.ms.near .card::before,.card:hover::before,.card:focus-visible::before{transform:scaleX(1)}
+.card:hover,.ms.near .card{transform:translateY(-6px);box-shadow:0 1px 0 rgba(29,53,87,.08),0 30px 50px -24px rgba(29,53,87,.6)}
+.card:focus-visible{outline:2px solid var(--sun);outline-offset:4px}
+.card .row{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.yr{font-family:var(--avi);font-weight:700;font-size:44px;line-height:.9;letter-spacing:.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.card .row .cap{color:rgba(29,53,87,.6);font-size:10px;text-align:right;line-height:1.35}
+.card .art{display:block;width:100%;aspect-ratio:240/150;margin:4px 0 2px}
+.card .ttl{font-family:var(--avi);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:14px}
+.card .txt{font-size:14px;line-height:1.45;color:rgba(29,53,87,.86)}
+.card .more-hint{font-family:var(--avi);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--cer);display:flex;align-items:center;gap:6px;margin-top:2px}
+.card .more-hint::after{content:"";width:14px;height:1px;background:currentColor;transition:width .4s var(--ease)}
+.card:hover .more-hint::after{width:28px}
+.stem{width:1px;flex:none;background:linear-gradient(var(--fg),transparent);opacity:.5}
+.dotp{position:absolute;width:13px;height:13px;border-radius:50%;background:var(--sun);border:2px solid var(--cloud);box-shadow:0 0 0 1px var(--fg);transform:translate(-50%,-50%)}
+.ms.near .dotp{animation:ping 1.6s ease-out infinite}
+@keyframes ping{0%{box-shadow:0 0 0 1px var(--fg),0 0 0 0 rgba(255,143,171,.7)}100%{box-shadow:0 0 0 1px var(--fg),0 0 0 14px rgba(255,143,171,0)}}
+.more{display:none}
+
+/* line art */
+.art *{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.art .fc{fill:#fff}
+.art .fp{fill:var(--sun)}
+.art .fb{fill:var(--dawn)}
+.art .fi{fill:var(--ink)}
+.art .sp{stroke:var(--sun);stroke-width:2.4}
+.art .dash{stroke-dasharray:3 4;opacity:.6}
+.art text{fill:var(--ink);stroke:none;font-family:var(--avi);font-size:8px;letter-spacing:.08em}
+.ms .art [pathLength]{stroke-dasharray:1 1;stroke-dashoffset:1;transition:stroke-dashoffset 1.6s var(--ease)}
+.ms.seen .art [pathLength]{stroke-dashoffset:0}
+.ms.instant .art *{transition:none !important}
+.ms .art .fc,.ms .art .fp,.ms .art .fb,.ms .art .fi,.ms .art text{fill-opacity:0;transition:fill-opacity .9s .7s}
+.ms.seen .art .fc,.ms.seen .art .fp,.ms.seen .art .fb,.ms.seen .art .fi,.ms.seen .art text{fill-opacity:1}
+
+.outro{position:absolute;top:0;height:100%;display:flex;flex-direction:column;justify-content:center;gap:20px;padding:0 clamp(18px,4vw,60px)}
+.outro h2{font-family:var(--avi);font-weight:700;text-transform:uppercase;font-size:clamp(40px,6vw,92px);line-height:.9;letter-spacing:.02em;max-width:12ch}
+.outro p{max-width:40ch;font-size:16px;line-height:1.6}
+.outro button{align-self:flex-start;background:none;border:1px solid currentColor;padding:12px 18px;cursor:pointer;border-radius:999px;transition:background-color .3s,color .3s}
+.outro button:hover{background:var(--cloud);color:var(--ink)}
+
+/* ---------- altimeter ---------- */
+.alti{position:fixed;left:clamp(14px,2.6vw,36px);bottom:clamp(14px,2.6vh,30px);z-index:5;width:clamp(104px,15vh,150px);aspect-ratio:1;filter:drop-shadow(0 12px 20px rgba(29,53,87,.35))}
+.alti svg{width:100%;height:100%;display:block}
+.alti .needle{transform-origin:100px 100px;transition:none}
+.alti-label{position:fixed;z-index:5;left:calc(clamp(14px,2.6vw,36px) + clamp(104px,15vh,150px) + 14px);bottom:calc(clamp(14px,2.6vh,30px) + 10px);display:grid;gap:3px}
+.alti-label b{font-family:var(--avi);font-size:30px;letter-spacing:.04em;line-height:1;font-variant-numeric:tabular-nums}
+.alti-label span{color:var(--fg-soft)}
+
+.ctrl{position:fixed;right:clamp(14px,2.6vw,36px);bottom:clamp(18px,3vh,34px);z-index:5;display:flex;align-items:center;gap:6px}
+.ctrl button{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;display:grid;place-items:center;transition:background-color .3s,transform .3s var(--ease)}
+.ctrl button:hover{background:#fff;transform:translateY(-2px)}
+.ctrl button:focus-visible{outline:2px solid var(--sun);outline-offset:3px}
+.ctrl svg{width:18px;height:18px;fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ctrl .count{font-family:var(--avi);font-size:13px;letter-spacing:.12em;min-width:64px;text-align:center}
+
+/* night (space age) */
+body.night{--fg:#eaf4ff;--fg-soft:rgba(234,244,255,.66);--line:rgba(234,244,255,.35)}
+body.night .intro h1,body.night .intro p.lede{color:var(--fg)}
+
+/* ---------- detail ---------- */
+.detail{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:clamp(12px,3vw,40px)}
+.detail[hidden]{display:none}
+.scrim{position:absolute;inset:0;background:rgba(15,30,54,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.dcard{position:relative;width:min(980px,100%);max-height:calc(100vh - 40px);overflow:auto;background:#fff;color:var(--ink);border-radius:6px;display:grid;grid-template-columns:1.1fr 1fr;box-shadow:0 40px 90px -30px rgba(10,20,40,.7)}
+.dcard .dart{background:linear-gradient(170deg,#e9f4ff,#fff 70%);padding:34px 30px;display:grid;align-content:center;gap:16px;border-right:1px solid rgba(29,53,87,.1)}
+.dcard .dart svg{width:100%;height:auto}
+.dcard .dart svg *{stroke-width:1.3}
+.dcard .dtxt{padding:34px 34px 30px;display:grid;gap:14px;align-content:start}
+.dcard .dyr{font-family:var(--avi);font-weight:700;font-size:78px;line-height:.85;letter-spacing:.01em}
+.dcard h2{font-family:var(--avi);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:22px}
+.dcard .dmeta{color:rgba(29,53,87,.62)}
+.dcard p{font-size:16px;line-height:1.62}
+.dcard dl{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;border-top:1px solid rgba(29,53,87,.14);padding-top:14px;margin-top:4px}
+.dcard dt{font-family:var(--avi);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(29,53,87,.55)}
+.dcard dd{font-family:var(--avi);font-size:17px;letter-spacing:.03em;margin-top:2px}
+.dclose{position:absolute;right:12px;top:12px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(29,53,87,.2);background:#fff;cursor:pointer;display:grid;place-items:center;z-index:2}
+.dclose:hover{background:var(--dawn)}
+.dclose:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+.dclose svg{width:14px;height:14px;stroke:var(--ink);stroke-width:2;stroke-linecap:round}
+.dnav{display:flex;gap:8px;margin-top:6px}
+.dnav button{flex:1;border:1px solid rgba(29,53,87,.2);background:#fff;border-radius:999px;padding:10px 12px;cursor:pointer;font-family:var(--avi);letter-spacing:.14em;text-transform:uppercase;font-size:11px}
+.dnav button:hover{background:var(--dawn)}
+.dnav button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+
+@media (max-width:760px){
+  .brand span{display:none}
+  .brand b{font-size:16px}
+  .route{flex-basis:170px}
+  .card{padding:12px 13px 13px}
+  .yr{font-size:36px}
+  .card .txt{font-size:13px}
+  .alti-label b{font-size:22px}
+  .ctrl button{width:42px;height:42px}
+  .ctrl .count{display:none}
+  .dcard{grid-template-columns:1fr}
+  .dcard .dart{padding:22px 22px 10px;border-right:0;border-bottom:1px solid rgba(29,53,87,.1)}
+  .dcard .dtxt{padding:20px 22px 24px}
+  .dcard .dyr{font-size:56px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ms .art [pathLength]{transition:none}
+  .intro .hint path,.ms.near .dotp{animation:none}
+  .card,.card::before{transition:none}
+}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<header class="hdr">
+  <div class="brand"><b>SKYWARD</b><span>A brief history of flight</span></div>
+  <div class="route cap" aria-hidden="true"><span>1783</span><span class="rl"><i id="routeFill"></i><svg id="routePlane" viewBox="0 0 24 24"><path d="M2 12l20-8-6 16-4-6z"/></svg></span><span>1969</span></div>
+</header>
+
+<main class="timeline" id="tl" aria-label="Timeline of flight, 1783 to 1969. Drag, scroll, or use the arrow keys.">
+  <div class="track" id="track">
+    <section class="intro" id="intro">
+      <p class="cap kick">1783 — 1969 · thirteen milestones</p>
+      <h1>Skyward<em>A brief history of flight</em></h1>
+      <p class="lede">It took 186 years to get from a silk balloon over Paris to bootprints on the Moon. Drag the sky, scroll, or use the arrow keys to follow the climb, one milestone at a time.</p>
+      <p class="hint cap"><svg viewBox="0 0 52 16" aria-hidden="true"><path d="M2 8h46"/></svg>Drag · scroll · ← →</p>
+    </section>
+    <div class="axis" id="axis"></div>
+    <div id="ticks" aria-hidden="true"></div>
+    <ol class="stops" id="stops">
+
+      <li class="ms" data-year="1783">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1783</span><span class="cap">21 Nov<br>Paris</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="dash" d="M8 138Q60 128 118 134T232 130"/>
+            <path class="fc" d="M120 8C152 8 170 30 167 56C165 78 147 94 139 110H101C93 94 75 78 73 56C70 30 88 8 120 8Z"/>
+            <path d="M120 8V110M105 10Q92 58 110 110M135 10Q148 58 130 110M90 20Q80 60 103 104M150 20Q160 60 137 104"/>
+            <path d="M75 42Q120 54 165 42M73 62Q120 74 167 62M83 86Q120 96 157 86"/>
+            <circle class="fp" cx="96" cy="67" r="2.4"/><circle class="fp" cx="120" cy="70" r="2.4"/><circle class="fp" cx="144" cy="67" r="2.4"/>
+            <path class="fp" d="M101 110L104 118H136L139 110Z"/>
+            <path d="M104 118L107 128H133L136 118M110 128V132M130 128V132"/>
+            <ellipse cx="120" cy="132" rx="16" ry="3"/>
+            <path class="fp" d="M116 126q2-9 4-12q3 6 4 12z"/>
+            <circle cx="120" cy="8" r="2.5"/>
+          </svg>
+          <span class="ttl">The Montgolfier balloon</span>
+          <span class="txt">Paper-lined silk, a fire of straw and wool, and two passengers. The first people ever to fly drift over Paris.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">The Montgolfier balloon</p>
+          <p class="m-meta">21 November 1783 · Château de la Muette, Paris</p>
+          <p class="m-long">A balloon built by the paper-making brothers Joseph-Michel and Jacques-Étienne Montgolfier lifted Jean-François Pilâtre de Rozier and the Marquis d'Arlandes from the grounds of the Château de la Muette. A fire in a brazier slung beneath the opening kept it aloft. It drifted across Paris for about 25 minutes and came down some 9 km away, the first untethered crewed flight in history.</p>
+          <dl><dt>Crew</dt><dd>2</dd><dt>Flight time</dt><dd>≈ 25 min</dd><dt>Distance</dt><dd>≈ 9 km</dd><dt>Lift</dt><dd>Hot air</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1853">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1853</span><span class="cap">Summer<br>Yorkshire</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="dash" d="M10 134Q70 120 120 128T234 118"/>
+            <path class="fc" d="M50 54L178 38L200 50L70 68Z"/>
+            <path d="M72 51L90 66M97 48L113 63M122 45L136 60M147 42L159 57M170 40L182 54"/>
+            <path d="M104 66L110 94M134 62L132 94M118 64L121 94"/>
+            <path class="fc" d="M90 94H152L145 109H98Z"/>
+            <circle cx="117" cy="87" r="4.5"/><path d="M117 92V96"/>
+            <circle cx="105" cy="116" r="7"/><circle cx="139" cy="116" r="7"/>
+            <path d="M148 100L196 88"/>
+            <path class="fc" d="M188 84L222 76L224 92L192 94Z"/>
+            <path class="fc" d="M205 81L209 60L216 62L213 86Z"/>
+          </svg>
+          <span class="ttl">Cayley's glider</span>
+          <span class="txt">Aged 79, the father of aeronautics sends a man across a Yorkshire valley in a fixed-wing glider of his own design.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Cayley's glider</p>
+          <p class="m-meta">1853 · Brompton Dale, near Scarborough, Yorkshire</p>
+          <p class="m-long">Half a century earlier, Sir George Cayley had set out the principles of the modern aeroplane: separate means of lift, propulsion and control. In 1853 his full-size glider carried an adult across Brompton Dale. Family tradition says the reluctant pilot was Cayley's coachman, who is said to have given notice as soon as he was back on the ground.</p>
+          <dl><dt>Designer</dt><dd>Sir George Cayley</dd><dt>His age</dt><dd>79</dd><dt>Pilot</dt><dd>His coachman, by tradition</dd><dt>Type</dt><dd>Fixed-wing glider</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1891">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1891</span><span class="cap">Derwitz<br>near Berlin</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="dash" d="M12 138Q120 112 232 138"/>
+            <path class="fc" d="M120 58C100 42 64 38 26 52C44 55 56 61 63 72C80 65 100 65 120 71Z"/>
+            <path class="fc" d="M120 58C140 42 176 38 214 52C196 55 184 61 177 72C160 65 140 65 120 71Z"/>
+            <path d="M120 62L34 52M120 62L50 47M120 62L68 43M120 62L90 41M120 62L206 52M120 62L190 47M120 62L172 43M120 62L150 41"/>
+            <path d="M120 58V26M106 32H134"/>
+            <path class="fc" d="M120 38L102 28L120 32L138 28Z"/>
+            <circle cx="120" cy="80" r="5"/>
+            <path d="M120 85V106M120 90L106 70M120 90L134 70M120 106L113 126M120 106L127 126"/>
+          </svg>
+          <span class="ttl">Lilienthal's gliders</span>
+          <span class="txt">Otto Lilienthal runs off a hill with bat-like wings strapped to his body, and begins to glide.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Lilienthal's gliders</p>
+          <p class="m-meta">1891 · Derwitz, near Potsdam</p>
+          <p class="m-long">In 1891 the Berlin engineer Otto Lilienthal made his first successful glides from a hillside at Derwitz. Over the next five years he made about 2,000 flights in a series of hang gliders, steering by shifting his weight, with glides of up to 250 metres. Photographs of him in the air were printed around the world and inspired, among others, the Wright brothers.</p>
+          <dl><dt>Pilot</dt><dd>Otto Lilienthal</dd><dt>Flights (1891–96)</dt><dd>≈ 2,000</dd><dt>Longest glides</dt><dd>≈ 250 m</dd><dt>Control</dt><dd>Weight shift</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1903">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1903</span><span class="cap">17 Dec<br>Kitty Hawk</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="dash" d="M6 132H234"/>
+            <path class="fc" d="M42 52L186 36L210 44L66 60Z"/>
+            <path class="fc" d="M42 84L186 68L210 76L66 92Z"/>
+            <path d="M56 58V90M84 55V87M112 52V84M140 49V81M168 46V78M196 42V74"/>
+            <path class="fc" d="M8 70L32 67L38 70L14 73Z"/><path class="fc" d="M10 81L34 78L40 81L16 84Z"/>
+            <path d="M38 70L52 64M40 81L54 84"/>
+            <path class="fc" d="M220 46L229 45V70L220 71Z"/>
+            <path d="M210 46L220 50M210 74L220 66"/>
+            <ellipse cx="154" cy="62" rx="3" ry="13"/><ellipse cx="182" cy="59" rx="3" ry="13"/>
+            <path class="fi" d="M104 80l14-2l2 3l-14 2z"/>
+            <path d="M60 98L150 86M64 98L60 104"/>
+          </svg>
+          <span class="ttl">The Wright Flyer</span>
+          <span class="txt">Twelve seconds and 120 feet. Orville Wright makes the first controlled, powered, sustained aeroplane flight.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">The Wright Flyer</p>
+          <p class="m-meta">17 December 1903 · Kill Devil Hills, near Kitty Hawk, North Carolina</p>
+          <p class="m-long">Orville Wright flew the Flyer for 12 seconds and 120 feet (37 m) into a freezing headwind while Wilbur ran alongside. The brothers made four flights that day. The longest, with Wilbur at the controls, covered 852 feet in 59 seconds. The engine mattered, but the real breakthrough was their three-axis control, built around wing-warping.</p>
+          <dl><dt>Pilot</dt><dd>Orville Wright</dd><dt>First flight</dt><dd>12 s</dd><dt>Distance</dt><dd>120 ft · 37 m</dd><dt>Engine</dt><dd>≈ 12 hp</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1909">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1909</span><span class="cap">25 Jul<br>Calais → Dover</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="dash" d="M4 130Q40 124 80 130T160 130T236 128"/>
+            <path class="fc" d="M42 72L70 64L200 78V83L70 88L42 84Z"/>
+            <path d="M84 66L102 86M102 68L120 86M120 70L138 85M138 72L156 84M156 74L174 83"/>
+            <ellipse cx="38" cy="77" rx="3" ry="26"/><circle cx="46" cy="77" r="6"/>
+            <path class="fc" d="M60 65L98 40L130 44L100 67Z"/>
+            <path class="fc" d="M66 69L110 94L128 90L98 68Z"/>
+            <path d="M88 64L92 46M92 46L62 64M92 46L128 68"/>
+            <path d="M62 87L57 104M78 87L73 104"/><circle cx="56" cy="109" r="7"/><circle cx="73" cy="109" r="7"/>
+            <path class="fc" d="M184 78L214 73L217 82L187 83Z"/>
+            <path class="fc" d="M200 78L211 60L218 62L214 80Z"/>
+            <circle cx="108" cy="62" r="4"/>
+          </svg>
+          <span class="ttl">Blériot crosses the Channel</span>
+          <span class="txt">A 25-horsepower monoplane carries Louis Blériot from Calais to Dover in about 36 minutes.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Blériot crosses the Channel</p>
+          <p class="m-meta">25 July 1909 · near Calais to Dover</p>
+          <p class="m-long">Early in the morning Louis Blériot took off from near Calais in his Type XI monoplane. He had no compass. About 36½ minutes later he landed in a meadow beside Dover Castle. The crossing won him the Daily Mail's £1,000 prize, and it showed how quickly the aeroplane was going to shrink the map.</p>
+          <dl><dt>Aircraft</dt><dd>Blériot XI</dd><dt>Engine</dt><dd>25 hp Anzani</dd><dt>Time</dt><dd>≈ 36½ min</dd><dt>Crossing</dt><dd>≈ 35 km</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1919">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1919</span><span class="cap">14–15 Jun<br>Atlantic</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="fc" d="M12 46L228 34L230 42L14 54Z"/>
+            <path class="fc" d="M22 84L218 74L220 82L24 92Z"/>
+            <path d="M34 52V88M62 50V87M178 40V78M206 38V77"/>
+            <path class="fc" d="M76 56H96V80H76Z"/><path class="fc" d="M144 52H164V76H144Z"/>
+            <circle class="dash" cx="86" cy="68" r="17"/><circle class="dash" cx="154" cy="64" r="17"/>
+            <circle cx="86" cy="68" r="2.5"/><circle cx="154" cy="64" r="2.5"/>
+            <path class="fc" d="M110 52H130V96H110Z"/>
+            <path class="fb" d="M113 58H127V66H113Z"/>
+            <path d="M112 30L116 16M128 30L124 16M100 30H140"/>
+            <path d="M96 92L90 110M144 88L150 108"/><circle cx="88" cy="114" r="6"/><circle cx="152" cy="112" r="6"/>
+          </svg>
+          <span class="ttl">Alcock and Brown</span>
+          <span class="txt">Two airmen in a converted bomber fly non-stop across the Atlantic, from Newfoundland to an Irish bog.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Alcock and Brown</p>
+          <p class="m-meta">14–15 June 1919 · St John's, Newfoundland to Clifden, Ireland</p>
+          <p class="m-long">John Alcock and Arthur Whitten Brown flew a modified Vickers Vimy bomber through almost 16 hours of fog, sleet and ice. They came down in the west of Ireland and landed nose-down in a bog that they had taken for a meadow. It was the first non-stop crossing of the Atlantic by air.</p>
+          <dl><dt>Aircraft</dt><dd>Vickers Vimy</dd><dt>Crew</dt><dd>2</dd><dt>Time</dt><dd>≈ 16 h</dd><dt>Distance</dt><dd>≈ 3,000 km</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1927">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1927</span><span class="cap">20–21 May<br>New York → Paris</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="fc" d="M44 64L68 58L196 70L198 76L68 88L44 82Z"/>
+            <path class="fc" d="M70 50L156 48V55L70 57Z"/>
+            <path d="M84 57L94 86M140 55L128 80"/>
+            <circle class="fc" cx="46" cy="73" r="11"/><circle cx="46" cy="73" r="4"/>
+            <path d="M38 64l-3-3M38 82l-3 3M46 60v-4M46 86v4"/>
+            <ellipse cx="34" cy="73" rx="3" ry="30"/>
+            <text x="112" y="80">N-X-211</text>
+            <path class="fc" d="M182 70L195 50L204 52L200 72Z"/>
+            <path class="fc" d="M178 74L212 71L213 76L180 78Z"/>
+            <path d="M80 88L76 106M100 86L100 106"/><circle cx="76" cy="110" r="7"/><circle cx="100" cy="110" r="7"/>
+            <path class="fb" d="M150 64H164V70H150Z"/>
+          </svg>
+          <span class="ttl">Lindbergh, alone</span>
+          <span class="txt">Charles Lindbergh flies solo and non-stop from New York to Paris in 33½ hours, with no forward window.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Lindbergh, alone</p>
+          <p class="m-meta">20–21 May 1927 · Roosevelt Field, New York to Le Bourget, Paris</p>
+          <p class="m-long">The Spirit of St. Louis carried so much fuel that a tank sat where the windscreen would have been. Lindbergh looked ahead through a periscope and the side windows. He landed at Le Bourget 33½ hours after leaving Long Island, to a vast crowd, and won the $25,000 Orteig Prize.</p>
+          <dl><dt>Aircraft</dt><dd>Spirit of St. Louis</dd><dt>Crew</dt><dd>1</dd><dt>Time</dt><dd>33½ h</dd><dt>Distance</dt><dd>≈ 5,800 km</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1932">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1932</span><span class="cap">20–21 May<br>Atlantic, solo</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="fc" d="M36 73C40 61 70 59 110 60C150 61 182 67 206 74C182 80 150 84 110 86C70 88 40 85 36 73Z"/>
+            <ellipse class="fc" cx="42" cy="73" rx="7" ry="12"/>
+            <ellipse cx="32" cy="73" rx="3" ry="28"/>
+            <path class="fc" d="M70 55L154 53V59L70 61Z"/>
+            <path class="fp" d="M50 70C92 68 150 70 198 74V76C150 74 92 73 50 74Z"/>
+            <path class="fb" d="M64 64H74V69H64ZM80 63H90V68H80ZM96 63H106V68H96Z"/>
+            <path class="fc" d="M188 72L201 52L211 54L207 75Z"/>
+            <path d="M82 86L80 96M96 86L98 96"/>
+            <path class="fc" d="M70 100C70 92 92 92 94 100C92 106 72 106 70 100Z"/>
+          </svg>
+          <span class="ttl">Amelia Earhart</span>
+          <span class="txt">Five years to the day after Lindbergh set off, Amelia Earhart becomes the first woman to fly the Atlantic solo.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Amelia Earhart</p>
+          <p class="m-meta">20–21 May 1932 · Harbour Grace, Newfoundland to Culmore, Northern Ireland</p>
+          <p class="m-long">Earhart took off in a red Lockheed Vega 5B and had a rough night. Ice formed on the wings, the altimeter failed and a cracked exhaust manifold spat flames. About 15 hours later she landed in a pasture near Derry. She was the first woman, and the second person, to fly the Atlantic alone.</p>
+          <dl><dt>Aircraft</dt><dd>Lockheed Vega 5B</dd><dt>Crew</dt><dd>1</dd><dt>Time</dt><dd>≈ 15 h</dd><dt>Landing</dt><dd>Culmore, near Derry</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1939">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1939</span><span class="cap">27 Aug<br>Rostock</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="fc" d="M40 74C44 64 70 62 110 62C160 62 190 68 206 72V78C190 80 160 86 110 86C70 86 44 84 40 74Z"/>
+            <ellipse class="fi" cx="42" cy="74" rx="3.5" ry="7"/>
+            <path class="fc" d="M88 66L136 64L152 71L96 73Z"/>
+            <path class="fb" d="M72 64Q80 53 96 61Z"/>
+            <path class="fc" d="M186 70L198 50L208 52L206 73Z"/>
+            <path class="fc" d="M182 74L214 72L214 77L184 78Z"/>
+            <path class="fp" d="M206 72L224 75L206 78Z"/>
+            <path d="M86 85L84 100M98 85L99 100M196 80L197 86"/><circle cx="84" cy="104" r="5.5"/><circle cx="99" cy="104" r="5.5"/><circle cx="197" cy="89" r="3"/>
+            <path class="dash" d="M226 75H236M224 70L234 66M224 80L234 84"/>
+          </svg>
+          <span class="ttl">The first jet</span>
+          <span class="txt">The Heinkel He 178 flies on the thrust of a turbojet alone. No propeller, and a new sound in the sky.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">The first jet</p>
+          <p class="m-meta">27 August 1939 · Rostock-Marienehe, Germany</p>
+          <p class="m-long">Test pilot Erich Warsitz flew the Heinkel He 178 from the company's airfield. It was powered by Hans von Ohain's HeS 3B turbojet, and it was the first aircraft to fly on jet power alone. Days later the Second World War began, and jet propulsion went from curiosity to priority.</p>
+          <dl><dt>Pilot</dt><dd>Erich Warsitz</dd><dt>Aircraft</dt><dd>Heinkel He 178</dd><dt>Engine</dt><dd>HeS 3B turbojet</dd><dt>Engine designer</dt><dd>Hans von Ohain</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1947">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1947</span><span class="cap">14 Oct<br>Mojave Desert</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="dash" d="M30 76L8 44M30 76L8 108"/>
+            <path class="fc" d="M30 76C40 64 70 60 120 60L196 62L200 66V86L196 90L120 92C70 92 40 88 30 76Z"/>
+            <path class="fb" d="M68 64L80 58L94 60L86 65Z"/>
+            <path class="fc" d="M100 78H152L148 85H104Z"/>
+            <path class="fc" d="M176 70L214 63V70L178 75Z"/>
+            <path class="fc" d="M180 62L196 40L206 42L200 63Z"/>
+            <path class="fp" d="M200 68L228 66L200 72ZM200 76L234 76L200 80ZM200 84L226 86L200 88Z"/>
+            <text x="112" y="74">GLAMOROUS GLENNIS</text>
+          </svg>
+          <span class="ttl">Through the sound barrier</span>
+          <span class="txt">Chuck Yeager takes the rocket-powered Bell X-1 past Mach 1 high over the California desert.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Through the sound barrier</p>
+          <p class="m-meta">14 October 1947 · over the Mojave Desert, California</p>
+          <p class="m-long">Captain Charles "Chuck" Yeager was dropped from the bomb bay of a B-29. He lit the four rocket chambers of the Bell X-1, which he had named Glamorous Glennis, and reached Mach 1.06 more than 40,000 feet up. The feared "barrier" turned out to be a smooth ride once he was through. He flew with two broken ribs that he had kept quiet about.</p>
+          <dl><dt>Pilot</dt><dd>Chuck Yeager</dd><dt>Aircraft</dt><dd>Bell X-1</dd><dt>Speed</dt><dd>Mach 1.06</dd><dt>Altitude</dt><dd>40,000 ft +</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1957">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1957</span><span class="cap">4 Oct<br>Low Earth orbit</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <ellipse class="dash" cx="120" cy="84" rx="112" ry="30"/>
+            <path d="M118 60L228 22M121 66L232 50M119 80L230 98M114 88L220 126"/>
+            <circle class="fc" cx="96" cy="72" r="26"/>
+            <path d="M70 72Q96 82 122 72M84 50Q78 70 84 94"/>
+            <path class="sp" d="M58 54Q50 72 58 90"/><path class="sp" d="M48 48Q38 72 48 96"/><path class="sp" d="M38 42Q26 72 38 102"/>
+            <circle class="fb" cx="88" cy="62" r="5"/>
+          </svg>
+          <span class="ttl">Sputnik 1</span>
+          <span class="txt">A polished sphere the size of a beach ball circles the Earth every 96 minutes, beeping.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Sputnik 1</p>
+          <p class="m-meta">4 October 1957 · launched from Tyuratam (Baikonur), Kazakhstan</p>
+          <p class="m-long">Sputnik 1 was a 58 cm aluminium sphere with four whip antennas. Radio amateurs around the world picked up its "beep-beep" for 21 days, until the batteries ran out. The satellite burned up in the atmosphere in January 1958, and the space age had begun.</p>
+          <dl><dt>Diameter</dt><dd>58 cm</dd><dt>Mass</dt><dd>83.6 kg</dd><dt>One orbit</dt><dd>≈ 96 min</dd><dt>Transmitted for</dt><dd>21 days</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1961">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1961</span><span class="cap">12 Apr<br>One orbit</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <path class="fb" d="M0 150V140Q120 106 240 140V150Z"/>
+            <path class="sp" d="M0 133Q120 99 240 133"/>
+            <circle class="fc" cx="90" cy="66" r="24"/>
+            <circle cx="84" cy="58" r="6"/>
+            <path d="M68 60L114 56M70 76L114 74"/>
+            <path class="fc" d="M113 56L150 48L186 58V78L150 88L113 80Z"/>
+            <path d="M150 48V88"/>
+            <path class="fc" d="M186 62L198 60V76L186 74Z"/>
+            <path d="M78 44L70 24M98 44L104 26M164 52L172 36"/>
+          </svg>
+          <span class="ttl">Gagarin orbits the Earth</span>
+          <span class="txt">Yuri Gagarin rides Vostok 1 once around the planet in 108 minutes, the first human in space.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Gagarin orbits the Earth</p>
+          <p class="m-meta">12 April 1961 · launched from Baikonur</p>
+          <p class="m-long">The 27-year-old Soviet pilot Yuri Gagarin lifted off aboard Vostok 1 with the word "Poyekhali!" ("Let's go!"). He made a single orbit and re-entered. As planned, he ejected at about 7 km and landed by parachute near Saratov. The whole flight took 108 minutes.</p>
+          <dl><dt>Spacecraft</dt><dd>Vostok 1</dd><dt>Orbits</dt><dd>1</dd><dt>Flight time</dt><dd>108 min</dd><dt>Cosmonaut's age</dt><dd>27</dd></dl>
+        </div>
+      </li>
+
+      <li class="ms" data-year="1969">
+        <button type="button" class="card" aria-haspopup="dialog">
+          <span class="row"><span class="yr">1969</span><span class="cap">20 Jul<br>Sea of Tranquility</span></span>
+          <svg class="art" viewBox="0 0 240 150" aria-hidden="true">
+            <circle class="fb" cx="198" cy="32" r="13"/>
+            <path class="fi" d="M198 19A13 13 0 0 1 198 45A8 13 0 0 0 198 19Z"/>
+            <path d="M0 128Q60 121 120 126T240 123"/>
+            <ellipse cx="40" cy="138" rx="14" ry="3"/><ellipse cx="190" cy="136" rx="10" ry="2.5"/>
+            <path class="fp" d="M90 90H150V108H90Z"/>
+            <path d="M90 99H150M104 90V108M136 90V108"/>
+            <path d="M92 106L70 124M148 106L170 124M104 108L97 126M136 108L143 126"/>
+            <ellipse cx="68" cy="125" rx="6" ry="1.8"/><ellipse cx="172" cy="125" rx="6" ry="1.8"/><ellipse cx="96" cy="127" rx="5" ry="1.6"/><ellipse cx="144" cy="127" rx="5" ry="1.6"/>
+            <path class="fc" d="M97 90L95 72L108 60H134L146 72L143 90Z"/>
+            <path class="fb" d="M110 66L116 72H104ZM130 66L136 72H124Z"/>
+            <path d="M146 66L158 56"/><circle cx="160" cy="54" r="3"/>
+            <path d="M58 126V96"/><path class="fc" d="M58 96H74V105H58Z"/>
+          </svg>
+          <span class="ttl">Apollo 11: the Moon</span>
+          <span class="txt">The Eagle has landed. Neil Armstrong and Buzz Aldrin walk on the Sea of Tranquility.</span>
+          <span class="more-hint">Open</span>
+        </button>
+        <div class="more">
+          <p class="m-title">Apollo 11: the Moon</p>
+          <p class="m-meta">20 July 1969 · Sea of Tranquility</p>
+          <p class="m-long">The lunar module Eagle set down with Neil Armstrong and Buzz Aldrin aboard while Michael Collins orbited overhead in Columbia. A few hours later Armstrong stepped onto the surface. Just 66 years after twelve seconds at Kitty Hawk, people were walking on another world.</p>
+          <dl><dt>Crew</dt><dd>3</dd><dt>Lunar module</dt><dd>Eagle</dd><dt>Landing site</dt><dd>Sea of Tranquility</dd><dt>Moonwalk</dt><dd>≈ 2½ h</dd></dl>
+        </div>
+      </li>
+
+    </ol>
+    <section class="outro" id="outro">
+      <p class="cap">1783 → 1969</p>
+      <h2>186 years, straight up</h2>
+      <p>From paper and silk over Paris to the Sea of Tranquility. Each step on this line looked impossible until somebody took it.</p>
+      <button type="button" class="cap" id="restart">Back to 1783</button>
+    </section>
+  </div>
+</main>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div class="alti" aria-hidden="true">
+  <svg viewBox="0 0 200 200">
+    <defs>
+      <radialGradient id="face" cx="50%" cy="42%" r="60%"><stop offset="0" stop-color="#27466f"/><stop offset="1" stop-color="#101f36"/></radialGradient>
+      <linearGradient id="bez" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9f2fc"/><stop offset="1" stop-color="#8fa6c2"/></linearGradient>
+    </defs>
+    <circle cx="100" cy="100" r="98" fill="url(#bez)"/>
+    <circle cx="100" cy="100" r="88" fill="url(#face)"/>
+    <g id="dial" fill="#eaf4ff" font-family="Bahnschrift, 'DIN Alternate', 'Nimbus Sans Narrow', 'Arial Narrow', sans-serif" font-size="17" text-anchor="middle"></g>
+    <rect x="72" y="118" width="56" height="22" rx="3" fill="#0a1526" stroke="#5b7aa3" stroke-width="1"/>
+    <text id="altiWin" x="100" y="135" fill="#ff8fab" font-family="Bahnschrift, 'DIN Alternate', 'Nimbus Sans Narrow', 'Arial Narrow', sans-serif" font-size="17" text-anchor="middle" letter-spacing="1.5">1783</text>
+    <text x="100" y="66" fill="#9fb8d8" font-family="Bahnschrift, 'DIN Alternate', 'Nimbus Sans Narrow', 'Arial Narrow', sans-serif" font-size="8.5" text-anchor="middle" letter-spacing="2">YEAR</text>
+    <g class="needle" id="nTens"><path d="M100 100L96 62L100 48L104 62Z" fill="#eaf4ff"/></g>
+    <g class="needle" id="nUnits"><path d="M100 112L98 100L100 22L102 100Z" fill="#ff8fab"/></g>
+    <circle cx="100" cy="100" r="6" fill="#0a1526" stroke="#eaf4ff" stroke-width="1.5"/>
+    <path d="M40 40A84 84 0 0 1 160 40" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="10"/>
+  </svg>
+</div>
+<div class="alti-label" aria-live="polite"><span class="cap">Altitude in years</span><b id="yearTxt">1783</b></div>
+
+<nav class="ctrl" aria-label="Milestones">
+  <button type="button" id="prevB" aria-label="Previous milestone"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <span class="count" id="countTxt">— / 13</span>
+  <button type="button" id="nextB" aria-label="Next milestone"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</nav>
+
+<div class="detail" id="detail" role="dialog" aria-modal="true" aria-labelledby="dTitle" hidden>
+  <div class="scrim" id="scrim"></div>
+  <article class="dcard" id="dcard">
+    <button type="button" class="dclose" id="dClose" aria-label="Close"><svg viewBox="0 0 14 14"><path d="M2 2l10 10M12 2L2 12"/></svg></button>
+    <div class="dart" id="dArt"></div>
+    <div class="dtxt">
+      <p class="dyr" id="dYear"></p>
+      <h2 id="dTitle"></h2>
+      <p class="dmeta cap" id="dMeta"></p>
+      <p id="dLong"></p>
+      <dl id="dStats"></dl>
+      <div class="dnav"><button type="button" id="dPrev">← Earlier</button><button type="button" id="dNext">Later →</button></div>
+    </div>
+  </article>
+</div>
+
+<script>
+(function(){
+'use strict';
+var doc = document, body = doc.body;
+var sky = doc.getElementById('sky'), sctx = sky.getContext('2d');
+var fx = doc.getElementById('fx'), fctx = fx.getContext('2d');
+var tl = doc.getElementById('tl'), track = doc.getElementById('track');
+var RM = window.matchMedia('(prefers-reduced-motion: reduce)');
+var items = Array.prototype.slice.call(doc.querySelectorAll('.ms'));
+var YEARS = items.map(function(li){ return +li.getAttribute('data-year'); });
+var N = items.length;
+function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+function lerp(a, b, t){ return a + (b - a) * t; }
+
+/* ---------- line art: prepare the draw-on effect ---------- */
+items.forEach(function(li){
+  Array.prototype.forEach.call(li.querySelectorAll('.art path, .art circle, .art ellipse, .art rect, .art line'), function(el){
+    if (!el.classList.contains('dash')) el.setAttribute('pathLength', '1');
+  });
+});
+
+/* ---------- altimeter dial ---------- */
+(function(){
+  var g = doc.getElementById('dial'), s = '';
+  for (var i = 0; i < 50; i++){
+    var a = i / 50 * Math.PI * 2, major = i % 5 === 0;
+    var r1 = 86, r2 = major ? 74 : 80;
+    s += '<line x1="' + (100 + Math.sin(a) * r1).toFixed(1) + '" y1="' + (100 - Math.cos(a) * r1).toFixed(1) + '" x2="' + (100 + Math.sin(a) * r2).toFixed(1) + '" y2="' + (100 - Math.cos(a) * r2).toFixed(1) + '" stroke="#eaf4ff" stroke-width="' + (major ? 2 : 1) + '" opacity="' + (major ? .95 : .55) + '"/>';
+  }
+  for (var d = 0; d < 10; d++){
+    var b = d / 10 * Math.PI * 2;
+    s += '<text x="' + (100 + Math.sin(b) * 61).toFixed(1) + '" y="' + (106 - Math.cos(b) * 61).toFixed(1) + '">' + d + '</text>';
+  }
+  g.innerHTML = s;
+})();
+
+/* ---------- layout ---------- */
+var W = 0, H = 0, DPR = 1, axisY = 0, slot = 0, introW = 0, centers = [], total = 0, maxX = 0;
+var x = 0, tx = 0;
+function layout(){
+  var keepYear = W ? yearAt(x + W / 2) : null;
+  W = window.innerWidth; H = window.innerHeight;
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  [sky, fx].forEach(function(c){ c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); });
+  var phone = W < 640;
+  axisY = Math.round(H * (phone ? 0.72 : 0.75));
+  slot = phone ? 286 : clamp(W * 0.3, 330, 450);
+  var cardW = Math.min(slot - (phone ? 34 : 50), 360);
+  introW = phone ? W : Math.max(560, W * 0.56);
+  centers = [];
+  var maxAlt = Math.min(150, H * (phone ? 0.1 : 0.16));
+  items.forEach(function(li, i){
+    var cx = introW + slot * i + slot / 2;
+    centers.push(cx);
+    var alt = i / (N - 1) * maxAlt;
+    li.style.left = (cx - cardW / 2) + 'px';
+    li.style.width = cardW + 'px';
+    li.style.bottom = (H - axisY) + 'px';
+    var stem = li.querySelector('.stem'), dot = li.querySelector('.dotp');
+    stem.style.height = (30 + alt) + 'px';
+    dot.style.left = (cardW / 2) + 'px'; dot.style.top = '100%';
+  });
+  total = introW + slot * N + Math.max(W * 0.9, 520);
+  maxX = total - W;
+  track.style.width = total + 'px';
+  doc.getElementById('intro').style.width = introW + 'px';
+  var outro = doc.getElementById('outro');
+  outro.style.left = (introW + slot * N + (phone ? 0 : 40)) + 'px';
+  outro.style.width = Math.max(W * 0.9, 520) + 'px';
+  var axis = doc.getElementById('axis');
+  axis.style.top = (axisY - 1) + 'px'; axis.style.left = (introW * 0.6) + 'px'; axis.style.width = (total - introW * 0.6 - W * 0.4) + 'px';
+  buildTicks();
+  if (keepYear != null){
+    var p = posOfYear(keepYear), bi = 0, bd = 1e9;
+    for (var j = 0; j < N; j++){ var dd = Math.abs(centers[j] - p); if (dd < bd){ bd = dd; bi = j; } }
+    if (keepYear > YEARS[0] + 0.5 && bd < slot * 0.5) p = centers[bi];
+    x = tx = clamp(p - W / 2, 0, maxX);
+    trail.length = 0;
+  }
+  x = tx = clamp(tx, 0, maxX);
+  applyX();
+}
+function yearAt(px){
+  if (!centers.length) return YEARS[0];
+  if (px <= centers[0]) return YEARS[0];
+  for (var i = 0; i < N - 1; i++){
+    if (px <= centers[i + 1]) return lerp(YEARS[i], YEARS[i + 1], (px - centers[i]) / (centers[i + 1] - centers[i]));
+  }
+  return YEARS[N - 1];
+}
+function posOfYear(y){
+  if (y <= YEARS[0]) return centers[0];
+  for (var i = 0; i < N - 1; i++){
+    if (y <= YEARS[i + 1]) return lerp(centers[i], centers[i + 1], (y - YEARS[i]) / (YEARS[i + 1] - YEARS[i]));
+  }
+  return centers[N - 1];
+}
+function buildTicks(){
+  var h = '', y;
+  for (y = 1790; y <= 1960; y += 10){
+    var p = posOfYear(y), major = y % 50 === 0;
+    h += '<span class="tick' + (major ? ' major' : '') + '" style="left:' + p.toFixed(1) + 'px;top:' + (axisY + 2) + 'px;height:' + (major ? 12 : 7) + 'px"></span>';
+    var show = major || (posOfYear(y + 10) - p > 60 && posOfYear(y) - posOfYear(y - 10) > 60);
+    if (show) h += '<span class="tlabel" style="left:' + p.toFixed(1) + 'px;top:' + (axisY + 17) + 'px">' + y + '</span>';
+  }
+  for (var i = 0; i < N - 1; i++){
+    var gap = YEARS[i + 1] - YEARS[i];
+    h += '<span class="gap" style="left:' + ((centers[i] + centers[i + 1]) / 2).toFixed(1) + 'px;top:' + (axisY - 26) + 'px">+' + gap + ' yrs</span>';
+  }
+  doc.getElementById('ticks').innerHTML = h;
+}
+items.forEach(function(li){
+  var stem = doc.createElement('span'); stem.className = 'stem'; stem.setAttribute('aria-hidden', 'true');
+  var dot = doc.createElement('span'); dot.className = 'dotp'; dot.setAttribute('aria-hidden', 'true');
+  li.appendChild(stem); li.appendChild(dot);
+});
+
+/* ---------- motion ---------- */
+function applyX(){ track.style.transform = 'translate3d(' + (-x).toFixed(2) + 'px,0,0)'; }
+function goToIndex(i){ i = clamp(i, 0, N - 1); tx = clamp(centers[i] - W / 2, 0, maxX); }
+function nearestIndex(){
+  var c = x + W / 2, best = 0, bd = 1e9;
+  for (var i = 0; i < N; i++){ var d = Math.abs(centers[i] - c); if (d < bd){ bd = d; best = i; } }
+  return { i:best, d:bd };
+}
+function step(dir){
+  var c = tx + W / 2, i;
+  if (dir > 0){ for (i = 0; i < N; i++) if (centers[i] > c + 4){ goToIndex(i); return; } tx = maxX; }
+  else { for (i = N - 1; i >= 0; i--) if (centers[i] < c - 4){ goToIndex(i); return; } tx = 0; }
+}
+
+/* drag with inertia */
+var drag = null, suppress = false;
+tl.addEventListener('pointerdown', function(e){
+  if (e.button > 0) return;
+  drag = { id:e.pointerId, x0:e.clientX, tx0:tx, lastX:e.clientX, lastT:performance.now(), v:0, moved:false };
+});
+window.addEventListener('pointermove', function(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  var dx = e.clientX - drag.x0;
+  if (!drag.moved && Math.abs(dx) > 6){ drag.moved = true; tl.classList.add('drag'); try { tl.setPointerCapture(e.pointerId); } catch(err){} }
+  if (drag.moved){
+    tx = clamp(drag.tx0 - dx, -80, maxX + 80);
+    var now = performance.now(), dt = Math.max(1, now - drag.lastT);
+    drag.v = lerp(drag.v, (e.clientX - drag.lastX) / dt, 0.4);
+    drag.lastX = e.clientX; drag.lastT = now;
+  }
+});
+function endDrag(e){
+  if (!drag || (e && e.pointerId !== drag.id)) return;
+  if (drag.moved){
+    suppress = true; setTimeout(function(){ suppress = false; }, 60);
+    tx = clamp(tx - drag.v * 320, 0, maxX);
+  }
+  tl.classList.remove('drag');
+  drag = null;
+}
+window.addEventListener('pointerup', endDrag);
+window.addEventListener('pointercancel', endDrag);
+tl.addEventListener('wheel', function(e){
+  if (!detail.hidden) return;
+  var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  if (e.deltaMode === 1) d *= 32;
+  tx = clamp(tx + d * 1.1, 0, maxX);
+  e.preventDefault();
+}, { passive:false });
+
+doc.addEventListener('keydown', function(e){
+  if (!detail.hidden){
+    if (e.key === 'Escape'){ closeDetail(); }
+    else if (e.key === 'ArrowRight'){ openDetail(clamp(openIdx + 1, 0, N - 1), true); }
+    else if (e.key === 'ArrowLeft'){ openDetail(clamp(openIdx - 1, 0, N - 1), true); }
+    else if (e.key === 'Tab') trapTab(e);
+    return;
+  }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); step(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); step(-1); }
+  else if (e.key === 'Home'){ e.preventDefault(); tx = 0; }
+  else if (e.key === 'End'){ e.preventDefault(); tx = maxX; }
+});
+doc.getElementById('prevB').addEventListener('click', function(){ step(-1); });
+doc.getElementById('nextB').addEventListener('click', function(){ step(1); });
+doc.getElementById('restart').addEventListener('click', function(){ tx = 0; });
+
+/* keep focused cards in view */
+items.forEach(function(li, i){
+  var btn = li.querySelector('.card');
+  btn.addEventListener('focus', function(){ if (Math.abs(centers[i] - (tx + W / 2)) > W * 0.3) goToIndex(i); });
+  btn.addEventListener('click', function(){ if (suppress) return; openDetail(i, false); });
+});
+
+/* ---------- detail (expanded card) ---------- */
+var detail = doc.getElementById('detail'), dcard = doc.getElementById('dcard'), openIdx = -1, lastFocus = null;
+function fill(i){
+  var li = items[i], more = li.querySelector('.more');
+  doc.getElementById('dYear').textContent = YEARS[i];
+  doc.getElementById('dTitle').textContent = more.querySelector('.m-title').textContent;
+  doc.getElementById('dMeta').textContent = more.querySelector('.m-meta').textContent;
+  doc.getElementById('dLong').textContent = more.querySelector('.m-long').textContent;
+  doc.getElementById('dStats').innerHTML = more.querySelector('dl').innerHTML;
+  var art = li.querySelector('.art').cloneNode(true);
+  Array.prototype.forEach.call(art.querySelectorAll('[pathLength]'), function(el){ el.removeAttribute('pathLength'); });
+  var holder = doc.getElementById('dArt'); holder.innerHTML = ''; holder.appendChild(art);
+  doc.getElementById('dPrev').disabled = i === 0; doc.getElementById('dNext').disabled = i === N - 1;
+}
+function openDetail(i, swap){
+  var wasOpen = !detail.hidden;
+  openIdx = i;
+  fill(i);
+  goToIndex(i);
+  if (!wasOpen){
+    lastFocus = doc.activeElement;
+    detail.hidden = false;
+    var r = items[i].querySelector('.card').getBoundingClientRect(), d = dcard.getBoundingClientRect();
+    if (!RM.matches && dcard.animate){
+      var sx = r.width / d.width, sy = r.height / d.height;
+      dcard.animate([
+        { transform:'translate(' + (r.left - d.left) + 'px,' + (r.top - d.top) + 'px) scale(' + sx + ',' + sy + ')', transformOrigin:'0 0', opacity:.4 },
+        { transform:'none', transformOrigin:'0 0', opacity:1 }
+      ], { duration:560, easing:'cubic-bezier(.2,.75,.2,1)' });
+      doc.getElementById('scrim').animate([{ opacity:0 }, { opacity:1 }], { duration:400 });
+    }
+    doc.getElementById('dClose').focus();
+  } else if (swap && dcard.animate && !RM.matches){
+    dcard.animate([{ opacity:.3, transform:'translateY(8px)' }, { opacity:1, transform:'none' }], { duration:320, easing:'ease-out' });
+  }
+}
+function closeDetail(){
+  if (detail.hidden) return;
+  var li = items[openIdx], done = function(){ detail.hidden = true; var b = li && li.querySelector('.card'); if (b) b.focus({ preventScroll:true }); };
+  if (!RM.matches && dcard.animate){
+    var a = dcard.animate([{ opacity:1, transform:'none' }, { opacity:0, transform:'scale(.96)' }], { duration:220, easing:'ease-in' });
+    a.onfinish = done;
+  } else done();
+}
+function trapTab(e){
+  var f = Array.prototype.filter.call(dcard.querySelectorAll('button'), function(b){ return !b.disabled; });
+  if (!f.length) return;
+  var first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && doc.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && doc.activeElement === last){ e.preventDefault(); first.focus(); }
+}
+doc.getElementById('dClose').addEventListener('click', closeDetail);
+doc.getElementById('scrim').addEventListener('click', closeDetail);
+doc.getElementById('dPrev').addEventListener('click', function(){ openDetail(clamp(openIdx - 1, 0, N - 1), true); });
+doc.getElementById('dNext').addEventListener('click', function(){ openDetail(clamp(openIdx + 1, 0, N - 1), true); });
+
+/* ---------- sky: gradient keyed to the year, parallax clouds, stars ---------- */
+var KEYS = [
+  { y:1783, c:['#9fc9f7', '#cfe6fd', '#ffd1dd'] },
+  { y:1880, c:['#6fa8f7', '#bde0fe', '#fff0f4'] },
+  { y:1920, c:['#3a86ff', '#8fc0ff', '#e4f2ff'] },
+  { y:1947, c:['#1f5ac4', '#3a86ff', '#bde0fe'] },
+  { y:1957, c:['#0b1b3a', '#1d3557', '#4a6fa5'] },
+  { y:1969, c:['#030814', '#0b1a33', '#1d3557'] }
+];
+function hx(h){ return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+KEYS.forEach(function(k){ k.rgb = k.c.map(hx); });
+function skyAt(year){
+  for (var i = 0; i < KEYS.length - 1; i++){
+    if (year <= KEYS[i + 1].y){
+      var t = clamp((year - KEYS[i].y) / (KEYS[i + 1].y - KEYS[i].y), 0, 1); t = t * t * (3 - 2 * t);
+      return KEYS[i].rgb.map(function(a, j){ var b = KEYS[i + 1].rgb[j]; return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]; });
+    }
+  }
+  return KEYS[KEYS.length - 1].rgb;
+}
+function css(c, a){ return 'rgba(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ',' + (a == null ? 1 : a) + ')'; }
+
+/* cloud sprites: soft puffs pre-rendered once */
+function makeCloud(seed, w){
+  var r = seed, rnd = function(){ r = (r * 16807) % 2147483647; return (r - 1) / 2147483646; };
+  var h = w * 0.5, c = doc.createElement('canvas'); c.width = w; c.height = h;
+  var g = c.getContext('2d');
+  var puffs = 9 + Math.floor(rnd() * 6);
+  for (var i = 0; i < puffs; i++){
+    var px = w * (0.15 + rnd() * 0.7), py = h * (0.45 + rnd() * 0.25) - Math.sin((px / w) * Math.PI) * h * 0.18, pr = w * (0.09 + rnd() * 0.13);
+    var gr = g.createRadialGradient(px, py - pr * 0.2, pr * 0.1, px, py, pr);
+    gr.addColorStop(0, 'rgba(255,255,255,.95)'); gr.addColorStop(0.55, 'rgba(255,255,255,.75)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(px, py, pr, 0, Math.PI * 2); g.fill();
+  }
+  var base = g.createLinearGradient(0, h * 0.5, 0, h);
+  base.addColorStop(0, 'rgba(255,255,255,0)'); base.addColorStop(1, 'rgba(214,228,245,.55)');
+  g.globalCompositeOperation = 'source-atop'; g.fillStyle = base; g.fillRect(0, 0, w, h);
+  return c;
+}
+var SPRITES = [];
+for (var s = 0; s < 6; s++) SPRITES.push(makeCloud(1234 + s * 777, 260 + s * 40));
+var LAYERS = [
+  { f:0.06, n:7, y:[0.12, 0.42], sc:[0.35, 0.6], a:0.55, drift:4 },
+  { f:0.18, n:7, y:[0.2, 0.55], sc:[0.6, 0.95], a:0.7, drift:7 },
+  { f:0.42, n:6, y:[0.45, 0.8], sc:[1, 1.5], a:0.85, drift:11 },
+  { f:1.25, n:4, y:[0.78, 1.02], sc:[1.6, 2.4], a:0.8, drift:16, front:true }
+];
+var seedR = 99;
+function r01(){ seedR = (seedR * 16807) % 2147483647; return (seedR - 1) / 2147483646; }
+LAYERS.forEach(function(L){
+  L.clouds = [];
+  for (var i = 0; i < L.n; i++) L.clouds.push({ u:i / L.n + r01() * 0.1, y:lerp(L.y[0], L.y[1], r01()), s:lerp(L.sc[0], L.sc[1], r01()), sp:SPRITES[Math.floor(r01() * SPRITES.length)] });
+});
+var STARS = [];
+for (var k = 0; k < 220; k++) STARS.push({ x:r01(), y:r01() * 0.9, r:0.4 + r01() * 1.3, tw:r01() * 6 });
+
+function drawClouds(ctx, L, t, alpha){
+  var span = W + 900;
+  for (var i = 0; i < L.clouds.length; i++){
+    var c = L.clouds[i], w = c.sp.width * c.s, h = c.sp.height * c.s;
+    var px = ((c.u * span - x * L.f - t * L.drift * 0.001 * (RM.matches ? 0 : 1)) % span + span) % span - 450;
+    ctx.globalAlpha = alpha * L.a;
+    ctx.drawImage(c.sp, px, c.y * H - h / 2, w, h);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ---------- paper plane ---------- */
+var trail = [], planeY = 0, pitch = 0, prevX = 0;
+function drawPlane(ctx, t, night){
+  var px = W * 0.5, bob = RM.matches ? 0 : Math.sin(t * 0.0021) * 7;
+  var vx = x - prevX; prevX = x;
+  pitch = lerp(pitch, clamp(-vx * 0.9, -26, 26), 0.12);
+  planeY = axisY + (H - axisY) * (W < 640 ? 0.3 : 0.4) + bob + pitch * 0.5;
+  var wx = x + px;
+  var last = trail[trail.length - 1];
+  if (!last || Math.abs(last.x - wx) > 6) { trail.push({ x:wx, y:planeY }); if (trail.length > 140) trail.shift(); }
+  /* dashed contrail in world space */
+  if (trail.length > 1){
+    ctx.save();
+    ctx.setLineDash([5, 7]); ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.strokeStyle = night ? 'rgba(234,244,255,.55)' : 'rgba(29,53,87,.4)';
+    ctx.beginPath();
+    for (var i = 0; i < trail.length; i++){ var sx = trail[i].x - x; if (i === 0) ctx.moveTo(sx, trail[i].y); else ctx.lineTo(sx, trail[i].y); }
+    ctx.lineTo(px - 10, planeY + 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+  var dir = vx < -0.3 ? -1 : 1;
+  ctx.save();
+  ctx.translate(px, planeY);
+  ctx.rotate((vx < -0.3 ? -pitch : pitch) * Math.PI / 180 * dir);
+  ctx.scale(dir, 1);
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#1d3557'; ctx.lineWidth = 1.2;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-16, -11); ctx.lineTo(-8, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#d7e6f7';
+  ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-8, 0); ctx.lineTo(-13, 9); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ff8fab';
+  ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-8, 0); ctx.lineTo(-4, 3.5); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- frame ---------- */
+var routeFill = doc.getElementById('routeFill'), routePlane = doc.getElementById('routePlane');
+var yearTxt = doc.getElementById('yearTxt'), altiWin = doc.getElementById('altiWin'), countTxt = doc.getElementById('countTxt');
+var nUnits = doc.getElementById('nUnits'), nTens = doc.getElementById('nTens');
+var night = false, lastYearShown = -1, lastNear = -1;
+function frame(t){
+  requestAnimationFrame(frame);
+  if (doc.hidden) return;
+  if (!drag || !drag.moved){ /* ease toward target */ }
+  var k = drag && drag.moved ? 0.35 : (RM.matches ? 0.5 : 0.1);
+  if (!drag || !drag.moved) tx = clamp(tx, 0, maxX);
+  x += (tx - x) * k;
+  if (Math.abs(tx - x) < 0.05) x = tx;
+  applyX();
+  var yr = yearAt(x + W / 2), yrs = Math.floor(yr);
+  var cols = skyAt(yr);
+  /* sky */
+  var g = sctx.createLinearGradient(0, 0, 0, H * DPR);
+  g.addColorStop(0, css(cols[0])); g.addColorStop(0.62, css(cols[1])); g.addColorStop(1, css(cols[2]));
+  sctx.setTransform(1, 0, 0, 1, 0, 0);
+  sctx.fillStyle = g; sctx.fillRect(0, 0, sky.width, sky.height);
+  sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  var space = clamp((yr - 1950) / 10, 0, 1);
+  /* sunrise glow in the early years */
+  var dawn = clamp(1 - (yr - 1783) / 110, 0, 1);
+  if (dawn > 0){
+    var sg = sctx.createRadialGradient(W * 0.2, H * 0.98, 10, W * 0.2, H * 0.98, H * 0.9);
+    sg.addColorStop(0, 'rgba(255,143,171,' + (0.55 * dawn) + ')'); sg.addColorStop(1, 'rgba(255,143,171,0)');
+    sctx.fillStyle = sg; sctx.fillRect(0, 0, W, H);
+  }
+  if (space > 0){
+    for (var i = 0; i < STARS.length; i++){
+      var st = STARS[i], tw = RM.matches ? 1 : 0.6 + 0.4 * Math.sin(t * 0.002 + st.tw);
+      sctx.fillStyle = 'rgba(234,244,255,' + (space * tw * 0.85) + ')';
+      var sx = ((st.x * (W + 200) - x * 0.03) % (W + 200) + W + 200) % (W + 200) - 100;
+      sctx.fillRect(sx, st.y * H * 0.8, st.r, st.r);
+    }
+    /* the Earth's limb falls away beneath us */
+    var limb = sctx.createRadialGradient(W * 0.5, H * 2.35, H * 1.3, W * 0.5, H * 2.35, H * 1.52);
+    limb.addColorStop(0, 'rgba(58,134,255,' + 0.5 * space + ')'); limb.addColorStop(0.9, 'rgba(189,224,254,' + 0.35 * space + ')'); limb.addColorStop(1, 'rgba(189,224,254,0)');
+    sctx.fillStyle = limb; sctx.fillRect(0, 0, W, H);
+  }
+  var cloudA = 1 - space * 0.92;
+  for (var l = 0; l < 3; l++) drawClouds(sctx, LAYERS[l], t, cloudA);
+  /* fx: front clouds and the plane */
+  fctx.setTransform(1, 0, 0, 1, 0, 0); fctx.clearRect(0, 0, fx.width, fx.height);
+  fctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  drawPlane(fctx, t, space > 0.5);
+  drawClouds(fctx, LAYERS[3], t, cloudA * 0.7);
+  /* chrome */
+  var nightNow = space > 0.5;
+  if (nightNow !== night){ night = nightNow; body.classList.toggle('night', night); }
+  if (yrs !== lastYearShown){
+    lastYearShown = yrs;
+    yearTxt.textContent = yrs; altiWin.textContent = yrs;
+  }
+  nUnits.setAttribute('transform', 'rotate(' + ((yr % 10) / 10 * 360).toFixed(2) + ' 100 100)');
+  nTens.setAttribute('transform', 'rotate(' + ((yr % 100) / 100 * 360).toFixed(2) + ' 100 100)');
+  var prog = clamp((yr - 1783) / (1969 - 1783), 0, 1);
+  routeFill.style.width = (prog * 100) + '%'; routePlane.style.left = (prog * 100) + '%';
+  var near = nearestIndex();
+  var ni = near.d < slot * 0.5 ? near.i : -1;
+  if (ni !== lastNear){
+    if (lastNear >= 0) items[lastNear].classList.remove('near');
+    if (ni >= 0) items[ni].classList.add('near');
+    lastNear = ni;
+    countTxt.textContent = (ni >= 0 ? String(ni + 1).padStart(2, '0') : '—') + ' / ' + N;
+  }
+  /* draw each illustration the first time it flies into view */
+  for (var j = 0; j < N; j++){
+    if (items[j].classList.contains('seen')) continue;
+    var sx2 = centers[j] - x;
+    if (sx2 > -slot && sx2 < W + slot * 0.2) items[j].classList.add('seen');
+  }
+}
+
+window.addEventListener('resize', layout);
+layout();
+prevX = x;
+/* whatever is on screen at load is already drawn; later arrivals draw themselves in */
+for (var q = 0; q < N; q++){
+  var sq = centers[q] - x;
+  if (sq > -slot && sq < W + slot * 0.2){ items[q].classList.add('instant', 'seen'); }
+}
+setTimeout(function(){ items.forEach(function(li){ li.classList.remove('instant'); }); }, 100);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

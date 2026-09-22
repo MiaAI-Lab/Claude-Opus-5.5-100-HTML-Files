@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dune Engine — Falling Sand Sandbox</title>
+<meta name="description" content="Dune Engine, a falling-sand cellular automaton: paint sand, water, stone, fire, wood, steam, oil, lava and plants and watch them sink, float, burn, boil and grow. Includes hourglass, volcano and oasis scenes.">
+<meta name="theme-color" content="#1f2a44">
+<style>
+:root{
+  --sand:#f3e3c3;
+  --sand-2:#ead5ad;
+  --sand-3:#e0c592;
+  --terra:#c1440e;
+  --terra-2:#a8390b;
+  --terra-hi:#e0612a;
+  --dusk:#1f2a44;
+  --dusk-2:#172036;
+  --dusk-3:#111829;
+  --dusk-ink:#1f2a44;
+  --ui:"Futura","Avenir Next","URW Gothic","Century Gothic","Trebuchet MS",sans-serif;
+  --mono:"SF Mono","JetBrains Mono",Menlo,Consolas,"Nimbus Mono PS","DejaVu Sans Mono",monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font-family:var(--ui);color:var(--sand);overflow-x:hidden;
+  background:
+    radial-gradient(ellipse 70% 45% at 78% 108%,rgba(193,68,14,.55),rgba(193,68,14,0) 70%),
+    radial-gradient(ellipse 60% 40% at 10% 110%,rgba(224,97,42,.25),transparent 70%),
+    linear-gradient(180deg,#121a2e 0%,#1f2a44 46%,#2e2a44 78%,#4a2a33 100%);
+  background-attachment:fixed;
+}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--terra-hi);outline-offset:2px}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.dunes{position:fixed;left:0;right:0;bottom:0;width:100%;height:32vh;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;display:grid;grid-template-rows:auto minmax(0,1fr);height:100svh;min-height:560px;padding:14px clamp(12px,1.6vw,24px) 16px;gap:12px}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:16px;min-width:0}
+#titleCv{display:block;height:40px;width:auto;image-rendering:pixelated}
+.brand p{margin:0;font-size:.78rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(243,227,195,.66);line-height:1.4}
+.brand p b{color:var(--terra-hi);font-weight:700}
+.readout{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:rgba(243,227,195,.78);background:rgba(10,14,26,.5);border:1px solid rgba(243,227,195,.14);border-radius:8px;padding:7px 12px;white-space:nowrap;display:flex;gap:14px}
+.readout span b{color:var(--sand);font-weight:700}
+.readout i{font-style:normal;color:var(--terra-hi)}
+
+/* ---------- main ---------- */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 322px;gap:14px;min-height:0}
+.stage{position:relative;min-height:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.frame{
+  position:relative;flex:1;min-height:0;border-radius:14px;overflow:hidden;
+  background:#10172a;
+  box-shadow:0 0 0 2px #2a1a14,0 0 0 5px var(--terra),0 0 0 7px #2a1a14,0 30px 60px -20px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.04);
+  display:grid;place-items:center;
+}
+.frame::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:14px;box-shadow:inset 0 0 40px rgba(0,0,0,.45);background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 30%)}
+#sim{display:block;touch-action:none;cursor:none;image-rendering:pixelated}
+.stage-foot{display:flex;justify-content:space-between;gap:10px;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,227,195,.55);padding:0 4px}
+.stage-foot kbd{font-family:var(--mono);font-size:.68rem;padding:1px 5px;border-radius:4px;background:rgba(243,227,195,.12);color:var(--sand);letter-spacing:0}
+.paused-tag{position:absolute;top:14px;left:14px;z-index:3;font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;padding:6px 10px;border-radius:6px;background:var(--terra);color:var(--sand);opacity:0;transform:translateY(-6px);transition:opacity .25s,transform .25s;pointer-events:none}
+.paused .paused-tag{opacity:1;transform:none}
+
+/* ---------- panel ---------- */
+.panel{
+  min-height:0;overflow-y:auto;overscroll-behavior:contain;border-radius:16px;color:var(--dusk-ink);
+  background:
+    radial-gradient(circle at 20% 0%,rgba(255,255,255,.5),transparent 40%),
+    repeating-radial-gradient(circle at 30% 40%,rgba(160,110,40,.05) 0 1px,transparent 1px 3px),
+    var(--sand);
+  box-shadow:0 30px 60px -24px rgba(0,0,0,.7),inset 0 0 0 1px rgba(255,255,255,.4);
+  padding:16px 16px 18px;scrollbar-width:thin;scrollbar-color:var(--terra) transparent;
+}
+.panel h2{margin:0 0 10px;font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:var(--terra);display:flex;align-items:center;gap:10px;font-weight:700}
+.panel h2::after{content:"";flex:1;height:2px;background:repeating-linear-gradient(90deg,rgba(193,68,14,.45) 0 4px,transparent 4px 8px)}
+.group + .group{margin-top:18px}
+.swatches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;list-style:none;margin:0;padding:0}
+.sw{
+  position:relative;width:100%;display:block;padding:0;border:0;cursor:pointer;text-align:left;border-radius:10px;overflow:hidden;
+  background:var(--sand-2);box-shadow:0 0 0 1px rgba(31,42,68,.18),0 3px 0 rgba(31,42,68,.25);
+  transition:transform .15s,box-shadow .2s;
+}
+.sw canvas{display:block;width:100%;height:34px;image-rendering:pixelated}
+.sw .lbl{display:flex;align-items:center;gap:6px;padding:5px 7px 6px;font-size:.74rem;font-weight:700;letter-spacing:.02em}
+.sw .lbl svg{width:15px;height:15px;flex:none}
+.sw .key{position:absolute;top:4px;right:5px;font-family:var(--mono);font-size:.62rem;font-weight:700;background:rgba(17,24,41,.72);color:var(--sand);border-radius:4px;padding:1px 4px}
+.sw:hover{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(31,42,68,.3),0 5px 0 rgba(31,42,68,.25)}
+.sw:active{transform:translateY(2px);box-shadow:0 0 0 1px rgba(31,42,68,.3),0 1px 0 rgba(31,42,68,.25)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--terra),0 3px 0 var(--terra-2);background:#fff4dc}
+.sw[aria-pressed="true"] .lbl{color:var(--terra-2)}
+.brush-row{display:flex;align-items:center;gap:12px}
+.brush-prev{width:44px;height:44px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--dusk);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.brush-prev i{display:block;border-radius:50%;border:2px solid var(--sand);width:10px;height:10px;transition:width .12s,height .12s}
+.brush-row label{font-size:.78rem;font-weight:700;min-width:64px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:10px;border-radius:10px;background:linear-gradient(90deg,var(--terra) var(--fill,30%),rgba(31,42,68,.18) var(--fill,30%));cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:var(--sand);border:3px solid var(--dusk);box-shadow:0 2px 4px rgba(0,0,0,.35)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--sand);border:3px solid var(--dusk)}
+.ctl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.b{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border:0;border-radius:10px;cursor:pointer;
+  background:var(--dusk);color:var(--sand);font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  box-shadow:0 3px 0 var(--dusk-3);transition:transform .12s,box-shadow .12s,background-color .2s;
+}
+.b svg{width:18px;height:18px}
+.b:hover{background:#2a3858}
+.b:active{transform:translateY(3px);box-shadow:0 0 0 var(--dusk-3)}
+.b.warn{background:var(--terra);box-shadow:0 3px 0 #7a2a08}
+.b.warn:hover{background:var(--terra-hi)}
+.b:disabled{opacity:.4;cursor:default}
+.scenes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.scene{border:0;padding:0;cursor:pointer;border-radius:12px;overflow:hidden;background:var(--dusk);box-shadow:0 0 0 1px rgba(31,42,68,.2),0 3px 0 rgba(31,42,68,.3);transition:transform .15s,box-shadow .2s;color:var(--sand)}
+.scene svg{display:block;width:100%;height:auto}
+.scene span{display:block;padding:6px 4px 7px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(0,0,0,.25)}
+.scene:hover{transform:translateY(-2px)}
+.scene:active{transform:translateY(2px)}
+.scene.on{box-shadow:0 0 0 3px var(--terra),0 3px 0 var(--terra-2)}
+.about{margin:14px 0 0;font-size:.76rem;line-height:1.5;color:rgba(31,42,68,.78)}
+.about b{color:var(--terra-2)}
+.legend{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px;font-size:.72rem;color:rgba(31,42,68,.8)}
+.legend li{display:flex;gap:8px;align-items:baseline}
+.legend li::before{content:"";width:6px;height:6px;flex:none;background:var(--terra);transform:translateY(-1px) rotate(45deg)}
+
+@media (max-width:880px){
+  .app{height:auto;min-height:0;grid-template-rows:auto auto}
+  .main{grid-template-columns:minmax(0,1fr)}
+  .frame{height:62svh;min-height:330px;flex:none}
+  .panel{overflow:visible}
+  .swatches{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:88px;overflow-x:auto;padding:4px 2px 8px;scroll-snap-type:x proximity;scrollbar-width:none}
+  .swatches::-webkit-scrollbar{display:none}
+  .swatches li{scroll-snap-align:start}
+  .readout{order:3;width:100%;justify-content:space-between}
+  #titleCv{height:30px}
+  .brand .sub2{display:none}
+  .stage-foot .desk{display:none}
+}
+@media (max-width:420px){
+  .brand p{font-size:.66rem;letter-spacing:.16em}
+  .readout{font-size:.64rem;gap:8px;padding:6px 9px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<svg class="dunes" viewBox="0 0 1440 300" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 170 C 180 120, 320 140, 480 170 C 640 200, 760 130, 940 140 C 1110 150, 1260 190, 1440 150 V300 H0 Z" fill="#2a2440" opacity=".8"/>
+  <path d="M0 220 C 200 190, 360 200, 560 230 C 760 260, 900 200, 1100 210 C 1260 218, 1360 240, 1440 230 V300 H0 Z" fill="#3a2436" opacity=".85"/>
+  <path d="M0 262 C 240 240, 520 250, 760 270 C 1000 290, 1200 262, 1440 268 V300 H0 Z" fill="#522a2c"/>
+</svg>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">
+      <h1 class="sr-only">Dune Engine — Falling Sand Sandbox</h1>
+      <canvas id="titleCv" width="240" height="40" aria-hidden="true"></canvas>
+      <p><b>Falling sand sandbox</b><br><span class="sub2">a cellular automaton of the desert</span></p>
+    </div>
+    <div class="readout" role="status" aria-live="off">
+      <span>PARTICLES <b id="rCount">0</b></span>
+      <span><b id="rFps">0</b> FPS</span>
+      <span>GRID <b id="rGrid">0×0</b></span>
+      <span>SPEED <i id="rSpeed">1×</i></span>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="stage" aria-label="Simulation">
+      <div class="frame" id="frame">
+        <canvas id="sim" role="img" aria-label="Falling sand simulation canvas. Draw on it to place the selected element."></canvas>
+        <span class="paused-tag" aria-hidden="true">PAUSED</span>
+      </div>
+      <div class="stage-foot">
+        <span>Draw to pour · right-click or <kbd>0</kbd> erases</span>
+        <span class="desk"><kbd>1</kbd>–<kbd>9</kbd> elements · <kbd>[</kbd> <kbd>]</kbd> brush · <kbd>Space</kbd> pause · <kbd>.</kbd> step</span>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="Tools">
+      <div class="group">
+        <h2 id="elHead">Elements</h2>
+        <ul class="swatches" id="swatches" aria-labelledby="elHead"></ul>
+      </div>
+
+      <div class="group">
+        <h2>Brush</h2>
+        <div class="brush-row">
+          <div class="brush-prev" aria-hidden="true"><i id="brushDot"></i></div>
+          <label for="brush">Size <span id="brushVal">5</span></label>
+          <input type="range" id="brush" min="1" max="14" value="5">
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Controls</h2>
+        <div class="ctl">
+          <button type="button" class="b" id="bPause" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path id="pauseIcon" d="M6 4 H9 V16 H6 Z M11 4 H14 V16 H11 Z" fill="currentColor"/></svg><span id="pauseLbl">Pause</span></button>
+          <button type="button" class="b" id="bStep" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 4 L13 10 L5 16 Z M14 4 H16 V16 H14 Z" fill="currentColor"/></svg>Step</button>
+          <button type="button" class="b" id="bSpeed"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5 L10 10 L3 15 Z M10 5 L17 10 L10 15 Z" fill="currentColor"/></svg><span id="speedLbl">1×</span></button>
+          <button type="button" class="b warn" id="bClear"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6 H16 M8 6 V4 H12 V6 M6 6 L7 17 H13 L14 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Clear</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Scenes</h2>
+        <div class="scenes">
+          <button type="button" class="scene" data-scene="hourglass" aria-label="Load the hourglass scene">
+            <svg viewBox="0 0 90 60" aria-hidden="true"><rect width="90" height="60" fill="#1f2a44"/><path d="M30 8 H60 M30 52 H60" stroke="#8b5a2b" stroke-width="4"/><path d="M34 10 L45 29 L34 50 M56 10 L45 29 L56 50" fill="none" stroke="#bcd6d4" stroke-width="2"/><path d="M37 14 H53 L45 27 Z M38 49 L45 38 L52 49 Z" fill="#e6c07b"/><path d="M45 29 V38" stroke="#e6c07b" stroke-width="1.5" stroke-dasharray="1.5 1.5"/></svg>
+            <span>Hourglass</span>
+          </button>
+          <button type="button" class="scene on" data-scene="volcano" aria-label="Load the volcano scene">
+            <svg viewBox="0 0 90 60" aria-hidden="true"><rect width="90" height="60" fill="#1f2a44"/><path d="M8 52 L38 18 H48 L78 52 Z" fill="#6e6e73"/><path d="M38 18 H48 L52 24 L46 22 L44 34 L41 22 L35 24 Z" fill="#ff5a1f"/><circle cx="43" cy="12" r="5" fill="#cfd8e3" opacity=".5"/><path d="M60 52 H90 V44 H66 Z" fill="#3d7ee0"/><path d="M14 40 V50 M20 44 V52" stroke="#8b5a2b" stroke-width="2.5"/><circle cx="14" cy="38" r="4" fill="#5f8f3a"/><circle cx="20" cy="42" r="3.5" fill="#6fa043"/></svg>
+            <span>Volcano</span>
+          </button>
+          <button type="button" class="scene" data-scene="oasis" aria-label="Load the oasis scene">
+            <svg viewBox="0 0 90 60" aria-hidden="true"><rect width="90" height="60" fill="#1f2a44"/><circle cx="70" cy="16" r="6" fill="#e0612a" opacity=".85"/><path d="M0 44 C 18 36, 28 40, 36 46 H56 C 64 40, 76 36, 90 42 V60 H0 Z" fill="#e6c07b"/><path d="M34 46 H58 C 54 54, 38 54, 34 46 Z" fill="#3d7ee0"/><path d="M26 44 C 27 34, 25 28, 28 20" stroke="#8b5a2b" stroke-width="2.5" fill="none"/><path d="M28 20 C 20 18, 16 22, 14 26 M28 20 C 36 16, 40 20, 42 24 M28 20 C 26 14, 30 12, 34 12" stroke="#6fa043" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+            <span>Oasis</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="about"><b>How it works.</b> Every 4-pixel cell holds one element. Each frame the grid is swept bottom-up, alternating direction, and each cell tries to fall, flow, rise or react. Denser elements sink through lighter liquids.</p>
+      <ul class="legend">
+        <li>Sand sinks in water; oil floats on it.</li>
+        <li>Fire rises, burns wood, oil and plants, and boils water.</li>
+        <li>Steam rises, drifts and condenses back into rain.</li>
+        <li>Lava melts sand into glass and hardens to stone in water.</li>
+        <li>Plants creep into any water they touch.</li>
+      </ul>
+    </aside>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ================= elements ================= */
+  var EMPTY = 0, SAND = 1, WATER = 2, STONE = 3, FIRE = 4, WOOD = 5, STEAM = 6, OIL = 7, LAVA = 8, PLANT = 9, GLASS = 10, SMOKE = 11, ERASE = 99;
+  var DENS = [0, 20, 10, 100, -5, 100, -6, 8, 30, 100, 100, -4];
+  var FLUID = [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1];
+  function abgr(hex){ var n = parseInt(hex.slice(1), 16); return ((255 << 24) | ((n & 255) << 16) | (((n >> 8) & 255) << 8) | (n >> 16)) >>> 0; }
+  var PAL = {};
+  PAL[SAND] = ["#e6c07b", "#d8a95b", "#edcb8a", "#cf9f52"];
+  PAL[WATER] = ["#3d7ee0", "#3674d4", "#4a8aea", "#3470cc"];
+  PAL[STONE] = ["#6e6e73", "#7d7c80", "#5d5c61", "#8a898c"];
+  PAL[FIRE] = ["#fff1a8", "#ffcf4a", "#ff9a1f", "#ff5b14"];
+  PAL[WOOD] = ["#8b5a2b", "#7a4d23", "#9a6834", "#6a4220"];
+  PAL[STEAM] = ["#c9d3e0", "#b3c0d1", "#dbe3ec", "#a6b4c7"];
+  PAL[OIL] = ["#3b2f2a", "#463730", "#2f2521", "#54423a"];
+  PAL[LAVA] = ["#ff5a1f", "#e8430f", "#ffb03a", "#ff7a2a"];
+  PAL[PLANT] = ["#5f8f3a", "#6fa043", "#4f7a30", "#7db24c"];
+  PAL[GLASS] = ["#bcd6d4", "#a9c7c6", "#d5e8e4", "#9fbfbe"];
+  PAL[SMOKE] = ["#4a4f5c", "#555a66", "#3f444f", "#5f6470"];
+  var COL = new Uint32Array(12 * 4);
+  for (var t in PAL){ for (var s = 0; s < 4; s++) COL[t * 4 + s] = abgr(PAL[t][s]); }
+  var WATER_HI = abgr("#6fa3f0"), WATER_TOP = abgr("#9cc4ff"), WATER_DEEP = abgr("#2f63b8");
+  var FIRE_C = ["#fff6c9", "#ffe066", "#ffc234", "#ff9a1f", "#ff6d17", "#e8430f", "#b8300c"].map(abgr);
+  var LAVA_C = ["#ffd46a", "#ffb03a", "#ff8a2a", "#ff5a1f", "#e8430f", "#c23410"].map(abgr);
+
+  var TOOLS = [
+    {t: SAND, name: "Sand", key: "1", prob: .5},
+    {t: WATER, name: "Water", key: "2", prob: .55},
+    {t: STONE, name: "Stone", key: "3", prob: 1},
+    {t: FIRE, name: "Fire", key: "4", prob: .45},
+    {t: WOOD, name: "Wood", key: "5", prob: 1},
+    {t: STEAM, name: "Steam", key: "6", prob: .3},
+    {t: OIL, name: "Oil", key: "7", prob: .55},
+    {t: LAVA, name: "Lava", key: "8", prob: .6},
+    {t: PLANT, name: "Plant", key: "9", prob: 1},
+    {t: ERASE, name: "Eraser", key: "0", prob: 1}
+  ];
+  var ICONS = {};
+  ICONS[SAND] = '<circle cx="4" cy="12" r="1.6" fill="#d8a95b"/><circle cx="8" cy="12" r="1.6" fill="#cf9f52"/><circle cx="12" cy="12" r="1.6" fill="#e6c07b"/><circle cx="6" cy="8.6" r="1.6" fill="#e6c07b"/><circle cx="10" cy="8.6" r="1.6" fill="#d8a95b"/><circle cx="8" cy="5.2" r="1.6" fill="#cf9f52"/>';
+  ICONS[WATER] = '<path d="M8 1.5 C 11 6, 13 8.2, 13 10.4 A5 5 0 0 1 3 10.4 C 3 8.2 5 6 8 1.5 Z" fill="#3d7ee0"/><path d="M5.6 10.4 A2.4 2.4 0 0 0 8 12.8" fill="none" stroke="#cfe2ff" stroke-width="1.2" stroke-linecap="round"/>';
+  ICONS[STONE] = '<rect x="1.5" y="9" width="6" height="5" fill="#6e6e73"/><rect x="8.5" y="9" width="6" height="5" fill="#8a898c"/><rect x="5" y="3.5" width="6" height="5" fill="#7d7c80"/>';
+  ICONS[FIRE] = '<path d="M8 1 C 10 4.5 13 6 13 10 A5 5 0 0 1 3 10 C 3 7.5 4.5 6 5.5 4.5 C 6 6.5 7 7 7.6 7.2 C 7.2 5 7.4 3 8 1 Z" fill="#ff7a1f"/><path d="M8 14.6 C 6.4 13.6 6 11.6 7.2 10 C 7.6 11.2 8.6 11.4 9 12.4 C 9.4 13.4 8.9 14.2 8 14.6 Z" fill="#ffe066"/>';
+  ICONS[WOOD] = '<circle cx="8" cy="8" r="6.2" fill="#8b5a2b"/><circle cx="8" cy="8" r="4.2" fill="none" stroke="#c89262" stroke-width="1"/><circle cx="8" cy="8" r="2" fill="none" stroke="#c89262" stroke-width="1"/>';
+  ICONS[STEAM] = '<path d="M4 13 C 2 10.5, 6 9.5, 4 7 C 2.5 5, 5 3.5, 4.5 2 M8.5 13 C 6.5 10.5, 10.5 9.5, 8.5 7 C 7 5, 9.5 3.5, 9 2 M13 13 C 11 10.5, 15 9.5, 13 7" fill="none" stroke="#8fa3bd" stroke-width="1.5" stroke-linecap="round"/>';
+  ICONS[OIL] = '<path d="M8 1.5 C 11 6, 13 8.2, 13 10.4 A5 5 0 0 1 3 10.4 C 3 8.2 5 6 8 1.5 Z" fill="#3b2f2a"/><path d="M5.2 9.5 C 6.5 8.8, 9.5 11.6, 10.8 10.6" fill="none" stroke="#b08cd8" stroke-width="1.1"/><path d="M5.2 11 C 6.5 10.3, 9.5 13, 10.8 12" fill="none" stroke="#6fc3b0" stroke-width="1"/>';
+  ICONS[LAVA] = '<path d="M1 14.5 L6 5.5 H10 L15 14.5 Z" fill="#5d5c61"/><path d="M6 5.5 H10 L11 8 L9 7 L8.4 11 L7.4 7 L5 8 Z" fill="#ff5a1f"/><circle cx="8" cy="3" r="1.4" fill="#ffb03a"/>';
+  ICONS[PLANT] = '<path d="M8 15 V7" stroke="#4f7a30" stroke-width="1.6"/><path d="M8 9 C 4 9, 2.5 6, 2.5 3.5 C 5.5 3.5 8 5.5 8 9 Z" fill="#6fa043"/><path d="M8 7.5 C 11.5 7.5, 13.5 5, 13.5 2 C 10.5 2 8 4 8 7.5 Z" fill="#7db24c"/>';
+  ICONS[ERASE] = '<path d="M9.5 2.5 L14 7 L7.5 13.5 H4 L2 11.5 Z" fill="#f3e3c3" stroke="#1f2a44" stroke-width="1.2" stroke-linejoin="round"/><path d="M6 6 L10.5 10.5" stroke="#c1440e" stroke-width="1.6"/><path d="M8 13.5 H14.5" stroke="#1f2a44" stroke-width="1.2"/>';
+
+  /* ================= PRNG ================= */
+  var seed = 88172645;
+  function rnd(){ seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return (seed >>> 0) / 4294967296; }
+
+  /* ================= grid ================= */
+  var frameEl = document.getElementById("frame"), cv = document.getElementById("sim"), ctx = cv.getContext("2d");
+  var off = document.createElement("canvas"), octx = off.getContext("2d");
+  var glowCv = document.createElement("canvas"), gctx = glowCv.getContext("2d");
+  var W = 0, H = 0, N = 0, CELL = 4, dpr = 1;
+  var type, shade, life, stamp, bg, img, buf, gw, gh, glowAcc, glowImg, glowBuf;
+  var clock = 1, frameNo = 0;
+
+  function alloc(nw, nh){
+    var nType = new Uint8Array(nw * nh), nShade = new Uint8Array(nw * nh), nLife = new Uint8Array(nw * nh);
+    if (type){
+      var ox = Math.floor((nw - W) / 2), oy = nh - H;
+      for (var y = 0; y < H; y++){
+        var ny = y + oy; if (ny < 0 || ny >= nh) continue;
+        for (var x = 0; x < W; x++){
+          var nx = x + ox; if (nx < 0 || nx >= nw) continue;
+          var a = y * W + x, b = ny * nw + nx;
+          nType[b] = type[a]; nShade[b] = shade[a]; nLife[b] = life[a];
+        }
+      }
+    }
+    W = nw; H = nh; N = W * H;
+    type = nType; shade = nShade; life = nLife; stamp = new Uint8Array(N);
+    off.width = W; off.height = H;
+    img = octx.createImageData(W, H); buf = new Uint32Array(img.data.buffer);
+    gw = Math.ceil(W / 4); gh = Math.ceil(H / 4);
+    glowCv.width = gw; glowCv.height = gh;
+    glowAcc = new Float32Array(gw * gh);
+    glowImg = gctx.createImageData(gw, gh); glowBuf = new Uint32Array(glowImg.data.buffer);
+    bg = new Uint32Array(N);
+    var top = [17, 24, 42], bot = [38, 34, 58];
+    for (var yy = 0; yy < H; yy++){
+      var k = yy / Math.max(1, H - 1);
+      var r = Math.round(top[0] + (bot[0] - top[0]) * k), g = Math.round(top[1] + (bot[1] - top[1]) * k), bl = Math.round(top[2] + (bot[2] - top[2]) * k);
+      for (var xx = 0; xx < W; xx++){
+        var h = ((xx * 73856093) ^ (yy * 19349663)) >>> 0; h = (h % 1000) / 1000;
+        var star = h < 0.0022 && k < 0.55 ? 40 + Math.round((1 - k) * 70 * (h * 450)) : 0;
+        var rr = Math.min(255, r + star), gg = Math.min(255, g + star), bb = Math.min(255, bl + star * 0.9);
+        // a low retro sun, banded like a pixel-art sunset
+        var sx = xx - W * 0.76, sy = yy - H * 0.64, sr = H * 0.2;
+        if (sx * sx + sy * sy < sr * sr){
+          var sk = (yy - (H * 0.64 - sr)) / (2 * sr);
+          var band = sk > 0.45 && ((yy - Math.round(H * 0.64 - sr)) % Math.max(3, Math.round(sr * 0.16))) < Math.round((sk - 0.45) * sr * 0.22);
+          if (!band){
+            var mixk = 0.68;
+            rr = Math.round(rr + ((sk < 0.5 ? 240 : 204) - rr) * mixk); gg = Math.round(gg + ((sk < 0.5 ? 122 : 70) - gg) * mixk); bb = Math.round(bb + ((sk < 0.5 ? 58 : 22) - bb) * mixk);
+          }
+        }
+        var dither = ((xx + yy) & 1) ? 1 : 0;
+        bg[yy * W + xx] = ((255 << 24) | ((bb + dither) << 16) | ((gg + dither) << 8) | (rr)) >>> 0;
+      }
+    }
+    document.getElementById("rGrid").textContent = W + "×" + H;
+  }
+
+  function fit(){
+    var r = frameEl.getBoundingClientRect();
+    CELL = r.width < 620 ? 3 : 4;
+    var nw = Math.max(40, Math.floor((r.width - 4) / CELL)), nh = Math.max(40, Math.floor((r.height - 4) / CELL));
+    var MAXW = 440, MAXH = 280;
+    if (nw > MAXW || nh > MAXH){
+      var k = Math.max(nw / MAXW, nh / MAXH);
+      CELL = Math.ceil(CELL * k); nw = Math.floor((r.width - 4) / CELL); nh = Math.floor((r.height - 4) / CELL);
+    }
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.style.width = (nw * CELL) + "px"; cv.style.height = (nh * CELL) + "px";
+    cv.width = Math.round(nw * CELL * dpr); cv.height = Math.round(nh * CELL * dpr);
+    if (nw !== W || nh !== H) alloc(nw, nh);
+  }
+
+  function initLife(t){
+    if (t === FIRE) return 12 + (rnd() * 22 | 0);
+    if (t === STEAM) return 140 + (rnd() * 110 | 0);
+    if (t === SMOKE) return 40 + (rnd() * 50 | 0);
+    return 0;
+  }
+  function set(i, t){ type[i] = t; shade[i] = rnd() * 4 | 0; life[i] = initLife(t); stamp[i] = clock; }
+  function clear(i){ type[i] = EMPTY; life[i] = 0; stamp[i] = clock; }
+  function ignite(i, longBurn){ type[i] = FIRE; shade[i] = 4; life[i] = longBurn ? 70 + (rnd() * 120 | 0) : 18 + (rnd() * 26 | 0); stamp[i] = clock; }
+  function swap(i, j){
+    var t = type[i]; type[i] = type[j]; type[j] = t;
+    t = shade[i]; shade[i] = shade[j]; shade[j] = t;
+    t = life[i]; life[i] = life[j]; life[j] = t;
+    stamp[i] = clock; stamp[j] = clock;
+  }
+  function sinks(t, u){ return u === EMPTY || (FLUID[u] === 1 && DENS[u] < DENS[t]); }
+
+  /* ================= rules ================= */
+  function updPowder(i, x, y, t){
+    if (y >= H - 1) return;
+    var j = i + W, u = type[j];
+    if (u === EMPTY || (FLUID[u] && DENS[u] < DENS[t] && rnd() < 0.55)){ swap(i, j); return; }
+    var d = rnd() < 0.5 ? -1 : 1;
+    if (x + d >= 0 && x + d < W){ u = type[j + d]; if (u === EMPTY || (FLUID[u] && DENS[u] < DENS[t] && rnd() < 0.35)){ swap(i, j + d); return; } }
+    if (x - d >= 0 && x - d < W){ u = type[j - d]; if (u === EMPTY || (FLUID[u] && DENS[u] < DENS[t] && rnd() < 0.35)){ swap(i, j - d); return; } }
+  }
+  function flowSide(i, x, y, d, disp){
+    var target = -1;
+    for (var s = 1; s <= disp; s++){
+      var xx = x + d * s; if (xx < 0 || xx >= W) break;
+      var jj = i + d * s; if (type[jj] !== EMPTY) break;
+      target = jj;
+      if (y < H - 1 && type[jj + W] === EMPTY) break;
+    }
+    if (target >= 0){ swap(i, target); return true; }
+    return false;
+  }
+  function updLiquid(i, x, y, t, disp){
+    if (y < H - 1){
+      var j = i + W, u = type[j];
+      if (u === EMPTY || (FLUID[u] && DENS[u] < DENS[t] && rnd() < 0.5)){ swap(i, j); return; }
+      var d = rnd() < 0.5 ? -1 : 1;
+      if (x + d >= 0 && x + d < W && sinks(t, type[j + d]) && type[j + d] !== t){ swap(i, j + d); return; }
+      if (x - d >= 0 && x - d < W && sinks(t, type[j - d]) && type[j - d] !== t){ swap(i, j - d); return; }
+    }
+    var dd = rnd() < 0.5 ? -1 : 1;
+    if (!flowSide(i, x, y, dd, disp)) flowSide(i, x, y, -dd, disp);
+  }
+  function updGas(i, x, y, t){
+    if (y === 0){ if (t === STEAM && rnd() < 0.01){ set(i, WATER); } else { var sd = rnd() < 0.5 ? -1 : 1; if (x + sd >= 0 && x + sd < W && type[i + sd] === EMPTY) swap(i, i + sd); } return; }
+    var dx = (rnd() * 3 | 0) - 1;
+    if (x + dx < 0 || x + dx >= W) dx = 0;
+    var j = i - W + dx, u = type[j];
+    if (u === EMPTY || (FLUID[u] && DENS[u] > DENS[t] && DENS[u] > 0 && rnd() < 0.35)){ swap(i, j); return; }
+    j = i - W; u = type[j];
+    if (u === EMPTY){ swap(i, j); return; }
+    var d = rnd() < 0.5 ? -1 : 1;
+    if (x + d >= 0 && x + d < W && type[i + d] === EMPTY){ swap(i, i + d); return; }
+    if (t === STEAM && rnd() < 0.006) set(i, WATER);
+  }
+  function neighbour(i, x, y, k){
+    if (k === 0) return y > 0 ? i - W : -1;
+    if (k === 1) return y < H - 1 ? i + W : -1;
+    if (k === 2) return x > 0 ? i - 1 : -1;
+    return x < W - 1 ? i + 1 : -1;
+  }
+  function updFire(i, x, y){
+    var anchored = shade[i] >= 4;
+    if (life[i] <= 1){ if (rnd() < (anchored ? 0.5 : 0.18)) set(i, SMOKE); else clear(i); return; }
+    life[i]--;
+    for (var k = 0; k < 4; k++){
+      var n = neighbour(i, x, y, k); if (n < 0) continue;
+      var u = type[n];
+      if (u === WOOD){ if (rnd() < 0.012) ignite(n, true); }
+      else if (u === OIL){ if (rnd() < 0.22) ignite(n, false); }
+      else if (u === PLANT){ if (rnd() < 0.03) ignite(n, true); }
+      else if (u === WATER){ if (rnd() < 0.4){ set(n, STEAM); if (rnd() < 0.7){ clear(i); return; } } }
+    }
+    if (anchored){
+      if (y > 0 && type[i - W] === EMPTY && rnd() < 0.4) set(i - W, FIRE);
+      var sd = rnd() < 0.5 ? -1 : 1;
+      if (y > 0 && x + sd >= 0 && x + sd < W && type[i - W + sd] === EMPTY && rnd() < 0.15) set(i - W + sd, FIRE);
+      return;
+    }
+    if (y === 0){ clear(i); return; }
+    var dx = (rnd() * 3 | 0) - 1; if (x + dx < 0 || x + dx >= W) dx = 0;
+    var j = i - W + dx;
+    if (type[j] === EMPTY && rnd() < 0.85) swap(i, j);
+    else if (rnd() < 0.3){ var s2 = rnd() < 0.5 ? -1 : 1; if (x + s2 >= 0 && x + s2 < W && type[i + s2] === EMPTY) swap(i, i + s2); }
+  }
+  function updLava(i, x, y){
+    for (var k = 0; k < 4; k++){
+      var n = neighbour(i, x, y, k); if (n < 0) continue;
+      var u = type[n];
+      if (u === WATER){ set(n, STEAM); set(i, STONE); shade[i] = 2 + (rnd() * 2 | 0); return; }
+      if (u === SAND){ if (rnd() < 0.025){ set(n, GLASS); } }
+      else if (u === WOOD || u === PLANT){ if (rnd() < 0.06) ignite(n, true); }
+      else if (u === OIL){ if (rnd() < 0.35) ignite(n, false); }
+    }
+    if (y > 0 && type[i - W] === EMPTY && rnd() < 0.003) set(i - W, FIRE);
+    if (rnd() < 0.6) return;
+    updLiquid(i, x, y, LAVA, 1);
+  }
+  function updPlant(i, x, y){
+    if (rnd() > 0.1) return;
+    var k = rnd() * 4 | 0, n = neighbour(i, x, y, k);
+    if (n >= 0 && type[n] === WATER && rnd() < 0.4){ set(n, PLANT); }
+  }
+
+  var count = 0;
+  function step(){
+    clock = clock === 255 ? 1 : clock + 1;
+    frameNo++;
+    for (var y = H - 1; y >= 0; y--){
+      var ltr = ((frameNo + y) & 1) === 0;
+      var row = y * W;
+      for (var k = 0; k < W; k++){
+        var x = ltr ? k : W - 1 - k;
+        var i = row + x, t = type[i];
+        if (t === EMPTY || t === STONE || t === GLASS || t === WOOD) continue;
+        if (stamp[i] === clock) continue;
+        switch (t){
+          case SAND: updPowder(i, x, y, t); break;
+          case WATER: updLiquid(i, x, y, WATER, 4); break;
+          case OIL: updLiquid(i, x, y, OIL, 3); break;
+          case LAVA: updLava(i, x, y); break;
+          case FIRE: updFire(i, x, y); break;
+          case STEAM: case SMOKE:
+            if (--life[i] === 0){ if (t === STEAM) set(i, WATER); else clear(i); break; }
+            updGas(i, x, y, t); break;
+          case PLANT: updPlant(i, x, y); break;
+        }
+      }
+    }
+  }
+
+  /* ================= render ================= */
+  function render(){
+    var n = 0, f = frameNo;
+    glowAcc.fill(0);
+    for (var y = 0; y < H; y++){
+      var row = y * W, grow = (y >> 2) * gw;
+      for (var x = 0; x < W; x++){
+        var i = row + x, t = type[i];
+        if (t === EMPTY){ buf[i] = bg[i]; continue; }
+        n++;
+        if (t === WATER){
+          var above = y > 0 ? type[i - W] : WATER;
+          if (above === EMPTY || above === STEAM) buf[i] = WATER_TOP;
+          else {
+            var w = Math.sin(x * 0.35 + y * 0.22 + f * 0.09) + Math.sin(x * 0.11 - f * 0.05 + y * 0.4);
+            buf[i] = w > 1.35 ? WATER_HI : (w < -1.5 ? WATER_DEEP : COL[WATER * 4 + shade[i]]);
+          }
+        } else if (t === FIRE){
+          var lf = life[i], idx = shade[i] >= 4 ? (rnd() * 4 | 0) + 2 : (lf > 22 ? 0 : lf > 16 ? 1 : lf > 11 ? 2 : lf > 7 ? 3 : lf > 4 ? 4 : 5);
+          if (rnd() < 0.3) idx = Math.max(0, Math.min(6, idx + (rnd() < 0.5 ? -1 : 1)));
+          buf[i] = FIRE_C[idx];
+          glowAcc[grow + (x >> 2)] += 1.1;
+        } else if (t === LAVA){
+          var p = Math.sin(f * 0.06 + x * 0.21 + y * 0.33) + Math.sin(f * 0.037 - x * 0.13) * 0.6 + (shade[i] - 1.5) * 0.35;
+          buf[i] = LAVA_C[p > 1.1 ? 0 : p > 0.55 ? 1 : p > 0 ? 2 : p > -0.6 ? 3 : p > -1.1 ? 4 : 5];
+          glowAcc[grow + (x >> 2)] += 0.7;
+        } else if (t === WOOD){
+          buf[i] = COL[WOOD * 4 + ((x % 3 === 0) ? 3 : shade[i] & 1 ? 0 : 2)];
+        } else {
+          buf[i] = COL[t * 4 + (shade[i] & 3)];
+        }
+      }
+    }
+    count = n;
+    octx.putImageData(img, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+    ctx.drawImage(off, 0, 0, cv.width, cv.height);
+    // soft glow from fire and lava
+    var any = false;
+    for (var gi = 0; gi < glowAcc.length; gi++){
+      var v = glowAcc[gi];
+      if (v > 0){
+        any = true;
+        var a = Math.min(255, v * 9) | 0;
+        glowBuf[gi] = ((a << 24) | (40 << 16) | (130 << 8) | 255) >>> 0;
+      } else glowBuf[gi] = 0;
+    }
+    if (any){
+      gctx.putImageData(glowImg, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = 0.34;
+      var ex = 4 * CELL * dpr;
+      ctx.drawImage(glowCv, -ex, -ex, cv.width + ex * 2 + (gw * 4 - W) * CELL * dpr, cv.height + ex * 2 + (gh * 4 - H) * CELL * dpr);
+      ctx.globalAlpha = 0.22;
+      ctx.drawImage(glowCv, -ex * 3, -ex * 3, cv.width + ex * 6 + (gw * 4 - W) * CELL * dpr, cv.height + ex * 6 + (gh * 4 - H) * CELL * dpr);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+    // wipe line
+    if (wipe >= 0){
+      ctx.fillStyle = "#c1440e";
+      ctx.fillRect(0, wipe * CELL * dpr, cv.width, Math.max(2, CELL * dpr));
+    }
+    // brush cursor
+    if (ptr.inside){
+      ctx.imageSmoothingEnabled = true;
+      ctx.strokeStyle = "rgba(243,227,195,.85)";
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath();
+      ctx.arc((ptr.cx + 0.5) * CELL * dpr, (ptr.cy + 0.5) * CELL * dpr, Math.max(1.5, brush) * CELL * dpr, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = tool === ERASE ? "#c1440e" : "rgba(243,227,195,.9)";
+      ctx.fillRect(ptr.cx * CELL * dpr, ptr.cy * CELL * dpr, CELL * dpr, CELL * dpr);
+    }
+  }
+
+  /* ================= painting ================= */
+  var tool = SAND, brush = 5, toolProb = 0.5;
+  var ptr = {down: false, inside: false, cx: 0, cy: 0, lx: 0, ly: 0, erase: false};
+  function paintAt(cx, cy, er){
+    var r = brush, r2 = r * r + r * 0.8;
+    var t = er ? ERASE : tool, prob = er ? 1 : toolProb;
+    for (var dy = -r; dy <= r; dy++){
+      var y = cy + dy; if (y < 0 || y >= H) continue;
+      for (var dx = -r; dx <= r; dx++){
+        if (dx * dx + dy * dy > r2) continue;
+        var x = cx + dx; if (x < 0 || x >= W) continue;
+        var i = y * W + x, u = type[i];
+        if (t === ERASE){ if (u !== EMPTY) clear(i); continue; }
+        if (u === EMPTY){ if (rnd() < prob) set(i, t); }
+        else if (t === FIRE && (u === WOOD || u === OIL || u === PLANT) && rnd() < 0.15) ignite(i, u !== OIL);
+      }
+    }
+  }
+  function strokeTo(cx, cy, er){
+    var dx = cx - ptr.lx, dy = cy - ptr.ly, n = Math.max(Math.abs(dx), Math.abs(dy));
+    var stepN = Math.max(1, Math.ceil(n / Math.max(1, brush * 0.6)));
+    for (var s = 1; s <= stepN; s++) paintAt(Math.round(ptr.lx + dx * s / stepN), Math.round(ptr.ly + dy * s / stepN), er);
+    ptr.lx = cx; ptr.ly = cy;
+  }
+  function cellFromEvent(e){
+    var r = cv.getBoundingClientRect();
+    return [Math.max(0, Math.min(W - 1, Math.floor((e.clientX - r.left) / CELL))), Math.max(0, Math.min(H - 1, Math.floor((e.clientY - r.top) / CELL)))];
+  }
+  cv.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+  cv.addEventListener("pointerdown", function(e){
+    e.preventDefault();
+    try { cv.setPointerCapture(e.pointerId); } catch (err){}
+    var c = cellFromEvent(e);
+    ptr.down = true; ptr.inside = true; ptr.erase = e.button === 2; ptr.cx = ptr.lx = c[0]; ptr.cy = ptr.ly = c[1];
+    paintAt(c[0], c[1], ptr.erase);
+  });
+  cv.addEventListener("pointermove", function(e){
+    var c = cellFromEvent(e);
+    ptr.inside = true; ptr.cx = c[0]; ptr.cy = c[1];
+    if (ptr.down) strokeTo(c[0], c[1], ptr.erase);
+    else { ptr.lx = c[0]; ptr.ly = c[1]; }
+    if (paused) render();
+  });
+  function endPtr(){ ptr.down = false; }
+  cv.addEventListener("pointerup", endPtr);
+  cv.addEventListener("pointercancel", endPtr);
+  cv.addEventListener("pointerleave", function(e){ if (!ptr.down || e.pointerType !== "mouse") ptr.inside = false; if (paused) render(); });
+
+  /* ================= swatches ================= */
+  var swList = document.getElementById("swatches"), swBtns = [];
+  function texture(canvas, t){
+    var c = canvas.getContext("2d"), w = 30, h = 12;
+    canvas.width = w; canvas.height = h;
+    var id = c.createImageData(w, h), b = new Uint32Array(id.data.buffer);
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++){
+      var i = y * w + x, v;
+      if (t === ERASE){ v = ((x >> 1) + (y >> 1)) & 1 ? abgr("#1b2440") : abgr("#26304e"); }
+      else if (t === WATER){ var s = Math.sin(x * 0.6 + y * 0.9); v = y === 0 ? WATER_TOP : s > 0.75 ? WATER_HI : COL[WATER * 4 + (Math.random() * 4 | 0)]; }
+      else if (t === FIRE){ var k = y / h + (Math.random() - 0.5) * 0.35; v = FIRE_C[Math.max(0, Math.min(6, Math.floor((1 - k) * 6)))]; if (y < 3 && Math.random() < 0.5) v = abgr("#1f2a44"); }
+      else if (t === LAVA){ var p = Math.sin(x * 0.5 + y * 0.8) + (Math.random() - 0.5); v = LAVA_C[p > 0.9 ? 0 : p > 0.3 ? 1 : p > -0.2 ? 2 : p > -0.7 ? 3 : 4]; }
+      else if (t === WOOD){ v = COL[WOOD * 4 + ((x % 3 === 0) ? 3 : (Math.random() < 0.5 ? 0 : 2))]; }
+      else if (t === STEAM){ v = Math.random() < 0.55 ? COL[STEAM * 4 + (Math.random() * 4 | 0)] : abgr("#243052"); }
+      else if (t === STONE){ var bx = ((x + (y >> 2) % 2 * 3) / 6) | 0, by = (y / 4) | 0; v = COL[STONE * 4 + ((bx * 7 + by * 3) % 4)]; if (x % 6 === 0 || y % 4 === 0) v = abgr("#545358"); }
+      else v = COL[t * 4 + (Math.random() * 4 | 0)];
+      b[i] = v;
+    }
+    c.putImageData(id, 0, 0);
+  }
+  TOOLS.forEach(function(tl){
+    var li = document.createElement("li");
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "sw"; b.setAttribute("aria-pressed", "false");
+    b.setAttribute("aria-label", tl.name + " (key " + tl.key + ")");
+    var c = document.createElement("canvas"); c.setAttribute("aria-hidden", "true"); texture(c, tl.t);
+    var lbl = document.createElement("span"); lbl.className = "lbl";
+    lbl.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true">' + ICONS[tl.t] + '</svg>';
+    lbl.appendChild(document.createTextNode(tl.name));
+    var key = document.createElement("span"); key.className = "key"; key.textContent = tl.key; key.setAttribute("aria-hidden", "true");
+    b.appendChild(c); b.appendChild(lbl); b.appendChild(key);
+    b.addEventListener("click", function(){ pickTool(tl); });
+    li.appendChild(b); swList.appendChild(li);
+    swBtns.push({b: b, tl: tl});
+  });
+  function pickTool(tl){
+    tool = tl.t; toolProb = tl.prob;
+    swBtns.forEach(function(s){ s.b.setAttribute("aria-pressed", String(s.tl === tl)); });
+    try { localStorage.setItem("dune-tool", tl.key); } catch (e){}
+  }
+
+  /* ================= controls ================= */
+  var brushIn = document.getElementById("brush"), brushVal = document.getElementById("brushVal"), brushDot = document.getElementById("brushDot");
+  function setBrush(v){
+    brush = Math.max(1, Math.min(14, v | 0)); brushIn.value = brush; brushVal.textContent = brush;
+    var px = 6 + brush * 2.3; brushDot.style.width = px + "px"; brushDot.style.height = px + "px";
+    brushIn.style.setProperty("--fill", ((brush - 1) / 13 * 100).toFixed(1) + "%");
+    try { localStorage.setItem("dune-brush", String(brush)); } catch (e){}
+  }
+  brushIn.addEventListener("input", function(){ setBrush(+brushIn.value); });
+
+  var paused = false, app = document.getElementById("app");
+  var bPause = document.getElementById("bPause"), bStep = document.getElementById("bStep");
+  function setPaused(p){
+    paused = p;
+    bPause.setAttribute("aria-pressed", String(p));
+    document.getElementById("pauseLbl").textContent = p ? "Play" : "Pause";
+    document.getElementById("pauseIcon").setAttribute("d", p ? "M6 4 L16 10 L6 16 Z" : "M6 4 H9 V16 H6 Z M11 4 H14 V16 H11 Z");
+    bStep.disabled = !p;
+    frameEl.classList.toggle("paused", p);
+  }
+  bPause.addEventListener("click", function(){ setPaused(!paused); });
+  bStep.addEventListener("click", function(){ step(); render(); });
+  var SPEEDS = [0.5, 1, 2], speedIdx = reduced ? 0 : 1, speedAcc = 0;
+  function showSpeed(){ var s = SPEEDS[speedIdx]; var lbl = s === 0.5 ? "½×" : s + "×"; document.getElementById("speedLbl").textContent = lbl; document.getElementById("rSpeed").textContent = lbl; }
+  document.getElementById("bSpeed").addEventListener("click", function(){ speedIdx = (speedIdx + 1) % SPEEDS.length; showSpeed(); });
+  showSpeed();
+  var wipe = -1;
+  document.getElementById("bClear").addEventListener("click", function(){ if (reduced){ type.fill(0); render(); } else wipe = 0; });
+
+  /* ================= scenes ================= */
+  function put(x, y, t, prob){ if (x < 0 || y < 0 || x >= W || y >= H) return; if (prob !== undefined && rnd() > prob) return; set(y * W + x, t); }
+  function rect(x0, y0, x1, y1, t, prob){ for (var y = Math.max(0, y0 | 0); y <= Math.min(H - 1, y1 | 0); y++) for (var x = Math.max(0, x0 | 0); x <= Math.min(W - 1, x1 | 0); x++) put(x, y, t, prob); }
+  function disc(cx, cy, r, t, prob){ for (var y = -r; y <= r; y++) for (var x = -r; x <= r; x++) if (x * x + y * y <= r * r + r * 0.6) put(Math.round(cx + x), Math.round(cy + y), t, prob); }
+  function wipeAll(){ type.fill(0); life.fill(0); stamp.fill(0); }
+  function tree(x, ground, h, canopy){
+    rect(x, ground - h, x + 1, ground - 1, WOOD);
+    disc(x + 1, ground - h - canopy * 0.4, canopy, PLANT, 0.9);
+  }
+  var SCENES = {
+    hourglass: function(){
+      wipeAll();
+      var cx = W >> 1, y0 = Math.round(H * 0.1), y1 = Math.round(H * 0.9), h = y1 - y0;
+      var half = Math.min(Math.round(W * 0.2), Math.round(h * 0.36)), neck = 1, prevW = -1;
+      for (var y = y0; y <= y1; y++){
+        var tt = (y - y0) / h, u = Math.abs(2 * tt - 1);
+        var prof = u > 0.94 ? 1 - (u - 0.94) * 2.2 : Math.pow(Math.sin(u * Math.PI / 2), 0.78);
+        var w = Math.round(neck + (half - neck) * prof);
+        var lo = prevW < 0 ? w : Math.min(prevW, w), hi = prevW < 0 ? w : Math.max(prevW, w);
+        for (var ww = lo + 1; ww <= hi + 2; ww++){ put(cx - ww, y, GLASS); put(cx + ww, y, GLASS); }
+        prevW = w;
+        if (tt > 0.06 && tt < 0.4){ for (var x = cx - w; x <= cx + w; x++) put(x, y, SAND, 0.97); }
+      }
+      rect(cx - half - 8, y0 - 4, cx + half + 8, y0 - 1, WOOD);
+      rect(cx - half - 8, y1 + 1, cx + half + 8, y1 + 4, WOOD);
+      rect(cx - half - 8, y0, cx - half - 6, y1, WOOD);
+      rect(cx + half + 6, y0, cx + half + 8, y1, WOOD);
+      rect(0, H - 3, W - 1, H - 1, STONE);
+    },
+    volcano: function(){
+      wipeAll();
+      var ground = Math.round(H * 0.9), cx = Math.round(W * 0.42), base = Math.round(W * 0.3), peak = Math.round(H * 0.3);
+      var seaX = Math.round(W * 0.74);
+      rect(0, ground, W - 1, H - 1, STONE);
+      // mountain
+      for (var x = cx - base; x <= cx + base; x++){
+        var d = Math.abs(x - cx) / base; if (x < 0 || x >= W) continue;
+        var top = Math.round(peak + (ground - peak) * Math.pow(d, 0.9) + Math.sin(x * 0.4) * 1.5);
+        for (var y = top; y < ground; y++) put(x, y, STONE);
+      }
+      // crater and conduit
+      var cr = Math.max(6, Math.round(base * 0.16));
+      for (var y2 = peak - 2; y2 < peak + cr; y2++){
+        var ww = Math.round((1 - (y2 - peak + 2) / (cr + 2)) * cr) + 2;
+        for (var x2 = cx - ww; x2 <= cx + ww; x2++) put(x2, y2, LAVA);
+      }
+      rect(cx - 2, peak + cr, cx + 2, ground - 2, LAVA);
+      disc(cx, ground - 8, 6, LAVA);
+      disc(cx, peak - 3, Math.round(cr * 0.8), LAVA, 0.8);
+      // beach and sea
+      for (var x3 = cx + Math.round(base * 0.7); x3 < W; x3++){
+        var sandTop = Math.round(ground - 6 + Math.sin(x3 * 0.12) * 2);
+        for (var y3 = sandTop; y3 < ground; y3++) if (type[y3 * W + x3] === EMPTY) put(x3, y3, SAND);
+      }
+      rect(seaX, Math.round(H * 0.72), W - 1, ground - 7, WATER);
+      rect(seaX + 4, Math.round(H * 0.72) - 3, seaX + Math.round((W - seaX) * 0.35), Math.round(H * 0.72) - 1, OIL, 0.9);
+      // forest on the left flank
+      for (var tx = cx - base + 6; tx < cx - base * 0.42; tx += 9 + (rnd() * 6 | 0)){
+        var d2 = Math.abs(tx - cx) / base, gy = Math.round(peak + (ground - peak) * Math.pow(d2, 0.9));
+        tree(tx, gy, 6 + (rnd() * 6 | 0), 3 + (rnd() * 2 | 0));
+      }
+    },
+    oasis: function(){
+      wipeAll();
+      var poolL = Math.round(W * 0.34), poolR = Math.round(W * 0.64), baseY = Math.round(H * 0.72);
+      var heights = new Int16Array(W);
+      for (var x = 0; x < W; x++){
+        var h = baseY - Math.sin(x / W * Math.PI * 2.2 + 0.6) * H * 0.07 - Math.sin(x / W * Math.PI * 5.1) * H * 0.02;
+        if (x > poolL - 10 && x < poolR + 10){
+          var t = (x - (poolL + poolR) / 2) / ((poolR - poolL) / 2 + 10);
+          h = Math.max(h, baseY + H * 0.15 * (1 - t * t));
+        }
+        heights[x] = Math.round(h);
+        for (var y = heights[x]; y < H; y++) put(x, y, y > H - 4 ? STONE : SAND);
+      }
+      var waterTop = Math.round(baseY + H * 0.012);
+      for (var x2 = poolL - 10; x2 < poolR + 10; x2++){ for (var y2 = waterTop; y2 < heights[x2]; y2++) put(x2, y2, WATER); }
+      // reeds along the waterline
+      for (var x3 = poolL - 8; x3 < poolR + 8; x3 += 3){ if (heights[x3] > waterTop){ } else { var gy = heights[x3]; rect(x3, gy - 3 - (rnd() * 3 | 0), x3, gy - 1, PLANT); } }
+      put(poolL - 6, waterTop, PLANT); put(poolR + 6, waterTop, PLANT);
+      // palms
+      [[poolL - 18, 1], [poolR + 16, -1], [Math.round(W * 0.14), 1], [Math.round(W * 0.86), -1]].forEach(function(p){
+        var px = p[0], dir = p[1]; if (px < 4 || px > W - 5) return;
+        var gy2 = heights[px], th = 14 + (rnd() * 8 | 0), top = gy2 - th;
+        for (var yy = gy2 - 1; yy >= top; yy--){ var off2 = Math.round(dir * Math.pow((gy2 - yy) / th, 2) * 4); put(px + off2, yy, WOOD); put(px + off2 + 1, yy, WOOD); }
+        var tx = px + dir * 4 + 1;
+        for (var a = 0; a < 5; a++){
+          var ang = -Math.PI + a * Math.PI / 4, len = 7 + (rnd() * 3 | 0);
+          for (var s = 0; s <= len; s++){ var fx = tx + Math.round(Math.cos(ang) * s), fy = top + Math.round(Math.sin(ang) * s * 0.6 + (s * s) / (len * 1.6)); put(fx, fy, PLANT); }
+        }
+      });
+      // boulders
+      disc(Math.round(W * 0.26), heights[Math.round(W * 0.26)] - 1, 3, STONE);
+      disc(Math.round(W * 0.74), heights[Math.round(W * 0.74)] - 1, 2, STONE);
+      // a thin sand fall from the sky, like a dune crest blowing over
+      rect(Math.round(W * 0.08), 0, Math.round(W * 0.1), 3, SAND, 0.7);
+    }
+  };
+  var sceneBtns = Array.prototype.slice.call(document.querySelectorAll(".scene"));
+  sceneBtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      sceneBtns.forEach(function(x){ x.classList.toggle("on", x === b); });
+      SCENES[b.getAttribute("data-scene")]();
+      render();
+    });
+  });
+
+  /* ================= keyboard ================= */
+  document.addEventListener("keydown", function(e){
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var tl = TOOLS.filter(function(x){ return x.key === e.key; })[0];
+    if (tl){ pickTool(tl); return; }
+    if (e.key === "[") setBrush(brush - 1);
+    else if (e.key === "]") setBrush(brush + 1);
+    else if (e.key === "." && paused){ step(); render(); }
+    else if (e.key === " " && (e.target === document.body || e.target === cv)){ e.preventDefault(); setPaused(!paused); }
+  });
+
+  /* ================= title in falling-sand pixels ================= */
+  (function(){
+    var G = {
+      D: ["11110", "10001", "10001", "10001", "10001", "10001", "11110"],
+      U: ["10001", "10001", "10001", "10001", "10001", "10001", "01110"],
+      N: ["10001", "11001", "10101", "10011", "10001", "10001", "10001"],
+      E: ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
+      G: ["01111", "10000", "10000", "10111", "10001", "10001", "01111"],
+      I: ["11111", "00100", "00100", "00100", "00100", "00100", "11111"],
+      " ": ["000", "000", "000", "000", "000", "000", "000"]
+    };
+    var text = "DUNE ENGINE", P = 4, gap = 1;
+    var tc = document.getElementById("titleCv"), tctx = tc.getContext("2d");
+    var cols = 0; for (var i = 0; i < text.length; i++) cols += G[text[i]][0].length + gap;
+    cols -= gap;
+    tc.width = cols * P; tc.height = 7 * P + 12;
+    tc.style.width = "auto";
+    var grains = [], xo = 0;
+    for (var c = 0; c < text.length; c++){
+      var g = G[text[c]];
+      for (var r = 0; r < 7; r++) for (var q = 0; q < g[r].length; q++){
+        if (g[r][q] === "1"){
+          var col = PAL[SAND][(Math.random() * 4) | 0];
+          if (text[c] !== " " && c > 4) col = r < 2 ? "#e0612a" : (Math.random() < 0.5 ? "#c1440e" : "#d4521a");
+          grains.push({x: (xo + q) * P, ty: r * P + 12, y: -P * (4 + Math.random() * 14) - (xo + q) * 0.8, v: 0, col: col, done: false});
+        }
+      }
+      xo += g[0].length + gap;
+    }
+    var tStart = 0;
+    function drawTitle(ts){
+      if (!tStart) tStart = ts;
+      tctx.clearRect(0, 0, tc.width, tc.height);
+      var all = true;
+      grains.forEach(function(p){
+        if (!p.done){
+          if (reduced){ p.y = p.ty; p.done = true; }
+          else { p.v += 0.55; p.y += p.v; if (p.y >= p.ty){ p.y = p.ty; if (p.v > 2.5){ p.v = -p.v * 0.28; } else { p.done = true; } } all = false; }
+        }
+        tctx.fillStyle = p.col;
+        tctx.fillRect(p.x, Math.round(p.y), P - 0.5, P - 0.5);
+      });
+      if (!all) requestAnimationFrame(drawTitle);
+    }
+    requestAnimationFrame(drawTitle);
+  })();
+
+  /* ================= loop ================= */
+  var last = performance.now(), fpsT = last, fpsN = 0, rCount = document.getElementById("rCount"), rFps = document.getElementById("rFps");
+  function loop(ts){
+    requestAnimationFrame(loop);
+    if (document.hidden) return;
+    if (!paused){
+      speedAcc += SPEEDS[speedIdx];
+      while (speedAcc >= 1){
+        speedAcc -= 1;
+        if (ptr.down) paintAt(ptr.cx, ptr.cy, ptr.erase);
+        step();
+      }
+    } else if (ptr.down){ paintAt(ptr.cx, ptr.cy, ptr.erase); }
+    if (wipe >= 0){
+      var rows = Math.max(2, Math.ceil(H / 22));
+      for (var y = wipe; y < Math.min(H, wipe + rows); y++){ var row = y * W; for (var x = 0; x < W; x++){ type[row + x] = EMPTY; life[row + x] = 0; } }
+      wipe += rows; if (wipe >= H) wipe = -1;
+    }
+    render();
+    fpsN++;
+    if (ts - fpsT >= 500){
+      rFps.textContent = Math.round(fpsN * 1000 / (ts - fpsT));
+      rCount.textContent = count.toLocaleString("en-US");
+      fpsN = 0; fpsT = ts;
+    }
+  }
+
+  var rzT = 0;
+  window.addEventListener("resize", function(){ clearTimeout(rzT); rzT = setTimeout(function(){ fit(); render(); }, 80); });
+
+  fit();
+  var savedKey = null, savedBrush = null;
+  try { savedKey = localStorage.getItem("dune-tool"); savedBrush = localStorage.getItem("dune-brush"); } catch (e){}
+  pickTool(TOOLS.filter(function(x){ return x.key === savedKey; })[0] || TOOLS[0]);
+  setBrush(savedBrush ? +savedBrush : 5);
+  SCENES.volcano();
+  // let the scene settle for a moment so the first frame is already alive
+  for (var w0 = 0; w0 < 40; w0++) step();
+  render();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

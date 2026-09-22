@@ -1,0 +1,40 @@
+TITLE: Vitrail — Stained Glass Generator
+FILE: 045-stained-glass.html
+
+=== PROMPT (exact prompt used) ===
+Build "Vitrail — Stained Glass Generator". A tall Gothic lancet window (pointed-arch SVG clipPath) filled with a Voronoi tessellation computed in JavaScript (half-plane clipping is fine), where each cell is a pane of jewel-toned glass — ruby #9b111e, sapphire #0f52ba, emerald #046307, amber #ffbf00, amethyst #9966cc — with subtle internal texture (noise, bubbles, streaks) and thick dark lead came lines (#1a1a1a with a slight highlight). Light pours through: the glass glows and coloured light patches are cast, blurred, onto a stone floor below, shifting as a "sun angle" slider moves. Interaction: click inside the window to add a cell (it splits smoothly); drag cell sites to watch the leading reflow; a "Rose window" mode switches to a circular window with radially symmetric cells; palettes (Chartres blues, Sunset, Modern pastel). The surrounding stone tracery is drawn in SVG with carved shading. Typography: a classical inscriptional serif with an illuminated initial letter drawn in SVG.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Vitrail is a stained-glass workshop set in a dim stone chapel. A tall Gothic lancet, an equilateral pointed arch clipped with an SVG clipPath, glows in an ashlar wall. Its glass is a Voronoi tessellation computed live in JavaScript, with each cell a pane of ruby, sapphire, emerald, amber or amethyst glass. Every pane has its own cut of a procedural sheet texture (mottled density, drawn streaks and trapped seed bubbles) and a gentle thickness gradient. Dark lead came with a highlight, solder joints at every junction and a heavy outer frame hold it together. Sunlight comes through the glass: the sun is a hotspot behind the panes, coloured light spills onto the carved stone, faint coloured shafts full of drifting dust hang in the air, and the window's image falls on the flagstone floor, sheared and stretched by the sun angle, with the lead lines casting thin shadows through the pool. The window frame is SVG stonework: a splayed reveal, concentric carved rolls lit from the upper left, a hood mould with label stops, voussoir joints, colonnettes with capitals and bases, and a sloping sill. A rose-window mode swaps in a circular window with radially symmetric glass, stone spokes, a carved hub and a cusped rim. The side panel is set in inscriptional capitals under an illuminated initial V, drawn in SVG with gold leaf, a diapered blue field and vine tendrils.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Voronoi by half-plane clipping against the convex window outline, with nearest-neighbour ordering and an early exit; recomputed every frame while seeds move
+- SVG clipPaths (objectBoundingBox) for the pointed arch and the circle, applied to the glass canvas with CSS clip-path
+- Per-pane rendering: a radial thickness gradient toward the sun, then a shared 256px procedural glass texture (value-noise density, wavy streaks, bubbles), composited with overlay at a unique rotation, scale and offset per pane
+- Lead came as layered strokes (dark channel, flat face, offset highlight), deduplicated solder joints, and a heavy perimeter came
+- Light transport faked with affine maps: the window's colours are projected onto the floor with a sun-dependent shear and foreshortening, interpolated through 14 translucent slices to make volumetric shafts, blurred in a low-resolution buffer and composited with screen blending
+- Colour spill on the stone tracery (blurred, masked outside the glass with an even-odd clip), a wall halo, a floor bloom, and a slowly breathing light level suggesting passing clouds
+- Dust motes that ride individual sun rays from the glass to the floor pool
+- Procedural ashlar wall with tooling pits and a flagstone floor in one-point perspective, plus a vignette
+- SVG tracery built at runtime from offset arch geometry (same arc centres, larger radii); gradient-stroked rolls imitate carved mouldings
+- Palettes: Jewel box, Chartres blues, Sunset and Modern pastel; colour families are spatially coherent through value noise, and in rose mode they follow the orbits so the symmetry holds
+
+=== INTERACTION MODEL ===
+- Click the glass to split a pane: the new seed is born inside the pane under the pointer and slides out to the click point while its parent eases away, so the leading reflows smoothly
+- Drag any seed (handles appear on hover) and the leading and the floor light follow live; in rose mode, dragging one seed moves its whole symmetric orbit
+- Right-click, or long-press on touch, lifts a pane out; "Relax leading" runs animated Lloyd iterations; "New design" draws a fresh cartoon; "Save PNG" exports the window with a transparent surround
+- Lancet/Rose toggle, four palette buttons, and a sun-angle slider that sweeps from a low eastern dawn through noon to a western dusk, moving the hotspot, the floor pool, the shafts and the motes
+- Keyboard on the focused window: N new design, R relax, M switch window, P cycle palettes, arrow keys move the sun
+- Heavy light layers refresh at a throttled rate while dragging; animation pauses when the tab is hidden; reduced motion turns off the motes, the breathing light and the split animations

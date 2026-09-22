@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Long Water — The World's Great Rivers</title>
+<meta name="description" content="A data-art atlas of the ten longest rivers on Earth, each drawn as a meandering ribbon to scale, with drifting current, unit and sort toggles, and a droplet race that lets you feel the differences in length.">
+<meta name="theme-color" content="#f3f1ec">
+<style>
+:root{
+  --lime:#f3f1ec;
+  --lime-2:#ebe7de;
+  --lime-3:#dfdad0;
+  --ink:#1c272e;
+  --ink-2:#4d5a62;
+  --ink-3:#848d92;
+  --hair:rgba(28,39,46,.15);
+  --hair-2:rgba(28,39,46,.08);
+  --deep:#0b3d5c;
+  --mid:#1f7a90;
+  --shoal:#7fc8c2;
+  --serif:"Baskerville","Baskerville Old Face","Hoefler Text","Garamond","Yrsa","P052","Palatino Linotype",Georgia,serif;
+  --pad:clamp(16px,3.9vw,56px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{
+  margin:0;
+  background-color:var(--lime);
+  color:var(--ink);
+  font-family:var(--serif);
+  font-size:17px;
+  line-height:1.55;
+  font-variant-numeric:lining-nums tabular-nums;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+#paper{position:fixed;left:0;top:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+#chart:focus,.chart-wrap:focus{outline:none}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:12px;top:-60px;background:var(--deep);color:var(--lime);padding:8px 14px;border-radius:2px;z-index:20;text-decoration:none}
+.skip:focus{top:12px}
+:focus-visible{outline:2px solid var(--deep);outline-offset:3px}
+
+/* ——— masthead ——— */
+.mast{
+  padding:clamp(14px,2vw,26px) var(--pad) 0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
+  gap:clamp(14px,2.6vw,52px) clamp(18px,3.4vw,64px);
+  align-items:end;
+}
+.kicker{
+  grid-column:1/-1;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  font-variant:small-caps;letter-spacing:.14em;font-size:13px;color:var(--ink-2);
+  text-transform:lowercase;
+  border-bottom:1px solid var(--hair);padding-bottom:10px;
+}
+.kicker span:last-child{color:var(--ink-3)}
+.title-block{position:relative;padding-top:6px;isolation:isolate}
+.contours{position:absolute;left:-2%;top:-18%;width:108%;height:140%;z-index:-1;pointer-events:none;overflow:visible}
+.contours use{fill:none;stroke:#7fc8c2;stroke-width:1;opacity:.42}
+.contours use:nth-child(odd){stroke:#1f7a90;opacity:.16}
+h1{
+  margin:0;position:relative;
+  font-weight:400;font-style:italic;
+  font-size:clamp(54px,8.2vw,128px);
+  line-height:.88;letter-spacing:-.02em;
+  color:var(--deep);
+  text-shadow:0 0 18px var(--lime),0 0 6px var(--lime);
+}
+h1 .amp{font-style:normal;color:var(--ink-3);font-size:.5em;vertical-align:.32em;margin:0 .06em}
+.subtitle{
+  margin:.55em 0 0;
+  font-variant:small-caps;text-transform:lowercase;letter-spacing:.2em;
+  font-size:clamp(13px,1.2vw,16px);color:var(--ink-2);
+  display:flex;align-items:center;gap:14px;
+}
+.subtitle svg{flex:0 0 auto}
+.wave-orn path{stroke-dasharray:120;stroke-dashoffset:120;animation:draw 1.3s cubic-bezier(.3,.7,.2,1) forwards}
+.wave-orn path:nth-child(2){animation-delay:.12s}
+.wave-orn path:nth-child(3){animation-delay:.24s}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+.intro{max-width:640px;justify-self:end}
+.intro p{margin:0 0 10px;font-size:clamp(15px,1.08vw,16.5px);color:var(--ink-2);hyphens:auto;line-height:1.52}
+.intro p:first-child::first-letter{
+  float:left;font-size:3.1em;line-height:.82;padding:.06em .08em 0 0;color:var(--deep);font-style:italic;
+}
+.facts{
+  display:flex;gap:26px;flex-wrap:wrap;margin:4px 0 0;padding:10px 0 0;border-top:1px solid var(--hair-2);
+}
+.facts div{display:flex;flex-direction:column}
+.facts dt{font-variant:small-caps;text-transform:lowercase;letter-spacing:.14em;font-size:11.5px;color:var(--ink-3)}
+.facts dd{margin:0;font-size:22px;color:var(--ink);letter-spacing:.01em}
+.facts dd small{font-size:13px;color:var(--ink-3)}
+
+/* ——— controls ——— */
+.bar{
+  margin:clamp(14px,1.8vw,24px) var(--pad) 0;
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px 26px;
+  padding:10px 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--hair);
+}
+.ctl{display:flex;align-items:center;gap:10px}
+.ctl-label{font-variant:small-caps;text-transform:lowercase;letter-spacing:.16em;font-size:12px;color:var(--ink-3)}
+.seg{display:inline-flex;border:1px solid var(--hair);border-radius:999px;padding:2px;background:rgba(255,255,255,.35)}
+.seg button{
+  appearance:none;border:0;background:transparent;color:var(--ink-2);
+  font:inherit;font-size:14px;letter-spacing:.02em;padding:5px 14px;border-radius:999px;cursor:pointer;
+  transition:background .35s ease,color .35s ease;
+}
+.seg button[aria-pressed="true"]{background:var(--deep);color:var(--lime)}
+.seg button:not([aria-pressed="true"]):hover{color:var(--deep);background:rgba(11,61,92,.07)}
+.race-btn{
+  appearance:none;display:inline-flex;align-items:center;gap:9px;
+  font:inherit;font-size:14.5px;letter-spacing:.03em;color:var(--lime);
+  background:linear-gradient(180deg,#134d70,var(--deep));
+  border:1px solid #0a3450;border-radius:999px;padding:6px 16px 6px 12px;cursor:pointer;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 6px 16px -8px rgba(11,61,92,.7);
+  transition:transform .2s ease,box-shadow .3s ease;
+}
+.race-btn:hover{transform:translateY(-1px);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 10px 20px -10px rgba(11,61,92,.8)}
+.race-btn:active{transform:translateY(0)}
+.race-btn svg{display:block}
+.race-btn[aria-pressed="true"]{background:var(--lime);color:var(--deep);border-color:var(--deep)}
+.race-btn[aria-pressed="true"] .drop{fill:var(--deep)}
+.readout{
+  margin-left:auto;display:flex;align-items:baseline;gap:10px;min-height:24px;
+  font-size:14px;color:var(--ink-2);text-align:right;
+}
+.odo{font-size:20px;color:var(--deep);min-width:5.2ch;text-align:right;font-variant-numeric:tabular-nums lining-nums}
+.readout em{color:var(--ink-3);font-style:italic}
+
+/* ——— chart ——— */
+.stage{margin:0 var(--pad);position:relative}
+.chart-wrap{position:relative;width:100%;min-height:200px;touch-action:pan-y;overflow:clip;overflow-clip-margin:8px}
+#chart{position:absolute;inset:0;display:block;overflow:visible}
+#flow{position:absolute;left:0;top:0;pointer-events:none}
+.hint{
+  position:absolute;right:0;top:4px;margin:0;z-index:2;font-style:italic;font-size:13px;color:var(--ink-3);pointer-events:none;
+  transition:opacity .6s ease;
+}
+.has-active .hint{opacity:0}
+
+.axis text{font-family:var(--serif);font-size:12px;fill:var(--ink-3)}
+.axis .sc{font-variant:small-caps;letter-spacing:.14em;font-size:11px}
+.axis line.grid{stroke:var(--hair);stroke-dasharray:1 5;stroke-linecap:round}
+.axis line.tick{stroke:var(--ink-3);stroke-width:.8}
+.axis line.base{stroke:var(--ink-2);stroke-width:.8}
+.groups{transition:opacity .6s ease}
+.groups text{font-family:var(--serif);font-variant:small-caps;letter-spacing:.2em;font-size:11px;fill:var(--ink-2);text-transform:lowercase}
+.groups line{stroke:var(--hair);stroke-width:1}
+
+.river{cursor:pointer;outline:none;transition:opacity .45s ease}
+.river .hit{fill:transparent}
+.river:focus-visible .hit{fill:rgba(11,61,92,.05);stroke:var(--deep);stroke-width:1;stroke-dasharray:2 3}
+.has-active .river{opacity:.22}
+.has-active .river.on{opacity:1}
+.river .rank{font-size:11.5px;fill:var(--ink-3);letter-spacing:.06em}
+.river .name{font-size:19px;fill:var(--ink)}
+.river .cont{font-size:11px;fill:var(--ink-3);font-variant:small-caps;letter-spacing:.16em;text-transform:lowercase}
+.river .len{font-size:15px;fill:var(--ink)}
+.river .len .approx{fill:var(--ink-3)}
+.river .mouth{font-size:12px;font-style:italic;fill:var(--ink-3)}
+.river .src{fill:var(--lime);stroke:var(--ink-2);stroke-width:.9}
+.river .delta path{fill:none;stroke-linecap:round}
+.river .glint{fill:none;stroke:rgba(255,255,255,.28);stroke-width:.8;stroke-linecap:round}
+.river.on .name{fill:var(--deep)}
+.river.arrived .len{fill:var(--deep)}
+.river .flag{opacity:0;transition:opacity .4s ease}
+.river.arrived .flag{opacity:1}
+.v .river .name{font-size:12.5px}
+.v .river .len{font-size:10px}
+.v .river .rank{font-size:9.5px}
+.v .axis text{font-size:9.5px}
+.v .axis .sc{font-size:9px}
+.v .groups text{font-size:9px;letter-spacing:.12em}
+
+/* tooltip */
+.tip{
+  position:fixed;left:0;top:0;z-index:30;width:min(300px,calc(100vw - 32px));
+  background:rgba(247,245,240,.97);
+  border:1px solid var(--hair);border-left:4px solid var(--deep);
+  box-shadow:0 18px 40px -22px rgba(11,40,60,.55),0 2px 6px rgba(11,40,60,.08);
+  padding:14px 16px 12px;border-radius:2px;
+  opacity:0;transform:translate3d(0,6px,0);pointer-events:none;
+  transition:opacity .22s ease,transform .22s ease;
+}
+.tip.show{opacity:1;transform:translate3d(0,0,0)}
+.tip .t-head{display:flex;justify-content:space-between;gap:10px;font-variant:small-caps;text-transform:lowercase;letter-spacing:.14em;font-size:11.5px;color:var(--ink-3)}
+.tip h2{margin:2px 0 8px;font-weight:400;font-size:25px;line-height:1.1;color:var(--deep)}
+.tip dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.tip dt{font-variant:small-caps;text-transform:lowercase;letter-spacing:.12em;font-size:11.5px;color:var(--ink-3);padding-top:2px}
+.tip dd{margin:0;color:var(--ink)}
+.tip .note{margin:10px 0 0;padding-top:8px;border-top:1px solid var(--hair-2);font-style:italic;font-size:13.5px;color:var(--ink-2);line-height:1.45}
+
+/* ——— legend ——— */
+.legend{
+  margin:clamp(10px,1.5vw,20px) var(--pad) 0;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 36px;
+  padding:18px 0 22px;border-top:1px solid var(--ink);border-bottom:1px solid var(--hair);
+}
+.legend h3{margin:0 0 6px;font-weight:400;font-variant:small-caps;text-transform:lowercase;letter-spacing:.18em;font-size:12.5px;color:var(--ink-2)}
+.legend p{margin:8px 0 0;font-size:14px;color:var(--ink-2);line-height:1.5}
+.ramp{height:12px;border-radius:1px;background:linear-gradient(90deg,#7fc8c2,#3f9eab 45%,#1f7a90 62%,#0b3d5c);position:relative}
+.ramp-lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-3);margin-top:4px;font-style:italic}
+.scalebar{display:flex;align-items:flex-end;gap:10px;height:30px}
+.scalebar .rule{position:relative;height:9px;border:1px solid var(--ink);border-top:0;transition:width .5s ease}
+.scalebar .rule::after{content:"";position:absolute;left:50%;bottom:0;height:5px;border-left:1px solid var(--ink)}
+.scalebar span{font-size:14px;color:var(--ink);white-space:nowrap}
+.legend svg{display:block;max-width:100%}
+
+.notes{
+  margin:0 var(--pad);padding:18px 0 40px;
+  display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:28px;
+  font-size:14px;color:var(--ink-2);
+}
+.notes p{margin:0 0 8px;line-height:1.6}
+.notes .colophon{font-style:italic;color:var(--ink-3);text-align:right}
+.notes sup{font-size:.7em}
+
+@media (max-width:1100px){
+  .legend{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  body{font-size:16px}
+  .mast{grid-template-columns:1fr;gap:14px}
+  .contours{left:0;width:100%;top:-10%;height:120%}
+  .intro{justify-self:start}
+  .kicker span:last-child{display:none}
+  .facts{gap:18px}
+  .facts dd{font-size:19px}
+  .bar{gap:10px 16px}
+  .readout{margin-left:0;width:100%;justify-content:flex-start;text-align:left;flex-wrap:wrap;gap:4px 8px}
+  .odo{min-width:0;text-align:left}
+  .legend{grid-template-columns:1fr;gap:16px}
+  .notes{grid-template-columns:1fr;gap:6px}
+  .notes .colophon{text-align:left}
+  .hint{position:static;text-align:right;padding:8px 0 4px;font-size:12.5px}
+}
+@media (max-width:400px){
+  .seg button{padding:5px 11px;font-size:13.5px}
+  .race-btn{font-size:13.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  .wave-orn path{animation:none;stroke-dashoffset:0}
+  .river,.tip,.groups,.seg button{transition:none}
+}
+</style>
+</head>
+<body>
+<canvas id="paper" aria-hidden="true"></canvas>
+<a class="skip" href="#stage">Skip to the chart</a>
+
+<header class="mast">
+  <div class="kicker"><span>An atlas in ten ribbons</span><span>Plate I &nbsp;·&nbsp; Lengths approximate</span></div>
+  <div class="title-block">
+    <svg class="contours" viewBox="0 0 700 200" preserveAspectRatio="none" aria-hidden="true">
+      <defs><path id="bend" d="M-20 70 C60 40,120 40,190 78 S330 132,410 96 S540 22,620 58 S700 96,730 84"/></defs>
+      <use href="#bend" y="0"/><use href="#bend" y="9"/><use href="#bend" y="18"/><use href="#bend" y="27"/>
+      <use href="#bend" y="36"/><use href="#bend" y="45"/><use href="#bend" y="54"/><use href="#bend" y="63"/>
+      <use href="#bend" y="72"/>
+    </svg>
+    <h1>Long Water</h1>
+    <p class="subtitle">
+      <svg class="wave-orn" width="58" height="18" viewBox="0 0 58 18" aria-hidden="true">
+        <path d="M1 4 C8 0,13 8,20 4 S32 0,39 4 S51 8,57 4" fill="none" stroke="#0b3d5c" stroke-width="1.1"/>
+        <path d="M1 9 C8 5,13 13,20 9 S32 5,39 9 S51 13,57 9" fill="none" stroke="#1f7a90" stroke-width="1.1"/>
+        <path d="M1 14 C8 10,13 18,20 14 S32 10,39 14 S51 18,57 14" fill="none" stroke="#7fc8c2" stroke-width="1.1"/>
+      </svg>
+      The world's great rivers
+    </p>
+  </div>
+  <div class="intro">
+    <p>A river's length is a slippery number. Follow a different headwater, trace another channel through the delta, or survey in a wet year instead of a dry one, and the total shifts by hundreds of kilometres. These are the commonly cited, approximate figures for Earth's ten longest rivers — each drawn to the same scale, source on the left, sea on the right.</p>
+    <dl class="facts">
+      <div><dt>Combined length</dt><dd id="factSum">≈ 56,062 <small>km</small></dd></div>
+      <div><dt>Around the Equator</dt><dd>≈ 1.4 <small>times</small></dd></div>
+      <div><dt>Continents</dt><dd>4 <small>of 7</small></dd></div>
+    </dl>
+  </div>
+</header>
+
+<div class="bar" role="toolbar" aria-label="Chart controls">
+  <div class="ctl">
+    <span class="ctl-label" id="sortLab">Sort by</span>
+    <div class="seg" role="group" aria-labelledby="sortLab">
+      <button type="button" data-sort="length" aria-pressed="true">Length</button>
+      <button type="button" data-sort="continent" aria-pressed="false">Continent</button>
+    </div>
+  </div>
+  <div class="ctl">
+    <span class="ctl-label" id="unitLab">Units</span>
+    <div class="seg" role="group" aria-labelledby="unitLab">
+      <button type="button" data-unit="km" aria-pressed="true">km</button>
+      <button type="button" data-unit="mi" aria-pressed="false">miles</button>
+    </div>
+  </div>
+  <button type="button" class="race-btn" id="raceBtn" aria-pressed="false">
+    <svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true"><path class="drop" d="M7 1 C9.5 5,13 8.4,13 11.6 A6 6 0 0 1 1 11.6 C1 8.4,4.5 5,7 1Z" fill="#dff3f1"/></svg>
+    <span id="raceTxt">Race the droplets</span>
+  </button>
+  <p class="readout" aria-live="polite"><span class="odo" id="odo">0</span><span id="odoUnit">km travelled</span><em id="raceMsg">— every droplet moves at the same speed</em></p>
+</div>
+
+<main class="stage" id="stage">
+  <p class="hint" aria-hidden="true">Hover or tap a river for its story</p>
+  <div class="chart-wrap" id="chartWrap">
+    <svg id="chart" role="group" aria-label="The ten longest rivers drawn to scale as meandering ribbons"></svg>
+    <canvas id="flow" aria-hidden="true"></canvas>
+  </div>
+
+  <table class="sr-only">
+    <caption>Approximate lengths of the ten longest rivers (sources vary)</caption>
+    <thead><tr><th scope="col">Rank</th><th scope="col">River</th><th scope="col">Continent</th><th scope="col">Length</th><th scope="col">Flows into</th></tr></thead>
+    <tbody id="srBody"></tbody>
+  </table>
+</main>
+
+<section class="legend" aria-label="Legend">
+  <div>
+    <h3>Shade</h3>
+    <div class="ramp" aria-hidden="true"></div>
+    <div class="ramp-lab"><span>shorter</span><span>longer</span></div>
+    <p>Deeper water, longer river — the shade steps down the ranking from the Nile to the Amur.</p>
+  </div>
+  <div>
+    <h3>Width</h3>
+    <svg width="220" height="34" viewBox="0 0 220 34" aria-hidden="true">
+      <path d="M4 10 C40 6,70 14,110 9 S180 6,214 8 L214 12 C180 11,150 13,110 12 S40 11,4 11Z" fill="#0b3d5c"/>
+      <path d="M4 26 C40 23,70 29,110 24 S170 15,214 15 L214 33 C176 33,150 30,110 29 S40 27,4 27Z" fill="#3f9eab"/>
+      <text x="4" y="6" font-size="9" fill="#848d92" font-style="italic">thread</text>
+    </svg>
+    <p>Each ribbon swells from source to mouth; its final width follows the square root of approximate mean discharge.</p>
+  </div>
+  <div>
+    <h3>Current</h3>
+    <svg width="220" height="34" viewBox="0 0 220 34" aria-hidden="true">
+      <path d="M4 15 C50 8,90 24,140 15 S200 10,214 14 L214 22 C200 18,180 24,140 23 S50 18,4 19Z" fill="#1f7a90"/>
+      <g stroke="#f3f1ec" stroke-width="1.2" stroke-linecap="round">
+        <line x1="24" y1="16" x2="30" y2="15.2"/><line x1="62" y1="16.4" x2="68" y2="17.2"/>
+        <line x1="104" y1="19" x2="110" y2="19.5"/><line x1="150" y1="18" x2="156" y2="17.2"/>
+        <line x1="188" y1="16.8" x2="194" y2="16.6"/>
+      </g>
+      <path d="M204 5 L214 5 M210 2 L214 5 L210 8" fill="none" stroke="#848d92" stroke-width="1"/>
+    </svg>
+    <p>Drifting motes trace the direction of flow, left to right, from spring to sea.</p>
+  </div>
+  <div>
+    <h3>Scale</h3>
+    <div class="scalebar"><div class="rule" id="scaleRule"></div><span id="scaleTxt">1,000 km</span></div>
+    <p>Length along the axis is to scale. Numbers are rounded, approximate and marked ≈.</p>
+  </div>
+</section>
+
+<footer class="notes">
+  <div>
+    <p>Lengths are commonly cited approximations and sources vary: a river's measured length depends on which headwater you follow, how finely you trace its meanders and delta channels, and the resolution of the map. Some surveys trace the Amazon to a more distant Andean source and rank it first — the Nile's crown is conventional rather than settled. Discharge figures are rounded long-term means near the mouth.</p>
+    <p>No European river makes the list: the Volga, Europe's longest, runs about 3,530 km.</p>
+  </div>
+  <p class="colophon">Drawn with inline SVG and canvas.<br>Composed for the page, not the map.</p>
+</footer>
+
+<div class="tip" id="tip" role="tooltip" aria-hidden="true"></div>
+
+<script>
+(function(){
+'use strict';
+
+var NS = 'http://www.w3.org/2000/svg';
+var KM_MI = 0.621371;
+var QMAX = 209000;
+var RACE_SECONDS = 9;
+
+var RIVERS = [
+  {name:'Nile', short:'Nile', km:6650, cont:'Africa', rises:'The Great Lakes region of East Africa; its farthest headwater is still debated', mouth:'Mediterranean Sea, through the delta of northern Egypt', mouthShort:'Mediterranean', q:2800, note:'The White Nile and the Blue Nile meet at Khartoum before running north through the desert.'},
+  {name:'Amazon', short:'Amazon', km:6400, cont:'South America', rises:'The Andes of southern Peru', mouth:'Atlantic Ocean, off northern Brazil', mouthShort:'Atlantic', q:209000, note:'Carries more water to the sea than any other river on Earth.'},
+  {name:'Yangtze', short:'Yangtze', km:6300, cont:'Asia', rises:'The Tanggula Mountains of the Tibetan Plateau, Qinghai', mouth:'East China Sea, at Shanghai', mouthShort:'East China Sea', q:30000, note:'The longest river to flow entirely within a single country.'},
+  {name:'Mississippi–Missouri', short:'Miss.–Missouri', km:6275, cont:'North America', rises:'The Rocky Mountains of Montana, at the Missouri’s headwaters', mouth:'Gulf of Mexico, below New Orleans', mouthShort:'Gulf of Mexico', q:16800, note:'The Missouri joins the Mississippi just north of St. Louis.'},
+  {name:'Yenisei', short:'Yenisei', km:5539, cont:'Asia', rises:'Mongolia, counting the Selenga and Angara by way of Lake Baikal', mouth:'Kara Sea, in the Arctic Ocean', mouthShort:'Kara Sea', q:19600, note:'Runs north across the breadth of Siberia to the Arctic.'},
+  {name:'Yellow River', short:'Yellow River', km:5464, cont:'Asia', rises:'The Bayan Har Mountains, Qinghai', mouth:'Bohai Sea', mouthShort:'Bohai Sea', q:2600, note:'Named for the fine loess silt it carries — one of the most sediment-laden rivers anywhere.'},
+  {name:'Ob–Irtysh', short:'Ob–Irtysh', km:5410, cont:'Asia', rises:'The Altai Mountains, at the Irtysh’s headwaters', mouth:'Kara Sea, through the long Gulf of Ob', mouthShort:'Gulf of Ob', q:12500, note:'The Gulf of Ob is one of the longest estuaries on Earth.'},
+  {name:'Paraná', short:'Paraná', km:4880, cont:'South America', rises:'The Brazilian Highlands, where the Paranaíba and Grande meet', mouth:'Río de la Plata estuary, Atlantic Ocean', mouthShort:'Río de la Plata', q:17300, note:'Joins the Uruguay River to form the broad Río de la Plata.'},
+  {name:'Congo', short:'Congo', km:4700, cont:'Africa', rises:'The highlands of northeastern Zambia, as the Chambeshi', mouth:'Atlantic Ocean, between Angola and the DR Congo', mouthShort:'Atlantic', q:41000, note:'Crosses the Equator twice on its great arc through Central Africa.'},
+  {name:'Amur', short:'Amur', km:4444, cont:'Asia', rises:'The Mongolian and Manchurian uplands, via the Argun and Shilka', mouth:'Strait of Tartary, toward the Sea of Okhotsk', mouthShort:'Strait of Tartary', q:11400, note:'For much of its course it marks the border between Russia and China.'}
+];
+var CONTS = ['Africa','Asia','North America','South America'];
+var CONT_SHORT = {'Africa':'Africa','Asia':'Asia','North America':'N. Am.','South America':'S. Am.'};
+
+/* ——— colour scale: #0b3d5c (longest) → #7fc8c2 (shortest) ——— */
+var STOPS = [[11,61,92],[31,122,144],[63,158,171],[127,200,194]];
+var STOP_T = [0,.42,.72,1];
+function scaleColor(t){
+  for(var k=0;k<STOPS.length-1;k++){
+    if(t<=STOP_T[k+1]){
+      var u=(t-STOP_T[k])/(STOP_T[k+1]-STOP_T[k]);
+      var a=STOPS[k],b=STOPS[k+1];
+      return [Math.round(a[0]+(b[0]-a[0])*u),Math.round(a[1]+(b[1]-a[1])*u),Math.round(a[2]+(b[2]-a[2])*u)];
+    }
+  }
+  return STOPS[STOPS.length-1];
+}
+function hex(c){return '#'+c.map(function(v){return ('0'+v.toString(16)).slice(-2);}).join('');}
+function mix(c,d,t){return [Math.round(c[0]+(d[0]-c[0])*t),Math.round(c[1]+(d[1]-c[1])*t),Math.round(c[2]+(d[2]-c[2])*t)];}
+var LIME=[243,241,236];
+
+RIVERS.forEach(function(r,i){
+  r.i=i;
+  r.rgb=scaleColor(i/9);
+  r.color=hex(r.rgb);
+  r.pale=hex(mix(r.rgb,LIME,.62));
+  var lum=(0.2126*r.rgb[0]+0.7152*r.rgb[1]+0.0722*r.rgb[2])/255;
+  r.pStyle= lum>.55 ? 'rgba(11,61,92,0.55)' : 'rgba(246,244,238,0.82)';
+  r.ph1=i*1.73+.4; r.ph2=i*2.91+1.2; r.ph3=i*.77+2.1;
+  r.cur=0; r.target=0;
+  r.arrived=false;
+});
+
+/* ——— helpers ——— */
+function el(tag,attrs,parent){
+  var e=document.createElementNS(NS,tag);
+  if(attrs){for(var k in attrs){if(Object.prototype.hasOwnProperty.call(attrs,k)) e.setAttribute(k,attrs[k]);}}
+  if(parent) parent.appendChild(e);
+  return e;
+}
+function fmt(n){return Math.round(n).toLocaleString('en-US');}
+function conv(km){return state.unit==='km'?km:km*KM_MI;}
+function unitWord(){return state.unit==='km'?'km':'mi';}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function smooth(t){t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);}
+
+var svg=document.getElementById('chart');
+var cvs=document.getElementById('flow');
+var ctx=cvs.getContext('2d');
+var wrap=document.getElementById('chartWrap');
+var tip=document.getElementById('tip');
+var odo=document.getElementById('odo');
+var odoUnit=document.getElementById('odoUnit');
+var raceMsg=document.getElementById('raceMsg');
+var raceBtn=document.getElementById('raceBtn');
+var raceTxt=document.getElementById('raceTxt');
+
+var mq=window.matchMedia?window.matchMedia('(prefers-reduced-motion: reduce)'):null;
+var state={sort:'length',unit:'km',active:-1,pinned:false,vertical:false,W:0,H:0,dpr:1,reduce:!!(mq&&mq.matches),introAt:-1,built:false};
+if(mq&&mq.addEventListener){mq.addEventListener('change',function(e){state.reduce=e.matches;});}
+
+var G={};           // geometry parameters for the current layout
+var layers={};      // svg layers
+var particles=[];   // pooled current particles
+var rings=[];       // arrival ripples
+var race={running:false,t:0,done:false,doneAt:0,order:[]};
+
+/* ——— paper grain ——— */
+var paper=document.getElementById('paper');
+var grainTile=null;
+function makeTile(){
+  var c=document.createElement('canvas');c.width=c.height=220;
+  var g=c.getContext('2d');var im=g.createImageData(220,220);var d=im.data;
+  for(var p=0;p<d.length;p+=4){
+    var dark=Math.random()<.5;
+    d[p]=dark?60:255;d[p+1]=dark?70:255;d[p+2]=dark?70:250;
+    d[p+3]=Math.floor(Math.random()*(dark?12:18));
+  }
+  g.putImageData(im,0,0);
+  for(var s=0;s<30;s++){
+    g.fillStyle='rgba(120,110,95,'+(0.03+Math.random()*.05).toFixed(3)+')';
+    g.beginPath();g.arc(Math.random()*220,Math.random()*220,.4+Math.random()*1.3,0,6.283);g.fill();
+  }
+  return c;
+}
+function drawPaper(){
+  try{
+    if(!grainTile) grainTile=makeTile();
+    var w=window.innerWidth,h=window.innerHeight;
+    paper.width=w;paper.height=h;
+    var pc=paper.getContext('2d');
+    pc.fillStyle=pc.createPattern(grainTile,'repeat');
+    pc.fillRect(0,0,w,h);
+    var vg=pc.createRadialGradient(w*.5,h*.35,Math.min(w,h)*.2,w*.5,h*.5,Math.max(w,h)*.8);
+    vg.addColorStop(0,'rgba(255,255,255,0)');vg.addColorStop(1,'rgba(120,112,96,.07)');
+    pc.fillStyle=vg;pc.fillRect(0,0,w,h);
+  }catch(e){}
+}
+drawPaper();
+
+/* ——— screen-reader table ——— */
+function fillTable(){
+  var tb=document.getElementById('srBody');
+  tb.innerHTML=RIVERS.map(function(r){
+    return '<tr><td>'+(r.i+1)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.cont)+'</td><td>about '+fmt(conv(r.km))+' '+unitWord()+'</td><td>'+esc(r.mouth)+'</td></tr>';
+  }).join('');
+}
+
+/* ——— ordering ——— */
+function orderList(){
+  if(state.sort==='length') return RIVERS.map(function(r){return r.i;});
+  var out=[];
+  CONTS.forEach(function(c){
+    RIVERS.filter(function(r){return r.cont===c;}).forEach(function(r){out.push(r.i);});
+  });
+  return out;
+}
+function computeTargets(){
+  var ord=orderList();
+  var groups=[];var pos=G.start;var prev=null;var cur=null;
+  ord.forEach(function(ri){
+    var r=RIVERS[ri];
+    if(state.sort==='continent' && r.cont!==prev){
+      if(!G.vertical || prev!==null) pos+=G.gap;
+      cur={cont:r.cont,from:pos,to:pos};groups.push(cur);
+    }
+    r.target=pos+G.step()/2;
+    pos+=G.step();
+    if(cur) cur.to=pos;
+    prev=r.cont;
+  });
+  return groups;
+}
+
+/* ——— geometry ——— */
+function mapAC(a,c){return G.vertical?[c,G.y0+a]:[G.x0+a,c];}
+function meander(r,a){
+  var env=smooth(a/G.envLen);
+  return env*G.amp*(0.58*Math.sin(a*G.k1+r.ph1)+0.32*Math.sin(a*G.k2+r.ph2)+0.1*Math.sin(a*G.k3+r.ph3));
+}
+function buildRiverGeom(r){
+  var Lp=r.km*G.scale;
+  var n=Math.ceil(Lp/G.ds)+1;
+  var gx=new Float32Array(n),gy=new Float32Array(n),nx=new Float32Array(n),ny=new Float32Array(n),w=new Float32Array(n);
+  var wm=Math.max(G.wMin,G.wMax*Math.sqrt(r.q/QMAX));
+  for(var k=0;k<n;k++){
+    var a=Math.min(Lp,k*G.ds);
+    var c=meander(r,a);
+    var dc=(meander(r,a+.5)-meander(r,a-.5));
+    var t=a/Lp;
+    var len=Math.sqrt(1+dc*dc);
+    var p=mapAC(a,c);
+    gx[k]=p[0];gy[k]=p[1];
+    if(G.vertical){nx[k]=1/len;ny[k]=-dc/len;}else{nx[k]=-dc/len;ny[k]=1/len;}
+    w[k]=G.w0+(wm-G.w0)*Math.pow(t,1.45);
+  }
+  r.Lp=Lp;r.n=n;r.gx=gx;r.gy=gy;r.nx=nx;r.ny=ny;r.w=w;r.wm=wm;
+}
+function ribbonPath(r,extra){
+  var n=r.n,top='',bot='',k,h,t;
+  for(k=0;k<n;k++){
+    t=k/(n-1);
+    h=(r.w[k]+(extra?extra[0]+extra[1]*t:0))/2;
+    top+=(k?'L':'M')+(r.gx[k]+r.nx[k]*h).toFixed(1)+' '+(r.gy[k]+r.ny[k]*h).toFixed(1);
+  }
+  for(k=n-1;k>=0;k--){
+    t=k/(n-1);
+    h=(r.w[k]+(extra?extra[0]+extra[1]*t:0))/2;
+    bot+='L'+(r.gx[k]-r.nx[k]*h).toFixed(1)+' '+(r.gy[k]-r.ny[k]*h).toFixed(1);
+  }
+  return top+bot+'Z';
+}
+function glintPath(r){
+  var d='',s=Math.floor(r.n*.08),e=Math.floor(r.n*.94);
+  for(var k=s;k<=e;k++){
+    var off=r.w[k]*.18;
+    d+=(k===s?'M':'L')+(r.gx[k]+r.nx[k]*off).toFixed(1)+' '+(r.gy[k]+r.ny[k]*off).toFixed(1);
+  }
+  return d;
+}
+
+/* ——— layout / build ——— */
+function layout(){
+  var W=Math.max(300,Math.round(wrap.clientWidth));
+  var v=W<700;
+  G={vertical:v,W:W,ds:v?2:3};
+  if(!v){
+    G.labelW=W>1180?250:W>900?214:188;
+    G.endPad=W>1180?156:W>900?138:118;
+    G.axisH=44;G.rowH=W>1180?50:48;G.gap=24;G.x0=G.labelW;
+    G.Lmax=W-G.labelW-G.endPad;
+    G.scale=G.Lmax/6650;
+    G.start=G.axisH;
+    G.step=function(){return G.rowH;};
+    G.H=G.axisH+G.rowH*10+G.gap*4+14;
+    G.amp=G.rowH*.19;G.wMax=Math.min(22,G.rowH*.42);G.wMin=3.4;G.w0=1.3;
+  }else{
+    G.gutter=30;G.labelH=176;G.gap=7;G.y0=G.labelH;
+    G.colL=(W-G.gutter)/10;G.colC=(W-G.gutter-G.gap*3)/10;G.colW=G.colC;
+    G.Lmax=560;G.scale=G.Lmax/6650;
+    G.start=G.gutter;
+    G.step=function(){return state.sort==='length'?G.colL:G.colC;};
+    G.H=G.labelH+G.Lmax+44;
+    G.amp=G.colC*.16;G.wMax=Math.min(19,G.colC*.58);G.wMin=3;G.w0=1.1;
+  }
+  G.k1=2*Math.PI/(G.Lmax/3.1);G.k2=2*Math.PI/(G.Lmax/7.4);G.k3=2*Math.PI/(G.Lmax/15.5);
+  G.envLen=v?16:28;
+  state.vertical=v;state.W=W;state.H=G.H;
+}
+
+function build(){
+  layout();
+  var W=G.W,H=G.H;
+  document.body.classList.toggle('v',G.vertical);
+  wrap.style.height=H+'px';
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.setAttribute('width',W);svg.setAttribute('height',H);
+  var dpr=Math.min(2,window.devicePixelRatio||1);state.dpr=dpr;
+  cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);
+  cvs.style.width=W+'px';cvs.style.height=H+'px';
+
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  var defs=el('defs',null,svg);
+  var soft=el('filter',G.vertical?{id:'soft',x:'-80%',y:'-4%',width:'260%',height:'108%'}:{id:'soft',x:'-4%',y:'-80%',width:'108%',height:'260%'},defs);
+  el('feGaussianBlur',{stdDeviation:G.vertical?'1.6':'2.6'},soft);
+  layers.axis=el('g',{'class':'axis'},svg);
+  layers.groups=el('g',{'class':'groups','aria-hidden':'true'},svg);
+  layers.rivers=el('g',{'class':'rivers'},svg);
+
+  RIVERS.forEach(function(r){buildRiverGeom(r);});
+  var groups=computeTargets();
+  RIVERS.forEach(function(r){r.cur=r.target;});
+
+  RIVERS.forEach(function(r){
+    var i=r.i;
+    var grad=el('linearGradient',{id:'rg'+i,gradientUnits:'userSpaceOnUse'},defs);
+    if(G.vertical){grad.setAttribute('x1',0);grad.setAttribute('x2',0);grad.setAttribute('y1',G.y0);grad.setAttribute('y2',G.y0+r.Lp);}
+    else{grad.setAttribute('x1',G.x0);grad.setAttribute('x2',G.x0+r.Lp);grad.setAttribute('y1',0);grad.setAttribute('y2',0);}
+    el('stop',{offset:'0','stop-color':hex(mix(r.rgb,LIME,.5))},grad);
+    el('stop',{offset:'.35','stop-color':hex(mix(r.rgb,LIME,.12))},grad);
+    el('stop',{offset:'1','stop-color':r.color},grad);
+
+    var cp=el('clipPath',{id:'rc'+i},defs);
+    r.clipRect=el('rect',{x:G.vertical?-G.colW:0,y:G.vertical?0:-G.rowH,width:G.vertical?G.colW*2:W,height:G.vertical?H:G.rowH*2},cp);
+
+    var g=el('g',{'class':'river','data-i':i,tabindex:'0',role:'button'},layers.rivers);
+    r.g=g;
+    if(G.vertical) el('rect',{'class':'hit',x:-G.colW/2,y:4,width:G.colW,height:H-8,rx:2},g);
+    else el('rect',{'class':'hit',x:-4,y:-G.rowH/2+1,width:W+4,height:G.rowH-2,rx:2},g);
+
+    var flow=el('g',{'clip-path':'url(#rc'+i+')'},g);
+    el('path',{d:ribbonPath(r,G.vertical?[3,5]:[5,9]),fill:r.color,opacity:'.16',filter:'url(#soft)'},flow);
+    el('path',{d:ribbonPath(r,null),fill:'url(#rg'+i+')'},flow);
+    if(r.wm>7) el('path',{'class':'glint',d:glintPath(r)},flow);
+
+    // delta distributaries
+    var dg=el('g',{'class':'delta'},flow);
+    var aB=r.Lp-G.ds*8, cB=meander(r,aB), cE=meander(r,r.Lp);
+    [-1.5,-.5,.5,1.5].forEach(function(j){
+      var spread=r.wm*.34+3;
+      var p0=mapAC(aB,cB+j*r.wm*.12),p1=mapAC(r.Lp+2,cE+j*r.wm*.3),p2=mapAC(r.Lp+(G.vertical?7:11)+(2-Math.abs(j))*3,cE+j*spread);
+      el('path',{d:'M'+p0[0].toFixed(1)+' '+p0[1].toFixed(1)+'Q'+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+' '+p2[0].toFixed(1)+' '+p2[1].toFixed(1),stroke:r.color,'stroke-width':Math.abs(j)>1?.8:1.3,opacity:Math.abs(j)>1?.55:.85},dg);
+    });
+    var sp=mapAC(0,0);
+    el('circle',{'class':'src',cx:sp[0],cy:sp[1],r:G.vertical?2:2.6},flow);
+
+    if(!G.vertical){
+      var tl=el('text',{'class':'len',x:G.x0+r.Lp+32,y:0},flow);
+      r.lenApprox=el('tspan',{'class':'approx'},tl);r.lenApprox.textContent='≈ ';
+      r.lenVal=el('tspan',null,tl);
+      var fl=el('text',{'class':'mouth',x:G.x0+r.Lp+32,y:15},flow);
+      fl.textContent='→ '+r.mouthShort;
+      var flag=el('g',{'class':'flag'},flow);
+      var fp=mapAC(r.Lp+24,0);
+      el('circle',{cx:fp[0]-2,cy:-4,r:2.6,fill:r.color},flag);
+      var t1=el('text',{'class':'rank',x:0,y:4},g);t1.textContent=('0'+(i+1)).slice(-2);
+      var t2=el('text',{'class':'name',x:30,y:4},g);t2.textContent=r.name;
+      var t3=el('text',{'class':'cont',x:31,y:19},g);t3.textContent=r.cont;
+    }else{
+      var t4=el('text',{'class':'rank',x:0,y:30,'text-anchor':'middle'},g);t4.textContent=('0'+(i+1)).slice(-2);
+      var tn=el('text',{'class':'name',transform:'translate(2,'+(G.labelH-12)+') rotate(-90)'},g);tn.textContent=r.short;
+      var tv=el('text',{'class':'len',transform:'translate(12,'+(G.labelH-12)+') rotate(-90)'},g);
+      r.lenApprox=el('tspan',{'class':'approx'},tv);r.lenApprox.textContent='≈ ';
+      r.lenVal=el('tspan',null,tv);
+      var flag2=el('g',{'class':'flag'},flow);
+      var fp2=mapAC(r.Lp+20,0);
+      el('circle',{cx:fp2[0],cy:fp2[1],r:2.4,fill:r.color},flag2);
+    }
+    placeRiver(r);
+  });
+
+  drawAxis();
+  drawGroups(groups);
+  updateUnits();
+  seedParticles();
+  hideTip(true);
+  if(!state.built){
+    state.built=true;
+    state.introAt=state.reduce?-1:performance.now();
+    if(state.introAt<0) finishIntro();
+    else RIVERS.forEach(function(r){setClip(r,0);});
+  }else{
+    finishIntro();
+  }
+}
+
+function placeRiver(r){
+  if(!r.g) return;
+  var v=Math.round(r.cur*10)/10;
+  if(r._placed===v) return;
+  r._placed=v;
+  r.g.setAttribute('transform',G.vertical?'translate('+v+',0)':'translate(0,'+v+')');
+}
+function setClip(r,p){
+  var reach=G.vertical?(G.y0+(r.Lp+40)*p):(G.x0+(r.Lp+G.endPad)*p);
+  if(G.vertical) r.clipRect.setAttribute('height',Math.max(0,reach));
+  else r.clipRect.setAttribute('width',Math.max(0,reach));
+}
+function finishIntro(){
+  state.introAt=-1;
+  RIVERS.forEach(function(r){if(r.g){setClip(r,1.2);}});
+}
+
+function drawAxis(){
+  var ax=layers.axis;
+  while(ax.firstChild) ax.removeChild(ax.firstChild);
+  var step=state.unit==='km'?1000:(G.vertical?1000:500);
+  var maxU=state.unit==='km'?6650:6650*KM_MI;
+  var perUnitPx=state.unit==='km'?G.scale:G.scale/KM_MI;
+  if(!G.vertical){
+    el('line',{'class':'base',x1:G.x0,x2:G.x0,y1:G.axisH-12,y2:G.H-10},ax);
+    var s0=el('text',{'class':'sc',x:G.x0,y:16,'text-anchor':'middle'},ax);s0.textContent='source';
+    for(var v=step;v<=maxU+1;v+=step){
+      var x=G.x0+v*perUnitPx;
+      el('line',{'class':'grid',x1:x,x2:x,y1:G.axisH-6,y2:G.H-10},ax);
+      el('line',{'class':'tick',x1:x,x2:x,y1:G.axisH-12,y2:G.axisH-6},ax);
+      var t=el('text',{x:x,y:G.axisH-18,'text-anchor':'middle'},ax);
+      t.textContent=fmt(v)+(v+step>maxU+1?' '+unitWord():'');
+    }
+  }else{
+    el('line',{'class':'base',x1:G.gutter-4,x2:G.W,y1:G.y0,y2:G.y0},ax);
+    var s1=el('text',{'class':'sc',x:G.gutter-7,y:G.y0-4,'text-anchor':'end'},ax);s1.textContent=unitWord();
+    for(var u=step;u<=maxU+1;u+=step){
+      var y=G.y0+u*perUnitPx;
+      el('line',{'class':'grid',x1:G.gutter,x2:G.W,y1:y,y2:y},ax);
+      el('line',{'class':'tick',x1:G.gutter-5,x2:G.gutter,y1:y,y2:y},ax);
+      var tt=el('text',{x:G.gutter-7,y:y+3,'text-anchor':'end'},ax);tt.textContent=(u/1000)+'k';
+    }
+  }
+}
+
+function drawGroups(groups){
+  var gl=layers.groups;
+  while(gl.firstChild) gl.removeChild(gl.firstChild);
+  gl.style.opacity=state.sort==='continent'?'1':'0';
+  groups.forEach(function(g){
+    if(!G.vertical){
+      var y=g.from-7;
+      var t=el('text',{x:0,y:y},gl);t.textContent=g.cont;
+      el('line',{x1:118,x2:G.W,y1:y-3.5,y2:y-3.5},gl);
+    }else{
+      var cx=(g.from+g.to)/2;
+      var t2=el('text',{x:cx,y:11,'text-anchor':'middle'},gl);t2.textContent=CONT_SHORT[g.cont];
+      el('line',{x1:g.from+2,x2:g.to-2,y1:16,y2:16},gl);
+    }
+  });
+}
+
+function updateUnits(){
+  var u=unitWord();
+  RIVERS.forEach(function(r){
+    if(r.lenVal) r.lenVal.textContent=fmt(conv(r.km))+(G.vertical?'':' '+u);
+    if(r.g) r.g.setAttribute('aria-label',r.name+', about '+fmt(conv(r.km))+' '+(state.unit==='km'?'kilometres':'miles')+', '+r.cont+'. Flows into the '+r.mouthShort+'. Press Enter for details.');
+  });
+  var sum=RIVERS.reduce(function(s,r){return s+r.km;},0);
+  document.getElementById('factSum').innerHTML='≈ '+fmt(conv(sum))+' <small>'+u+'</small>';
+  var unitPx=state.unit==='km'?G.scale*1000:G.scale*1000/KM_MI;
+  var len=state.unit==='km'?1000:1000;
+  document.getElementById('scaleRule').style.width=Math.round(unitPx)+'px';
+  document.getElementById('scaleTxt').textContent=fmt(len)+' '+(state.unit==='km'?'km':'miles');
+  odoUnit.textContent=u+' travelled';
+  fillTable();
+  drawAxis();
+  if(state.active>=0) showTipFor(state.active,lastPt.x,lastPt.y);
+}
+
+/* ——— particles ——— */
+function seedParticles(){
+  particles.length=0;
+  RIVERS.forEach(function(r){
+    var area=0;for(var k=0;k<r.n;k++) area+=r.w[k]*G.ds;
+    var count=Math.round(Math.max(G.vertical?10:18,area/(G.vertical?30:34)));
+    for(var j=0;j<count;j++){
+      particles.push({r:r.i,a:sampleA(r),u:(Math.random()*2-1)*.4,v:(G.vertical?8:13)+Math.random()*(G.vertical?10:17),tl:(G.vertical?3:4)+Math.random()*(G.vertical?4:7),b:Math.random()<.3?1:0});
+    }
+  });
+}
+function sampleA(r){
+  for(var tries=0;tries<12;tries++){
+    var a=Math.random()*r.Lp;
+    var k=Math.min(r.n-1,Math.floor(a/G.ds));
+    if(Math.random()<Math.sqrt(r.w[k]/r.wm)) return a;
+  }
+  return Math.random()*r.Lp;
+}
+function posAt(r,a,u,out){
+  var f=a/G.ds, k=Math.floor(f);
+  if(k>=r.n-1){k=r.n-2;f=r.n-1;}
+  if(k<0){k=0;f=0;}
+  var t=f-k;
+  var x=r.gx[k]+(r.gx[k+1]-r.gx[k])*t, y=r.gy[k]+(r.gy[k+1]-r.gy[k])*t;
+  var h=(r.w[k]+(r.w[k+1]-r.w[k])*t)*u*.5;
+  out[0]=x+r.nx[k]*h+(G.vertical?r.cur:0);
+  out[1]=y+r.ny[k]*h+(G.vertical?0:r.cur);
+  return out;
+}
+var P0=[0,0],P1=[0,0];
+
+/* ——— race ——— */
+function startRace(){
+  race.running=true;race.t=0;race.done=false;race.order=[];rings.length=0;
+  RIVERS.forEach(function(r){r.arrived=false;if(r.g) r.g.classList.remove('arrived');});
+  raceBtn.setAttribute('aria-pressed','true');raceTxt.textContent='Stop the race';
+  raceMsg.textContent='— all ten droplets leave their sources together';
+}
+function stopRace(msg){
+  race.running=false;
+  raceBtn.setAttribute('aria-pressed','false');raceTxt.textContent=race.done?'Race again':'Race the droplets';
+  if(msg) raceMsg.textContent=msg;
+  RIVERS.forEach(function(r){if(r.g) r.g.classList.remove('arrived');});
+}
+function raceStep(dt){
+  var speed=G.Lmax/RACE_SECONDS;
+  race.t+=dt;
+  var a=race.t*speed;
+  var km=Math.min(6650,a/G.scale);
+  odo.textContent=fmt(conv(km));
+  RIVERS.forEach(function(r){
+    if(!r.arrived && a>=r.Lp){
+      r.arrived=true;race.order.push(r.i);
+      if(r.g) r.g.classList.add('arrived');
+      posAt(r,r.Lp,0,P0);
+      rings.push({x:P0[0],y:P0[1],t:0,c:r.color});
+      var place=race.order.length;
+      if(place===1) raceMsg.textContent='— the '+r.name+' reaches the '+r.mouthShort+' first';
+      else if(place<10) raceMsg.textContent='— '+r.name+' arrives ('+ordinal(place)+')';
+    }
+  });
+  if(race.order.length===10 && !race.done){
+    race.done=true;race.doneAt=race.t;
+    var first=RIVERS[race.order[0]],last=RIVERS[race.order[9]];
+    raceMsg.textContent='— the '+last.name+' arrives last, '+fmt(conv(last.km-first.km))+' '+unitWord()+' after the '+first.name;
+  }
+  if(race.done && race.t-race.doneAt>2.6){
+    stopRace(null);
+  }
+}
+function ordinal(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+
+/* ——— tooltip ——— */
+var lastPt={x:0,y:0};
+function tipHTML(r){
+  return '<div class="t-head"><span>No. '+(r.i+1)+' by length</span><span>'+esc(r.cont)+'</span></div>'+
+    '<h2>'+esc(r.name)+'</h2>'+
+    '<dl><dt>Length</dt><dd>≈ '+fmt(conv(r.km))+' '+(state.unit==='km'?'km':'miles')+' <span style="color:#848d92">('+(state.unit==='km'?fmt(r.km*KM_MI)+' mi':fmt(r.km)+' km')+')</span></dd>'+
+    '<dt>Rises</dt><dd>'+esc(r.rises)+'</dd>'+
+    '<dt>Flows out</dt><dd>'+esc(r.mouth)+'</dd>'+
+    '<dt>Discharge</dt><dd>≈ '+fmt(r.q)+' m³/s, mean</dd></dl>'+
+    '<p class="note">'+esc(r.note)+'</p>';
+}
+function showTipFor(i,x,y){
+  var r=RIVERS[i];
+  clearTimeout(tipPark);
+  tip.innerHTML=tipHTML(r);
+  tip.style.borderLeftColor=r.color;
+  tip.classList.add('show');tip.setAttribute('aria-hidden','false');
+  positionTip(x,y);
+}
+function positionTip(x,y){
+  var tw=tip.offsetWidth,th=tip.offsetHeight,vw=window.innerWidth,vh=window.innerHeight;
+  var left=x+18,top=y+18;
+  if(left+tw>vw-12) left=x-tw-18;
+  if(left<12) left=Math.max(12,Math.min(vw-tw-12,x-tw/2));
+  if(top+th>vh-12) top=y-th-18;
+  if(top<12) top=12;
+  tip.style.transform='';
+  tip.style.left=Math.round(left)+'px';tip.style.top=Math.round(top)+'px';
+}
+var tipPark=0;
+function hideTip(force){
+  tip.classList.remove('show');tip.setAttribute('aria-hidden','true');
+  clearTimeout(tipPark);
+  // park the hidden tooltip at the origin so it can never widen the page
+  tipPark=setTimeout(function(){if(!tip.classList.contains('show')){tip.style.left='0px';tip.style.top='0px';}},force?0:260);
+  if(force){setActive(-1);state.pinned=false;}
+}
+function setActive(i){
+  if(state.active===i) return;
+  state.active=i;
+  RIVERS.forEach(function(r){if(r.g) r.g.classList.toggle('on',r.i===i);});
+  document.body.classList.toggle('has-active',i>=0);
+  wrap.classList.toggle('has-active',i>=0);
+}
+function riverFromEvent(e){
+  var t=e.target;
+  while(t && t!==svg){
+    if(t.classList && t.classList.contains('river')) return +t.getAttribute('data-i');
+    t=t.parentNode;
+  }
+  return -1;
+}
+svg.addEventListener('pointermove',function(e){
+  if(e.pointerType==='touch') return;
+  var i=riverFromEvent(e);
+  lastPt.x=e.clientX;lastPt.y=e.clientY;
+  if(state.pinned && i!==state.active && i<0) return;
+  if(i>=0){state.pinned=false;setActive(i);showTipFor(i,e.clientX,e.clientY);}
+  else if(!state.pinned){setActive(-1);hideTip();}
+});
+svg.addEventListener('pointerleave',function(e){
+  if(e.pointerType==='touch'||state.pinned) return;
+  setActive(-1);hideTip();
+});
+svg.addEventListener('pointerdown',function(e){
+  var i=riverFromEvent(e);
+  lastPt.x=e.clientX;lastPt.y=e.clientY;
+  if(i<0){hideTip(true);return;}
+  if(e.pointerType==='touch' && state.active===i && state.pinned){hideTip(true);return;}
+  state.pinned=(e.pointerType==='touch');
+  setActive(i);showTipFor(i,e.clientX,e.clientY);
+});
+document.addEventListener('pointerdown',function(e){
+  if(!svg.contains(e.target) && state.active>=0 && !tip.contains(e.target)) hideTip(true);
+});
+svg.addEventListener('focusin',function(e){
+  var i=riverFromEvent(e);if(i<0) return;
+  var b=RIVERS[i].g.getBoundingClientRect();
+  lastPt.x=G.vertical?b.left+b.width/2:b.left+Math.min(b.width*.55,G.x0+RIVERS[i].Lp*.6);
+  lastPt.y=G.vertical?b.top+140:b.top+b.height/2;
+  setActive(i);state.pinned=true;showTipFor(i,lastPt.x,lastPt.y);
+});
+svg.addEventListener('focusout',function(e){
+  if(!svg.contains(e.relatedTarget)) hideTip(true);
+});
+svg.addEventListener('keydown',function(e){
+  var i=riverFromEvent(e);if(i<0) return;
+  if(e.key==='Escape'){hideTip(true);e.target.blur();}
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();if(tip.classList.contains('show')) hideTip(false);else showTipFor(i,lastPt.x,lastPt.y);}
+  if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key==='ArrowUp'||e.key==='ArrowLeft'){
+    e.preventDefault();
+    var ord=orderList();var k=ord.indexOf(i);
+    k+= (e.key==='ArrowDown'||e.key==='ArrowRight')?1:-1;
+    k=(k+10)%10;RIVERS[ord[k]].g.focus();
+  }
+});
+window.addEventListener('scroll',function(){if(state.active>=0&&!state.pinned){hideTip(true);}},{passive:true});
+document.addEventListener('keydown',function(e){if(e.key==='Escape') hideTip(true);});
+
+/* ——— controls ——— */
+Array.prototype.forEach.call(document.querySelectorAll('[data-sort]'),function(b){
+  b.addEventListener('click',function(){
+    if(state.sort===b.getAttribute('data-sort')) return;
+    state.sort=b.getAttribute('data-sort');
+    Array.prototype.forEach.call(document.querySelectorAll('[data-sort]'),function(o){o.setAttribute('aria-pressed',String(o===b));});
+    var groups=computeTargets();
+    drawGroups(groups);
+    if(state.reduce) RIVERS.forEach(function(r){r.cur=r.target;placeRiver(r);});
+    hideTip(true);
+  });
+});
+Array.prototype.forEach.call(document.querySelectorAll('[data-unit]'),function(b){
+  b.addEventListener('click',function(){
+    state.unit=b.getAttribute('data-unit');
+    Array.prototype.forEach.call(document.querySelectorAll('[data-unit]'),function(o){o.setAttribute('aria-pressed',String(o===b));});
+    updateUnits();
+    if(!race.running) odo.textContent='0';
+  });
+});
+raceBtn.addEventListener('click',function(){
+  if(race.running){race.done=false;stopRace('— race stopped; press again to restart');odo.textContent='0';}
+  else startRace();
+});
+
+/* ——— frame loop ——— */
+var last=performance.now();
+function frame(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;
+  if(document.hidden){requestAnimationFrame(frame);return;}
+
+  // intro reveal
+  if(state.introAt>=0){
+    var el0=now-state.introAt,allDone=true;
+    RIVERS.forEach(function(r){
+      var p=(el0-r.i*42)/1000;
+      if(p<1) allDone=false;
+      p=Math.max(0,Math.min(1,p));
+      setClip(r,1-Math.pow(1-p,3));
+    });
+    if(allDone) finishIntro();
+  }
+
+  // glide rows to targets
+  var k=1-Math.exp(-dt*7.5);
+  RIVERS.forEach(function(r){
+    var d=r.target-r.cur;
+    if(Math.abs(d)>.05){r.cur+=d*k;placeRiver(r);}
+    else if(d!==0){r.cur=r.target;placeRiver(r);}
+  });
+
+  if(race.running) raceStep(dt);
+
+  draw(dt);
+  requestAnimationFrame(frame);
+}
+
+function draw(dt){
+  var dpr=state.dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,G.W,G.H);
+  var motion=state.reduce?.12:1;
+  var introFade=state.introAt>=0?Math.max(0,Math.min(1,(performance.now()-state.introAt-700)/700)):1;
+  ctx.lineCap='round';
+  var active=state.active;
+  var byRiver=[];
+  for(var q=0;q<10;q++) byRiver.push([]);
+  for(var j=0;j<particles.length;j++) byRiver[particles[j].r].push(particles[j]);
+  for(var ri=0;ri<10;ri++){
+    var r=RIVERS[ri];
+    var list=byRiver[ri];
+    var alpha=(active<0||active===ri)?1:.15;
+    if(race.running) alpha*=.35;
+    alpha*=introFade;
+    ctx.strokeStyle=r.pStyle;
+    for(var b=0;b<2;b++){
+      ctx.lineWidth=b?(G.vertical?1.3:1.7):(G.vertical?.7:.9);
+      ctx.globalAlpha=alpha*(b?.9:.6);
+      ctx.beginPath();
+      for(var m=0;m<list.length;m++){
+        var p=list[m];
+        if(p.b!==b) continue;
+        p.a+=p.v*dt*motion;
+        if(p.a>r.Lp){p.a=Math.random()*r.Lp*.08;p.u=(Math.random()*2-1)*.4;}
+        var tailA=Math.max(0,p.a-p.tl);
+        posAt(r,p.a,p.u,P0);posAt(r,tailA,p.u,P1);
+        ctx.moveTo(P1[0],P1[1]);ctx.lineTo(P0[0],P0[1]);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha=1;
+
+  if(race.running) drawRace();
+  // ripples
+  for(var z=rings.length-1;z>=0;z--){
+    var g=rings[z];g.t+=dt;
+    if(g.t>1.6){rings.splice(z,1);continue;}
+    var e=g.t/1.6;
+    ctx.globalAlpha=(1-e)*.8;
+    ctx.strokeStyle=g.c;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.arc(g.x,g.y,4+e*22,0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=(1-e)*.45;
+    ctx.beginPath();ctx.arc(g.x,g.y,2+e*12,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+}
+
+function drawRace(){
+  var speed=G.Lmax/RACE_SECONDS;
+  var a=race.t*speed;
+  var fade=race.done?Math.max(0,1-(race.t-race.doneAt)/2.6):1;
+  // the front line
+  var frontA=Math.min(a,G.Lmax);
+  ctx.save();
+  ctx.globalAlpha=.55*fade;
+  ctx.strokeStyle='#1c272e';ctx.lineWidth=.8;ctx.setLineDash([2,4]);
+  ctx.beginPath();
+  if(G.vertical){var fy=G.y0+frontA;ctx.moveTo(G.gutter,fy);ctx.lineTo(G.W,fy);}
+  else{var fx=G.x0+frontA;ctx.moveTo(fx,G.axisH-8);ctx.lineTo(fx,G.H-10);}
+  ctx.stroke();ctx.restore();
+
+  RIVERS.forEach(function(r){
+    var head=Math.min(a,r.Lp);
+    var trail=G.vertical?46:78;
+    var segs=14;
+    ctx.lineCap='round';
+    for(var s=0;s<segs;s++){
+      var a1=head-trail*(s+1)/segs,a0=head-trail*s/segs;
+      if(a0<=0) break;
+      posAt(r,Math.max(0,a1),0,P1);posAt(r,a0,0,P0);
+      ctx.globalAlpha=(1-s/segs)*.85*fade;
+      ctx.strokeStyle='#ffffff';
+      ctx.lineWidth=(G.vertical?2.2:2.8)*(1-s/segs*.7);
+      ctx.beginPath();ctx.moveTo(P1[0],P1[1]);ctx.lineTo(P0[0],P0[1]);ctx.stroke();
+    }
+    posAt(r,head,0,P0);
+    ctx.globalAlpha=.28*fade;ctx.fillStyle='#ffffff';
+    ctx.beginPath();ctx.arc(P0[0],P0[1],G.vertical?7:10,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=fade;
+    ctx.fillStyle='#ffffff';ctx.strokeStyle=r.arrived?'#0b3d5c':r.color;ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.arc(P0[0],P0[1],G.vertical?3.2:4.4,0,Math.PI*2);ctx.fill();ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+}
+
+/* ——— resize ——— */
+var rsz=0,lastW=0,paperT=0;
+function onResize(){
+  cancelAnimationFrame(rsz);
+  rsz=requestAnimationFrame(function(){
+    var w=Math.round(wrap.clientWidth);
+    var d=Math.min(2,window.devicePixelRatio||1);
+    if(w===lastW && d===state.dpr) return;
+    lastW=w;
+    build();
+    if(race.running){race.done=false;stopRace('— race reset after resize');odo.textContent='0';}
+  });
+}
+window.addEventListener('resize',onResize);
+window.addEventListener('resize',function(){clearTimeout(paperT);paperT=setTimeout(drawPaper,120);});
+if(window.ResizeObserver){new ResizeObserver(onResize).observe(wrap);}
+
+build();lastW=Math.round(wrap.clientWidth);
+requestAnimationFrame(function(t){last=t;requestAnimationFrame(frame);});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+TITLE: Arcana Nocturne — A Three-Card Reading
+FILE: 053-tarot-reading.html
+
+=== PROMPT (exact prompt used) ===
+Create "Arcana Nocturne — A Three-Card Reading". A midnight-purple ground (#140a24) with drifting star dust and a velvet tablecloth texture; gold-foil (#d4af37 → #f7e7a1) and moonlight-silver accents. A deck of the 22 Major Arcana, each face designed procedurally in SVG with an original geometric/esoteric motif (e.g. The Moon: crescents and a path between two towers; The Star: eight-pointed stars above water; The Tower: lightning-struck tower geometry), framed with an ornate gold border, a Roman numeral and the title in engraved serif capitals. The back: an intricate symmetric pattern around a central sun/eye. Interaction: "Shuffle" animates the deck riffling; the user fans the deck and picks three cards (Past, Present, Future), which fly to their positions and flip in 3D with a glint; each revealed card shows an evocative, original short interpretation (framed as entertainment). Cards tilt with a shimmer on hover. Optional reversed cards. Typography: serif small caps with generous letter-spacing; body text in an italic serif.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Arcana Nocturne" is a three-card tarot reading staged on a midnight-purple velvet table under drifting gold and silver star dust. A faint astrological wheel turns slowly behind three dashed slots (Past, Present, Future) marked with a crescent, a sun and a star. On load the reader spreads the deck: 22 card backs, each an intricate symmetric design of a sunburst eye inside a gilded medallion with crescents, a lattice ground and fleuron corners, fan out in a gentle arc. Drawing a card lifts it from the fan and flies it to its slot, where it turns over in 3D with a glint of light to reveal one of 22 original, procedurally drawn Major Arcana faces in gold foil and moonlight silver (a lightning-struck tower, a moon between two towers, an eight-pointed star over water, and so on). Each face has an arched night window, a numeral cartouche and a title plate. Under each card appears an engraved small-caps name, its orientation and an original italic interpretation. After the third card the deck gathers away and a single line ties the reading together. The whole page is framed as entertainment.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- 22 card faces built at runtime as inline SVG from hand-written motif functions (sunbursts, eight-pointed stars, crescents, lemniscates, waves, flowers, towers, scales, wreaths) sharing one set of userSpaceOnUse gold-foil and silver gradients, so the foil sheen sweeps consistently across every card
+- Ornate frame per face: triple gold border with a dotted rail, fleuron corner symbols, an arched window clipped per card with star specks, spandrel stars, numeral cartouche and title plate; letters inside motifs (B and J, T A R O) are drawn as stroked glyph paths
+- Numerals and titles are HTML overlays scaled from the card-width custom property with gold gradient text, so they stay crisp and correctly placed through the 3D flip
+- Card back as a reusable SVG symbol: a 32-point sunburst computed at runtime, an eye with a silver iris, mirrored crescents, a diamond lattice pattern and corner fleurons
+- Each card is a nested 3D stack (position, hover lift, pointer tilt, flip) with backface-visibility faces, a CSS glint sweep after the flip, and a pointer-following shimmer blended with screen
+- Web Animations API choreography: gather, split into two bent piles, a staggered riffle into a Fisher–Yates order, squaring taps, an arced fan layout, arced card flights with a scale "pop", and the fan re-closing around each drawn card
+- Canvas star dust with twinkle, slow drift, glowing larger motes and pointer parallax; paused while the tab is hidden
+- Velvet tablecloth from layered radial gradients and fine crossed pile lines, with a dashed gold embroidery inset; a slowly rotating astrological wheel drawn with dash-array tricks (ticks, house lines and dots from single circles)
+- Foil title lettering with an animated gradient, small caps with generous tracking, italic serif body text, and notched gold-bordered buttons made with clip-path and a masked gradient border
+
+=== INTERACTION MODEL ===
+- Click or tap any card in the fan to draw it; cards are laid in order as Past, Present and Future, each flipping on arrival and revealing its interpretation
+- Keyboard: the fan is a single tab stop with a roving focus; Left, Right, Home and End move between cards, Enter or Space draws
+- "Shuffle the deck" returns any laid cards face down, gathers everything, and riffles the deck with a visible split and interleave; "Fan the cards" (or tapping the deck) spreads it again
+- "Reversals" toggle (remembered in localStorage, guarded) lets roughly a third of draws land reversed, which rotates the face and switches to the reversed reading
+- Hovering a laid card tilts it in 3D toward the pointer with a moving shimmer; fan cards lift and glow on hover or focus
+- After three cards a summary sentence combines the three keywords; on phones the readings stack below the table
+- Optional Web Audio sound (off by default, visible toggle): paper flicks while shuffling and a soft bell as each card turns
+- Status line and aria-live readings announce each step; prefers-reduced-motion removes the flights, riffle, glint, drifting dust and wheel rotation

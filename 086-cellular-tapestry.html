@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rule 30 — Tapestries of Elementary Cellular Automata</title>
+<meta name="description" content="A live loom that weaves all 256 elementary cellular automaton rules as jacquard cloth: Rule 30's chaos, Rule 90's Sierpiński triangles and Rule 110's gliders, row by row, in Kilim, linen or neon thread.">
+<meta name="theme-color" content="#1b263b">
+<style>
+:root{
+  --madder:#a4161a;
+  --indigo:#1b263b;
+  --saffron:#f4a300;
+  --cream:#f1e9da;
+  --paper:#f7f1e6;
+  --ink:#1f1a17;
+  --ink-2:#5b5048;
+  --ink-3:#8c7f73;
+  --rule:rgba(31,26,23,.16);
+  --wall:#141b29;
+  --on:#a4161a;
+  --off:#1b263b;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","P052",Georgia,serif;
+  --mono:"SF Mono",Menlo,Consolas,"DejaVu Sans Mono","Nimbus Mono PS",monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;color:var(--ink);font:400 16px/1.55 var(--serif);background:var(--cream);overflow-x:hidden;
+  background-image:repeating-linear-gradient(0deg,rgba(90,70,50,.035) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(90,70,50,.03) 0 1px,transparent 1px 4px)}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--madder);outline-offset:3px}
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.gallery{display:grid;grid-template-columns:400px minmax(0,1fr) 300px;min-height:100vh}
+
+/* ---------- museum label ---------- */
+.label{padding:40px 36px 34px 40px;display:flex;flex-direction:column;gap:18px;position:relative}
+.eyebrow{margin:0;font:600 11px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--madder)}
+.rule-block{display:flex;flex-direction:column;gap:14px}
+.eyebrow span{color:var(--ink-3)}
+h1{margin:0;font:400 clamp(58px,6vw,88px)/.92 var(--serif);letter-spacing:-.02em}
+h1 .num{font-family:var(--mono);font-size:.78em;letter-spacing:-.04em;color:var(--madder);font-weight:500}
+.subtitle{margin:-6px 0 0;font:italic 400 21px/1.3 var(--serif);color:var(--ink-2)}
+.desc{margin:0;font-size:15.5px;line-height:1.6;color:var(--ink-2);max-width:34em}
+.desc em{color:var(--ink)}
+.specs{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font-size:14px}
+.specs dt{font:600 10.5px/1.9 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.specs dd{margin:0;font-family:var(--mono);font-size:13.5px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.specs dd button{background:none;border:0;padding:0 2px;font:inherit;color:var(--madder);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+.rule-h{display:flex;justify-content:space-between;align-items:baseline;margin:0}
+.rule-h h2{margin:0;font:600 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}
+.rule-h span{font:italic 400 13px/1 var(--serif);color:var(--ink-3)}
+.tiles{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.tile{border:1px solid var(--rule);background:rgba(255,255,255,.35);padding:7px 3px 5px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .15s,border-color .15s,background-color .15s,box-shadow .2s;border-radius:3px}
+.tile:hover{border-color:var(--ink-3);transform:translateY(-2px)}
+.tile.hl{border-color:var(--madder);box-shadow:0 0 0 2px rgba(164,22,26,.25);background:rgba(255,255,255,.8)}
+.tile .nb{display:flex;gap:1px}
+.tile i{display:block;width:11px;height:11px;border-radius:1.5px}
+.tile .out{width:13px;height:13px;border-radius:2px;margin-top:1px}
+.tile .arrow{width:1px;height:6px;background:var(--ink-3)}
+.tile small{font:600 9px/1 var(--mono);color:var(--ink-3);letter-spacing:.04em}
+.cell-on{background:var(--on);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.25)}
+.cell-off{background:var(--off);box-shadow:inset 0 -2px 0 rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.12)}
+.bits{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;text-align:center;font:500 12px/1 var(--mono);color:var(--ink-3);margin-top:-8px}
+.bits b{color:var(--madder);font-weight:600}
+
+/* ---------- loom ---------- */
+.loom{position:relative;background:radial-gradient(120% 80% at 50% 40%,color-mix(in srgb,var(--wall) 82%,#fff) 0%,var(--wall) 55%,color-mix(in srgb,var(--wall) 70%,#000) 100%);display:flex;flex-direction:column;min-height:100vh;overflow:hidden}
+.loom-stage{position:relative;flex:1;min-height:0}
+#loom{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.plate{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 26px 16px;color:rgba(241,233,218,.72);font:500 11px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;border-top:1px solid rgba(241,233,218,.12)}
+.plate b{color:var(--cream);font-weight:600}
+.tip{position:absolute;z-index:3;pointer-events:none;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:10px 12px 9px;box-shadow:0 14px 30px -10px rgba(0,0,0,.55);transform:translate(16px,-50%);opacity:0;transition:opacity .12s;min-width:188px}
+.tip.show{opacity:1}
+.tip .t1{font:600 10px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.tip .eq{display:flex;align-items:center;gap:8px;margin:7px 0 6px}
+.tip .eq span{display:flex;gap:2px}
+.tip .eq i{display:block;width:16px;height:16px;border-radius:2px}
+.tip .eq em{font-style:normal;font:500 14px/1 var(--mono);color:var(--ink-3)}
+.tip .t2{font:500 12px/1.35 var(--mono);color:var(--ink)}
+.tip .t2 b{color:var(--madder)}
+
+/* ---------- controls ---------- */
+.controls{padding:40px 30px 30px;display:flex;flex-direction:column;gap:22px;border-left:1px solid var(--rule);background:rgba(247,241,230,.55)}
+.ctl h2{margin:0 0 10px;font:600 10.5px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2);display:flex;justify-content:space-between}
+.ctl h2 output{color:var(--madder)}
+.rule-row{display:flex;gap:6px;align-items:stretch}
+.rule-row input[type=number]{width:74px;border:1px solid var(--rule);background:#fffaf1;padding:8px 8px;font:600 18px/1 var(--mono);text-align:center;border-radius:3px;color:var(--ink)}
+.rule-row input[type=number]:focus{outline:none;border-color:var(--madder)}
+.sq{width:38px;border:1px solid var(--rule);background:#fffaf1;border-radius:3px;cursor:pointer;font:600 17px/1 var(--mono);color:var(--ink-2)}
+.sq:hover{border-color:var(--ink-3);color:var(--ink)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;cursor:pointer;margin-top:8px;--v:12%}
+input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(90deg,var(--madder),var(--madder)) 0 0/var(--v) 100% no-repeat,rgba(31,26,23,.14)}
+input[type=range]::-moz-range-track{height:3px;border-radius:2px;background:rgba(31,26,23,.14)}
+input[type=range]::-moz-range-progress{height:3px;background:var(--madder)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:20px;margin-top:-8.5px;border-radius:7px 7px 3px 3px;background:linear-gradient(90deg,#b58a5a,#e2c49a 45%,#9b7042);border:1px solid #6d4b2a}
+input[type=range]::-moz-range-thumb{width:14px;height:20px;border-radius:7px 7px 3px 3px;background:linear-gradient(90deg,#b58a5a,#e2c49a 45%,#9b7042);border:1px solid #6d4b2a}
+input[type=range]:focus-visible{outline:none}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px rgba(164,22,26,.4)}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.seg button{border:0;background:#fffaf1;padding:10px 8px;font:600 12px/1 var(--mono);letter-spacing:.06em;cursor:pointer;color:var(--ink-2)}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--cream)}
+.pals{display:flex;flex-direction:column;gap:8px}
+.pal{display:flex;align-items:center;gap:12px;border:1px solid var(--rule);background:#fffaf1;border-radius:4px;padding:8px 10px;cursor:pointer;text-align:left;transition:border-color .15s}
+.pal:hover{border-color:var(--ink-3)}
+.pal[aria-checked="true"]{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--madder)}
+.pal .sw{display:flex;border-radius:2px;overflow:hidden;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+.pal .sw i{width:12px;height:26px;display:block}
+.pal b{display:block;font:600 14px/1.2 var(--serif)}
+.pal small{display:block;font:italic 400 12.5px/1.3 var(--serif);color:var(--ink-3)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--rule);background:#fffaf1;border-radius:99px;padding:7px 11px;font:600 12.5px/1 var(--mono);cursor:pointer;color:var(--ink);transition:background-color .15s,color .15s,border-color .15s}
+.chip:hover{border-color:var(--ink-3)}
+.chip[aria-pressed="true"]{background:var(--madder);border-color:var(--madder);color:var(--cream)}
+.chip-note{margin:8px 0 0;font:italic 400 13.5px/1.4 var(--serif);color:var(--ink-2);min-height:2.8em}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{border:1px solid var(--ink);background:transparent;border-radius:4px;padding:11px 10px;font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .15s,color .15s}
+.btn:hover{background:var(--ink);color:var(--cream)}
+.btn svg{width:14px;height:14px}
+.btn-solid{background:var(--ink);color:var(--cream)}
+.btn-solid:hover{background:var(--madder);border-color:var(--madder)}
+.btn.wide{grid-column:1/-1}
+.keys{margin:0;font:500 11px/1.7 var(--mono);color:var(--ink-3);letter-spacing:.04em}
+.keys kbd{font:inherit;border:1px solid var(--rule);border-radius:3px;padding:0 4px;background:#fffaf1;color:var(--ink-2)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--cream);padding:10px 16px;border-radius:4px;font:500 12px/1.4 var(--mono);letter-spacing:.06em;pointer-events:none;transition:opacity .25s,transform .25s;z-index:20;max-width:calc(100vw - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1240px){
+  .gallery{grid-template-columns:380px minmax(0,1fr)}
+  .controls{grid-column:1/-1;border-left:0;border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
+  .loom{min-height:0;height:100vh;position:sticky;top:0}
+}
+@media (max-width:820px){
+  .gallery{display:flex;flex-direction:column}
+  .label{display:contents}
+  .label > *{margin-left:18px;margin-right:18px}
+  .label .eyebrow{order:0;margin-top:24px}
+  .label h1{order:0;margin-top:10px}
+  .label .subtitle{order:0;margin-top:4px;margin-bottom:18px;font-size:19px}
+  .loom{order:1;height:72vh;min-height:460px;position:relative}
+  .label .desc{order:2;margin-top:22px}
+  .label .specs{order:2;margin-top:16px}
+  .label .rule-block{order:2;margin-top:18px;margin-bottom:6px}
+  .controls{order:3;grid-template-columns:minmax(0,1fr);padding:24px 18px 30px;margin-top:14px}
+  .plate{padding:10px 16px 12px;font-size:10px}
+  .plate .hide-s{display:none}
+  .desc{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){.tile,.tip,.toast{transition:none}}
+</style>
+</head>
+<body>
+<main class="gallery" id="gallery">
+  <section class="label" aria-labelledby="title">
+    <p class="eyebrow">Gallery III <span>· Computational textiles</span></p>
+    <h1 id="title">Rule <span class="num" id="h-rule">30</span></h1>
+    <p class="subtitle">Tapestries of Elementary Cellular Automata</p>
+    <p class="desc">A row of threads, each on or off. Every new pick of the shuttle looks at three neighbours in the row above — left, centre, right — and one of 256 rules decides the colour below. Where the weft floats on top the cell is <em>on</em>; where the warp shows through it is <em>off</em>. The cloth wraps at the selvedges and never repeats the same way twice.</p>
+    <dl class="specs">
+      <dt>Rule</dt><dd id="sp-rule">30 · 00011110</dd>
+      <dt>Kin</dt><dd id="sp-kin">—</dd>
+      <dt>Woven</dt><dd id="sp-rows">0 picks</dd>
+      <dt>Warp</dt><dd id="sp-warp">— ends · wrap-around</dd>
+    </dl>
+    <div class="rule-block">
+      <div class="rule-h"><h2>Rule table</h2><span>click a tile to flip its thread</span></div>
+      <div class="tiles" id="tiles" role="group" aria-label="Rule table: eight neighbourhood patterns and their outputs"></div>
+      <div class="bits" aria-hidden="true" id="bits"></div>
+    </div>
+  </section>
+
+  <section class="loom" aria-label="The loom">
+    <div class="loom-stage">
+      <canvas id="loom" role="img" aria-label="A tapestry being woven row by row by the selected cellular automaton rule. Hover a cell to see the rule applied there."></canvas>
+      <div class="tip" id="tip" aria-hidden="true"></div>
+    </div>
+    <div class="plate"><span><b id="pl-rule">Rule 30</b> · <span id="pl-pal">Kilim</span></span><span class="hide-s" id="pl-state">Woven live in your browser</span><span id="pl-speed">12 picks/s</span></div>
+  </section>
+
+  <aside class="controls" aria-label="Loom controls">
+    <div class="ctl">
+      <h2><label for="rule-n">Rule number</label><output id="o-bin" for="rule-n">00011110</output></h2>
+      <div class="rule-row">
+        <button type="button" class="sq" id="r-dn" aria-label="Previous rule">−</button>
+        <input type="number" id="rule-n" min="0" max="255" value="30">
+        <button type="button" class="sq" id="r-up" aria-label="Next rule">+</button>
+      </div>
+      <label class="sr" for="rule-s">Rule slider</label>
+      <input type="range" id="rule-s" min="0" max="255" value="30">
+    </div>
+    <div class="ctl">
+      <h2><span id="l-famous">Famous rules</span></h2>
+      <div class="chips" id="chips" role="group" aria-labelledby="l-famous"></div>
+      <p class="chip-note" id="chip-note" aria-live="polite"></p>
+    </div>
+    <div class="ctl">
+      <h2><span id="l-start">First row</span></h2>
+      <div class="seg" role="radiogroup" aria-labelledby="l-start">
+        <button type="button" role="radio" aria-checked="true" data-start="single">Single cell</button>
+        <button type="button" role="radio" aria-checked="false" data-start="random" tabindex="-1">Random</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <h2><label for="speed">Loom speed</label><output id="o-speed" for="speed">12 /s</output></h2>
+      <input type="range" id="speed" min="1" max="40" value="12">
+    </div>
+    <div class="ctl">
+      <h2><span id="l-pal">Thread palette</span></h2>
+      <div class="pals" role="radiogroup" aria-labelledby="l-pal" id="pals"></div>
+    </div>
+    <div class="ctl">
+      <div class="acts">
+        <button type="button" class="btn btn-solid" id="play" aria-pressed="true"><svg viewBox="0 0 14 14" aria-hidden="true"><rect x="3" y="2" width="3" height="10" fill="currentColor"/><rect x="8" y="2" width="3" height="10" fill="currentColor"/></svg><span>Pause</span></button>
+        <button type="button" class="btn" id="restart"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 1.8v2.4h2.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Rethread</button>
+        <button type="button" class="btn wide" id="save"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2v7M4 6.5l3 3 3-3M2.5 12h9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Save swatch as PNG</button>
+      </div>
+      <p class="keys" style="margin-top:12px"><kbd>Space</kbd> pause · <kbd>←</kbd><kbd>→</kbd> rule · <kbd>R</kbd> restart · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> palette</p>
+    </div>
+  </aside>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = { get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* ignore */ } } };
+
+  /* ================= PALETTES ================= */
+  const PALS = [
+    { id: 'kilim', name: 'Kilim', note: 'madder, indigo, saffron on cream', off: '#1b263b', on: ['#a4161a', '#a4161a', '#f4a300'], sel: '#f1e9da', mark: '#f1e9da', wall: '#141b29', wood: ['#6b4424', '#a8743f', '#4a2d16'], glow: 0 },
+    { id: 'linen', name: 'Monochrome linen', note: 'undyed flax and charcoal', off: '#e7dfcf', on: ['#2f2c28', '#2f2c28', '#8b7c63'], sel: '#cfc3ad', mark: '#8b7c63', wall: '#2a2723', wood: ['#7c6a55', '#b8a283', '#554635'], glow: 0 },
+    { id: 'neon', name: 'Neon loom', note: 'cyan and magenta on black warp', off: '#0b0b18', on: ['#19f0ff', '#19f0ff', '#ff3fd8'], sel: '#c6ff3d', mark: '#c6ff3d', wall: '#05050c', wood: ['#1d1d2e', '#3a3a5a', '#101019'], glow: 1 }
+  ];
+  let pal = PALS[0];
+
+  /* ================= FAMOUS ================= */
+  const FAMOUS = [
+    [30, 'Chaotic and aperiodic from a single cell — its centre column was long used as a random-number source in Mathematica.'],
+    [90, 'Each cell is the XOR of its two neighbours: a single cell unfolds into Sierpiński triangles.'],
+    [110, 'Gliders drifting over a periodic background — proven Turing-complete by Matthew Cook.'],
+    [184, 'A model of traffic flow: live cells are cars that advance whenever the space ahead is free.'],
+    [150, 'Additive: the XOR of all three neighbours, weaving a denser, nested triangle lace.'],
+    [45, 'A chaotic rule with a strong diagonal drift and an uneven, restless texture.'],
+    [73, 'Mostly regular: vertical walls and stripes that trap little pockets of pattern between them.']
+  ];
+
+  /* ================= STATE ================= */
+  let rule = 30, startMode = 'single', speed = 12, playing = true;
+  const saved = +store.get('tapestry-rule'); if (store.get('tapestry-rule') !== null && saved >= 0 && saved <= 255) rule = saved;
+  const savedPal = PALS.findIndex(p => p.id === store.get('tapestry-pal')); if (savedPal >= 0) pal = PALS[savedPal];
+
+  const cv = $('#loom'), ctx = cv.getContext('2d');
+  let W = 0, H = 0, dpr = 1, cell = 8, cols = 88, clothX = 0, clothW = 0, clothTop = 0, fellY = 0, visRows = 0;
+  let RING = 0, ringCv = null, rctx = null, rows = [], meta = [], n = -1, gen = 0, p = 0, dir = 1, beat = 0;
+  let cur = null; // latest automaton state
+  const SEL = 2; // selvedge cells each side
+
+  /* ================= SPRITES (woven cells) ================= */
+  let SPR = null;
+  function hexRgb(h) { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; }
+  const shade = (c, k) => `rgb(${Math.max(0, Math.min(255, c[0] * k)) | 0},${Math.max(0, Math.min(255, c[1] * k)) | 0},${Math.max(0, Math.min(255, c[2] * k)) | 0})`;
+  function wovenSprite(fg, bg, weftFaced, variant, glow) {
+    const s = Math.max(4, Math.round(cell * dpr)), c = document.createElement('canvas'); c.width = c.height = s;
+    const g = c.getContext('2d'), F = hexRgb(fg), B = hexRgb(bg), jit = 1 + ((variant * 37) % 7 - 3) * .018;
+    g.fillStyle = shade(weftFaced ? F : B, .55 * jit); g.fillRect(0, 0, s, s);
+    const threads = 2, th = s / threads;
+    for (let t = 0; t < threads; t++) {
+      const col = weftFaced ? F : B;
+      const gr = weftFaced ? g.createLinearGradient(0, t * th, 0, (t + 1) * th) : g.createLinearGradient(t * th, 0, (t + 1) * th, 0);
+      gr.addColorStop(0, shade(col, .62 * jit)); gr.addColorStop(.35, shade(col, 1.12 * jit)); gr.addColorStop(.55, shade(col, 1.0 * jit)); gr.addColorStop(1, shade(col, .5 * jit));
+      g.fillStyle = gr;
+      const inset = Math.max(.5, s * .04);
+      if (weftFaced) g.fillRect(0, t * th + inset, s, th - inset * 2); else g.fillRect(t * th + inset, 0, th - inset * 2, s);
+    }
+    // the crossing thread peeks through between floats (twill offset by variant)
+    const cross = weftFaced ? B : F, off = (variant & 1) ? th * .5 : 0;
+    g.fillStyle = shade(cross, weftFaced ? .8 : .9); g.globalAlpha = weftFaced ? .55 : .5;
+    const k = Math.max(1, s * .1);
+    if (weftFaced) { g.fillRect(((off + s * .25) % s), 0, k, s); }
+    else { g.fillRect(0, ((off + s * .25) % s), s, k); }
+    g.globalAlpha = 1;
+    // fibre flecks
+    const r = (variant * 9301 + 49297) % 233280;
+    g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect((r % s), ((r >> 3) % s), Math.max(1, s * .18), Math.max(1, s * .06));
+    if (glow && weftFaced) {
+      const rg = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s * .7);
+      rg.addColorStop(0, 'rgba(255,255,255,.35)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = rg; g.fillRect(0, 0, s, s);
+    }
+    return c;
+  }
+  function buildSprites() {
+    SPR = { on: pal.on.map(c => [0, 1, 2, 3].map(v => wovenSprite(c, pal.off, true, v, pal.glow))), off: [0, 1, 2, 3].map(v => wovenSprite(pal.on[0], pal.off, false, v, 0)), sel: [0, 1, 2, 3].map(v => wovenSprite(pal.sel, pal.off, (v & 1) === 0, v, 0)), mark: [0, 1, 2, 3].map(v => wovenSprite(pal.mark, pal.off, true, v, pal.glow)) };
+    document.documentElement.style.setProperty('--on', pal.on[0]);
+    document.documentElement.style.setProperty('--off', pal.off);
+    document.documentElement.style.setProperty('--wall', pal.wall);
+  }
+  const hash = (a, b) => { let h = Math.imul(a, 374761393) + Math.imul(b, 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return (h ^ (h >>> 16)) >>> 0; };
+
+  /* ================= AUTOMATON ================= */
+  function step(prev, r) {
+    const nx = new Uint8Array(cols);
+    for (let i = 0; i < cols; i++) {
+      const l = prev[(i - 1 + cols) % cols], c = prev[i], rr = prev[(i + 1) % cols];
+      nx[i] = (r >> (l << 2 | c << 1 | rr)) & 1;
+    }
+    return nx;
+  }
+  function seedRow() {
+    const a = new Uint8Array(cols);
+    if (startMode === 'single') a[cols >> 1] = 1;
+    else for (let i = 0; i < cols; i++) a[i] = Math.random() < .5 ? 1 : 0;
+    return a;
+  }
+  const bandOf = g => Math.floor(g / 36) % 3;
+
+  /* ring buffer of woven rows */
+  function drawRow(slot) {
+    const m = meta[slot], y = slot * cell * dpr, s = cell * dpr;
+    rctx.clearRect(0, y, ringCv.width, s);
+    for (let i = -SEL; i < cols + SEL; i++) {
+      const x = (i + SEL) * s, v = hash(i + 999, m.g) & 3;
+      let sp;
+      if (i < 0 || i >= cols) sp = SPR.sel[(v + (i < 0 ? i : i - cols) + m.g) & 3];
+      else if (m.kind === 1) sp = ((i + m.g) % 4 < 2) ? SPR.mark[v] : SPR.off[v];
+      else sp = rows[slot][i] ? SPR.on[bandOf(m.g)][v] : SPR.off[v];
+      rctx.drawImage(sp, x, y, s, s);
+    }
+  }
+  function pushRow(state, kind) {
+    n++; const slot = n % RING;
+    rows[slot] = state; meta[slot] = { kind, g: gen, rule, parent: kind === 0 ? lastAutomatonSlot : -1 };
+    if (kind === 0) { lastAutomatonSlot = slot; gen++; }
+    drawRow(slot);
+  }
+  let lastAutomatonSlot = -1;
+  function nextState() { return cur ? step(cur, rule) : seedRow(); }
+  function weaveOne() {
+    // a new automaton pick
+    cur = nextState();
+    pushRow(cur, 0);
+  }
+  function markStripe() { pushRow(new Uint8Array(cols), 1); pushRow(new Uint8Array(cols), 1); }
+
+  function restart(silent) {
+    n = -1; gen = 0; cur = null; lastAutomatonSlot = -1; p = 0;
+    rows = new Array(RING); meta = new Array(RING);
+    rctx.clearRect(0, 0, ringCv.width, ringCv.height);
+    // pre-weave a full cloth so the first frame is already a tapestry
+    const pre = visRows + 1;
+    for (let k = 0; k < pre; k++) weaveOne();
+    pending = nextState(); pendingDrawn = false;
+    specs();
+    if (!silent) toast(startMode === 'single' ? 'Cloth cut — rethreaded from a single cell' : 'Cloth cut — rethreaded from a random row');
+  }
+  let pending = null, pendingDrawn = false;
+
+  /* ================= LAYOUT ================= */
+  const stageEl = $('.loom-stage');
+  function layout() {
+    const r = stageEl.getBoundingClientRect();
+    W = Math.max(200, r.width); H = Math.max(200, r.height);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cell = W < 520 ? 6 : W < 900 ? 7 : 8;
+    const maxW = W - 90;
+    cols = Math.floor(maxW / cell) - SEL * 2; cols = Math.min(135, cols); if (cols % 2 === 0) cols--;
+    clothW = (cols + SEL * 2) * cell; clothX = Math.round((W - clothW) / 2);
+    clothTop = 34; fellY = H - 108;
+    visRows = Math.ceil((fellY - clothTop) / cell) + 1;
+    RING = visRows + 8;
+    ringCv = document.createElement('canvas'); ringCv.width = (cols + SEL * 2) * cell * dpr; ringCv.height = RING * cell * dpr;
+    rctx = ringCv.getContext('2d');
+    buildSprites(); buildWarp();
+    restart(true);
+  }
+
+  /* loose warp below the fell, rendered once */
+  let warpCv = null;
+  function buildWarp() {
+    const h = Math.max(10, H - fellY), w = clothW;
+    warpCv = document.createElement('canvas'); warpCv.width = Math.round(w * dpr); warpCv.height = Math.round(h * dpr);
+    const g = warpCv.getContext('2d'); g.scale(dpr, dpr);
+    const O = hexRgb(pal.off), light = pal.glow ? [120, 120, 170] : O.map(v => Math.min(255, v * 1.8 + 30));
+    for (let i = 0; i < cols + SEL * 2; i++) {
+      const x = i * cell + cell * .5, sel = i < SEL || i >= cols + SEL;
+      for (let t = 0; t < 2; t++) {
+        const xx = x - cell * .25 + t * cell * .5;
+        const gr = g.createLinearGradient(0, 0, 0, h);
+        const c = sel ? hexRgb(pal.sel) : light;
+        gr.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},.85)`); gr.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},.12)`);
+        g.strokeStyle = gr; g.lineWidth = Math.max(.6, cell * .28);
+        g.beginPath(); g.moveTo(xx, 0); g.lineTo(xx + (x - w / 2) * .06 * (t ? 1 : .9), h); g.stroke();
+      }
+    }
+  }
+
+  /* ================= DRAW ================= */
+  function blitRows(ctxd, firstIndex, count, destY) {
+    // draw `count` consecutive ring rows starting at global index firstIndex, top at destY (CSS px)
+    const s = cell * dpr;
+    let idx = firstIndex, y = destY, left = count;
+    while (left > 0) {
+      const slot = ((idx % RING) + RING) % RING, run = Math.min(left, RING - slot);
+      ctxd.drawImage(ringCv, 0, slot * s, ringCv.width, run * s, clothX * dpr, y * dpr, clothW * dpr, run * cell * dpr);
+      idx += run; y += run * cell; left -= run;
+    }
+  }
+  function wood(x, y, w, h, vertical) {
+    const [a, b, c] = pal.wood;
+    const gr = vertical ? ctx.createLinearGradient(x * dpr, 0, (x + w) * dpr, 0) : ctx.createLinearGradient(0, y * dpr, 0, (y + h) * dpr);
+    gr.addColorStop(0, c); gr.addColorStop(.35, b); gr.addColorStop(.6, a); gr.addColorStop(1, c);
+    ctx.fillStyle = gr; ctx.fillRect(x * dpr, y * dpr, w * dpr, h * dpr);
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    for (let k = 0; k < 5; k++) { if (vertical) ctx.fillRect((x + w * (.2 + k * .15)) * dpr, y * dpr, dpr * .6, h * dpr); else ctx.fillRect(x * dpr, (y + h * (.2 + k * .15)) * dpr, w * dpr, dpr * .6); }
+  }
+  let hover = null, hoverRows = null;
+  function draw() {
+    const s = dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    // side posts of the loom
+    wood(clothX - 38, 0, 16, H, true); wood(clothX + clothW + 22, 0, 16, H, true);
+    // loose warp under the fell
+    ctx.drawImage(warpCv, clothX * s, fellY * s, clothW * s, (H - fellY) * s);
+    // cloth: completed rows scroll upward by p
+    const shift = p * cell;
+    const nRows = Math.min(visRows + 1, n + 1);
+    const firstIdx = n - nRows + 1;
+    const topY = fellY - nRows * cell - shift;
+    ctx.save(); ctx.beginPath(); ctx.rect(clothX * s, clothTop * s, clothW * s, (fellY - clothTop) * s); ctx.clip();
+    blitRows(ctx, firstIdx, nRows, topY);
+    // the pick being woven now: revealed behind the shuttle
+    const shX = shuttleX();
+    if (pending) {
+      if (!pendingDrawn) { stageSlotDraw(); pendingDrawn = true; }
+      const reveal = dir > 0 ? [clothX, shX] : [shX, clothX + clothW];
+      const rw = Math.max(0, reveal[1] - reveal[0]);
+      if (rw > 0) {
+        const slot = (n + 1) % RING, cs = cell * dpr;
+        const sx = (reveal[0] - clothX) / clothW * ringCv.width, sw = rw / clothW * ringCv.width;
+        ctx.drawImage(ringCv, sx, slot * cs, sw, cs, reveal[0] * s, (fellY - shift) * s, rw * s, cell * s);
+      }
+    }
+    // soft shading so the cloth reads as fabric under light
+    const sh = ctx.createLinearGradient(clothX * s, 0, (clothX + clothW) * s, 0);
+    sh.addColorStop(0, 'rgba(0,0,0,.28)'); sh.addColorStop(.08, 'rgba(0,0,0,0)'); sh.addColorStop(.92, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,0,.3)');
+    ctx.fillStyle = sh; ctx.fillRect(clothX * s, clothTop * s, clothW * s, (fellY - clothTop) * s);
+    // hover: highlight parents and the cell
+    if (hover) {
+      ctx.lineWidth = 1.5 * s; ctx.strokeStyle = pal.glow ? '#fff' : '#f1e9da';
+      const yC = hover.y, yP = hover.parentY;
+      for (let d = -1; d <= 1; d++) { const cx = clothX + (((hover.c + d + cols) % cols) + SEL) * cell; ctx.strokeRect((cx + .75) * s, (yP + .75) * s, (cell - 1.5) * s, (cell - 1.5) * s); }
+      ctx.strokeStyle = pal.glow ? '#c6ff3d' : '#f4a300'; ctx.lineWidth = 2 * s;
+      ctx.strokeRect((clothX + (hover.c + SEL) * cell + 1) * s, (yC + 1) * s, (cell - 2) * s, (cell - 2) * s);
+    }
+    ctx.restore();
+    // cloth beam at the top
+    wood(clothX - 30, 6, clothW + 60, clothTop - 4, false);
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(clothX * s, clothTop * s, clothW * s, 6 * s);
+    // fell line + weft thread trailing to the shuttle
+    const weft = pal.on[bandOf(gen)];
+    ctx.strokeStyle = weft; ctx.lineWidth = Math.max(1, cell * .3) * s; ctx.globalAlpha = .9;
+    ctx.beginPath(); const startX = dir > 0 ? clothX : clothX + clothW; ctx.moveTo(startX * s, (fellY + 1) * s); ctx.quadraticCurveTo(((startX + shX) / 2) * s, (fellY + 8) * s, shX * s, (fellY + 16) * s); ctx.stroke();
+    ctx.globalAlpha = 1;
+    // reed / beater
+    const bOff = beat * 7;
+    const ry = fellY + 30 - bOff;
+    wood(clothX - 30, ry + 12, clothW + 60, 10, false);
+    ctx.fillStyle = 'rgba(210,200,185,.55)';
+    for (let i = 0; i <= cols + SEL * 2; i++) ctx.fillRect((clothX + i * cell) * s, ry * s, Math.max(1, .6 * s), 12 * s);
+    ctx.fillStyle = 'rgba(210,200,185,.8)'; ctx.fillRect(clothX * s, ry * s, clothW * s, 1.2 * s);
+    // shuttle
+    drawShuttle(shX, fellY + 16, dir, weft);
+    // bottom beam
+    wood(clothX - 30, H - 22, clothW + 60, 18, false);
+  }
+  function stageSlotDraw() {
+    // place the pending pick into the ring (slot n+1) so it can be revealed progressively
+    const slot = (n + 1) % RING;
+    rows[slot] = pending; meta[slot] = { kind: 0, g: gen, rule, parent: lastAutomatonSlot };
+    drawRow(slot);
+  }
+  function ease(t) { return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+  function shuttleX() { const t = ease(Math.min(1, p * 1.08)); return dir > 0 ? clothX + t * clothW : clothX + clothW - t * clothW; }
+  function drawShuttle(x, y, d, weft) {
+    const s = dpr, L = Math.max(46, cell * 7), Hh = Math.max(9, cell * 1.3);
+    ctx.save(); ctx.translate(x * s, y * s); ctx.scale(d, 1);
+    ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8 * s; ctx.shadowOffsetY = 3 * s;
+    const gr = ctx.createLinearGradient(0, -Hh * s, 0, Hh * s);
+    const [a, b, c] = pal.wood; gr.addColorStop(0, b); gr.addColorStop(.5, a); gr.addColorStop(1, c);
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.moveTo(-L * .62 * s, 0);
+    ctx.quadraticCurveTo(-L * .35 * s, -Hh * s, 0, -Hh * s);
+    ctx.lineTo(L * .12 * s, -Hh * s);
+    ctx.quadraticCurveTo(L * .35 * s, -Hh * s, L * .62 * s, 0);
+    ctx.quadraticCurveTo(L * .35 * s, Hh * s, L * .12 * s, Hh * s);
+    ctx.lineTo(0, Hh * s);
+    ctx.quadraticCurveTo(-L * .35 * s, Hh * s, -L * .62 * s, 0);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    // metal tips
+    ctx.fillStyle = '#d9d3c7';
+    ctx.beginPath(); ctx.moveTo(-L * .62 * s, 0); ctx.lineTo(-L * .5 * s, -2.2 * s); ctx.lineTo(-L * .5 * s, 2.2 * s); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(L * .62 * s, 0); ctx.lineTo(L * .5 * s, -2.2 * s); ctx.lineTo(L * .5 * s, 2.2 * s); ctx.fill();
+    // bobbin window with wound weft
+    ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(-L * .26 * s, -Hh * .55 * s, L * .44 * s, Hh * 1.1 * s);
+    ctx.fillStyle = weft; ctx.fillRect(-L * .22 * s, -Hh * .38 * s, L * .36 * s, Hh * .76 * s);
+    ctx.fillStyle = 'rgba(255,255,255,.28)';
+    for (let k = 0; k < 6; k++) ctx.fillRect((-L * .22 + k * L * .06) * s, -Hh * .38 * s, .8 * s, Hh * .76 * s);
+    ctx.restore();
+  }
+
+  /* ================= LOOP ================= */
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.1, (now - last) / 1000); last = now;
+    if (playing) {
+      p += dt * speed * (reduce ? .5 : 1);
+      while (p >= 1) {
+        p -= 1;
+        // commit the pending pick
+        if (!pendingDrawn) stageSlotDraw();
+        n++; cur = pending; lastAutomatonSlot = n % RING; gen++;
+        pending = nextState(); pendingDrawn = false;
+        dir = -dir; beat = 1;
+        if (gen % 8 === 0) specs();
+      }
+    }
+    beat = Math.max(0, beat - dt * 6);
+    draw();
+    if (hover) refreshHover();
+    requestAnimationFrame(frame);
+  }
+
+  /* ================= RULE UI ================= */
+  const tilesEl = $('#tiles');
+  const PAT = [7, 6, 5, 4, 3, 2, 1, 0];
+  PAT.forEach(idx => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'tile'; b.dataset.idx = idx;
+    const l = idx >> 2 & 1, c = idx >> 1 & 1, r = idx & 1;
+    b.innerHTML = `<span class="nb" aria-hidden="true"><i class="${l ? 'cell-on' : 'cell-off'}"></i><i class="${c ? 'cell-on' : 'cell-off'}"></i><i class="${r ? 'cell-on' : 'cell-off'}"></i></span><span class="arrow" aria-hidden="true"></span><span class="out" aria-hidden="true"></span><small aria-hidden="true">${l}${c}${r}</small>`;
+    b.addEventListener('click', () => { setRule(rule ^ (1 << idx), 'tile'); });
+    tilesEl.appendChild(b);
+  });
+  const chipsEl = $('#chips');
+  FAMOUS.forEach(([r, note]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = r; b.dataset.r = r;
+    b.setAttribute('aria-label', `Rule ${r}`); b.title = note;
+    b.addEventListener('click', () => setRule(r, 'chip'));
+    chipsEl.appendChild(b);
+  });
+  function kin(r) {
+    let mir = 0, comp = 0;
+    for (let i = 0; i < 8; i++) {
+      const bit = r >> i & 1, l = i >> 2 & 1, c = i >> 1 & 1, rr = i & 1, mi = rr << 2 | c << 1 | l;
+      if (bit) mir |= 1 << mi;
+      if (!bit) comp |= 1 << (7 - i);
+    }
+    let both = 0; for (let i = 0; i < 8; i++) { const bit = comp >> i & 1, l = i >> 2 & 1, c = i >> 1 & 1, rr = i & 1; if (bit) both |= 1 << (rr << 2 | c << 1 | l); }
+    return { mir, comp, both };
+  }
+  function specs() {
+    const bin = rule.toString(2).padStart(8, '0');
+    $('#sp-rule').textContent = `${rule} · ${bin}`;
+    $('#sp-rows').textContent = `${gen.toLocaleString('en-US')} picks · ${startMode === 'single' ? 'from one cell' : 'from a random row'}`;
+    $('#sp-warp').textContent = `${cols} ends · wrap-around selvedge`;
+  }
+  function ruleUI() {
+    const bin = rule.toString(2).padStart(8, '0'), k = kin(rule);
+    $('#h-rule').textContent = rule;
+    document.title = `Rule ${rule} — Tapestries of Elementary Cellular Automata`;
+    $('#rule-n').value = rule; const rs = $('#rule-s'); rs.value = rule; rs.style.setProperty('--v', (rule / 255 * 100) + '%');
+    $('#o-bin').textContent = bin;
+    $('#pl-rule').textContent = `Rule ${rule}`;
+    $('#sp-kin').innerHTML = `<button type="button" data-go="${k.mir}">${k.mir}</button> mirror · <button type="button" data-go="${k.comp}">${k.comp}</button> complement · <button type="button" data-go="${k.both}">${k.both}</button> both`;
+    $$('#sp-kin [data-go]').forEach(b => b.addEventListener('click', () => setRule(+b.dataset.go, 'kin')));
+    $$('.tile').forEach(t => {
+      const idx = +t.dataset.idx, on = rule >> idx & 1;
+      t.querySelector('.out').className = 'out ' + (on ? 'cell-on' : 'cell-off');
+      const l = idx >> 2 & 1, c = idx >> 1 & 1, r = idx & 1;
+      t.setAttribute('aria-label', `Pattern ${l}${c}${r} gives ${on}. Click to flip.`);
+      t.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    $('#bits').innerHTML = bin.split('').map(b => b === '1' ? `<b>${b}</b>` : `<span>${b}</span>`).join('');
+    $$('.chip').forEach(c => c.setAttribute('aria-pressed', +c.dataset.r === rule ? 'true' : 'false'));
+    const f = FAMOUS.find(x => x[0] === rule);
+    $('#chip-note').textContent = f ? f[1] : `Rule ${rule}: one of 256 possible looms. Flip a tile to invent another, or pick a famous rule.`;
+    specs();
+  }
+  function setRule(r, src) {
+    r = Math.max(0, Math.min(255, r | 0));
+    if (r === rule) return;
+    rule = r; store.set('tapestry-rule', r);
+    ruleUI();
+    // weave a cream marker stripe where the rule changes, then continue from the current row
+    if (n >= 0) {
+      if (!pendingDrawn && pending) { /* nothing woven yet for this pick */ }
+      markStripe(); p = 0; pending = nextState(); pendingDrawn = false;
+    }
+    if (src === 'chip') toast(`Rethreading for rule ${r}`);
+  }
+  $('#rule-n').addEventListener('change', e => setRule(+e.target.value, 'input'));
+  $('#rule-n').addEventListener('keydown', e => { if (e.key === 'Enter') setRule(+e.target.value, 'input'); });
+  $('#rule-s').addEventListener('input', e => { e.target.style.setProperty('--v', (e.target.value / 255 * 100) + '%'); $('#o-bin').textContent = (+e.target.value).toString(2).padStart(8, '0'); });
+  $('#rule-s').addEventListener('change', e => setRule(+e.target.value, 'slider'));
+  $('#r-dn').addEventListener('click', () => setRule((rule + 255) % 256, 'step'));
+  $('#r-up').addEventListener('click', () => setRule((rule + 1) % 256, 'step'));
+
+  /* start mode */
+  const segBtns = $$('[data-start]');
+  function setStart(m, focus) {
+    startMode = m;
+    segBtns.forEach(b => { const on = b.dataset.start === m; b.setAttribute('aria-checked', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+    restart();
+  }
+  segBtns.forEach(b => {
+    b.addEventListener('click', () => setStart(b.dataset.start));
+    b.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); setStart(startMode === 'single' ? 'random' : 'single', true); } });
+  });
+
+  /* speed */
+  const spEl = $('#speed');
+  function speedUI() { spEl.value = speed; spEl.style.setProperty('--v', ((speed - 1) / 39 * 100) + '%'); $('#o-speed').textContent = `${speed} /s`; $('#pl-speed').textContent = `${speed} picks/s`; }
+  spEl.addEventListener('input', () => { speed = +spEl.value; speedUI(); });
+
+  /* palettes */
+  const palsEl = $('#pals');
+  PALS.forEach((P, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pal'; b.setAttribute('role', 'radio'); b.dataset.i = i;
+    b.innerHTML = `<span class="sw" aria-hidden="true"><i style="background:${P.off}"></i><i style="background:${P.on[0]}"></i><i style="background:${P.on[2]}"></i><i style="background:${P.sel}"></i></span><span><b>${P.name}</b><small>${P.note}</small></span>`;
+    b.addEventListener('click', () => setPal(i));
+    b.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); setPal((i + 1) % 3, true); } if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); setPal((i + 2) % 3, true); } });
+    palsEl.appendChild(b);
+  });
+  function palUI(focus) {
+    $$('.pal').forEach((b, i) => { const on = PALS[i] === pal; b.setAttribute('aria-checked', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+    $('#pl-pal').textContent = pal.name;
+  }
+  function setPal(i, focus) {
+    pal = PALS[i]; store.set('tapestry-pal', pal.id);
+    buildSprites(); buildWarp();
+    for (let k = 0; k < RING; k++) if (meta[k]) drawRow(k);
+    palUI(focus);
+  }
+
+  /* play / restart / save */
+  const playBtn = $('#play');
+  function playUI() {
+    playBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+    playBtn.querySelector('span').textContent = playing ? 'Pause' : 'Weave';
+    playBtn.querySelector('svg').innerHTML = playing ? '<rect x="3" y="2" width="3" height="10" fill="currentColor"/><rect x="8" y="2" width="3" height="10" fill="currentColor"/>' : '<path d="M3 2l9 5-9 5z" fill="currentColor"/>';
+    $('#pl-state').textContent = playing ? 'Woven live in your browser' : 'Loom paused';
+  }
+  playBtn.addEventListener('click', () => { playing = !playing; playUI(); });
+  $('#restart').addEventListener('click', () => restart());
+  $('#save').addEventListener('click', () => {
+    try {
+      const a = document.createElement('a');
+      a.href = cv.toDataURL(); a.download = `rule-${rule}-${pal.id}-tapestry.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      toast(`Swatch saved: rule ${rule}, ${pal.name}`);
+    } catch (e) { toast('Saving is blocked in this context'); }
+  });
+
+  /* ================= HOVER ================= */
+  const tip = $('#tip');
+  let pointer = null;
+  cv.addEventListener('pointermove', e => { const r = cv.getBoundingClientRect(); pointer = { x: e.clientX - r.left, y: e.clientY - r.top }; refreshHover(); });
+  cv.addEventListener('pointerleave', () => { pointer = null; hover = null; tip.classList.remove('show'); $$('.tile.hl').forEach(t => t.classList.remove('hl')); });
+  function refreshHover() {
+    if (!pointer) return;
+    const { x, y } = pointer, c = Math.floor((x - clothX) / cell) - SEL;
+    const d = (fellY - p * cell - y) / cell;
+    if (c < 0 || c >= cols || y < clothTop || d <= 0) { clearHover(); return; }
+    const k = n - Math.floor(d);
+    if (k < 0 || n - k >= RING - 2) { clearHover(); return; }
+    const slot = ((k % RING) + RING) % RING, m = meta[slot];
+    if (!m || m.kind !== 0 || m.parent < 0 || !rows[m.parent]) { clearHover(); return; }
+    const par = rows[m.parent], L = par[(c - 1 + cols) % cols], C = par[c], R = par[(c + 1) % cols];
+    const idx = L << 2 | C << 1 | R, out = rows[slot][c];
+    const yTop = fellY - (n - k + 1) * cell - p * cell;
+    // the parent row sits directly above unless a marker stripe was woven between them
+    const gap = ((slot - m.parent) % RING + RING) % RING;
+    hover = { c, y: yTop, gap };
+    hover.y = yTop; hover.parentY = yTop - gap * cell;
+    const on = pal.on[bandOf(m.g)], off = pal.off;
+    const sw = v => `<i style="background:${v ? on : off};box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)"></i>`;
+    tip.innerHTML = `<div class="t1">Pick ${m.g.toLocaleString('en-US')} · end ${c + 1}</div><div class="eq"><span>${sw(L)}${sw(C)}${sw(R)}</span><em>→</em><span>${sw(out)}</span></div><div class="t2">rule <b>${m.rule}</b>: ${L}${C}${R} → <b>${out}</b> <span style="color:var(--ink-3)">(bit ${idx})</span></div>`;
+    tip.classList.add('show');
+    const tw = tip.offsetWidth; let tx = x; if (x + 16 + tw > W - 8) tx = x - tw - 32;
+    tip.style.left = tx + 'px'; tip.style.top = Math.max(50, Math.min(H - 50, y)) + 'px';
+    $$('.tile').forEach(t => t.classList.toggle('hl', m.rule === rule && +t.dataset.idx === idx));
+  }
+  function clearHover() { hover = null; tip.classList.remove('show'); $$('.tile.hl').forEach(t => t.classList.remove('hl')); }
+
+  /* ================= KEYS ================= */
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('input') || e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = e.target.tagName;
+    if (e.key === ' ' && tag !== 'BUTTON') { e.preventDefault(); playing = !playing; playUI(); }
+    else if (e.key === 'ArrowLeft' && !e.target.closest('[role=radiogroup]')) { e.preventDefault(); setRule((rule + 255) % 256); }
+    else if (e.key === 'ArrowRight' && !e.target.closest('[role=radiogroup]')) { e.preventDefault(); setRule((rule + 1) % 256); }
+    else if (e.key === 'r' || e.key === 'R') restart();
+    else if (e.key === '1' || e.key === '2' || e.key === '3') setPal(+e.key - 1);
+  });
+
+  let tt = 0;
+  function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2200); }
+  let rz = 0, lastW = 0, lastH = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(rz);
+    rz = requestAnimationFrame(() => { const r = stageEl.getBoundingClientRect(); if (Math.abs(r.width - lastW) > 2 || Math.abs(r.height - lastH) > 2) { lastW = r.width; lastH = r.height; layout(); } });
+  });
+  document.addEventListener('visibilitychange', () => { last = performance.now(); });
+
+  /* ================= BOOT ================= */
+  ruleUI(); speedUI(); palUI(); playUI();
+  layout();
+  const r0 = stageEl.getBoundingClientRect(); lastW = r0.width; lastH = r0.height;
+  requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>

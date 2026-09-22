@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windwalker — A Kinetic Sculpture Simulation</title>
+<meta name="description" content="Windwalker: a wind-driven walking sculpture on a beach, simulating the Jansen linkage with its canonical link lengths, solved joint by joint from circle intersections every frame.">
+<meta name="theme-color" content="#f0f4f5">
+<style>
+:root{
+  --sky:#f0f4f5; --sea:#6fb3c7; --sand:#e9d8b4; --tube:#f4e3a1; --joint:#7d6a3a;
+  --paper:#fbfaf4; --ink:#2e3b44; --ink-soft:#5f6f78; --rule:rgba(61,143,168,.16); --coral:#d4553a; --blue:#3d8fa8;
+  --sans:"Avenir Next","Century Gothic","URW Gothic","Futura","Segoe UI",sans-serif;
+  --mono:"SF Mono","IBM Plex Mono","Menlo","Consolas","DejaVu Sans Mono",monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;background:var(--sky);color:var(--ink);font-family:var(--sans)}
+.skip{position:absolute;left:-999px;top:8px;z-index:30;background:var(--ink);color:#fff;padding:8px 14px;font-family:var(--mono)}
+.skip:focus{left:12px}
+.scene{position:relative;height:100vh;min-height:560px;overflow:hidden;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.scene.dragging{cursor:grabbing}
+#beach{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none}
+#beach:focus-visible{box-shadow:inset 0 0 0 3px var(--blue)}
+
+/* notebook label */
+.label{position:absolute;left:clamp(16px,3vw,40px);top:clamp(16px,3vh,32px);padding:16px 20px 15px 22px;max-width:420px;
+  background:
+    linear-gradient(90deg,transparent 14px,rgba(212,85,58,.35) 14px 15px,transparent 15px),
+    repeating-linear-gradient(0deg,transparent 0 21px,var(--rule) 21px 22px),
+    var(--paper);
+  box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 14px 30px -18px rgba(40,60,70,.5),0 0 0 1px rgba(46,59,68,.1);
+  transform:rotate(-.6deg)}
+.label::before{content:"";position:absolute;left:50%;top:-9px;width:70px;height:20px;margin-left:-35px;background:rgba(214,205,170,.62);transform:rotate(2deg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.eyebrow{margin:0 0 4px 6px;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--coral)}
+h1{margin:0 0 0 4px;font-weight:600;font-size:clamp(30px,3.6vw,46px);letter-spacing:.08em;line-height:1.02;text-transform:uppercase}
+h1 span{font-weight:300;color:var(--blue)}
+.tagline{margin:6px 0 0 6px;font-size:15px;line-height:1.45;color:var(--ink-soft)}
+
+/* live readouts */
+.hud{position:absolute;right:clamp(16px,3vw,40px);top:clamp(18px,3vh,34px);display:grid;grid-template-columns:repeat(3,auto);gap:0;font-family:var(--mono);background:rgba(251,250,244,.86);box-shadow:0 0 0 1px rgba(46,59,68,.12),0 10px 24px -16px rgba(40,60,70,.5)}
+.hud div{padding:9px 14px 8px;border-left:1px solid rgba(46,59,68,.1)}
+.hud div:first-child{border-left:0}
+.hud dt{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.hud dd{margin:3px 0 0;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hud dl{margin:0;display:contents}
+
+/* the single-leg diagram */
+.diagram{position:absolute;right:clamp(16px,3vw,40px);top:calc(clamp(18px,3vh,34px) + 78px);width:370px;padding:12px 14px 10px;
+  background:
+    repeating-linear-gradient(0deg,rgba(61,143,168,.13) 0 1px,transparent 1px 12px),
+    repeating-linear-gradient(90deg,rgba(61,143,168,.13) 0 1px,transparent 1px 12px),
+    var(--paper);
+  box-shadow:0 0 0 1px rgba(46,59,68,.14),0 16px 32px -18px rgba(40,60,70,.55);transition:opacity .35s,transform .35s}
+.diagram[hidden]{display:block;opacity:0;transform:translateY(-8px);pointer-events:none;visibility:hidden}
+.diagram h2{margin:0;font-family:var(--mono);font-weight:400;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.diagram h2 b{color:var(--coral);font-weight:400}
+#leg{display:block;width:100%;height:270px}
+.diagram p{margin:2px 0 0;font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--ink-soft)}
+
+/* control dock */
+.dock{position:absolute;left:50%;bottom:clamp(14px,3vh,28px);transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:8px;
+  background:rgba(251,250,244,.92);box-shadow:0 0 0 1px rgba(46,59,68,.14),0 18px 34px -20px rgba(40,60,70,.6);max-width:calc(100% - 24px)}
+.group{display:flex;align-items:center;gap:8px;padding:4px 10px;border-right:1px dashed rgba(46,59,68,.2)}
+.group:last-child{border-right:0}
+.glabel{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.wind{display:flex;flex-direction:column;gap:2px;min-width:210px}
+.wind .row{display:flex;justify-content:space-between;align-items:baseline}
+.wind output{font-family:var(--mono);font-size:13px;color:var(--ink)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:linear-gradient(90deg,var(--blue),var(--coral));border-radius:2px}
+input[type=range]::-moz-range-track{height:4px;background:linear-gradient(90deg,var(--blue),var(--coral));border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;border-radius:50%;background:var(--paper);border:2px solid var(--ink);box-shadow:0 2px 4px rgba(0,0,0,.2)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--paper);border:2px solid var(--ink)}
+input[type=range]:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.btn{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink);background:var(--paper);border:1px solid rgba(46,59,68,.35);padding:8px 11px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.btn:hover{border-color:var(--ink)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btn.sq{width:34px;height:34px;padding:0;font-size:18px;line-height:1}
+.count{font-family:var(--mono);font-size:15px;min-width:64px;text-align:center}
+.count small{display:block;font-size:9.5px;letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase}
+.hint{position:absolute;left:50%;bottom:calc(clamp(14px,3vh,28px) + 64px);transform:translateX(-50%);font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:rgba(46,59,68,.62);white-space:nowrap;pointer-events:none;transition:opacity .6s}
+
+/* notes below the beach */
+.notes{position:relative;padding:48px clamp(16px,5vw,64px) 56px;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 27px,var(--rule) 27px 28px),
+    var(--paper);border-top:1px solid rgba(46,59,68,.12)}
+.notes-inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
+.notes h2{margin:0 0 12px;font-weight:600;font-size:22px;letter-spacing:.1em;text-transform:uppercase}
+.notes p{margin:0 0 14px;font-size:16px;line-height:1.7;color:#3c4a53;max-width:62ch}
+.notes code{font-family:var(--mono);font-size:14px;color:var(--coral)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:13.5px}
+caption{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);padding-bottom:8px}
+th,td{padding:7px 10px;border-bottom:1px solid rgba(46,59,68,.14);text-align:left}
+th{font-weight:400;color:var(--coral);width:40px}
+td.v{text-align:right;font-variant-numeric:tabular-nums}
+td.w{color:var(--ink-soft)}
+.credit{margin-top:22px;font-size:13px;color:var(--ink-soft)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:980px){
+  .diagram{width:320px}
+  #leg{height:230px}
+  .notes-inner{grid-template-columns:1fr;gap:28px}
+}
+@media (max-width:720px){
+  .scene{height:auto;min-height:0;display:flex;flex-direction:column;cursor:default}
+  .stage{position:relative;height:74vh;min-height:500px;cursor:grab}
+  .label{padding:12px 14px 11px 18px;max-width:calc(100% - 32px);transform:rotate(-.4deg)}
+  .eyebrow{font-size:9.5px}
+  .tagline{font-size:13px}
+  .hud{left:16px;right:auto;top:auto;bottom:14px;grid-template-columns:repeat(3,auto)}
+  .hud div{padding:7px 10px 6px}
+  .hud dd{font-size:14px}
+  .hint{bottom:78px;font-size:10px}
+  .dock{position:relative;left:auto;bottom:auto;transform:none;flex-wrap:wrap;justify-content:center;max-width:none;margin:0;gap:4px;box-shadow:0 -1px 0 rgba(46,59,68,.12)}
+  .group{border-right:0;padding:4px 6px}
+  .wind{min-width:0;width:100%}
+  .group.w{width:100%}
+  .diagram{position:relative;right:auto;top:auto;width:auto;margin:0}
+  .diagram[hidden]{display:none}
+  #leg{height:240px}
+}
+@media (min-width:721px){ .stage{position:absolute;inset:0} }
+@media (prefers-reduced-motion:reduce){ .diagram,.hint{transition:none} }
+</style>
+</head>
+<body>
+<a class="skip" href="#dock">Skip to the controls</a>
+<main class="scene" id="scene">
+  <div class="stage" id="stage">
+    <canvas id="beach" tabindex="0" role="img" aria-label="A pale yellow wind-walking sculpture striding along a beach under a pale sky, leaving footprints in the sand. Drag or use the arrow keys to pan along the beach."></canvas>
+    <header class="label">
+      <p class="eyebrow">Kinetic sculpture simulation · field notes</p>
+      <h1>Wind<span>walker</span></h1>
+      <p class="tagline">Every joint of every leg is solved from circle–circle intersections, sixty times a second, from the thirteen lengths of the Jansen linkage.</p>
+    </header>
+    <dl class="hud" aria-label="Live readouts">
+      <div><dt>crank angle</dt><dd id="hudTheta">0°</dd></div>
+      <div><dt>pace</dt><dd id="hudPace">0 m/min</dd></div>
+      <div><dt>walked</dt><dd id="hudDist">0.0 m</dd></div>
+    </dl>
+    <p class="hint" id="hint">drag the beach to pan · the wind drives the crank</p>
+  </div>
+
+  <aside class="diagram" id="diagram" aria-label="Single leg diagram" hidden>
+    <h2>fig. 1 <b>·</b> one leg, to scale · <span id="figTheta">θ = 0°</span></h2>
+    <canvas id="leg" role="img" aria-label="A labelled diagram of one Jansen leg showing each link length and the foot's trajectory"></canvas>
+    <p>Fixed pivots are hatched. The red curve is the path of the foot over one turn of the crank: a long, nearly flat stroke on the ground, then a quick lift back.</p>
+  </aside>
+
+  <div class="dock" id="dock" role="group" aria-label="Controls">
+    <div class="group w">
+      <div class="wind">
+        <div class="row"><label class="glabel" for="wind">Wind</label><output id="windOut" for="wind">5.0 m/s</output></div>
+        <input type="range" id="wind" min="0" max="12" step="0.1" value="5">
+      </div>
+    </div>
+    <div class="group">
+      <button type="button" class="btn sq" id="lessBtn" aria-label="Remove a leg pair">−</button>
+      <div class="count" aria-live="polite"><span id="pairs">4</span> pairs<small id="legsN">8 legs</small></div>
+      <button type="button" class="btn sq" id="moreBtn" aria-label="Add a leg pair">+</button>
+    </div>
+    <div class="group">
+      <button type="button" class="btn" id="diagBtn" aria-pressed="false" aria-controls="diagram">Leg diagram</button>
+      <button type="button" class="btn" id="traceBtn" aria-pressed="true">Trace paths</button>
+      <button type="button" class="btn" id="followBtn" aria-pressed="true">Follow</button>
+      <button type="button" class="btn" id="soundBtn" aria-pressed="false">Sound</button>
+    </div>
+  </div>
+</main>
+
+<section class="notes" aria-labelledby="notesTitle">
+  <div class="notes-inner">
+    <div>
+      <h2 id="notesTitle">How the legs are solved</h2>
+      <p>Each leg is a planar linkage hung from one fixed pivot on the body and driven by a crank of radius <code>m</code>. Given the crank angle θ, the crank tip sits at <code>(m·cos θ, m·sin θ)</code>. Every other joint is the meeting point of two links of known length, so it lies where two circles cross. The solver finds the upper joint from <code>j</code> and <code>b</code>, the knee from <code>k</code> and <code>c</code>, the outer corner of the upper triangle from <code>e</code> and <code>d</code>, the rear corner of the foot triangle from <code>f</code> and <code>g</code>, and finally the foot from <code>h</code> and <code>i</code>. Each time it keeps the one of the two crossings that matches the leg's assembly.</p>
+      <p>Pairs of legs are mirror images sharing a crank, and each pair runs at its own phase, so there is always a foot on the sand. The body is moved so that the foot in contact does not slip, and it settles to whatever height keeps that foot on the ground. The walk and the gentle bob come straight out of the geometry.</p>
+      <p class="credit">Inspired by the Strandbeesten, the wind-walking beach creatures the Dutch artist Theo Jansen has been building since 1990. This is an original rendering and simulation, not a model of any particular beest.</p>
+    </div>
+    <table>
+      <caption>The linkage lengths used here (arbitrary units)</caption>
+      <tbody>
+        <tr><th>a</th><td class="w">crank axle to fixed pivot, horizontal</td><td class="v">38.0</td></tr>
+        <tr><th>l</th><td class="w">crank axle to fixed pivot, vertical</td><td class="v">7.8</td></tr>
+        <tr><th>m</th><td class="w">crank radius</td><td class="v">15.0</td></tr>
+        <tr><th>j</th><td class="w">crank to upper joint</td><td class="v">50.0</td></tr>
+        <tr><th>k</th><td class="w">crank to knee</td><td class="v">61.9</td></tr>
+        <tr><th>b</th><td class="w">pivot to upper joint</td><td class="v">41.5</td></tr>
+        <tr><th>c</th><td class="w">pivot to knee</td><td class="v">39.3</td></tr>
+        <tr><th>d</th><td class="w">pivot to outer corner (upper triangle)</td><td class="v">40.1</td></tr>
+        <tr><th>e</th><td class="w">upper joint to outer corner (upper triangle)</td><td class="v">55.8</td></tr>
+        <tr><th>f</th><td class="w">outer corner to rear corner</td><td class="v">39.4</td></tr>
+        <tr><th>g</th><td class="w">knee to rear corner (foot triangle)</td><td class="v">36.7</td></tr>
+        <tr><th>h</th><td class="w">rear corner to foot (foot triangle)</td><td class="v">65.7</td></tr>
+        <tr><th>i</th><td class="w">knee to foot (foot triangle)</td><td class="v">49.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduce = mq.matches;
+
+  /* ================= the linkage ================= */
+  const L = { a: 38, b: 41.5, c: 39.3, d: 40.1, e: 55.8, f: 39.4, g: 36.7, h: 65.7, i: 49, j: 50, k: 61.9, l: 7.8, m: 15 };
+  // intersection of circle(p0, r0) and circle(p1, r1); s picks the branch. Writes into o[oi], o[oi+1].
+  function cross(o, oi, x0, y0, r0, x1, y1, r1, s) {
+    const dx = x1 - x0, dy = y1 - y0, D = Math.hypot(dx, dy) || 1e-6;
+    const A = (r0 * r0 - r1 * r1 + D * D) / (2 * D);
+    const H = Math.sqrt(Math.max(0, r0 * r0 - A * A));
+    const xm = x0 + A * dx / D, ym = y0 + A * dy / D;
+    o[oi] = xm - s * H * dy / D; o[oi + 1] = ym + s * H * dx / D;
+  }
+  // joints in y-up leg space, crank axle at the origin: O Z X Y W V U T (8 points, 16 numbers)
+  function solve(theta, o) {
+    const Zx = -L.a, Zy = -L.l;
+    o[0] = 0; o[1] = 0; o[2] = Zx; o[3] = Zy;
+    o[4] = L.m * Math.cos(theta); o[5] = L.m * Math.sin(theta);
+    cross(o, 6, o[4], o[5], L.j, Zx, Zy, L.b, -1);          // Y  upper joint
+    cross(o, 8, o[4], o[5], L.k, Zx, Zy, L.c, 1);           // W  knee
+    cross(o, 10, o[6], o[7], L.e, Zx, Zy, L.d, -1);         // V  outer corner of the upper triangle
+    cross(o, 12, o[10], o[11], L.f, o[8], o[9], L.g, -1);   // U  rear corner of the foot triangle
+    cross(o, 14, o[12], o[13], L.h, o[8], o[9], L.i, -1);   // T  foot
+    return o;
+  }
+  // links as index pairs into the joint list (O0 Z1 X2 Y3 W4 V5 U6 T7)
+  const LINKS = [[0, 2, 'm'], [2, 3, 'j'], [2, 4, 'k'], [1, 3, 'b'], [1, 4, 'c'], [3, 5, 'e'], [1, 5, 'd'], [5, 6, 'f'], [4, 6, 'g'], [6, 7, 'h'], [4, 7, 'i']];
+  // one full turn of the foot, for trace curves and the diagram
+  const CURVE = [];
+  (() => { const o = new Float64Array(16); for (let k = 0; k <= 180; k++) { solve(k / 180 * Math.PI * 2, o); CURVE.push([o[14], o[15]]); } })();
+  const FOOT_MIN = Math.min(...CURVE.map((p) => p[1]));
+
+  /* ================= creature ================= */
+  const SPACING = 104;
+  let pairs = window.innerWidth < 720 ? 3 : 4;
+  let legs = [];            // { pair, mirror, phase, depth, buf, foot:[x,y], prevFoot, ground }
+  function buildLegs() {
+    const keep = legs;
+    legs = [];
+    for (let p = 0; p < pairs; p++) {
+      const off = (p - (pairs - 1) / 2) * SPACING;
+      const phase = (p * 2 * Math.PI * 0.618) % (Math.PI * 2);
+      const depth = p % 2;   // alternate stations sit on the near and far side of the spine
+      for (const mirror of [false, true]) legs.push({ p, off, mirror, phase, depth, buf: new Float64Array(16), fx: 0, fy: 0, pfx: NaN, pfy: 0, down: false });
+    }
+    if (keep.length) legs.forEach((lg) => { lg.pfx = NaN; });
+    $('#pairs').textContent = pairs; $('#legsN').textContent = pairs * 2 + ' legs';
+    $('#lessBtn').disabled = pairs <= 1; $('#moreBtn').disabled = pairs >= 8;
+  }
+  function legJoints(lg, theta) {
+    const o = lg.buf;
+    if (!lg.mirror) solve(theta + lg.phase, o);
+    else { solve(Math.PI - (theta + lg.phase), o); for (let q = 0; q < 16; q += 2) o[q] = -o[q]; }
+    return o;
+  }
+
+  /* ================= world state ================= */
+  let theta = 0, bodyX = 0, bodyY = -FOOT_MIN, camX = 0, follow = true, walked = 0, pace = 0;
+  let wind = 5, windShown = 5, trace = true;
+  const prints = []; const PRINTS = 420;
+  for (let q = 0; q < PRINTS; q++) prints.push({ on: false, x: 0, depth: 0, age: 0, mirror: false });
+  let printIdx = 0;
+  const puffs = []; for (let q = 0; q < 80; q++) puffs.push({ on: false, x: 0, y: 0, vx: 0, vy: 0, life: 0 });
+  const grains = []; for (let q = 0; q < 90; q++) grains.push({ x: Math.random(), y: Math.random(), l: Math.random() });
+
+  function step(dt) {
+    windShown += (wind - windShown) * Math.min(1, dt * 2);
+    const omega = windShown * 0.32 * (reduce ? 0.6 : 1);
+    theta -= omega * dt;                                   // turning this way walks the beest to the right
+    let lowest = Infinity, contact = null;
+    for (const lg of legs) {
+      const o = legJoints(lg, theta);
+      lg.fx = o[14] + lg.off; lg.fy = o[15];
+      if (lg.fy < lowest) { lowest = lg.fy; contact = lg; }
+    }
+    // keep the contact foot planted: the body moves by the opposite of its motion in body space
+    if (contact && !isNaN(contact.pfx)) {
+      const dx = -(contact.fx - contact.pfx);
+      bodyX += dx; walked += Math.abs(dx);
+      pace += ((Math.abs(dx) / Math.max(dt, 1e-3)) - pace) * Math.min(1, dt * 3);
+    }
+    bodyY += ((-lowest) - bodyY) * Math.min(1, dt * 30);
+    for (const lg of legs) {
+      const onGround = lg.fy < lowest + 0.9;
+      if (onGround && !lg.down && !isNaN(lg.pfx)) touchDown(lg);
+      lg.down = onGround;
+      lg.pfx = lg.fx; lg.pfy = lg.fy;
+    }
+    // with the diagram open on a wide screen, frame the beest a little left of centre
+    const lead = diagOn && W > 720 ? Math.min(W * 0.1, 170) / S : 0;
+    // aim at the beest's visual middle (far legs sit a little to the right) plus a touch of look-ahead
+    if (follow) camX += (bodyX + 8 + lead + pace * 0.35 - camX) * Math.min(1, dt * 2.2);
+  }
+  function touchDown(lg) {
+    const pr = prints[printIdx]; printIdx = (printIdx + 1) % PRINTS;
+    pr.on = true; pr.x = bodyX + lg.fx; pr.depth = lg.depth; pr.age = 0; pr.mirror = lg.mirror;
+    if (!reduce) for (let q = 0; q < 4; q++) { const pf = puffs.find((z) => !z.on); if (!pf) break; pf.on = true; pf.x = bodyX + lg.fx; pf.y = 0; pf.vx = (Math.random() - 0.3) * 8 + windShown * 1.2; pf.vy = 6 + Math.random() * 8; pf.life = 1; pf.depth = lg.depth; }
+    if (soundOn) tock(lg.depth);
+  }
+
+  /* ================= canvas ================= */
+  const cv = $('#beach'), ctx = cv.getContext('2d');
+  const stage = $('#stage');
+  let W = 0, H = 0, dpr = 1, S = 2, groundY = 0, horizonY = 0, shoreY = 0;
+  function resize() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    const r = stage.getBoundingClientRect(); W = r.width; H = r.height;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    const phone = window.innerWidth < 720;
+    S = phone ? Math.min(H * 0.5 / 250, W * 0.86 / ((pairs - 1) * SPACING + 250)) : Math.min(H * 0.56 / 230, W * 0.86 / 560);
+    groundY = H * (phone ? 0.8 : 0.79); horizonY = H * (phone ? 0.5 : 0.47); shoreY = H * (phone ? 0.6 : 0.585);
+    buildSky();
+    sizeLeg();
+  }
+  // world x (linkage units) to screen x
+  const sx = (wx) => W / 2 + (wx - camX) * S;
+  const depthDY = (dp) => dp ? -S * 16 : 0;          // far-side legs stand a little higher on the canvas
+  const depthDX = (dp) => dp ? S * 10 : 0;
+
+  // pre-rendered sky with a soft sun, rebuilt on resize
+  let skyCv = null;
+  function buildSky() {
+    skyCv = document.createElement('canvas'); skyCv.width = cv.width; skyCv.height = Math.ceil(shoreY * dpr) + 2;
+    const x = skyCv.getContext('2d'); x.scale(dpr, dpr);
+    const g = x.createLinearGradient(0, 0, 0, horizonY);
+    g.addColorStop(0, '#d9e6eb'); g.addColorStop(0.55, '#e9f0f2'); g.addColorStop(1, '#f6f3ea');
+    x.fillStyle = g; x.fillRect(0, 0, W, horizonY + 1);
+    const sunX = W * 0.72, sunY = horizonY * 0.42;
+    const sg = x.createRadialGradient(sunX, sunY, 0, sunX, sunY, H * 0.34);
+    sg.addColorStop(0, 'rgba(255,252,236,.95)'); sg.addColorStop(0.08, 'rgba(255,250,228,.8)'); sg.addColorStop(0.3, 'rgba(255,246,220,.25)'); sg.addColorStop(1, 'rgba(255,246,220,0)');
+    x.fillStyle = sg; x.fillRect(0, 0, W, horizonY);
+    // the sea
+    const sgr = x.createLinearGradient(0, horizonY, 0, shoreY);
+    sgr.addColorStop(0, '#5d9fb6'); sgr.addColorStop(0.5, '#6fb3c7'); sgr.addColorStop(1, '#93cad6');
+    x.fillStyle = sgr; x.fillRect(0, horizonY, W, shoreY - horizonY + 2);
+    x.fillStyle = 'rgba(255,255,255,.35)'; x.fillRect(0, horizonY, W, 1);
+    // glitter under the sun
+    const gl = x.createLinearGradient(sunX - W * 0.12, 0, sunX + W * 0.12, 0);
+    gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,245,.35)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = gl; x.fillRect(sunX - W * 0.12, horizonY, W * 0.24, (shoreY - horizonY) * 0.7);
+  }
+
+  // clouds: soft blobs at three depths
+  const clouds = [];
+  (() => { let s = 7; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647); for (let q = 0; q < 14; q++) clouds.push({ x: r() * 3000, y: r(), z: q % 3, w: 90 + r() * 170, puffs: 4 + (r() * 4 | 0), seed: r() * 100 }); })();
+  let cloudDrift = 0;
+  function drawClouds(x) {
+    for (const c of clouds) {
+      const par = [0.08, 0.16, 0.28][c.z], sc = [0.6, 0.8, 1.05][c.z];
+      const span = W + 700;
+      let px = ((c.x - camX * S * par + cloudDrift * (0.4 + c.z * 0.3)) % span + span) % span - 350;
+      const py = horizonY * (0.12 + c.y * 0.55) * (1 - c.z * 0.1);
+      const w = c.w * sc * Math.max(0.6, W / 1400);
+      x.globalAlpha = [0.55, 0.7, 0.85][c.z];
+      for (let q = 0; q < c.puffs; q++) {
+        const ox = (q / (c.puffs - 1) - 0.5) * w, oy = -Math.sin(q / (c.puffs - 1) * Math.PI) * w * 0.18 + Math.sin(c.seed + q) * w * 0.04;
+        const rr = w * (0.2 + 0.1 * Math.sin(c.seed * 3 + q * 1.7));
+        const g = x.createRadialGradient(px + ox, py + oy - rr * 0.2, 0, px + ox, py + oy, rr);
+        g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.55, 'rgba(255,255,255,.85)'); g.addColorStop(0.8, 'rgba(250,252,253,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+        x.fillStyle = g; x.beginPath(); x.arc(px + ox, py + oy, rr, 0, Math.PI * 2); x.fill();
+      }
+      const bg = x.createLinearGradient(0, py, 0, py + w * 0.14);
+      bg.addColorStop(0, 'rgba(214,224,230,0)'); bg.addColorStop(1, 'rgba(206,218,226,.4)');
+      x.fillStyle = bg; x.beginPath(); x.ellipse(px, py + w * 0.06, w * 0.55, w * 0.08, 0, 0, Math.PI * 2); x.fill();
+    }
+    x.globalAlpha = 1;
+  }
+
+  function hash(n) { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
+  function drawSea(x, t) {
+    // wave lines riding in toward the shore
+    x.strokeStyle = 'rgba(255,255,255,.45)'; x.lineWidth = 1;
+    for (let q = 0; q < 7; q++) {
+      const y = horizonY + (shoreY - horizonY) * ((q + (t * 0.05) % 1) / 7);
+      const k = (y - horizonY) / (shoreY - horizonY);
+      x.globalAlpha = 0.15 + k * 0.45;
+      x.beginPath();
+      const off = -camX * S * (0.3 + k * 0.4);
+      for (let px = -20; px <= W + 20; px += 16) {
+        const yy = y + Math.sin((px - off) * 0.018 + q * 2 + t * 0.8) * (1 + k * 2.5);
+        if (px === -20) x.moveTo(px, yy); else x.lineTo(px, yy);
+      }
+      x.stroke();
+    }
+    x.globalAlpha = 1;
+    // the swash: foam sliding up and back
+    const sw = Math.sin(t * 0.6) * 0.5 + 0.5;
+    const edge = shoreY + 6 + sw * (H * 0.02);
+    const off = -camX * S * 0.7;
+    x.fillStyle = 'rgba(170,205,210,.55)';
+    x.beginPath(); x.moveTo(0, shoreY - 2);
+    for (let px = 0; px <= W + 16; px += 16) x.lineTo(px, edge + Math.sin((px - off) * 0.012 + t * 0.5) * 5 + Math.sin((px - off) * 0.031) * 3);
+    x.lineTo(W, shoreY - 2); x.closePath(); x.fill();
+    x.strokeStyle = 'rgba(255,255,255,.95)'; x.lineWidth = 2;
+    x.beginPath();
+    for (let px = 0; px <= W + 16; px += 16) { const yy = edge + Math.sin((px - off) * 0.012 + t * 0.5) * 5 + Math.sin((px - off) * 0.031) * 3; if (px === 0) x.moveTo(px, yy); else x.lineTo(px, yy); }
+    x.stroke();
+  }
+  // ground parallax: exactly 1 on the line the beest walks, less toward the sea, more toward the viewer
+  const sandPar = (y) => 1 + (y - groundY) / (H - shoreY) * 0.8;
+  function drawSand(x, t) {
+    const g = x.createLinearGradient(0, shoreY, 0, H);
+    g.addColorStop(0, '#d7c29a'); g.addColorStop(0.12, '#e2cfa8'); g.addColorStop(0.35, '#e9d8b4'); g.addColorStop(1, '#efe2c4');
+    x.fillStyle = g; x.fillRect(0, shoreY, W, H - shoreY);
+    // wind ripples, drawn in world space so they scroll with the ground
+    x.strokeStyle = 'rgba(160,130,85,.16)'; x.lineWidth = 1.2;
+    for (let q = 0; q < 16; q++) {
+      const k = q / 15, y = shoreY + (H - shoreY) * (0.08 + k * 0.9);
+      const par = sandPar(y);
+      x.beginPath();
+      for (let px = -10; px <= W + 10; px += 10) {
+        const wx = px / S / par + camX * 1;
+        const yy = y + Math.sin(wx * 0.09 + q * 1.3) * (2 + k * 3) + Math.sin(wx * 0.23 + q) * 1.2;
+        if (px === -10) x.moveTo(px, yy); else x.lineTo(px, yy);
+      }
+      x.stroke();
+    }
+    // shells and pebbles, placed per world tile
+    const tile = 60, x0 = Math.floor((camX - W / 2 / S) / tile) - 1, x1 = Math.floor((camX + W / 2 / S) / tile) + 1;
+    for (let tI = x0; tI <= x1; tI++) {
+      for (let q = 0; q < 2; q++) {
+        const hsh = hash(tI * 7 + q * 13);
+        const wx = (tI + hash(tI * 3.1 + q)) * tile, k = hash(tI * 1.7 + q * 5.3);
+        const y = shoreY + (H - shoreY) * (0.1 + k * 0.85);
+        const px = W / 2 + (wx - camX) * S * sandPar(y);
+        if (px < -10 || px > W + 10) continue;
+        const r = (1 + hsh * 2.4) * (0.6 + k) * Math.max(0.6, S / 2);
+        if (hsh < 0.5) { x.fillStyle = hsh < 0.25 ? 'rgba(150,125,95,.55)' : 'rgba(255,250,240,.8)'; x.beginPath(); x.ellipse(px, y, r, r * 0.6, hsh * 3, 0, Math.PI * 2); x.fill(); }
+        else if (hsh < 0.62) { x.strokeStyle = 'rgba(214,150,130,.75)'; x.lineWidth = 1; x.beginPath(); x.arc(px, y, r * 1.3, Math.PI * 1.05, Math.PI * 1.95); x.stroke(); x.beginPath(); x.moveTo(px, y); x.lineTo(px - r, y - r * 0.7); x.moveTo(px, y); x.lineTo(px + r, y - r * 0.7); x.moveTo(px, y); x.lineTo(px, y - r * 1.2); x.stroke(); }
+      }
+    }
+  }
+  function drawPrints(x, dt) {
+    for (const p of prints) {
+      if (!p.on) continue;
+      p.age += dt;
+      const a = Math.max(0, 1 - p.age / 45);
+      if (a <= 0) { p.on = false; continue; }
+      const px = sx(p.x) + depthDX(p.depth), py = groundY + depthDY(p.depth) + 3;
+      if (px < -30 || px > W + 30) continue;
+      const w = S * 6.5 * (p.depth ? 0.85 : 1), h = S * 1.9 * (p.depth ? 0.85 : 1);
+      x.fillStyle = `rgba(255,248,230,${(0.5 * a).toFixed(3)})`; x.beginPath(); x.ellipse(px + w * 0.1, py + h * 0.6, w * 1.1, h * 0.55, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = `rgba(138,104,62,${(0.42 * a).toFixed(3)})`; x.beginPath(); x.ellipse(px, py, w, h, 0, 0, Math.PI * 2); x.fill();
+      x.fillStyle = `rgba(110,82,48,${(0.25 * a).toFixed(3)})`; x.beginPath(); x.ellipse(px - w * 0.2, py - h * 0.25, w * 0.6, h * 0.45, 0, 0, Math.PI * 2); x.fill();
+    }
+  }
+
+  /* --- tubes --- */
+  function tube(x, ax, ay, bx, by, w, far) {
+    x.lineWidth = w + 2.2; x.strokeStyle = far ? '#b8a67a' : '#b39a52';
+    x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke();
+    x.lineWidth = w; x.strokeStyle = far ? '#e9dfbd' : '#f4e3a1';
+    x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke();
+    if (w > 2.2) {
+      x.lineWidth = Math.max(0.8, w * 0.28); x.strokeStyle = far ? 'rgba(255,255,248,.55)' : 'rgba(255,252,232,.95)';
+      x.beginPath(); x.moveTo(ax - w * 0.18, ay - w * 0.18); x.lineTo(bx - w * 0.18, by - w * 0.18); x.stroke();
+    }
+  }
+  function joint(x, px, py, r, far) {
+    x.fillStyle = far ? '#a39470' : '#7d6a3a'; x.beginPath(); x.arc(px, py, r, 0, Math.PI * 2); x.fill();
+    x.fillStyle = far ? '#d9cfae' : '#c8b377'; x.beginPath(); x.arc(px - r * 0.2, py - r * 0.2, r * 0.42, 0, Math.PI * 2); x.fill();
+  }
+  const P = (lg, o, q) => [sx(bodyX + lg.off + o[q]) + depthDX(lg.depth), groundY - (bodyY + o[q + 1]) * S + depthDY(lg.depth)];
+
+  function drawLeg(x, lg) {
+    const o = lg.buf, far = lg.depth === 1;
+    const w = Math.max(1.6, S * (far ? 2.6 : 3.2)), jr = Math.max(1.5, S * (far ? 1.9 : 2.3));
+    const pts = [];
+    for (let q = 0; q < 16; q += 2) pts.push(P(lg, o, q));
+    // lightly glazed triangles read as rigid bodies
+    x.fillStyle = far ? 'rgba(244,227,161,.10)' : 'rgba(244,227,161,.2)';
+    x.beginPath(); x.moveTo(pts[1][0], pts[1][1]); x.lineTo(pts[3][0], pts[3][1]); x.lineTo(pts[5][0], pts[5][1]); x.closePath(); x.fill();
+    x.beginPath(); x.moveTo(pts[4][0], pts[4][1]); x.lineTo(pts[6][0], pts[6][1]); x.lineTo(pts[7][0], pts[7][1]); x.closePath(); x.fill();
+    x.lineCap = 'round';
+    for (const [aI, bI, nm] of LINKS) tube(x, pts[aI][0], pts[aI][1], pts[bI][0], pts[bI][1], nm === 'm' ? w * 1.25 : w, far);
+    for (let q = 1; q < 7; q++) joint(x, pts[q][0], pts[q][1], jr, far);
+    // the foot: a small sole
+    const [fx, fy] = pts[7];
+    x.fillStyle = far ? '#a39470' : '#6f5d32';
+    x.beginPath(); x.ellipse(fx, fy + S * 0.4, S * 3.4, S * 1.2, 0, 0, Math.PI * 2); x.fill();
+  }
+
+  function drawBody(x, t) {
+    const off0 = -(pairs - 1) / 2 * SPACING, off1 = (pairs - 1) / 2 * SPACING;
+    const Y = (y) => groundY - (bodyY + y) * S;
+    const X = (wx) => sx(bodyX + wx);
+    const w = Math.max(2, S * 3.6);
+    x.lineCap = 'round';
+    // spine and lower beam
+    tube(x, X(off0 - 52), Y(22), X(off1 + 52), Y(22), w * 1.1, false);
+    tube(x, X(off0 - 40), Y(-7.8), X(off1 + 40), Y(-7.8), w * 0.8, false);
+    for (let p = 0; p < pairs; p++) {
+      const o = off0 + p * SPACING;
+      tube(x, X(o - 38), Y(-7.8), X(o), Y(22), w * 0.7, false);
+      tube(x, X(o + 38), Y(-7.8), X(o), Y(22), w * 0.7, false);
+      tube(x, X(o), Y(0), X(o), Y(22), w * 0.8, false);
+    }
+    // mast and sails: each sail billows with the wind, its trailing edge ruffling
+    const mastTop = 118, n = Math.max(2, Math.min(4, pairs));
+    const sailW = (off1 - off0 + 104) / n;
+    for (let q = 0; q < n; q++) {
+      const lx = off0 - 52 + q * sailW + sailW * 0.12, rx = lx + sailW * 0.7;
+      const baseY = 30, topY = mastTop - 10 - (q % 2) * 14;
+      const billow = (3 + windShown * 1.8) * (reduce ? 0.5 : 1);
+      const flap = reduce ? 0 : Math.sin(t * (2.2 + windShown * 0.35) + q * 1.9) * (1.2 + windShown * 0.4);
+      const g = x.createLinearGradient(X(lx), Y(topY), X(rx), Y(baseY));
+      g.addColorStop(0, 'rgba(255,255,252,.82)'); g.addColorStop(0.55, 'rgba(244,246,240,.62)'); g.addColorStop(1, 'rgba(226,232,228,.5)');
+      x.fillStyle = g;
+      x.beginPath();
+      x.moveTo(X(lx), Y(baseY));
+      x.lineTo(X(lx + 6), Y(topY));
+      x.quadraticCurveTo(X((lx + rx) / 2 + billow * 0.6), Y(topY + billow * 0.25 + flap * 0.3), X(rx + billow * 0.8 + flap), Y(topY - 18));
+      x.quadraticCurveTo(X(rx + billow * 1.3 + flap * 0.6), Y((topY + baseY) / 2), X(rx), Y(baseY));
+      x.closePath(); x.fill();
+      x.strokeStyle = 'rgba(179,154,82,.7)'; x.lineWidth = Math.max(1, S * 0.7); x.stroke();
+      // battens
+      x.strokeStyle = 'rgba(179,154,82,.35)'; x.lineWidth = Math.max(0.8, S * 0.45);
+      for (let bI = 1; bI < 4; bI++) { const f = bI / 4; x.beginPath(); x.moveTo(X(lx + 3 * f + 3), Y(baseY + (topY - baseY) * f)); x.quadraticCurveTo(X((lx + rx) / 2 + billow * f), Y(baseY + (topY - baseY) * f + 2), X(rx + billow * 1.1 * (1 - Math.abs(f - 0.5)) + flap * f), Y(baseY + (topY - baseY) * f - 6 * f)); x.stroke(); }
+      tube(x, X(lx), Y(baseY - 4), X(lx + 6), Y(topY + 4), w * 0.7, false);
+    }
+    // pennant on the first mast, streaming downwind
+    const mx = off0 - 52 + sailW * 0.08 + 6, my = mastTop - 8;
+    tube(x, X(mx), Y(my - 10), X(mx), Y(my + 18), w * 0.6, false);
+    const pl = 16 + windShown * 1.6;
+    x.fillStyle = '#d4553a';
+    x.beginPath(); x.moveTo(X(mx), Y(my + 18));
+    x.quadraticCurveTo(X(mx + pl * 0.5), Y(my + 16 + (reduce ? 0 : Math.sin(t * 7) * 2)), X(mx + pl), Y(my + 14 + (reduce ? 0 : Math.sin(t * 7 + 1.5) * 2.5)));
+    x.lineTo(X(mx), Y(my + 10)); x.closePath(); x.fill();
+    // crank hubs
+    for (let p = 0; p < pairs; p++) joint(x, X(off0 + p * SPACING), Y(0), Math.max(2.2, S * 3.4), false);
+  }
+
+  function drawTraces(x) {
+    x.setLineDash([Math.max(2, S * 2), Math.max(2, S * 2)]);
+    x.lineWidth = Math.max(1, S * 0.7);
+    for (const lg of legs) {
+      const far = lg.depth === 1;
+      x.strokeStyle = far ? 'rgba(212,85,58,.35)' : 'rgba(212,85,58,.75)';
+      x.beginPath();
+      CURVE.forEach(([cx, cy], q) => {
+        const wx = lg.mirror ? -cx : cx;
+        const px = sx(bodyX + lg.off + wx) + depthDX(lg.depth), py = groundY - (bodyY + cy) * S + depthDY(lg.depth);
+        if (q) x.lineTo(px, py); else x.moveTo(px, py);
+      });
+      x.stroke();
+    }
+    x.setLineDash([]);
+    for (const lg of legs) {
+      const [fx, fy] = P(lg, lg.buf, 14);
+      x.fillStyle = lg.depth ? 'rgba(212,85,58,.5)' : '#d4553a';
+      x.beginPath(); x.arc(fx, fy, Math.max(2, S * 1.6), 0, Math.PI * 2); x.fill();
+    }
+  }
+
+  // birds far off
+  const birds = [{ x: 0.2, y: 0.25, s: 1, ph: 0 }, { x: 0.26, y: 0.22, s: 0.8, ph: 1.3 }, { x: 0.62, y: 0.18, s: 0.7, ph: 2.1 }];
+  function drawBirds(x, t) {
+    x.strokeStyle = 'rgba(70,88,98,.55)'; x.lineWidth = 1.3; x.lineCap = 'round';
+    for (const b of birds) {
+      const px = ((b.x * W + t * (10 + windShown * 3) * b.s - camX * S * 0.05) % (W + 80) + W + 80) % (W + 80) - 40;
+      const py = horizonY * b.y + Math.sin(t * 0.7 + b.ph) * 6;
+      const fl = reduce ? 0.4 : Math.sin(t * 6 + b.ph) * 0.6;
+      const s = 7 * b.s;
+      x.beginPath(); x.moveTo(px - s, py - s * (0.3 + fl * 0.5)); x.quadraticCurveTo(px - s * 0.4, py - s * 0.5, px, py); x.quadraticCurveTo(px + s * 0.4, py - s * 0.5, px + s, py - s * (0.3 + fl * 0.5)); x.stroke();
+    }
+  }
+
+  let lastT = 0, time = 0, hudT = 0;
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (document.hidden) { lastT = now; return; }
+    const dt = Math.min(0.05, lastT ? (now - lastT) / 1000 : 0.016); lastT = now;
+    time += dt;
+    step(dt);
+    cloudDrift += dt * (4 + windShown * 5);
+    render(dt);
+    if (diagOn) drawDiagram();
+    if (now - hudT > 120) { hudT = now; hud(); }
+    if (soundOn) windSound();
+  }
+  function render(dt) {
+    const x = ctx;
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.drawImage(skyCv, 0, 0, W, skyCv.height / dpr);
+    drawClouds(x);
+    drawBirds(x, time);
+    drawSea(x, time);
+    drawSand(x, time);
+    drawPrints(x, dt);
+    // soft shadow beneath the beest
+    const off0 = -(pairs - 1) / 2 * SPACING - 110, off1 = (pairs - 1) / 2 * SPACING + 110;
+    const shx = sx(bodyX + (off0 + off1) / 2) + S * 10, shw = (off1 - off0) * S * 0.55;
+    const sg = x.createRadialGradient(shx, groundY + 4, 0, shx, groundY + 4, shw);
+    sg.addColorStop(0, 'rgba(120,95,60,.22)'); sg.addColorStop(1, 'rgba(120,95,60,0)');
+    x.fillStyle = sg; x.save(); x.translate(shx, groundY + 4); x.scale(1, 0.12); x.translate(-shx, -(groundY + 4)); x.beginPath(); x.arc(shx, groundY + 4, shw, 0, Math.PI * 2); x.fill(); x.restore();
+    // far legs, body and sails, near legs
+    for (const lg of legs) if (lg.depth === 1) drawLeg(x, lg);
+    drawBody(x, time);
+    for (const lg of legs) if (lg.depth === 0) drawLeg(x, lg);
+    if (trace) drawTraces(x);
+    // sand puffs and blowing grains
+    for (const p of puffs) {
+      if (!p.on) continue;
+      p.life -= dt * 1.4; if (p.life <= 0) { p.on = false; continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy -= 20 * dt;
+      const px = sx(p.x) + depthDX(p.depth), py = groundY + depthDY(p.depth) - Math.max(0, p.y) * S;
+      x.fillStyle = `rgba(214,194,150,${(p.life * 0.6).toFixed(3)})`; x.beginPath(); x.arc(px, py, S * 1.2 * (1.5 - p.life), 0, Math.PI * 2); x.fill();
+    }
+    if (!reduce && windShown > 2) {
+      x.strokeStyle = 'rgba(200,178,132,.45)'; x.lineWidth = 1;
+      for (const gI of grains) {
+        gI.x += dt * (0.05 + windShown * 0.03) * (0.5 + gI.l);
+        if (gI.x > 1.05) { gI.x = -0.05; gI.y = Math.random(); }
+        const px = gI.x * W, py = shoreY + (H - shoreY) * (0.2 + gI.y * 0.8) - Math.sin(gI.x * 20 + gI.l * 9) * 3;
+        x.globalAlpha = Math.min(1, (windShown - 2) / 5) * (0.3 + gI.l * 0.5);
+        x.beginPath(); x.moveTo(px, py); x.lineTo(px - 4 - windShown * 0.8 * gI.l, py + 0.5); x.stroke();
+      }
+      x.globalAlpha = 1;
+    }
+  }
+
+  /* ================= readouts ================= */
+  function hud() {
+    const deg = (((theta * 180 / Math.PI) % 360) + 360) % 360;
+    $('#hudTheta').textContent = deg.toFixed(0) + '°';
+    // one unit is taken as one centimetre: the leg stands a little over a metre tall
+    $('#hudPace').textContent = (pace * 0.6).toFixed(1) + ' m/min';
+    $('#hudDist').textContent = (walked / 100).toFixed(1) + ' m';
+    $('#figTheta').textContent = 'θ = ' + deg.toFixed(0) + '°';
+  }
+
+  /* ================= the single-leg diagram ================= */
+  const legCv = $('#leg'), lctx = legCv.getContext('2d');
+  let LW = 0, LH = 0, diagOn = false;
+  function sizeLeg() {
+    const r = legCv.getBoundingClientRect(); LW = r.width || 340; LH = r.height || 260;
+    legCv.width = Math.round(LW * dpr); legCv.height = Math.round(LH * dpr);
+  }
+  const dbuf = new Float64Array(16);
+  function drawDiagram() {
+    const x = lctx;
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, LW, LH);
+    // leg space bounds: x -118..22, y -97..40
+    const k = Math.min((LW - 60) / 150, (LH - 22) / 140);
+    const ox = LW / 2 - (-50) * k, oy = 16 + 40 * k;
+    const T = (px, py) => [ox + px * k, oy - py * k];
+    const o = solve(theta, dbuf);
+    // foot trajectory
+    x.strokeStyle = '#d4553a'; x.lineWidth = 1.4; x.setLineDash([4, 3]);
+    x.beginPath(); CURVE.forEach(([cx, cy], q) => { const [px, py] = T(cx, cy); if (q) x.lineTo(px, py); else x.moveTo(px, py); }); x.stroke();
+    x.setLineDash([]);
+    // crank circle
+    const [c0x, c0y] = T(0, 0);
+    x.strokeStyle = 'rgba(46,59,68,.35)'; x.lineWidth = 1; x.beginPath(); x.arc(c0x, c0y, L.m * k, 0, Math.PI * 2); x.stroke();
+    // dimension lines for a and l
+    const [zx, zy] = T(-L.a, -L.l);
+    x.strokeStyle = 'rgba(61,143,168,.8)'; x.fillStyle = 'rgba(61,143,168,.95)'; x.lineWidth = 0.8;
+    x.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+    // a: horizontal offset, dimensioned below the foot's reach of the crank circle, well clear of the links
+    const dimY = T(0, 37)[1];
+    x.setLineDash([2, 2]);
+    x.beginPath(); x.moveTo(zx, zy - 5); x.lineTo(zx, dimY - 4); x.moveTo(c0x, c0y - L.m * k - 2); x.lineTo(c0x, dimY - 4); x.stroke();
+    x.setLineDash([]);
+    x.beginPath(); x.moveTo(zx, dimY); x.lineTo(c0x, dimY); x.stroke();
+    x.beginPath(); x.moveTo(zx + 5, dimY - 3); x.lineTo(zx, dimY); x.lineTo(zx + 5, dimY + 3); x.moveTo(c0x - 5, dimY - 3); x.lineTo(c0x, dimY); x.lineTo(c0x - 5, dimY + 3); x.stroke();
+    x.fillText('a 38', (zx + c0x) / 2 - 12, dimY - 4);
+    // l: vertical offset, just outside the crank circle
+    const lx = c0x + L.m * k + 10;
+    x.beginPath(); x.moveTo(c0x + L.m * k + 2, c0y); x.lineTo(lx + 4, c0y); x.moveTo(zx + 6, zy); x.lineTo(lx + 4, zy); x.moveTo(lx, c0y); x.lineTo(lx, zy); x.stroke();
+    x.fillText('l 7.8', lx + 6, (c0y + zy) / 2 + 4);
+    // links, with their names and lengths
+    const pts = []; for (let q = 0; q < 16; q += 2) pts.push(T(o[q], o[q + 1]));
+    x.fillStyle = 'rgba(244,227,161,.35)';
+    x.beginPath(); x.moveTo(pts[1][0], pts[1][1]); x.lineTo(pts[3][0], pts[3][1]); x.lineTo(pts[5][0], pts[5][1]); x.closePath(); x.fill();
+    x.beginPath(); x.moveTo(pts[4][0], pts[4][1]); x.lineTo(pts[6][0], pts[6][1]); x.lineTo(pts[7][0], pts[7][1]); x.closePath(); x.fill();
+    x.strokeStyle = '#2e3b44'; x.lineWidth = 1.6; x.lineCap = 'round';
+    for (const [aI, bI] of LINKS) { x.beginPath(); x.moveTo(pts[aI][0], pts[aI][1]); x.lineTo(pts[bI][0], pts[bI][1]); x.stroke(); }
+    x.fillStyle = '#2e3b44';
+    for (const [aI, bI, nm] of LINKS) {
+      const mx = (pts[aI][0] + pts[bI][0]) / 2, my = (pts[aI][1] + pts[bI][1]) / 2;
+      const dx = pts[bI][0] - pts[aI][0], dy = pts[bI][1] - pts[aI][1], len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len, ny = dx / len, off = nm === 'm' ? 9 : 8;
+      const label = nm + ' ' + L[nm];
+      const tw = x.measureText(label).width;
+      const lx = mx + nx * off - tw / 2, ly = my + ny * off + 3;
+      x.fillStyle = 'rgba(251,250,244,.85)'; x.fillRect(lx - 2, ly - 9, tw + 4, 12);
+      x.fillStyle = nm === 'm' ? '#3d8fa8' : '#2e3b44'; x.fillText(label, lx, ly);
+    }
+    // joints and the hatched fixed pivots
+    for (let q = 1; q < 7; q++) { x.fillStyle = '#fbfaf4'; x.beginPath(); x.arc(pts[q][0], pts[q][1], 3.2, 0, Math.PI * 2); x.fill(); x.strokeStyle = '#2e3b44'; x.lineWidth = 1.2; x.stroke(); }
+    for (const q of [0, 1]) {
+      const [px, py] = pts[q];
+      x.strokeStyle = '#2e3b44'; x.lineWidth = 1.1;
+      x.beginPath(); x.moveTo(px - 8, py + 8); x.lineTo(px + 8, py + 8); x.moveTo(px, py); x.lineTo(px - 5, py + 8); x.moveTo(px, py); x.lineTo(px + 5, py + 8); x.stroke();
+      for (let hI = -8; hI < 8; hI += 4) { x.beginPath(); x.moveTo(px + hI, py + 8); x.lineTo(px + hI - 3, py + 12); x.stroke(); }
+      x.fillStyle = '#2e3b44'; x.beginPath(); x.arc(px, py, 2.6, 0, Math.PI * 2); x.fill();
+    }
+    const [fx, fy] = pts[7];
+    x.fillStyle = '#d4553a'; x.beginPath(); x.arc(fx, fy, 4.2, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#d4553a'; x.fillText('foot', fx + 7, fy + 12);
+    x.fillStyle = 'rgba(46,59,68,.7)'; x.fillText('crank', c0x + 6, c0y + L.m * k + 12);
+  }
+
+  /* ================= sound: wind and soft footfalls ================= */
+  let actx = null, windGain = null, windFilter = null, soundOn = false;
+  function ensureAudio() {
+    if (actx) return true;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+      actx = new AC();
+      const buf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate), d = buf.getChannelData(0);
+      let last = 0; for (let q = 0; q < d.length; q++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[q] = last * 3.5; }
+      const src = actx.createBufferSource(); src.buffer = buf; src.loop = true;
+      windFilter = actx.createBiquadFilter(); windFilter.type = 'bandpass'; windFilter.frequency.value = 500; windFilter.Q.value = 0.6;
+      windGain = actx.createGain(); windGain.gain.value = 0;
+      src.connect(windFilter); windFilter.connect(windGain); windGain.connect(actx.destination); src.start();
+      return true;
+    } catch (e) { actx = null; return false; }
+  }
+  function windSound() {
+    if (!actx) return;
+    const t = actx.currentTime, gust = 0.5 + 0.5 * Math.sin(time * 0.7) * Math.sin(time * 0.23);
+    windGain.gain.setTargetAtTime(soundOn ? (0.02 + windShown * 0.012) * (0.7 + gust * 0.6) : 0, t, 0.3);
+    windFilter.frequency.setTargetAtTime(300 + windShown * 60 + gust * 200, t, 0.3);
+  }
+  let lastTock = 0;
+  function tock(depth) {
+    if (!actx) return;
+    const now = performance.now(); if (now - lastTock < 70) return; lastTock = now;
+    const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(depth ? 180 : 230, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.08);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(depth ? 0.03 : 0.05, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.15);
+  }
+
+  /* ================= controls ================= */
+  const windEl = $('#wind'), windOut = $('#windOut');
+  function setWind(v) { wind = v; windOut.textContent = v.toFixed(1) + ' m/s'; }
+  windEl.addEventListener('input', () => setWind(+windEl.value));
+  $('#lessBtn').addEventListener('click', () => { if (pairs > 1) { pairs--; buildLegs(); if (window.innerWidth < 720) resize(); } });
+  $('#moreBtn').addEventListener('click', () => { if (pairs < 8) { pairs++; buildLegs(); if (window.innerWidth < 720) resize(); } });
+  const diagBtn = $('#diagBtn'), diagram = $('#diagram');
+  function setDiag(v) { diagOn = v; diagram.hidden = !v; diagBtn.setAttribute('aria-pressed', String(v)); if (v) { sizeLeg(); drawDiagram(); } }
+  diagBtn.addEventListener('click', () => setDiag(!diagOn));
+  const traceBtn = $('#traceBtn');
+  traceBtn.addEventListener('click', () => { trace = !trace; traceBtn.setAttribute('aria-pressed', String(trace)); });
+  const followBtn = $('#followBtn');
+  function setFollow(v) { follow = v; followBtn.setAttribute('aria-pressed', String(v)); }
+  followBtn.addEventListener('click', () => setFollow(!follow));
+  const soundBtn = $('#soundBtn');
+  soundBtn.addEventListener('click', () => {
+    if (!soundOn) { if (!ensureAudio()) return; if (actx.state === 'suspended') actx.resume(); }
+    soundOn = !soundOn; soundBtn.setAttribute('aria-pressed', String(soundOn));
+    if (!soundOn && windGain) windGain.gain.setTargetAtTime(0, actx.currentTime, 0.1);
+  });
+
+  // drag to pan along the beach
+  let drag = null;
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target.closest('.label,.hud')) return;
+    drag = { x: e.clientX, y: e.clientY, cam: camX, moved: false, id: e.pointerId };
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved) {
+      if (Math.abs(dx) < 6) return;
+      if (e.pointerType === 'touch' && Math.abs(dy) > Math.abs(dx)) { drag = null; return; }   // let the page scroll
+      drag.moved = true; setFollow(false); $('#scene').classList.add('dragging');
+      try { stage.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      $('#hint').style.opacity = '0';
+    }
+    camX = drag.cam - dx / S;
+  });
+  const endDrag = () => { drag = null; $('#scene').classList.remove('dragging'); };
+  window.addEventListener('pointerup', endDrag); window.addEventListener('pointercancel', endDrag);
+  stage.addEventListener('touchmove', (e) => { if (drag && drag.moved) e.preventDefault(); }, { passive: false });
+  cv.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); setFollow(false); camX += (e.key === 'ArrowLeft' ? -1 : 1) * 60 * (e.shiftKey ? 4 : 1); }
+    else if (e.key === 'Home') { e.preventDefault(); setFollow(true); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const tag = e.target && e.target.tagName; if (tag === 'INPUT') return;
+    if (e.key === '+' || e.key === '=') $('#moreBtn').click();
+    else if (e.key === '-' || e.key === '_') $('#lessBtn').click();
+    else if (e.key === 'd' || e.key === 'D') setDiag(!diagOn);
+    else if (e.key === 't' || e.key === 'T') traceBtn.click();
+    else if (e.key === 'f' || e.key === 'F') setFollow(!follow);
+  });
+
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resize, 60); });
+  if (mq.addEventListener) mq.addEventListener('change', (e) => { reduce = e.matches; });
+
+  /* ================= boot: a few seconds of walking so the sand already holds footprints ================= */
+  buildLegs();
+  resize();
+  if (reduce) { setWind(2.5); windEl.value = 2.5; windShown = 2.5; }
+  for (let q = 0; q < 540; q++) { step(1 / 60); for (const p of prints) if (p.on) p.age += 1 / 60; }
+  camX = bodyX + 8;
+  hud();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

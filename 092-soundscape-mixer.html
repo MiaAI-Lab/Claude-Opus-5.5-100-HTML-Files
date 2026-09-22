@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ambience — Soundscape Mixer</title>
+<meta name="description" content="Ambience is a calm soundscape mixer. Rain, thunder, wind, ocean, campfire, birds, crickets, café murmur and a drone pad are all synthesized live with the Web Audio API, with presets and a sleep timer.">
+<meta name="theme-color" content="#fefae0">
+<style>
+:root{
+  --moss:#606c38; --forest:#283618; --cream:#fefae0; --sand:#dda15e; --clay:#bc6c25;
+  --ink:#283618; --ink2:rgba(40,54,24,.7); --ink3:rgba(40,54,24,.46); --line:rgba(40,54,24,.12);
+  --card:#fffdf0; --sans:"Seravek","Gill Sans Nova","Candara","Calibri","Cantarell","Segoe UI","Trebuchet MS",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{min-height:100vh;font-family:var(--sans);color:var(--ink);background:var(--cream);overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  display:grid;grid-template-columns:360px minmax(0,1fr)}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--clay);outline-offset:3px;border-radius:10px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:-1px;padding:0;border:0}
+
+/* ---------- living background ---------- */
+.bg{position:fixed;inset:0;z-index:-1;pointer-events:none}
+.bg div{position:absolute;inset:0;opacity:0;transition:opacity 2.4s ease}
+.bg .base{opacity:1;background:linear-gradient(165deg,#fefae0 0%,#f7f0d4 55%,#efe5c3 100%)}
+.bg .warm{background:radial-gradient(ellipse 70% 60% at 12% 108%,rgba(221,161,94,.62),rgba(221,161,94,0) 70%),radial-gradient(ellipse 50% 45% at 95% 100%,rgba(188,108,37,.3),rgba(188,108,37,0) 70%)}
+.bg .green{background:radial-gradient(ellipse 60% 55% at 92% -8%,rgba(96,108,56,.42),rgba(96,108,56,0) 70%),radial-gradient(ellipse 40% 40% at 40% 0%,rgba(163,177,138,.35),rgba(163,177,138,0) 70%)}
+.bg .wet{background:linear-gradient(180deg,rgba(118,138,126,.36),rgba(118,138,126,0) 62%),radial-gradient(ellipse 50% 40% at 70% 30%,rgba(150,168,150,.25),rgba(150,168,150,0) 70%)}
+.bg .night{background:radial-gradient(ellipse 90% 70% at 50% 120%,rgba(40,54,24,.5),rgba(40,54,24,0) 70%),linear-gradient(180deg,rgba(40,54,24,.1),rgba(40,54,24,.16))}
+.bg .paper{opacity:.5;background-image:var(--paper,none);background-size:200px 200px;mix-blend-mode:multiply}
+
+/* ---------- side panel ---------- */
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:34px 30px 26px 36px;display:flex;flex-direction:column;gap:22px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{width:40px;height:40px}
+.brand h1{font-size:34px;font-weight:600;letter-spacing:-.015em;line-height:1}
+.brand p{font-size:13px;color:var(--ink2);margin-top:5px;letter-spacing:.01em}
+.player{position:relative;display:flex;align-items:center;gap:18px}
+.orb{position:relative;width:140px;height:140px;flex:none;display:grid;place-items:center}
+#viz{position:absolute;inset:-18px;width:calc(100% + 36px);height:calc(100% + 36px)}
+.play{position:relative;width:86px;height:86px;border-radius:50%;background:var(--clay);color:var(--cream);display:grid;place-items:center;
+  box-shadow:0 14px 30px -12px rgba(188,108,37,.8), inset 0 2px 0 rgba(255,255,255,.22);transition:transform .25s cubic-bezier(.3,1.6,.5,1),background-color .3s}
+.play:hover{transform:scale(1.05)}
+.play:active{transform:scale(.96)}
+.play svg{width:30px;height:30px;fill:currentColor}
+.play .ic-pause{display:none}
+body.playing .play .ic-play{display:none}
+body.playing .play .ic-pause{display:block}
+body.playing .play{background:var(--moss);box-shadow:0 14px 30px -12px rgba(96,108,56,.8), inset 0 2px 0 rgba(255,255,255,.22)}
+.status{min-width:0}
+.status b{display:block;font-size:16.5px;font-weight:600;white-space:nowrap}
+.status span{display:block;font-size:13px;color:var(--ink2);margin-top:4px;line-height:1.4}
+.block h2{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline}
+.block h2 em{font-style:normal;letter-spacing:.02em;text-transform:none;font-size:13px;font-weight:600;color:var(--clay)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,253,240,.6);font-size:13px;font-weight:600;color:var(--ink2);transition:background-color .25s,color .25s,border-color .25s}
+.chip:hover{border-color:rgba(40,54,24,.3);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--forest);border-color:var(--forest);color:var(--cream)}
+.presets{display:grid;grid-template-columns:1fr;gap:7px}
+.preset{display:flex;align-items:center;gap:12px;padding:8px 12px 8px 8px;border-radius:14px;border:1px solid var(--line);background:rgba(255,253,240,.62);text-align:left;transition:transform .25s,background-color .25s,border-color .25s}
+.preset:hover{transform:translateY(-2px);border-color:rgba(40,54,24,.28)}
+.preset[aria-pressed="true"]{border-color:var(--moss);background:#f3f1d6;box-shadow:inset 0 0 0 1px var(--moss)}
+.preset svg{width:30px;height:30px;flex:none;border-radius:9px}
+.preset b{display:block;font-size:14px;font-weight:600;line-height:1.15}
+.preset small{display:block;font-size:12px;color:var(--ink3);margin-top:2px}
+.preset::after{content:"";margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--moss);opacity:0;transition:opacity .3s}
+.preset[aria-pressed="true"]::after{opacity:1}
+.timerline{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:var(--ink2);min-height:22px}
+.timerline svg{width:22px;height:22px;flex:none}
+.timerline .trk{fill:none;stroke:var(--line);stroke-width:3}
+.timerline .prg{fill:none;stroke:var(--clay);stroke-width:3;stroke-linecap:round;transform:rotate(-90deg);transform-origin:11px 11px;transition:stroke-dashoffset 1s linear}
+.foot{margin-top:auto;font-size:12px;line-height:1.5;color:var(--ink3)}
+
+/* sliders */
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:26px;background:transparent;cursor:pointer;--v:50%}
+input[type="range"]::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,var(--moss) var(--v),rgba(40,54,24,.14) var(--v))}
+input[type="range"]::-moz-range-track{height:6px;border-radius:6px;background:rgba(40,54,24,.14)}
+input[type="range"]::-moz-range-progress{height:6px;border-radius:6px;background:var(--moss)}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-7px;border-radius:50%;background:var(--cream);border:2px solid var(--clay);box-shadow:0 2px 6px rgba(40,54,24,.25);transition:transform .2s}
+input[type="range"]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--cream);border:2px solid var(--clay)}
+input[type="range"]:active::-webkit-slider-thumb{transform:scale(1.18)}
+.master{display:flex;align-items:center;gap:10px}
+.master svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--ink2);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- mixer grid ---------- */
+.mixer{padding:26px 30px 26px 6px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-content:center;min-height:100vh}
+.card{position:relative;border-radius:22px;background:var(--card);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 1px 0 rgba(255,255,255,.8) inset, 0 18px 34px -28px rgba(40,54,24,.55);transition:border-color .4s,box-shadow .4s,transform .35s cubic-bezier(.3,1.4,.5,1)}
+.card:hover{transform:translateY(-2px)}
+.card.on{border-color:rgba(96,108,56,.55);box-shadow:0 0 0 1px rgba(96,108,56,.3), 0 22px 40px -26px rgba(40,54,24,.7)}
+.illo{position:relative;aspect-ratio:240 / 124;overflow:hidden;border-bottom:1px solid var(--line);cursor:pointer}
+.illo svg{position:absolute;inset:0;width:100%;height:100%;display:block;transition:filter .8s ease, opacity .8s}
+.card:not(.on) .illo svg{filter:saturate(.38) contrast(.92);opacity:.78}
+.meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px 2px}
+.meta h3{font-size:17px;font-weight:600;letter-spacing:-.005em}
+.meta p{font-size:12.5px;color:var(--ink3);margin-top:1px}
+.lvl{display:flex;align-items:center;gap:10px;padding:2px 16px 12px}
+.lvl output{font-size:12px;color:var(--ink3);width:30px;text-align:right;font-variant-numeric:tabular-nums}
+.switch{position:relative;width:48px;height:28px;flex:none;border-radius:999px;background:rgba(40,54,24,.16);transition:background-color .3s}
+.switch::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(40,54,24,.3);transition:transform .35s cubic-bezier(.3,1.5,.5,1)}
+.switch[aria-checked="true"]{background:var(--moss)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+.dot{position:absolute;top:10px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--sand);opacity:0;transition:opacity .4s}
+body.playing .card.on .dot{opacity:1;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(221,161,94,.55)}50%{box-shadow:0 0 0 6px rgba(221,161,94,0)}}
+
+/* ---------- illustration motion (only while a sound is on) ---------- */
+.fx{transform-box:fill-box;transform-origin:center}
+.card.on .drops line{animation:rainfall .95s linear infinite;animation-delay:var(--d)}
+.card:not(.on) .drops line{opacity:.45}
+@keyframes rainfall{0%{transform:translate(0,-8px);opacity:0}15%{opacity:1}100%{transform:translate(-7px,46px);opacity:0}}
+.card.on .ripples ellipse{animation:ripple 1.9s ease-out infinite;animation-delay:var(--d)}
+.ripples ellipse{transform-box:fill-box;transform-origin:center;opacity:0}
+@keyframes ripple{0%{transform:scale(.2);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+.card.on .cloudA{animation:drift 7s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translateX(-5px)}to{transform:translateX(6px)}}
+.bolt,.flashbg{opacity:0}
+.card.on .bolt{animation:bolt 8s linear infinite}
+.card.on .flashbg{animation:flashbg 8s linear infinite}
+.card.strike .bolt{animation:strike .9s linear 1}
+.card.strike .flashbg{animation:strikebg .9s linear 1}
+@keyframes bolt{0%,86%{opacity:0}87%{opacity:1}88.5%{opacity:.15}90%{opacity:1}94%,100%{opacity:0}}
+@keyframes flashbg{0%,86%{opacity:0}87%{opacity:.55}88.5%{opacity:.1}90%{opacity:.4}95%,100%{opacity:0}}
+@keyframes strike{0%{opacity:0}8%{opacity:1}16%{opacity:.2}26%{opacity:1}70%,100%{opacity:0}}
+@keyframes strikebg{0%{opacity:0}8%{opacity:.6}16%{opacity:.1}26%{opacity:.45}80%,100%{opacity:0}}
+.gusts path{stroke-dasharray:46 54}
+.card.on .gusts path{animation:gust 2.6s linear infinite;animation-delay:var(--d)}
+@keyframes gust{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+.leaf{opacity:0}
+.card.on .leaf{animation:leaf 4.6s linear infinite;animation-delay:var(--d)}
+@keyframes leaf{0%{transform:translate(-30px,0) rotate(0);opacity:0}10%{opacity:1}50%{transform:translate(120px,-18px) rotate(220deg)}90%{opacity:1}100%{transform:translate(270px,6px) rotate(460deg);opacity:0}}
+.grass{transform-box:fill-box;transform-origin:50% 100%}
+.card.on .grass{animation:sway 2.4s ease-in-out infinite alternate}
+@keyframes sway{from{transform:skewX(-4deg)}to{transform:skewX(9deg)}}
+.card.on .w1{animation:wave 7s linear infinite}.card.on .w2{animation:wave 5s linear infinite}.card.on .w3{animation:wave 3.6s linear infinite}
+@keyframes wave{from{transform:translateX(0)}to{transform:translateX(-60px)}}
+.card.on .swell{animation:swell 9s ease-in-out infinite}
+@keyframes swell{0%,100%{transform:translateY(2px)}50%{transform:translateY(-3px)}}
+.flame{transform-origin:120px 104px}
+.card.on .f1{animation:flick 1.1s ease-in-out infinite alternate}
+.card.on .f2{animation:flick .8s ease-in-out infinite alternate-reverse}
+.card.on .f3{animation:flick .55s ease-in-out infinite alternate}
+@keyframes flick{0%{transform:scale(1,1) skewX(0)}35%{transform:scale(.95,1.08) skewX(3deg)}70%{transform:scale(1.04,.94) skewX(-3deg)}100%{transform:scale(.98,1.04) skewX(1.5deg)}}
+.card:not(.on) .flames{transform:scale(.7);transform-origin:120px 104px;opacity:.6}
+.card.on .glow{animation:glow 1.6s ease-in-out infinite alternate}
+@keyframes glow{from{opacity:.55}to{opacity:.95}}
+.sparks circle{opacity:0}
+.card.on .sparks circle{animation:spark 2.2s ease-out infinite;animation-delay:var(--d)}
+@keyframes spark{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(var(--x),-52px);opacity:0}}
+.bb{transform-box:fill-box;transform-origin:50% 100%}
+.card.on .b1 .bb{animation:hop 3.2s ease-in-out infinite}
+.card.on .b2 .bb{animation:hop 4.1s ease-in-out infinite .8s}
+@keyframes hop{0%,40%,100%{transform:translateY(0) rotate(0)}45%{transform:translateY(-4px) rotate(-6deg)}52%{transform:translateY(0) rotate(0)}70%{transform:rotate(5deg)}78%{transform:rotate(0)}}
+.notes{opacity:0;transition:opacity .25s}
+.card.on .notes{animation:notes 3.2s ease-out infinite;animation-delay:var(--d)}
+.card.sing .notes{animation:sing .7s ease-out 1}
+@keyframes notes{0%,70%{opacity:0;transform:translate(0,0)}75%{opacity:1}100%{opacity:0;transform:translate(6px,-10px)}}
+@keyframes sing{0%{opacity:0;transform:translate(0,2px)}20%{opacity:1}100%{opacity:0;transform:translate(8px,-12px)}}
+.card.on .flyer{animation:fly 11s linear infinite}
+@keyframes fly{from{transform:translate(-40px,6px)}to{transform:translate(300px,-10px)}}
+.card.on .tw{animation:tw 2.4s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+.arcs path{opacity:0}
+.card.on .arcs path{animation:arc .42s ease-out infinite;animation-delay:var(--d)}
+@keyframes arc{0%{opacity:0}30%{opacity:.95}100%{opacity:0}}
+.card.on .ff{animation:ff 3.4s ease-in-out infinite;animation-delay:var(--d)}
+.ff{opacity:.2}
+@keyframes ff{0%,100%{opacity:.1;transform:translate(0,0)}50%{opacity:1;transform:translate(6px,-5px)}}
+.steam path{stroke-dasharray:30 40;opacity:0}
+.card.on .steam path{animation:steam 3.2s linear infinite;animation-delay:var(--d)}
+@keyframes steam{0%{stroke-dashoffset:70;opacity:0;transform:translateY(4px)}30%{opacity:.8}100%{stroke-dashoffset:0;opacity:0;transform:translateY(-8px)}}
+.bub{opacity:0}
+.card.on .bub{animation:bub 5.4s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes bub{0%,8%{opacity:0;transform:translateY(4px) scale(.8)}16%,52%{opacity:1;transform:none}62%,100%{opacity:0;transform:translateY(-4px)}}
+.card.on .lamp{animation:lamp 5s ease-in-out infinite alternate;transform-origin:62px 0}
+@keyframes lamp{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+.clink{opacity:0}
+.card.clinking .clink{animation:clink .6s ease-out 1}
+@keyframes clink{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(.9)}}
+.rings ellipse{opacity:0}
+.card.on .rings ellipse{animation:ring 4.8s ease-out infinite;animation-delay:var(--d)}
+@keyframes ring{0%{transform:scale(.6);opacity:0}15%{opacity:.7}100%{transform:scale(2.3);opacity:0}}
+.card.on .sine{animation:sinemove 6s linear infinite}
+@keyframes sinemove{from{transform:translateX(0)}to{transform:translateX(-80px)}}
+.card.on .bowl{animation:hum 3.6s ease-in-out infinite}
+@keyframes hum{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+
+/* ---------- responsive ---------- */
+@media (max-width:1180px){
+  body{grid-template-columns:320px minmax(0,1fr)}
+  .mixer{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  body{display:block}
+  .side{position:relative;height:auto;padding:24px 18px 8px;gap:18px}
+  .brand h1{font-size:30px}
+  .orb{width:120px;height:120px}
+  .play{width:74px;height:74px}
+  .mixer{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px 12px 30px;min-height:0}
+  .meta{padding:10px 11px 0;gap:6px}
+  .presets{grid-template-columns:1fr 1fr}
+  .preset small{display:none}
+  .meta h3{font-size:15px}
+  .meta p{display:none}
+  .switch{width:42px;height:24px}
+  .switch::after{width:18px;height:18px}
+  .switch[aria-checked="true"]::after{transform:translateX(18px)}
+  .lvl{padding:0 11px 8px;gap:6px}
+  .lvl output{display:none}
+  .card{border-radius:18px}
+  .foot{margin-top:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.15s!important}
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="base"></div><div class="wet" id="bgWet"></div><div class="green" id="bgGreen"></div><div class="warm" id="bgWarm"></div><div class="night" id="bgNight"></div><div class="paper" id="bgPaper"></div></div>
+
+<aside class="side" aria-label="Mixer controls">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#606c38"/><path d="M9 23c3-6 6-6 9 0s6 6 9 0 3-3 4-4" fill="none" stroke="#fefae0" stroke-width="2.4" stroke-linecap="round"/><path d="M20 8c4 3 5 7 0 11-5-4-4-8 0-11z" fill="#dda15e"/></svg>
+    <div><h1>Ambience</h1><p>A soundscape mixer, synthesized live</p></div>
+  </div>
+
+  <div class="player">
+    <div class="orb">
+      <canvas id="viz" aria-hidden="true"></canvas>
+      <button type="button" class="play" id="playBtn" aria-label="Play the mix">
+        <svg class="ic-play" viewBox="0 0 30 30" aria-hidden="true"><path d="M10 6.5 L24 15 L10 23.5 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        <svg class="ic-pause" viewBox="0 0 30 30" aria-hidden="true"><rect x="8" y="6.5" width="5" height="17" rx="1.6"/><rect x="17" y="6.5" width="5" height="17" rx="1.6"/></svg>
+      </button>
+    </div>
+    <div class="status" aria-live="polite"><b id="stTitle">Ready when you are</b><span id="stText">Sound starts only when you press play.</span></div>
+  </div>
+
+  <div class="block">
+    <h2>Master volume <em id="mvOut">70%</em></h2>
+    <div class="master">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8h3l4-3.5v11L6 12H3z"/></svg>
+      <input type="range" id="masterVol" min="0" max="100" value="70" aria-label="Master volume">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8h3l4-3.5v11L6 12H3z"/><path d="M13 7.5a3.5 3.5 0 0 1 0 5M15.3 5.5a6.5 6.5 0 0 1 0 9"/></svg>
+    </div>
+  </div>
+
+  <div class="block">
+    <h2>Presets</h2>
+    <div class="presets" id="presets">
+      <button type="button" class="preset" data-p="cabin" aria-pressed="false"><svg viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" fill="#4f5a33"/><path d="M6 22V14l9-7 9 7v8z" fill="#bc6c25"/><rect x="12.5" y="16" width="5" height="6" fill="#f4d58d"/><path d="M8 3l-2 5M14 2l-2 5M22 2l-2 5" stroke="#cfd4b7" stroke-width="1.2" stroke-linecap="round"/></svg><span><b>Stormy cabin</b><small>rain, thunder, fire</small></span></button>
+      <button type="button" class="preset" data-p="beach" aria-pressed="false"><svg viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" fill="#e7b777"/><circle cx="15" cy="15" r="6" fill="#bc6c25"/><path d="M0 18q4-3 7.5 0t7.5 0 7.5 0 7.5 0V30H0z" fill="#606c38"/><path d="M0 23q4-3 7.5 0t7.5 0 7.5 0 7.5 0V30H0z" fill="#283618"/></svg><span><b>Beach at dusk</b><small>waves, breeze, crickets</small></span></button>
+      <button type="button" class="preset" data-p="focus" aria-pressed="false"><svg viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" fill="#606c38"/><circle cx="15" cy="15" r="9" fill="none" stroke="#fefae0" stroke-width="1.4"/><circle cx="15" cy="15" r="4.5" fill="none" stroke="#dda15e" stroke-width="1.4"/><circle cx="15" cy="15" r="1.4" fill="#fefae0"/></svg><span><b>Deep focus</b><small>soft rain, café, drone</small></span></button>
+      <button type="button" class="preset" data-p="night" aria-pressed="false"><svg viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" fill="#283618"/><path d="M19 6a7 7 0 1 0 5 11 5.5 5.5 0 1 1-5-11z" fill="#fefae0"/><circle cx="8" cy="9" r=".9" fill="#fefae0"/><circle cx="11" cy="20" r="1.2" fill="#f4d58d"/><path d="M0 30v-5l3-4 2 4 3-6 2 6 3-4 3 5 3-5 3 5 2-3 3 3 3-5v9z" fill="#1a2210"/></svg><span><b>Summer night</b><small>crickets, fire, wind</small></span></button>
+    </div>
+  </div>
+
+  <div class="block">
+    <h2>Sleep timer</h2>
+    <div class="chips" id="timerChips" role="group" aria-label="Sleep timer">
+      <button type="button" class="chip" data-m="0" aria-pressed="true">Off</button>
+      <button type="button" class="chip" data-m="15" aria-pressed="false">15 min</button>
+      <button type="button" class="chip" data-m="30" aria-pressed="false">30 min</button>
+      <button type="button" class="chip" data-m="60" aria-pressed="false">1 hour</button>
+    </div>
+    <div class="timerline"><svg viewBox="0 0 22 22" aria-hidden="true"><circle class="trk" cx="11" cy="11" r="8.5"/><circle class="prg" id="tProg" cx="11" cy="11" r="8.5" stroke-dasharray="53.4" stroke-dashoffset="53.4"/></svg><span id="tText">Everything fades out gently when the timer ends.</span></div>
+  </div>
+
+  <p class="foot">Every sound here is generated in real time with the Web Audio API: noise shaped by filters, oscillators and a little randomness. Nothing is downloaded. Headphones recommended.</p>
+</aside>
+
+<main class="mixer" id="mixer" aria-label="Sounds">
+  <!-- 1 · Rain -->
+  <article class="card" data-id="rain">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <rect width="240" height="130" fill="#e1e6c9"/>
+        <path d="M0 112 Q60 103 120 109 T240 105 V130 H0Z" fill="#c6cfa4"/>
+        <g class="drops" stroke="#6c8878" stroke-width="2" stroke-linecap="round">
+          <line x1="72" y1="64" x2="69" y2="73" style="--d:0s"/><line x1="86" y1="68" x2="83" y2="77" style="--d:.42s"/><line x1="98" y1="62" x2="95" y2="71" style="--d:.2s"/>
+          <line x1="110" y1="70" x2="107" y2="79" style="--d:.66s"/><line x1="122" y1="64" x2="119" y2="73" style="--d:.1s"/><line x1="134" y1="69" x2="131" y2="78" style="--d:.55s"/>
+          <line x1="146" y1="63" x2="143" y2="72" style="--d:.3s"/><line x1="158" y1="67" x2="155" y2="76" style="--d:.78s"/><line x1="78" y1="84" x2="75" y2="93" style="--d:.6s"/>
+          <line x1="104" y1="86" x2="101" y2="95" style="--d:.15s"/><line x1="128" y1="84" x2="125" y2="93" style="--d:.85s"/><line x1="152" y1="86" x2="149" y2="95" style="--d:.38s"/>
+          <line x1="92" y1="98" x2="89" y2="107" style="--d:.7s"/><line x1="140" y1="99" x2="137" y2="108" style="--d:.25s"/>
+        </g>
+        <g class="cloudA">
+          <circle cx="84" cy="48" r="17" fill="#fffdf0"/><circle cx="110" cy="37" r="24" fill="#fffdf0"/><circle cx="140" cy="43" r="19" fill="#fffdf0"/><circle cx="161" cy="53" r="12" fill="#fffdf0"/>
+          <rect x="70" y="47" width="102" height="19" rx="9.5" fill="#fffdf0"/>
+          <path d="M78 64 H164" stroke="#dfe3c6" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <g class="ripples" fill="none" stroke="#6c8878" stroke-width="1.3">
+          <ellipse cx="86" cy="117" rx="13" ry="3" style="--d:.2s"/><ellipse cx="142" cy="119" rx="15" ry="3.4" style="--d:.95s"/><ellipse cx="116" cy="114" rx="10" ry="2.4" style="--d:1.5s"/>
+        </g>
+        <path d="M14 114l4-15 3 15M22 113l6-19 2 19M206 110l4-14 3 14M214 110l6-17 2 17" fill="none" stroke="#606c38" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Rain</h3><p>Steady rain with falling drops</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Rain"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="60" aria-label="Rain volume"><output>60</output></div>
+  </article>
+
+  <!-- 2 · Thunder -->
+  <article class="card" data-id="thunder">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <rect width="240" height="130" fill="#cdd2b3"/>
+        <rect class="flashbg" width="240" height="130" fill="#fffdf0"/>
+        <path d="M0 100 Q40 84 80 96 Q120 80 160 94 Q200 86 240 96 V130 H0Z" fill="#8c976b"/>
+        <path d="M0 113 Q70 101 130 110 T240 108 V130 H0Z" fill="#606c38"/>
+        <g stroke="#7d8a62" stroke-width="1.4" stroke-linecap="round" opacity=".7"><path d="M60 70l-3 8M76 76l-3 8M160 72l-3 8M176 78l-3 8M190 68l-3 8M48 82l-3 8"/></g>
+        <path class="bolt" d="M126 56 L111 84 H123 L115 110 L141 74 H129 L137 56 Z" fill="#fffdf0" stroke="#dda15e" stroke-width="1.6" stroke-linejoin="round"/>
+        <g>
+          <circle cx="76" cy="46" r="20" fill="#4d5832"/><circle cx="106" cy="34" r="27" fill="#56623a"/><circle cx="142" cy="38" r="24" fill="#4d5832"/><circle cx="170" cy="50" r="17" fill="#454f2c"/>
+          <rect x="58" y="44" width="128" height="22" rx="11" fill="#454f2c"/>
+          <path d="M88 22 q18 -10 36 0" fill="none" stroke="#6f7c4c" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Thunder</h3><p>Distant, rolling rumbles</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Thunder"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="55" aria-label="Thunder volume"><output>55</output></div>
+  </article>
+
+  <!-- 3 · Wind -->
+  <article class="card" data-id="wind">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <rect width="240" height="130" fill="#ebeed3"/>
+        <path d="M0 98 Q60 80 120 92 T240 86 V130 H0Z" fill="#c9d1a2"/>
+        <path d="M0 114 Q80 104 150 112 T240 110 V130 H0Z" fill="#a3b18a"/>
+        <g class="gusts" fill="none" stroke="#606c38" stroke-width="2.2" stroke-linecap="round">
+          <path d="M18 40 H128 C150 40 156 18 140 15 C128 13 123 28 134 30" pathLength="100" style="--d:0s"/>
+          <path d="M44 62 H172 C194 62 200 84 182 88 C170 90 165 75 176 73" pathLength="100" style="--d:.9s"/>
+          <path d="M8 80 H98 C114 80 118 65 105 63" pathLength="100" style="--d:1.6s"/>
+        </g>
+        <g transform="translate(0 52)"><g class="leaf" style="--d:0s"><path d="M0 0 C6 -6 14 -6 18 0 C14 6 6 6 0 0Z" fill="#bc6c25"/></g></g>
+        <g transform="translate(0 30)"><g class="leaf" style="--d:1.7s"><path d="M0 0 C5 -5 12 -5 15 0 C12 5 5 5 0 0Z" fill="#dda15e"/></g></g>
+        <g transform="translate(0 74)"><g class="leaf" style="--d:3s"><path d="M0 0 C5 -5 12 -5 15 0 C12 5 5 5 0 0Z" fill="#606c38"/></g></g>
+        <g class="grass" fill="none" stroke="#606c38" stroke-width="2" stroke-linecap="round"><path d="M186 116 q2-18 12-30 M194 116 q0-16 4-26 M202 116 q4-14 16-22 M178 116 q-2-14 4-24 M210 116 q2-10 10-16"/></g>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Wind</h3><p>Gusts that come and go</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Wind"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="45" aria-label="Wind volume"><output>45</output></div>
+  </article>
+
+  <!-- 4 · Ocean -->
+  <article class="card" data-id="ocean">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs><linearGradient id="skyO" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef0d9"/><stop offset="1" stop-color="#f3dcb0"/></linearGradient></defs>
+        <rect width="240" height="130" fill="url(#skyO)"/>
+        <circle cx="170" cy="70" r="17" fill="#dda15e" opacity=".9"/>
+        <path d="M58 42 q5-5 10 0 q5-5 10 0" fill="none" stroke="#283618" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M92 32 q3-3 6 0 q3-3 6 0" fill="none" stroke="#283618" stroke-width="1.3" stroke-linecap="round"/>
+        <g class="swell">
+          <g class="w1"><path d="M0 74 q15 -6 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V130 H0Z" fill="#b8c49a"/></g>
+          <g class="w2"><path d="M0 88 q15 -7 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V130 H0Z" fill="#7f9166"/></g>
+          <g class="w3"><path d="M0 104 q15 -8 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V130 H0Z" fill="#4c5a30"/>
+            <path d="M0 104 q15 -8 30 0 m30 0 q15 -8 30 0 m30 0 q15 -8 30 0 m30 0 q15 -8 30 0 m30 0 q15 -8 30 0" fill="none" stroke="#fffdf0" stroke-width="1.6" stroke-linecap="round" opacity=".75"/></g>
+        </g>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Ocean</h3><p>Slow swells on a quiet shore</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Ocean waves"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="65" aria-label="Ocean volume"><output>65</output></div>
+  </article>
+
+  <!-- 5 · Campfire -->
+  <article class="card" data-id="fire">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs><radialGradient id="fireGlow"><stop offset="0" stop-color="#f4c27a" stop-opacity=".95"/><stop offset=".55" stop-color="#dda15e" stop-opacity=".35"/><stop offset="1" stop-color="#dda15e" stop-opacity="0"/></radialGradient></defs>
+        <rect width="240" height="130" fill="#efdcb8"/>
+        <circle class="glow" cx="120" cy="86" r="62" fill="url(#fireGlow)"/>
+        <ellipse cx="120" cy="114" rx="76" ry="10" fill="#dcc193"/>
+        <g fill="#a39576"><ellipse cx="72" cy="112" rx="9" ry="6"/><ellipse cx="88" cy="116" rx="8" ry="5"/><ellipse cx="152" cy="116" rx="8" ry="5"/><ellipse cx="168" cy="112" rx="9" ry="6"/></g>
+        <g class="flames">
+          <path class="flame f1" d="M120 104 C92 98 92 74 106 58 C106 72 114 74 116 60 C120 44 132 40 132 30 C146 50 150 70 142 84 C150 82 152 76 152 72 C158 88 148 102 120 104Z" fill="#bc6c25"/>
+          <path class="flame f2" d="M120 104 C102 100 102 82 112 70 C112 80 118 82 120 72 C122 62 130 58 131 50 C140 64 144 80 136 94 C132 100 126 104 120 104Z" fill="#dda15e"/>
+          <path class="flame f3" d="M120 104 C110 102 110 92 116 84 C117 90 121 90 122 84 C124 78 128 76 128 72 C133 82 133 96 120 104Z" fill="#fff4d6"/>
+        </g>
+        <g><rect x="80" y="99" width="80" height="11" rx="5.5" fill="#6b3f1d" transform="rotate(-11 120 104)"/><rect x="80" y="99" width="80" height="11" rx="5.5" fill="#7c4a22" transform="rotate(11 120 104)"/>
+          <ellipse cx="81.5" cy="112" rx="3.4" ry="5" fill="#dda15e" transform="rotate(-11 120 104)"/><ellipse cx="158.5" cy="112" rx="3.4" ry="5" fill="#dda15e" transform="rotate(11 120 104)"/></g>
+        <g class="sparks" fill="#bc6c25"><circle cx="116" cy="62" r="1.8" style="--d:0s;--x:-8px"/><circle cx="126" cy="56" r="1.4" style="--d:.7s;--x:10px"/><circle cx="120" cy="66" r="1.6" style="--d:1.3s;--x:4px"/><circle cx="112" cy="70" r="1.2" style="--d:1.8s;--x:-12px"/><circle cx="130" cy="64" r="1.3" style="--d:.35s;--x:14px"/></g>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Campfire</h3><p>Crackle over a low rumble</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Campfire"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="55" aria-label="Campfire volume"><output>55</output></div>
+  </article>
+
+  <!-- 6 · Birds -->
+  <article class="card" data-id="birds">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <rect width="240" height="130" fill="#e4e9c9"/>
+        <circle cx="200" cy="36" r="22" fill="#f4e3b4"/>
+        <g class="flyer"><path d="M20 30 q4-4 8 0 q4-4 8 0" fill="none" stroke="#606c38" stroke-width="1.4" stroke-linecap="round"/></g>
+        <path d="M-4 104 C60 96 120 88 250 64" fill="none" stroke="#6b4a2b" stroke-width="6" stroke-linecap="round"/>
+        <path d="M60 97 C66 88 76 84 84 84 M170 78 C176 70 186 66 196 67" fill="none" stroke="#6b4a2b" stroke-width="3" stroke-linecap="round"/>
+        <g fill="#606c38"><ellipse cx="86" cy="82" rx="9" ry="4.5" transform="rotate(-25 86 82)"/><ellipse cx="198" cy="64" rx="9" ry="4.5" transform="rotate(-20 198 64)"/><ellipse cx="34" cy="98" rx="8" ry="4" transform="rotate(20 34 98)"/></g>
+        <g fill="#a3b18a"><ellipse cx="76" cy="90" rx="7" ry="3.5" transform="rotate(30 76 90)"/><ellipse cx="214" cy="70" rx="8" ry="4" transform="rotate(25 214 70)"/></g>
+        <g class="b1" transform="translate(104 84)"><g class="bb">
+          <path d="M-12 -2 L-25 -8 L-23 2 Z" fill="#8a5a2a"/>
+          <ellipse cx="0" cy="-6" rx="13" ry="10" fill="#dda15e"/><ellipse cx="3" cy="-3" rx="8" ry="6" fill="#fdf3dc"/>
+          <circle cx="9" cy="-14" r="7" fill="#bc6c25"/><circle cx="11" cy="-15.5" r="1.3" fill="#283618"/>
+          <path d="M15.5 -15 L21.5 -13 L15.5 -11.5 Z" fill="#283618"/>
+          <path d="M-2 3 L-3 8 M3 3 L3 8" stroke="#6b4a2b" stroke-width="1.2" stroke-linecap="round"/>
+        </g></g>
+        <g class="notes" style="--d:.2s" fill="none" stroke="#bc6c25" stroke-width="1.4" stroke-linecap="round"><path d="M130 62 q4 -4 8 0 M134 54 q4 -4 8 0"/></g>
+        <g class="b2" transform="translate(162 74) scale(-1 1)"><g class="bb">
+          <path d="M-11 -2 L-23 -7 L-21 2 Z" fill="#4c5a30"/>
+          <ellipse cx="0" cy="-5" rx="11" ry="9" fill="#606c38"/><ellipse cx="3" cy="-2" rx="7" ry="5" fill="#f1ecd0"/>
+          <circle cx="8" cy="-12" r="6" fill="#4c5a30"/><circle cx="10" cy="-13.5" r="1.2" fill="#fefae0"/>
+          <path d="M13.5 -13 L19 -11.5 L13.5 -10 Z" fill="#283618"/>
+          <path d="M-2 3 L-3 8 M3 3 L3 8" stroke="#6b4a2b" stroke-width="1.2" stroke-linecap="round"/>
+        </g></g>
+        <g class="notes" style="--d:1.8s" fill="none" stroke="#606c38" stroke-width="1.4" stroke-linecap="round"><path d="M136 52 q-4 -4 -8 0 M132 44 q-4 -4 -8 0"/></g>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Forest birds</h3><p>Chirps from the canopy</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Forest birds"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="40" aria-label="Forest birds volume"><output>40</output></div>
+  </article>
+
+  <!-- 7 · Crickets -->
+  <article class="card" data-id="crickets">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs><radialGradient id="ffG"><stop offset="0" stop-color="#fbe7a6"/><stop offset=".4" stop-color="#f4d58d" stop-opacity=".7"/><stop offset="1" stop-color="#f4d58d" stop-opacity="0"/></radialGradient></defs>
+        <rect width="240" height="130" fill="#25301a"/>
+        <g fill="#fefae0"><circle class="tw" cx="30" cy="22" r="1" style="--d:0s"/><circle class="tw" cx="62" cy="40" r=".8" style="--d:.8s"/><circle class="tw" cx="96" cy="18" r="1.1" style="--d:1.4s"/><circle class="tw" cx="140" cy="30" r=".8" style="--d:.4s"/><circle class="tw" cx="118" cy="50" r=".7" style="--d:1.9s"/><circle class="tw" cx="162" cy="14" r=".9" style="--d:1.1s"/><circle class="tw" cx="222" cy="52" r=".8" style="--d:.6s"/></g>
+        <path d="M198 16 a16 16 0 1 0 12 27 a12.5 12.5 0 1 1 -12 -27z" fill="#fefae0"/>
+        <circle class="ff" cx="58" cy="78" r="7" fill="url(#ffG)" style="--d:0s"/><circle class="ff" cx="184" cy="84" r="6" fill="url(#ffG)" style="--d:1.2s"/><circle class="ff" cx="148" cy="62" r="5" fill="url(#ffG)" style="--d:2.1s"/>
+        <path d="M0 130 V112 l5-20 l4 20 l5-28 l3 28 l6-16 l3 16 l7-24 l2 24 l6-14 l4 14 l5-22 l3 22 l8-12 l2 12 l6-26 l3 26 l5-18 l4 18 l7-10 l3 10 l5-24 l3 24 l6-14 l3 14 l7-20 l2 20 l5-12 l4 12 l6-28 l3 28 l5-16 l4 16 l6-22 l3 22 l7-12 l2 12 l6-18 l3 18 l5-26 l4 26 l6-12 l3 12 l7-20 l3 20 V130Z" fill="#161e0d"/>
+        <path d="M120 130 C118 110 116 96 108 80" fill="none" stroke="#1d2711" stroke-width="3" stroke-linecap="round"/>
+        <g transform="translate(111 88) rotate(-58)">
+          <ellipse cx="0" cy="0" rx="9" ry="3.6" fill="#8d9a5a"/><circle cx="8.5" cy="-.5" r="2.6" fill="#7d8a4a"/>
+          <path d="M10 -2 C18 -10 24 -12 30 -12 M10 -1 C18 -6 26 -6 31 -4" fill="none" stroke="#a3b18a" stroke-width=".8"/>
+          <path d="M-3 2 L-8 8 L-14 7 M2 2 L0 7 M-6 -2 L-10 -8" fill="none" stroke="#7d8a4a" stroke-width="1.1" stroke-linecap="round"/>
+        </g>
+        <g class="arcs" fill="none" stroke="#dda15e" stroke-width="1.4" stroke-linecap="round"><path d="M124 70 a8 8 0 0 1 0 12" style="--d:0s"/><path d="M129 66 a14 14 0 0 1 0 20" style="--d:.07s"/><path d="M134 62 a20 20 0 0 1 0 28" style="--d:.14s"/></g>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Crickets</h3><p>Pulsing through the grass</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Crickets"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="35" aria-label="Crickets volume"><output>35</output></div>
+  </article>
+
+  <!-- 8 · Café -->
+  <article class="card" data-id="cafe">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs><radialGradient id="lampG"><stop offset="0" stop-color="#f7d79a" stop-opacity=".9"/><stop offset="1" stop-color="#f7d79a" stop-opacity="0"/></radialGradient></defs>
+        <rect width="240" height="130" fill="#eddcbd"/>
+        <rect x="150" y="12" width="70" height="56" rx="6" fill="#e2cda6"/><path d="M185 12 V68 M150 40 H220" stroke="#eddcbd" stroke-width="3"/>
+        <g class="lamp"><path d="M62 0 V24" stroke="#6b4a2b" stroke-width="1.4"/><circle cx="62" cy="40" r="30" fill="url(#lampG)"/><path d="M48 34 Q62 18 76 34 Z" fill="#606c38"/><circle cx="62" cy="35" r="3" fill="#fbe7a6"/></g>
+        <g class="bub" style="--d:0s"><rect x="18" y="52" width="34" height="18" rx="9" fill="#fffdf0"/><path d="M26 69 l-3 6 l8 -6z" fill="#fffdf0"/><circle cx="28" cy="61" r="1.8" fill="#bc6c25"/><circle cx="35" cy="61" r="1.8" fill="#bc6c25"/><circle cx="42" cy="61" r="1.8" fill="#bc6c25"/></g>
+        <g class="bub" style="--d:2.2s"><rect x="178" y="74" width="32" height="17" rx="8.5" fill="#fffdf0"/><path d="M202 90 l4 6 l-9 -6z" fill="#fffdf0"/><circle cx="187" cy="82.5" r="1.7" fill="#606c38"/><circle cx="194" cy="82.5" r="1.7" fill="#606c38"/><circle cx="201" cy="82.5" r="1.7" fill="#606c38"/></g>
+        <g class="bub" style="--d:3.8s"><rect x="72" y="62" width="26" height="14" rx="7" fill="#fffdf0"/><circle cx="80" cy="69" r="1.5" fill="#dda15e"/><circle cx="85" cy="69" r="1.5" fill="#dda15e"/><circle cx="90" cy="69" r="1.5" fill="#dda15e"/></g>
+        <rect x="0" y="104" width="240" height="26" fill="#b98f62"/><rect x="0" y="104" width="240" height="3" fill="#cfa877"/>
+        <g class="steam" fill="none" stroke="#fffdf0" stroke-width="2" stroke-linecap="round"><path d="M126 70 c-5 -6 5 -10 0 -16 s5 -10 0 -16" style="--d:0s"/><path d="M136 72 c-5 -6 5 -10 0 -16 s5 -10 0 -16" style="--d:1.1s"/><path d="M146 70 c-5 -6 5 -10 0 -16 s5 -10 0 -16" style="--d:2.1s"/></g>
+        <ellipse cx="136" cy="104" rx="36" ry="6" fill="#fffdf0"/><ellipse cx="136" cy="103" rx="26" ry="3.5" fill="#efe4c8"/>
+        <path d="M114 76 H158 V88 C158 98 150 103 136 103 C122 103 114 98 114 88 Z" fill="#fffdf0"/>
+        <path d="M158 80 c10 0 10 14 0 14" fill="none" stroke="#fffdf0" stroke-width="4"/>
+        <ellipse cx="136" cy="76.5" rx="22" ry="3.4" fill="#6b3f1d"/>
+        <path d="M121 86 H151" stroke="#606c38" stroke-width="2.4" stroke-linecap="round" opacity=".7"/>
+        <g class="clink" transform="translate(116 72)"><path class="fx" d="M0 -7 L1.6 -1.6 L7 0 L1.6 1.6 L0 7 L-1.6 1.6 L-7 0 L-1.6 -1.6 Z" fill="#dda15e"/></g>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Café murmur</h3><p>Voices, cups and clinks</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Café murmur"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="45" aria-label="Café murmur volume"><output>45</output></div>
+  </article>
+
+  <!-- 9 · Drone -->
+  <article class="card" data-id="drone">
+    <div class="illo">
+      <svg viewBox="0 0 240 130" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs><linearGradient id="bowlG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e7b777"/><stop offset=".6" stop-color="#bc6c25"/><stop offset="1" stop-color="#8a4a17"/></linearGradient></defs>
+        <rect width="240" height="130" fill="#e9d9bb"/>
+        <g class="sine" fill="none" stroke="#c9ab7c" stroke-width="1.6"><path d="M0 34 c10 -10 30 -10 40 0 s30 10 40 0 s30 -10 40 0 s30 10 40 0 s30 -10 40 0 s30 10 40 0 s30 -10 40 0 s30 10 40 0"/></g>
+        <g class="rings" fill="none" stroke="#bc6c25" stroke-width="1.3"><ellipse class="fx" cx="120" cy="80" rx="34" ry="9" style="--d:0s"/><ellipse class="fx" cx="120" cy="80" rx="34" ry="9" style="--d:1.6s"/><ellipse class="fx" cx="120" cy="80" rx="34" ry="9" style="--d:3.2s"/></g>
+        <ellipse cx="120" cy="112" rx="52" ry="11" fill="#606c38"/><ellipse cx="120" cy="108" rx="44" ry="7" fill="#7a8748"/>
+        <g class="bowl">
+          <path d="M82 80 H158 C156 102 140 110 120 110 C100 110 84 102 82 80 Z" fill="url(#bowlG)"/>
+          <ellipse cx="120" cy="80" rx="38" ry="6.5" fill="#dda15e" stroke="#bc6c25" stroke-width="1.4"/>
+          <ellipse cx="120" cy="80.5" rx="30" ry="4" fill="#9c5a1e"/>
+          <path d="M92 90 C98 100 110 104 120 104" fill="none" stroke="#f4d58d" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>
+        </g>
+        <g transform="rotate(-24 178 98)"><rect x="170" y="70" width="6" height="42" rx="3" fill="#6b3f1d"/><rect x="168.5" y="64" width="9" height="12" rx="4.5" fill="#dda15e"/></g>
+      </svg>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <div class="meta"><div><h3>Drone pad</h3><p>A slow, warm chord</p></div><button type="button" class="switch" role="switch" aria-checked="false" aria-label="Drone pad"></button></div>
+    <div class="lvl"><input type="range" min="0" max="100" value="35" aria-label="Drone pad volume"><output>35</output></div>
+  </article>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+let reduced = mq.matches;
+if (mq.addEventListener) mq.addEventListener('change', e => { reduced = e.matches; });
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[(Math.random() * arr.length) | 0];
+
+/* paper grain for the background */
+(function(){
+  const c = document.createElement('canvas'); c.width = c.height = 200;
+  const g = c.getContext('2d'), d = g.createImageData(200, 200);
+  for (let i = 0; i < d.data.length; i += 4) { const v = 236 + Math.random() * 19; d.data[i] = v; d.data[i + 1] = v - 2; d.data[i + 2] = v - 10; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0);
+  $('bgPaper').style.setProperty('--paper', 'url(data:' + c.toDataURL().slice(5) + ')');
+})();
+
+/* =====================================================================
+   Audio engine (created lazily inside a user gesture)
+   ===================================================================== */
+let ac = null, master = null, analyser = null, NB = {}, dropBuf = null, clickBuf = null, playing = false, suspendT = 0;
+function makeNoise(type){
+  const len = Math.floor(ac.sampleRate * 4), buf = ac.createBuffer(2, len, ac.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    if (type === 'white') { for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; }
+    else if (type === 'pink') {
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < len; i++) {
+        const w = Math.random() * 2 - 1;
+        b0 = .99886 * b0 + w * .0555179; b1 = .99332 * b1 + w * .0750759; b2 = .969 * b2 + w * .153852;
+        b3 = .8665 * b3 + w * .3104856; b4 = .55 * b4 + w * .5329522; b5 = -.7616 * b5 - w * .016898;
+        d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * .5362) * .11; b6 = w * .115926;
+      }
+    } else {
+      let last = 0;
+      for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; last = (last + .02 * w) / 1.02; d[i] = last * 3.5; }
+    }
+  }
+  return buf;
+}
+function ensureAudio(){
+  if (ac) { if (ac.state === 'suspended') ac.resume(); return true; }
+  const C = window.AudioContext || window.webkitAudioContext;
+  if (!C) { status('Audio is not available', 'This browser does not support the Web Audio API.'); return false; }
+  ac = new C();
+  master = ac.createGain(); master.gain.value = 0;
+  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 3; comp.attack.value = .01; comp.release.value = .3;
+  analyser = ac.createAnalyser(); analyser.fftSize = 512; analyser.smoothingTimeConstant = .82;
+  master.connect(comp); comp.connect(analyser); analyser.connect(ac.destination);
+  NB.white = makeNoise('white'); NB.pink = makeNoise('pink'); NB.brown = makeNoise('brown');
+  dropBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * .05), ac.sampleRate);
+  { const d = dropBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * .006)); }
+  clickBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * .012), ac.sampleRate);
+  { const d = clickBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * .0012)); }
+  setInterval(schedule, 60);
+  return true;
+}
+/* small node helpers */
+const G = v => { const g = ac.createGain(); g.gain.value = v; return g; };
+const F = (type, f, q) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q !== undefined) b.Q.value = q; return b; };
+const P = v => { if (ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = v; return p; } return G(1); };
+const NOISE = type => { const s = ac.createBufferSource(); s.buffer = NB[type]; s.loop = true; s.start(0, Math.random() * 3.5); return s; };
+const LFO = (f, depth, target, type) => { const o = ac.createOscillator(); o.type = type || 'sine'; o.frequency.value = f; const g = G(depth); o.connect(g); g.connect(target); o.start(); return o; };
+const chain = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+const at = (t, fn) => setTimeout(fn, Math.max(0, (t - ac.currentTime) * 1000));
+
+/* =====================================================================
+   The nine sounds
+   ===================================================================== */
+const SOUNDS = {
+  rain: {
+    level: .9, mood: { wet: .9, night: .1 },
+    build(o){
+      chain(NOISE('pink'), F('highpass', 380, .5), F('lowpass', 7200, .5), G(.55), o);
+      chain(NOISE('brown'), F('lowpass', 900, .6), G(.55), o);
+      this.drops = G(1); this.drops.connect(o);
+    },
+    rate: () => rand(.02, .075),
+    event(t){
+      if (Math.random() < .16) {
+        const osc = ac.createOscillator(), g = G(0), f = rand(900, 2600), p = P(rand(-.8, .8));
+        osc.frequency.setValueAtTime(f, t); osc.frequency.exponentialRampToValueAtTime(f * 1.45, t + .035);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(rand(.03, .09), t + .003); g.gain.exponentialRampToValueAtTime(.0005, t + .07);
+        chain(osc, g, p, this.drops); osc.start(t); osc.stop(t + .09);
+      } else {
+        const s = ac.createBufferSource(); s.buffer = dropBuf;
+        chain(s, F('bandpass', rand(1800, 6500), rand(2, 6)), P(rand(-.85, .85)), G(rand(.08, .45)), this.drops); s.start(t);
+      }
+    }
+  },
+  thunder: {
+    level: 1, mood: { wet: .5, night: .7 },
+    build(o){ this.bus = G(1); this.bus.connect(o); chain(NOISE('brown'), F('lowpass', 90, .7), G(.12), o); },
+    first: () => rand(1.5, 4), rate: () => rand(9, 22),
+    event(t){
+      const dist = Math.random(), dur = rand(4, 7.5), peak = rand(.55, 1) * (1 - dist * .4);
+      const lp = F('lowpass', 420 - dist * 180, .8), g = G(0), s = ac.createBufferSource(); s.buffer = NB.brown; s.loop = true;
+      lp.frequency.setValueAtTime(420 - dist * 180, t); lp.frequency.exponentialRampToValueAtTime(70, t + dur);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + rand(.08, .5));
+      for (let k = 1; k <= 3; k++) { const tk = t + k * rand(.5, 1.1); g.gain.linearRampToValueAtTime(peak * rand(.4, .9), tk); }
+      g.gain.setTargetAtTime(0, t + 3.2, dur / 4);
+      chain(s, lp, g, P(rand(-.5, .5)), this.bus); s.start(t, rand(0, 3)); s.stop(t + dur + 3);
+      if (dist < .45) {
+        const c = ac.createBufferSource(); c.buffer = NB.white; const bp = F('bandpass', 1400, .7), cg = G(0);
+        bp.frequency.setValueAtTime(1800, t); bp.frequency.exponentialRampToValueAtTime(250, t + .5);
+        cg.gain.setValueAtTime(0, t); cg.gain.linearRampToValueAtTime(.35, t + .01); cg.gain.exponentialRampToValueAtTime(.001, t + .7);
+        chain(c, bp, cg, this.bus); c.start(t); c.stop(t + .8);
+      }
+      at(t - .25, () => flashCard('thunder'));
+    }
+  },
+  wind: {
+    level: .95, mood: { green: .4, wet: .35 },
+    build(o){
+      const bp = F('bandpass', 520, 1.1), amp = G(.62);
+      chain(NOISE('pink'), bp, amp, o);
+      LFO(.071, 260, bp.frequency); LFO(.113, 140, bp.frequency);
+      LFO(.09, .28, amp.gain); LFO(.047, .16, amp.gain);
+      const wh = F('bandpass', 1900, 11), wg = G(.16);
+      chain(NOISE('white'), wh, wg, o); LFO(.053, 620, wh.frequency); LFO(.08, .12, wg.gain);
+      chain(NOISE('brown'), F('lowpass', 260), G(.45), o);
+    }
+  },
+  ocean: {
+    level: 1, mood: { wet: .75 },
+    build(o){
+      this.lp = F('lowpass', 520, .6); this.amp = G(.14);
+      chain(NOISE('pink'), this.lp); chain(NOISE('brown'), G(.7), this.lp);
+      chain(this.lp, this.amp, o);
+      this.wash = G(0); chain(NOISE('white'), F('highpass', 2600, .5), F('lowpass', 7000), this.wash, o);
+    },
+    first: () => .1, rate: () => rand(7, 11.5),
+    event(t, n){
+      const rise = rand(2.6, 3.8), fall = rand(3.5, 5.5), peak = rand(.75, 1);
+      this.amp.gain.setTargetAtTime(peak, t, rise / 3); this.amp.gain.setTargetAtTime(.12, t + rise, fall / 3.2);
+      this.lp.frequency.setTargetAtTime(rand(1500, 2200), t, rise / 3); this.lp.frequency.setTargetAtTime(480, t + rise, fall / 3);
+      this.wash.gain.setTargetAtTime(.2 * peak, t + rise * .75, .5); this.wash.gain.setTargetAtTime(0, t + rise + .6, fall / 3);
+      void n;
+    }
+  },
+  fire: {
+    level: .95, mood: { warm: 1 },
+    build(o){
+      const rg = G(.5); chain(NOISE('brown'), F('lowpass', 190, .7), rg, o); LFO(.31, .18, rg.gain);
+      chain(NOISE('white'), F('highpass', 3200), G(.025), o);
+      this.bus = G(1); this.bus.connect(o);
+    },
+    rate: () => Math.random() < .2 ? rand(.25, .7) : rand(.02, .12),
+    event(t){
+      const n = 1 + ((Math.random() * 4) | 0);
+      for (let k = 0; k < n; k++) {
+        const tk = t + k * rand(.004, .03), s = ac.createBufferSource(); s.buffer = clickBuf;
+        const pop = Math.random() < .07;
+        chain(s, F(pop ? 'bandpass' : 'highpass', pop ? rand(500, 1100) : rand(1400, 4200), pop ? 1.5 : .7), P(rand(-.45, .45)), G(pop ? rand(.8, 1.2) : rand(.12, .7)), this.bus);
+        s.playbackRate.value = pop ? rand(.4, .7) : rand(.8, 1.6);
+        s.start(tk);
+      }
+    }
+  },
+  birds: {
+    level: .8, mood: { green: 1 },
+    build(o){
+      this.bus = G(1);
+      const dl = ac.createDelay(1), fb = G(.28), dlf = F('lowpass', 2800), wet = G(.35);
+      this.bus.connect(o); this.bus.connect(dl); chain(dl, dlf, fb, dl); dlf.connect(wet); wet.connect(o); dl.delayTime.value = .19;
+      chain(NOISE('pink'), F('bandpass', 3200, .8), G(.035), o);
+    },
+    first: () => rand(.3, 1), rate: () => rand(1.3, 5.5),
+    event(t){
+      const sp = pick([
+        { n: [3, 6], f0: [2600, 3200], f1: [3800, 4600], d: [.07, .11], gap: [.09, .14], fm: 0 },
+        { n: [2, 4], f0: [3400, 4200], f1: [2900, 3400], d: [.1, .16], gap: [.14, .22], fm: [40, 70] },
+        { n: [4, 8], f0: [4800, 5600], f1: [4200, 4800], d: [.04, .07], gap: [.06, .09], fm: [90, 140] },
+        { n: [2, 3], f0: [1900, 2300], f1: [2800, 3300], d: [.18, .26], gap: [.22, .3], fm: [8, 14] }
+      ]);
+      const count = Math.round(rand(sp.n[0], sp.n[1])), pan = rand(-.8, .8), vol = rand(.05, .13), base0 = rand(sp.f0[0], sp.f0[1]), base1 = rand(sp.f1[0], sp.f1[1]);
+      let tk = t;
+      for (let k = 0; k < count; k++) {
+        const d = rand(sp.d[0], sp.d[1]), c = ac.createOscillator(), g = G(0);
+        c.frequency.setValueAtTime(base0 * rand(.97, 1.03), tk); c.frequency.exponentialRampToValueAtTime(base1 * rand(.97, 1.03), tk + d);
+        if (sp.fm) { const m = ac.createOscillator(), mg = G(rand(250, 700)); m.frequency.value = rand(sp.fm[0], sp.fm[1]); chain(m, mg, c.frequency); m.start(tk); m.stop(tk + d + .02); }
+        g.gain.setValueAtTime(0, tk); g.gain.linearRampToValueAtTime(vol, tk + .008); g.gain.exponentialRampToValueAtTime(.0004, tk + d);
+        chain(c, g, P(pan), this.bus); c.start(tk); c.stop(tk + d + .03);
+        tk += d + rand(sp.gap[0], sp.gap[1]) * .6;
+      }
+      at(t, () => cardPulse('birds', 'sing', 700));
+    }
+  },
+  crickets: {
+    level: .75, mood: { night: .9, green: .25 },
+    build(o){
+      this.cr = [{ f: 4650, pan: -.55, rate: 2.5 }, { f: 5080, pan: .45, rate: 1.95 }, { f: 4380, pan: .05, rate: 2.9 }].map(c => {
+        const osc = ac.createOscillator(), g = G(0); osc.frequency.value = c.f; chain(osc, g, P(c.pan), o); osc.start();
+        return Object.assign(c, { g, next: 0 });
+      });
+      chain(NOISE('pink'), F('lowpass', 1100), G(.05), o);
+    },
+    tick(now, horizon){
+      for (const c of this.cr) {
+        if (c.next < now) c.next = now + rand(.05, .4);
+        while (c.next < horizon) {
+          const t = c.next, pulses = 3 + ((Math.random() * 2) | 0);
+          for (let i = 0; i < pulses; i++) { const tp = t + i * .034; c.g.gain.setValueAtTime(0, tp); c.g.gain.linearRampToValueAtTime(.22, tp + .005); c.g.gain.linearRampToValueAtTime(0, tp + .024); }
+          c.next = t + (Math.random() < .08 ? rand(1.2, 3) : (1 / c.rate) * rand(.9, 1.1));
+        }
+      }
+    }
+  },
+  cafe: {
+    level: .9, mood: { warm: .6 },
+    build(o){
+      const bus = F('lowpass', 3400, .5); bus.connect(o);
+      chain(NOISE('pink'), F('bandpass', 700, .5), G(.28), bus);
+      for (let v = 0; v < 4; v++) {
+        const src = NOISE('pink'), vg = G(.32), pan = P(rand(-.7, .7));
+        const f1 = F('bandpass', rand(380, 700), 6), f2 = F('bandpass', rand(1100, 1900), 7), f3 = F('bandpass', rand(2300, 2900), 8);
+        src.connect(f1); src.connect(f2); src.connect(f3);
+        const mix = G(1); f1.connect(mix); chain(f2, G(.7), mix); chain(f3, G(.35), mix);
+        chain(mix, vg, pan, bus);
+        LFO(rand(3.2, 5.8), .22, vg.gain); LFO(rand(.13, .4), .24, vg.gain);
+        LFO(rand(.3, .8), rand(120, 220), f1.frequency); LFO(rand(.2, .6), rand(200, 380), f2.frequency);
+      }
+      this.bus = bus;
+    },
+    first: () => rand(2, 4), rate: () => rand(3.5, 9),
+    event(t){
+      const f = rand(2100, 3300), pan = P(rand(-.6, .6));
+      [1, 2.76, 5.4].forEach((m, i) => {
+        const osc = ac.createOscillator(), g = G(0); osc.frequency.value = f * m;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime([.07, .035, .015][i], t + .002); g.gain.exponentialRampToValueAtTime(.0003, t + [.45, .25, .12][i]);
+        chain(osc, g, pan); osc.start(t); osc.stop(t + .5);
+      });
+      pan.connect(this.bus);
+      if (Math.random() < .5) { const t2 = t + rand(.08, .16), o2 = ac.createOscillator(), g2 = G(0); o2.frequency.value = f * rand(1.05, 1.2); g2.gain.setValueAtTime(0, t2); g2.gain.linearRampToValueAtTime(.04, t2 + .002); g2.gain.exponentialRampToValueAtTime(.0003, t2 + .3); chain(o2, g2, pan); o2.start(t2); o2.stop(t2 + .35); }
+      at(t, () => cardPulse('cafe', 'clinking', 650));
+    }
+  },
+  drone: {
+    level: .85, mood: { warm: .35, night: .35 },
+    build(o){
+      const lp = F('lowpass', 760, .7), out = G(.55); chain(lp, out, o); LFO(.043, 320, lp.frequency);
+      [[73.42, .2], [110, .15], [146.83, .12], [220, .08], [277.18, .05], [329.63, .045]].forEach(([f, v], i) => {
+        [-6, 6].forEach(det => {
+          const osc = ac.createOscillator(); osc.type = i < 2 ? 'triangle' : 'sine'; osc.frequency.value = f; osc.detune.value = det + rand(-2, 2);
+          const g = G(v); chain(osc, g, P(det < 0 ? -.35 : .35), lp); osc.start();
+          LFO(rand(.03, .09), v * .45, g.gain);
+        });
+      });
+    }
+  }
+};
+Object.entries(SOUNDS).forEach(([id, s]) => { s.id = id; s.on = false; s.vol = .5; s.out = null; s.built = false; s.next = 0; });
+
+function ensureBuilt(s){
+  if (s.built || !ac) return;
+  s.out = G(0); s.out.connect(master); s.build(s.out); s.built = true;
+}
+function applyGain(s){
+  if (!ac || !s.out) return;
+  const v = s.on ? Math.pow(s.vol, 1.5) * s.level : 0;
+  s.out.gain.setTargetAtTime(v, ac.currentTime, s.on ? .35 : .25);
+}
+function schedule(){
+  if (!ac || !playing) return;
+  const now = ac.currentTime, horizon = now + (document.hidden ? 1.6 : .35);
+  for (const id in SOUNDS) {
+    const s = SOUNDS[id];
+    if (!s.on || !s.built) continue;
+    if (s.tick) { s.tick(now, horizon); continue; }
+    if (!s.event) continue;
+    if (s.next < now) s.next = now + (s.first ? s.first() : .05);
+    let guard = 0;
+    while (s.next < horizon && guard++ < 60) { s.event(s.next); s.next += s.rate(); }
+  }
+}
+
+/* =====================================================================
+   Master, play state, mood background
+   ===================================================================== */
+let masterVol = .7, fadeMul = 1;
+const masterTarget = () => playing ? Math.pow(masterVol, 1.4) * .95 * fadeMul : 0;
+function applyMaster(tc){ if (ac && master) master.gain.setTargetAtTime(masterTarget(), ac.currentTime, tc || .4); }
+function status(title, text){ $('stTitle').textContent = title; $('stText').textContent = text; }
+function describe(){
+  const on = Object.values(SOUNDS).filter(s => s.on);
+  if (!on.length) { status(playing ? 'Silence, for now' : 'Ready when you are', playing ? 'Switch on a sound or choose a preset.' : 'Sound starts only when you press play.'); return; }
+  const names = on.map(s => cards[s.id].querySelector('h3').textContent.toLowerCase());
+  const list = names.length > 4 ? names.slice(0, 3).join(', ') + ' and ' + (names.length - 3) + ' more'
+    : names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
+  status(playing ? 'Playing ' + on.length + (on.length === 1 ? ' sound' : ' sounds') : 'Paused', (playing ? 'Now: ' : 'Ready: ') + list + '.');
+}
+function play(){
+  if (!ensureAudio()) return;
+  playing = true; clearTimeout(suspendT);
+  if (ac.state === 'suspended') ac.resume();
+  for (const id in SOUNDS) { const s = SOUNDS[id]; if (s.on) { ensureBuilt(s); applyGain(s); } }
+  applyMaster(.6);
+  document.body.classList.add('playing'); $('playBtn').setAttribute('aria-label', 'Pause the mix');
+  describe();
+}
+function pause(){
+  playing = false;
+  if (ac) { applyMaster(.25); clearTimeout(suspendT); suspendT = setTimeout(() => { if (!playing && ac && ac.state === 'running') ac.suspend(); }, 1600); }
+  document.body.classList.remove('playing'); $('playBtn').setAttribute('aria-label', 'Play the mix');
+  describe();
+}
+$('playBtn').addEventListener('click', () => { playing ? pause() : play(); });
+const mv = $('masterVol');
+function setMasterVol(v){ masterVol = v / 100; mv.style.setProperty('--v', v + '%'); $('mvOut').textContent = Math.round(v) + '%'; applyMaster(.15); save(); }
+mv.addEventListener('input', () => setMasterVol(+mv.value));
+
+const bgEls = { wet: $('bgWet'), green: $('bgGreen'), warm: $('bgWarm'), night: $('bgNight') };
+function updateMood(){
+  const m = { wet: 0, green: 0, warm: 0, night: 0 };
+  for (const id in SOUNDS) { const s = SOUNDS[id]; if (!s.on) continue; for (const k in s.mood) m[k] += s.mood[k] * (.35 + s.vol * .65); }
+  for (const k in m) bgEls[k].style.opacity = Math.min(1, m[k] / 1.3).toFixed(3);
+  const nightish = Math.min(1, m.night / 1.3);
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', nightish > .6 ? '#e9e3c6' : '#fefae0');
+}
+
+/* =====================================================================
+   Cards
+   ===================================================================== */
+const cards = {};
+document.querySelectorAll('.card').forEach(card => {
+  const id = card.dataset.id, s = SOUNDS[id], sw = card.querySelector('.switch'), range = card.querySelector('input'), out = card.querySelector('output');
+  cards[id] = card;
+  s.vol = +range.value / 100; range.style.setProperty('--v', range.value + '%');
+  sw.addEventListener('click', () => setOn(id, !s.on, true));
+  range.addEventListener('input', () => {
+    s.vol = +range.value / 100; out.textContent = range.value; range.style.setProperty('--v', range.value + '%');
+    applyGain(s); updateMood(); clearPreset(); save();
+  });
+  card.querySelector('.illo').addEventListener('click', () => setOn(id, !s.on, true));
+});
+function setOn(id, on, user){
+  const s = SOUNDS[id], card = cards[id];
+  s.on = on;
+  card.classList.toggle('on', on);
+  card.querySelector('.switch').setAttribute('aria-checked', on ? 'true' : 'false');
+  if (on && user) { if (!playing) play(); else { ensureBuilt(s); } }
+  if (ac) { if (on) { ensureBuilt(s); s.next = 0; } applyGain(s); }
+  if (user) clearPreset();
+  updateMood(); describe(); save();
+}
+function setVol(id, v){
+  const s = SOUNDS[id], card = cards[id], range = card.querySelector('input');
+  s.vol = v / 100; range.value = v; range.style.setProperty('--v', v + '%'); card.querySelector('output').textContent = v; applyGain(s);
+}
+function flashCard(id){ cardPulse(id, 'strike', 900); }
+function cardPulse(id, cls, ms){ const c = cards[id]; if (!c || !c.classList.contains('on')) return; c.classList.remove(cls); void c.offsetWidth; c.classList.add(cls); clearTimeout(c['_' + cls]); c['_' + cls] = setTimeout(() => c.classList.remove(cls), ms); }
+
+/* presets */
+const PRESETS = {
+  cabin: { rain: 70, thunder: 55, fire: 60, wind: 28 },
+  beach: { ocean: 75, wind: 30, crickets: 28, drone: 18 },
+  focus: { rain: 38, cafe: 42, drone: 40 },
+  night: { crickets: 55, fire: 42, wind: 22, drone: 16 }
+};
+const presetBtns = [...document.querySelectorAll('.preset')];
+let activePreset = null;
+function clearPreset(){ activePreset = null; presetBtns.forEach(b => b.setAttribute('aria-pressed', 'false')); }
+function applyPreset(name, user){
+  const p = PRESETS[name];
+  for (const id in SOUNDS) { const want = id in p; if (want) setVol(id, p[id]); if (SOUNDS[id].on !== want || want) setOn(id, want, false); }
+  activePreset = name;
+  presetBtns.forEach(b => b.setAttribute('aria-pressed', b.dataset.p === name ? 'true' : 'false'));
+  if (user && !playing) play();
+  describe(); save();
+}
+presetBtns.forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.p, true)));
+
+/* =====================================================================
+   Sleep timer: a gentle fade across the final stretch
+   ===================================================================== */
+const chips = [...document.querySelectorAll('#timerChips .chip')], tText = $('tText'), tProg = $('tProg');
+let tEnd = 0, tTotal = 0, tInt = 0;
+const fmt = s => { s = Math.max(0, Math.ceil(s)); const m = Math.floor(s / 60), r = s % 60; return m + ':' + String(r).padStart(2, '0'); };
+function setTimer(min){
+  chips.forEach(c => c.setAttribute('aria-pressed', +c.dataset.m === min ? 'true' : 'false'));
+  clearInterval(tInt); fadeMul = 1; applyMaster(.4);
+  if (!min) { tEnd = 0; tText.textContent = 'Everything fades out gently when the timer ends.'; tProg.style.strokeDashoffset = '53.4'; return; }
+  tTotal = min * 60; tEnd = Date.now() + tTotal * 1000;
+  tickTimer(); tInt = setInterval(tickTimer, 1000);
+}
+function tickTimer(){
+  const left = (tEnd - Date.now()) / 1000, fadeLen = Math.min(120, tTotal * .2);
+  tProg.style.strokeDashoffset = (53.4 * (1 - left / tTotal)).toFixed(2);
+  if (left <= 0) {
+    clearInterval(tInt); fadeMul = 1; tEnd = 0; pause();
+    chips.forEach(c => c.setAttribute('aria-pressed', c.dataset.m === '0' ? 'true' : 'false'));
+    tText.textContent = 'Sleep timer finished. Sweet dreams.'; tProg.style.strokeDashoffset = '53.4';
+    return;
+  }
+  if (left < fadeLen) { fadeMul = Math.pow(left / fadeLen, 1.6); applyMaster(.9); tText.textContent = 'Fading out… ' + fmt(left); }
+  else tText.textContent = 'Fades out in ' + fmt(left) + (playing ? '' : ' (paused)');
+}
+chips.forEach(c => c.addEventListener('click', () => setTimer(+c.dataset.m)));
+
+/* =====================================================================
+   Persistence
+   ===================================================================== */
+let saveT = 0;
+function save(){
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    try {
+      const st = { m: Math.round(masterVol * 100), p: activePreset, s: {} };
+      for (const id in SOUNDS) st.s[id] = [SOUNDS[id].on ? 1 : 0, Math.round(SOUNDS[id].vol * 100)];
+      localStorage.setItem('ambience-mix', JSON.stringify(st));
+    } catch (e) {}
+  }, 250);
+}
+function restore(){
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem('ambience-mix') || 'null'); } catch (e) { st = null; }
+  if (!st || !st.s) { applyPreset('cabin', false); return; }
+  mv.value = st.m; setMasterVol(+st.m);
+  for (const id in SOUNDS) { const v = st.s[id]; if (!v) continue; setVol(id, v[1]); setOn(id, !!v[0], false); }
+  if (st.p && PRESETS[st.p]) { activePreset = st.p; presetBtns.forEach(b => b.setAttribute('aria-pressed', b.dataset.p === st.p ? 'true' : 'false')); }
+}
+
+/* =====================================================================
+   Orb visualizer around the play button
+   ===================================================================== */
+const viz = $('viz'), vctx = viz.getContext('2d');
+let VW = 0, VH = 0, vDPR = 1, fbins = null, smooth = new Float32Array(48), vt = 0, vlast = 0, vraf = 0;
+function vizResize(){
+  const r = viz.getBoundingClientRect(); vDPR = Math.min(2, window.devicePixelRatio || 1); VW = r.width; VH = r.height;
+  viz.width = Math.round(VW * vDPR); viz.height = Math.round(VH * vDPR); vctx.setTransform(vDPR, 0, 0, vDPR, 0, 0);
+}
+function vizFrame(now){
+  const dt = vlast ? Math.min(.05, (now - vlast) / 1000) : .016; vlast = now; vt += dt * (reduced ? .3 : 1);
+  vctx.clearRect(0, 0, VW, VH);
+  const cx = VW / 2, cy = VH / 2, base = Math.min(VW, VH) * .29, N = 48;
+  let live = 0;
+  if (analyser && playing) {
+    if (!fbins) fbins = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(fbins);
+    for (let k = 0; k < N; k++) {
+      const lo = Math.floor(Math.pow(k / N, 1.8) * 180) + 1, hi = Math.max(lo + 1, Math.floor(Math.pow((k + 1) / N, 1.8) * 180) + 1);
+      let s = 0; for (let i = lo; i < hi; i++) s += fbins[i]; s /= (hi - lo) * 255;
+      smooth[k] += (s - smooth[k]) * .25; live += smooth[k];
+    }
+    live /= N;
+  } else { for (let k = 0; k < N; k++) smooth[k] *= .92; }
+  const layers = [[1.18, 'rgba(221,161,94,.18)', 'rgba(221,161,94,.0)'], [1, 'rgba(96,108,56,.14)', 'rgba(96,108,56,.55)']];
+  for (const [scale, fill, stroke] of layers) {
+    vctx.beginPath();
+    const pts = [];
+    for (let k = 0; k < N; k++) {
+      const a = k / N * Math.PI * 2 + vt * .12 * scale;
+      const idle = Math.sin(vt * .9 + k * .5) * 2.2 + Math.sin(vt * 1.7 - k * .9) * 1.4;
+      const r = base * scale + idle + Math.min(1, smooth[(k * (scale > 1 ? 5 : 1)) % N] * 1.3) * base * .36;
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+    for (let k = 0; k <= N; k++) {
+      const p = pts[k % N], q = pts[(k + 1) % N], mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+      if (k === 0) vctx.moveTo(mx, my); else vctx.quadraticCurveTo(p[0], p[1], mx, my);
+    }
+    vctx.closePath(); vctx.fillStyle = fill; vctx.fill();
+    vctx.lineWidth = 1.4; vctx.strokeStyle = stroke; vctx.stroke();
+  }
+  void live;
+  vraf = requestAnimationFrame(vizFrame);
+}
+function vStart(){ if (!vraf) { vlast = 0; vraf = requestAnimationFrame(vizFrame); } }
+function vStop(){ if (vraf) cancelAnimationFrame(vraf); vraf = 0; }
+document.addEventListener('visibilitychange', () => { document.hidden ? vStop() : vStart(); });
+let rt = 0;
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(vizResize, 80); });
+
+/* keyboard: space toggles playback when focus is not on a control */
+window.addEventListener('keydown', e => {
+  if (e.key !== ' ' && e.code !== 'Space') return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'BUTTON' || tag === 'INPUT') return;
+  e.preventDefault(); playing ? pause() : play();
+});
+
+/* boot */
+restore();
+if (!activePreset && !Object.values(SOUNDS).some(s => s.on)) applyPreset('cabin', false);
+describe();
+vizResize();
+vStart();
+})();
+</script>
+</body>
+</html>

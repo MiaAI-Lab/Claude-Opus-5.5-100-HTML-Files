@@ -1,0 +1,39 @@
+TITLE: Somewhere Inside
+FILE: 072-double-exposure.html
+
+=== PROMPT (exact prompt used) ===
+Create "Somewhere Inside", a double-exposure art piece: a large human profile silhouette (a smooth SVG path of a face in profile with shoulders) acts as a mask revealing a whole landscape inside it — layered mountain ranges, a pine forest, a lake reflecting the moon, drifting fog and birds — while outside the silhouette is a pale misty gradient. Palette: a dusk gradient inside (#1d2b53 → #7e2553 → #ff9e7d), mist outside (#f2efe9 → #d9d4cc), ink details. The inner landscape moves in subtle parallax with the pointer (and slowly on its own), fog layers drift, and the moon's reflection shimmers. Original poetic text fragments fade in and out beside the profile in an elegant italic serif. Interaction: pointer parallax; clicking cycles the inner landscape between "Mountains", "Ocean" (waves and a lighthouse) and "City" (skyline with lights), each with its own palette and a smooth cross-fade. A film-grain overlay. The composition reflows for mobile, with the silhouette scaled and centred.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"Somewhere Inside" is a quiet double-exposure plate. A large human profile with a low bun faces right on pale, grainy mist (#f2efe9 to #d9d4cc) and works as a window onto a whole landscape at dusk. Inside, a sky of #1d2b53 to #7e2553 to #ff9e7d rises behind layered mountain ranges, drifting fog, a pine treeline, a still lake that reflects everything, a glittering moon path and a tiny rowing boat. The lake sits in the neck and the forest along the shoulders. Ink-dark birds cross the edge of the silhouette, so they read as dark shapes against the sky inside and as ink marks on the mist outside. Beside the face, an italic serif column holds the title and original four-line poem fragments that fade in and out, with a scene index below. Clicking the portrait travels further in: the landscape cross-fades to an Ocean (rising moon, lighthouse on a headland whose flaring lamp sits where the eye would be, rolling swells) and then to a City (skyline of lit windows, blinking radio mast, reflections on a river, a night train crossing a bridge). Each scene has its own palette and accent colour.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- The silhouette is one hand-authored SVG path, used as a Canvas Path2D: it clips the landscape, draws an offset "print shadow" and a fine ink contour, and its stroke is layered four times inside the clip for a soft inner edge vignette
+- Every scene is procedural and drawn in a 1000-unit portrait box: mountain ridges from summed sharp-crested sine fields, tiered pine Path2Ds, a skyline of seeded rectangles with window grids, and animated multi-sine wave layers with crest highlights
+- Pointer parallax with per-layer depth factors (sky, moon, far range, mid range, fog, treeline, water, foreground), plus a slow idle drift
+- Water reflections are pre-rendered flipped layers that shimmer by being redrawn in thin sine-displaced slices into an opaque scratch canvas, which is then composited once (so no seam lines)
+- Moon glints and moon paths are flickering ellipses; lighthouse beam built from a lantern flare with additive blending and a sweeping cone that foreshortens as it turns; blinking aviation light
+- Feathered procedural fog sprites (radial blobs masked with destination-in gradients) drift inside and outside the portrait
+- Scene changes cross-fade two full scenes over 1.7 s with eased alpha, and the accent colour of the page shifts with them
+- Film grain: a generated noise tile in an oversized overlay-blended layer, jittered with a steps() CSS animation; soft radial vignette
+- Typography: an italic old-style serif (Iowan / Palatino / P052) for the title and fragments, a humanist small-caps face for labels; fragments fade in with a blur-to-sharp transition
+
+=== INTERACTION MODEL ===
+- Move the pointer to drift the layers inside the head in parallax (touch taps work too)
+- Click or tap the portrait to travel to the next landscape (Mountains, Ocean, City); the three labelled buttons jump directly, and the arrow keys or 1/2/3 do the same from the keyboard
+- Poem fragments rotate every few seconds, restart when the scene changes, and are announced through an aria-live region
+- The composition reflows under 820 px wide: the title and fragment move above, and the portrait is scaled, centred on the head and anchored to the bottom edge
+- The canvas pauses while the tab is hidden; reduced motion stops the drift, grain jitter, water shimmer, train and beam sweep, and softens the text transitions

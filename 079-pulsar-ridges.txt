@@ -1,0 +1,39 @@
+TITLE: Pulsar Ridges
+FILE: 079-pulsar-ridges.html
+
+=== PROMPT (exact prompt used) ===
+Build "Pulsar Ridges", an animated, original piece in the spirit of classic stacked ridge-line plots. Black background (#000) with ~60 stacked white lines (#f5f5f5) drawn on canvas with occlusion (each line filled black beneath so nearer lines hide farther ones); each profile comes from layered noise plus a central peak region and animates continuously, so the ridges roll like a landscape of signals. Interaction: the pointer position becomes the source of the peaks (ridges swell toward the cursor); clicking switches data modes: "Pulsar" (sharp central peaks), "Terrain" (mountain noise), "Audio" (a built-in synthesized drone analysed with an AnalyserNode drives the lines, after a gesture) and "Heartbeat" (ECG-like spikes). Settings: line count, amplitude, speed, colour mode (white, amber, spectrum gradient). Minimal typography: a small, uppercase, widely tracked monospace caption at the bottom like an album credit. PNG download. Perfectly crisp on high-DPI screens.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Pulsar Ridges is an original, animated homage to the stacked pulse plots of radio astronomy: sixty crisp #f5f5f5 lines on pure black (#000). Each line is a signal profile that occludes the lines behind it, so the stack reads as a landscape seen from a low angle. The profiles never stop moving. Pulses roll from the back of the stack toward the viewer, a noisy hiss shivers along every line, and the centre swells with clusters of sharp peaks. The pointer becomes the source of the signal: the peak region follows it horizontally, and lines near it swell into a raised mound. Clicking cycles through four signals, Pulsar, Terrain, Audio and Heartbeat. The only typography is a small, uppercase, widely tracked monospace credit line at the bottom, like the text on an album sleeve.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Painter's-algorithm occlusion on canvas: lines are drawn back to front. Each profile is first filled black down past its baseline, then stroked, so nearer ridges hide farther ones exactly.
+- Device-pixel-ratio canvas (capped at 2) with round joins and line width derived from line spacing, which keeps it crisp on high-DPI screens. Headroom and spacing are solved from the line count and amplitude so the top peaks never clip.
+- Pulsar signal: six Gaussian pulse components per line. Their position, height and width come from seeded Perlin noise over a continuous pulse index that shifts with time, so pulses roll smoothly toward the viewer, over a central envelope and fine hiss.
+- Terrain signal: ridged multi-octave noise (1-|n|)^3 with a wide envelope, rolling like a mountain range seen line by line.
+- Heartbeat signal: an ECG waveform (P, Q, R, S and T waves as signed Gaussians) with per-beat amplitude variation and a per-line phase offset, forming diagonal waves of spikes.
+- Audio signal: a real-time spectral waterfall. A Web Audio drone (detuned saws, sub square, fifths, a resonant low-pass swept by an LFO and chord glides) plus a noise-and-blip pulse every 1.337 s is analysed with an AnalyserNode (FFT 2048). Frequencies are mapped on a log scale and mirrored around the centre, and each new spectrum enters as the front line with a smooth sub-line scroll.
+- Mode changes cross-fade two generators over 0.7 s. The pointer adds a gaussian mound and gain field, eased in and out.
+- Colour modes: white, amber (#ffb000), or a spectrum running from violet at the back to gold at the front. The credit line tints to match.
+- PNG export renders the plot again at 2400×3000 with 520 samples per line and draws a letter-spaced credit, giving a poster-ready image.
+
+=== INTERACTION MODEL ===
+- Move the pointer (mouse, pen or touch drag) over the plot and the peaks gather and swell toward it. In Audio mode the pointer's height also sweeps the drone's filter cutoff.
+- Click or tap (or press Space or Enter on the focused canvas) to cycle Pulsar → Terrain → Audio → Heartbeat; keys 1–4 jump straight to a mode. Entering Audio mode starts the synthesised drone. That click is the required user gesture, and a Sound toggle appears at bottom left (M key).
+- The Settings panel (bottom right, or the comma key) has mode chips, sliders for line count (20–100), amplitude and speed, colour chips, Save PNG and Freeze. It also carries a short accurate note on pulsar PSR B1919+21 and a list of keyboard shortcuts.
+- Keyboard: [ and ] change line count, ↑/↓ amplitude, ←/→ speed, C cycles colour, F freezes, S saves a PNG, Esc closes the panel.
+- Settings persist in localStorage (guarded). Animation pauses while the tab is hidden, and reduced motion slows the roll to a gentle drift.

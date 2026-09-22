@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iridescence — Soap Bubbles</title>
+<meta name="description" content="Soap bubbles drift upward through a soft, bright sky, their films swirling with thin-film interference colours. Pop them, blow new ones from a wand, and steer the wind with your pointer.">
+<meta name="theme-color" content="#dbeafe">
+<style>
+:root{
+  --sky-top:#dbeafe;
+  --sky-bot:#fef3f2;
+  --slate:#4d5a7c;
+  --slate-2:#7b86a6;
+  --glass:rgba(255,255,255,.52);
+  --glass-line:rgba(255,255,255,.85);
+  --sans:"Avenir Next","Avenir","Helvetica Neue","Segoe UI","Gill Sans","DejaVu Sans","Nimbus Sans",sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;overflow:hidden;color:var(--slate);font-family:var(--sans);-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(60vmax 50vmax at 88% -8%,rgba(255,252,236,.95),rgba(255,247,226,.35) 40%,transparent 70%),
+    radial-gradient(70vmax 40vmax at 10% 110%,rgba(255,226,236,.7),transparent 70%),
+    linear-gradient(180deg,var(--sky-top) 0%,#e9eefc 46%,var(--sky-bot) 100%);}
+:focus-visible{outline:2px solid #8b7be0;outline-offset:3px}
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#sky{pointer-events:none}
+#fx{touch-action:none;cursor:default}
+
+.title{position:fixed;left:clamp(18px,4vw,64px);top:clamp(18px,5vh,56px);margin:0;pointer-events:none;z-index:2}
+.title h1{margin:0;font-weight:200;font-size:clamp(46px,7.4vw,118px);line-height:.95;letter-spacing:.035em;
+  background:linear-gradient(100deg,#7d6ad6 0%,#d95f9f 18%,#c9962a 34%,#2f9fb8 52%,#4aa57a 66%,#7d6ad6 82%,#d95f9f 100%);
+  background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:sheen 16s ease-in-out infinite alternate;filter:drop-shadow(0 1px 0 rgba(255,255,255,.9)) drop-shadow(0 10px 30px rgba(120,110,200,.18))}
+@keyframes sheen{from{background-position:0% 50%}to{background-position:100% 50%}}
+.title p{margin:14px 0 0 .3em;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--slate-2);font-weight:500}
+.title p span{display:inline-block;width:26px;height:1px;background:linear-gradient(90deg,#d95f9f,#2f9fb8);vertical-align:middle;margin:0 12px 2px 0}
+
+.count{position:fixed;right:clamp(18px,4vw,64px);top:clamp(22px,5.4vh,60px);z-index:2;display:flex;align-items:center;gap:14px;pointer-events:none}
+.count .ring{position:relative;width:34px;height:34px;border-radius:50%;background:conic-gradient(from 20deg,#f3a6cf,#f7dc8a,#9fe3ee,#b7ecc8,#c9b8f4,#f3a6cf);-webkit-mask:radial-gradient(circle,transparent 13px,#000 14px);mask:radial-gradient(circle,transparent 13px,#000 14px);animation:spin 9s linear infinite;opacity:.9}
+@keyframes spin{to{transform:rotate(360deg)}}
+.count .num{display:block;transform-origin:0 60%;font-weight:200;font-size:34px;line-height:1;color:var(--slate);font-variant-numeric:tabular-nums;letter-spacing:.04em;transition:transform .35s cubic-bezier(.2,1.6,.4,1)}
+.count .num.bump{transform:scale(1.18)}
+.count small{display:block;margin-top:5px;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--slate-2);font-weight:500}
+
+.bar{position:fixed;left:clamp(18px,4vw,64px);right:clamp(18px,4vw,64px);bottom:clamp(16px,3.4vh,34px);z-index:2;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;pointer-events:none}
+.bar>*{pointer-events:auto}
+.hints{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.hints li{display:flex;align-items:center;gap:9px;padding:8px 14px 8px 10px;border-radius:999px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--glass-line),0 6px 20px rgba(110,120,170,.08);font-size:12px;letter-spacing:.04em;color:var(--slate)}
+.hints li b{font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:10px;color:var(--slate-2)}
+.hints svg{width:18px;height:18px;flex:none}
+.tools{display:flex;align-items:center;gap:10px}
+.wind{display:flex;align-items:center;gap:10px;padding:7px 14px 7px 8px;border-radius:999px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--glass-line);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--slate-2);font-variant-numeric:tabular-nums;font-weight:500}
+.wind .vane{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(77,90,124,.25);display:grid;place-items:center}
+.wind .vane svg{width:16px;height:16px;transition:transform .25s ease-out}
+.wind b{color:var(--slate);font-weight:600;min-width:3.4ch;display:inline-block;text-align:right}
+.btn{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 15px 0 11px;border-radius:999px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--glass-line),0 6px 20px rgba(110,120,170,.08);color:var(--slate);font:600 10px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;transition:background-color .2s,transform .2s}
+.btn:hover{background:rgba(255,255,255,.78)}
+.btn:active{transform:scale(.96)}
+.btn svg{width:18px;height:18px}
+.btn[aria-pressed="false"] .on{display:none}
+.btn[aria-pressed="true"] .off{display:none}
+
+@media (max-width:760px){
+  .title h1{font-size:clamp(40px,12.5vw,64px)}
+  .title p{font-size:9.5px;letter-spacing:.26em;margin-top:10px}
+  .count{top:auto;bottom:calc(clamp(16px,3.4vh,34px) + 56px);right:18px;gap:10px}
+  .count .ring{width:26px;height:26px;-webkit-mask:radial-gradient(circle,transparent 9.5px,#000 10.5px);mask:radial-gradient(circle,transparent 9.5px,#000 10.5px)}
+  .count .num{font-size:26px}
+  .hints{display:none}
+  .bar{justify-content:flex-end}
+  .wind{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .title h1,.count .ring{animation:none}
+}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<canvas id="fx" role="img" aria-label="Soap bubbles floating upward through a pale sky, shimmering with thin-film colours. Click a bubble to pop it, or drag on the sky to blow a new one."></canvas>
+
+<header class="title">
+  <h1>iridescence</h1>
+  <p><span aria-hidden="true"></span>soap bubbles · thin-film interference</p>
+</header>
+
+<div class="count" aria-live="polite">
+  <span class="ring" aria-hidden="true"></span>
+  <div><span class="num" id="num">000</span><small>bubbles popped</small></div>
+</div>
+
+<footer class="bar">
+  <ul class="hints" aria-label="How to play">
+    <li><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="#b58ad8" stroke-width="1.2"/><path d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.7 3.7l1.4 1.4M12.9 12.9l1.4 1.4M14.3 3.7l-1.4 1.4M5.1 12.9l-1.4 1.4" stroke="#d95f9f" stroke-width="1.1" stroke-linecap="round"/></svg><b>Tap</b>a bubble to pop it</li>
+    <li><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="#2f9fb8" stroke-width="1.4"/><path d="M10.2 10.2 16 16" stroke="#2f9fb8" stroke-width="1.6" stroke-linecap="round"/></svg><b>Drag</b>on the sky to blow one</li>
+    <li><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 6h9a2.5 2.5 0 1 0-2.5-2.5M2 10h12a2.5 2.5 0 1 1-2.5 2.5M2 14h6" fill="none" stroke="#4aa57a" stroke-width="1.3" stroke-linecap="round"/></svg><b>Move</b>to steer the wind</li>
+  </ul>
+  <div class="tools">
+    <div class="wind" aria-hidden="true"><span class="vane"><svg id="vane" viewBox="0 0 16 16"><path d="M2 8h11M9.5 4.5 13 8l-3.5 3.5" fill="none" stroke="#4d5a7c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>wind <b id="windV">0.4</b></div>
+    <button type="button" class="btn" id="blow" aria-label="Blow a new bubble"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M9 12v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Blow</button>
+    <button type="button" class="btn" id="snd" aria-pressed="true" aria-label="Sound"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 7h3l4-3v10l-4-3H3z" fill="currentColor"/><path class="on" d="M12.5 6.5c1 .9 1 4.1 0 5M14.3 4.8c2 1.9 2 6.5 0 8.4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path class="off" d="M12.5 7l3.5 4M16 7l-3.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span id="sndL">Sound</span></button>
+  </div>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const TAU = Math.PI * 2;
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* unavailable */ } }
+  };
+  function mulberry(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ---------------- 2D simplex noise ---------------- */
+  const perm = new Uint8Array(512);
+  (function () {
+    const r = mulberry(20240611), p = new Uint8Array(256);
+    for (let i = 0; i < 256; i++) p[i] = i;
+    for (let i = 255; i > 0; i--) { const j = (r() * (i + 1)) | 0; const t = p[i]; p[i] = p[j]; p[j] = t; }
+    for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+  })();
+  const G2X = [1, -1, 1, -1, 1, -1, 0, 0], G2Y = [1, 1, -1, -1, 0, 0, 1, -1];
+  const F2 = 0.5 * (Math.sqrt(3) - 1), G2 = (3 - Math.sqrt(3)) / 6;
+  function noise2(x, y) {
+    const s = (x + y) * F2;
+    const i = Math.floor(x + s), j = Math.floor(y + s);
+    const t = (i + j) * G2;
+    const x0 = x - (i - t), y0 = y - (j - t);
+    const i1 = x0 > y0 ? 1 : 0, j1 = 1 - i1;
+    const x1 = x0 - i1 + G2, y1 = y0 - j1 + G2, x2 = x0 - 1 + 2 * G2, y2 = y0 - 1 + 2 * G2;
+    const ii = i & 255, jj = j & 255;
+    let n = 0, q;
+    q = 0.5 - x0 * x0 - y0 * y0; if (q > 0) { const g = perm[ii + perm[jj]] & 7; q *= q; n += q * q * (G2X[g] * x0 + G2Y[g] * y0); }
+    q = 0.5 - x1 * x1 - y1 * y1; if (q > 0) { const g = perm[ii + i1 + perm[jj + j1]] & 7; q *= q; n += q * q * (G2X[g] * x1 + G2Y[g] * y1); }
+    q = 0.5 - x2 * x2 - y2 * y2; if (q > 0) { const g = perm[ii + 1 + perm[jj + 1]] & 7; q *= q; n += q * q * (G2X[g] * x2 + G2Y[g] * y2); }
+    return 70 * n;
+  }
+
+  /* ---------------- thin-film textures ----------------
+     Reflectance of a soap film (n = 1.33) in air: R ∝ sin²(2π·n·d·cosθt / λ),
+     sampled at red, green and blue wavelengths. Thickness d varies with gravity
+     (thin at the top, thick at the bottom) plus a domain-warped swirl. */
+  const FILMS = [];
+  const FS = 256;
+  function makeFilm(seed) {
+    const c = document.createElement('canvas');
+    c.width = c.height = FS;
+    const g = c.getContext('2d');
+    const img = g.createImageData(FS, FS);
+    const d = img.data;
+    const r = mulberry(seed);
+    const ox = r() * 90, oy = r() * 90, swirl = 1.4 + r() * 1.6, base = 330 + r() * 120;
+    const I = (opd, lam) => { const s = Math.sin(Math.PI * opd / lam); return s * s; };
+    for (let y = 0; y < FS; y++) {
+      const v = (y + 0.5) / FS * 2 - 1;
+      for (let x = 0; x < FS; x++) {
+        const u = (x + 0.5) / FS * 2 - 1;
+        const r2 = u * u + v * v;
+        const k = (y * FS + x) * 4;
+        if (r2 > 1) { d[k + 3] = 0; continue; }
+        const rr = Math.sqrt(r2), zz = Math.sqrt(1 - r2);
+        const wx = noise2(u * 1.2 + ox, v * 1.2 + oy), wy = noise2(u * 1.2 + ox + 5.2, v * 1.2 + oy - 3.1);
+        const ang = swirl * (1 - rr) * (1 - rr) + wx * 0.9;
+        const ca = Math.cos(ang), sa = Math.sin(ang);
+        const su = u * ca - v * sa, sv = u * sa + v * ca;
+        const nn = noise2(su * 1.25 + wx * 0.7 + ox, sv * 1.25 + wy * 0.7 + oy) * 0.8 + noise2(su * 3.1 + oy, sv * 3.1 + ox) * 0.16;
+        let th = base + 230 * v + 175 * nn;
+        if (th < 20) th = 20;
+        const cosT = Math.sqrt(1 - (rr / 1.33) * (rr / 1.33));
+        const opd = 2 * 1.33 * th * cosT;
+        let R = (I(opd, 610) + I(opd, 680)) * 0.5;
+        let G = (I(opd, 515) + I(opd, 565)) * 0.5;
+        let B = (I(opd, 430) + I(opd, 480)) * 0.5;
+        const m = (R + G + B) / 3;
+        R = m + (R - m) * 1.62; G = m + (G - m) * 1.62; B = m + (B - m) * 1.62;
+        // very thin "black film" near the crown reflects almost nothing
+        const blackFilm = th < 110 ? th / 110 : 1;
+        const fres = Math.pow(1 - zz, 1.5);
+        let a = (0.018 + 0.64 * fres + 0.13 * m * (0.2 + fres)) * blackFilm;
+        // faint sky / ground reflection
+        const env = v < 0 ? 0.06 * (-v) : 0;
+        d[k] = clamp(R * 245 + 10 + env * 255, 0, 255);
+        d[k + 1] = clamp(G * 245 + 10 + env * 255, 0, 255);
+        d[k + 2] = clamp(B * 245 + 22 + env * 255, 0, 255);
+        // soft antialiased edge
+        const edge = clamp((1 - rr) * FS * 0.5, 0, 1);
+        d[k + 3] = clamp(a * edge * 255, 0, 235);
+      }
+    }
+    g.putImageData(img, 0, 0);
+    return c;
+  }
+
+  /* ---------------- highlight sprites ---------------- */
+  function makeWindow() {
+    const s = 160, c = document.createElement('canvas');
+    c.width = c.height = s;
+    const g = c.getContext('2d');
+    try { g.filter = 'blur(1.4px)'; } catch (e) { /* optional */ }
+    const pane = (x, y, w, h, a) => {
+      const gr = g.createLinearGradient(x, y, x + w, y + h);
+      gr.addColorStop(0, `rgba(255,255,255,${a})`);
+      gr.addColorStop(1, `rgba(255,255,255,${a * 0.35})`);
+      g.fillStyle = gr;
+      g.beginPath();
+      if (g.roundRect) g.roundRect(x, y, w, h, 7); else g.rect(x, y, w, h);
+      g.fill();
+    };
+    // a four-pane window, the classic studio reflection
+    pane(22, 26, 52, 46, 0.95);
+    pane(80, 22, 52, 48, 0.82);
+    pane(26, 78, 50, 46, 0.7);
+    pane(82, 76, 50, 46, 0.5);
+    return c;
+  }
+  const WIN = makeWindow();
+  function makeGlint() {
+    const s = 64, c = document.createElement('canvas');
+    c.width = c.height = s;
+    const g = c.getContext('2d');
+    const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,0.95)');
+    gr.addColorStop(0.35, 'rgba(255,255,255,0.45)');
+    gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, s, s);
+    return c;
+  }
+  const GLINT = makeGlint();
+
+  /* ---------------- clouds ---------------- */
+  function makeCloud(seed) {
+    const r = mulberry(seed);
+    const w = 620, h = 240, c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    const puffs = 16 + ((r() * 10) | 0);
+    for (let i = 0; i < puffs; i++) {
+      const t = i / puffs;
+      const cx = 80 + t * (w - 160) + (r() - 0.5) * 60;
+      const cy = h * 0.58 - Math.sin(t * Math.PI) * (40 + r() * 50) + (r() - 0.5) * 20;
+      const rad = 40 + r() * 70 * Math.sin(t * Math.PI + 0.3);
+      const gr = g.createRadialGradient(cx, cy - rad * 0.2, 0, cx, cy, rad);
+      gr.addColorStop(0, 'rgba(255,255,255,0.55)');
+      gr.addColorStop(0.6, 'rgba(255,255,255,0.22)');
+      gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr;
+      g.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
+    }
+    // cool shaded underside
+    g.globalCompositeOperation = 'source-atop';
+    const sh = g.createLinearGradient(0, h * 0.4, 0, h);
+    sh.addColorStop(0, 'rgba(200,210,238,0)');
+    sh.addColorStop(1, 'rgba(186,196,228,0.35)');
+    g.fillStyle = sh; g.fillRect(0, 0, w, h);
+    return c;
+  }
+  const CLOUDS = [makeCloud(3), makeCloud(11), makeCloud(29), makeCloud(47)];
+
+  /* ---------------- canvases ---------------- */
+  const sky = $('sky'), sctx = sky.getContext('2d');
+  const fx = $('fx'), ctx = fx.getContext('2d');
+  let W = 0, H = 0, dpr = 1;
+  function resize() {
+    const nw = window.innerWidth, nh = window.innerHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const ow = W, oh = H;
+    W = nw; H = nh;
+    [sky, fx].forEach(c => { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); });
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (ow && oh) {
+      const s = Math.sqrt(Math.min(W, H) / Math.min(ow, oh));
+      bubbles.forEach(b => { b.x = b.x / ow * W; b.y = b.y / oh * H; b.r = clamp(b.r * s, 8, Math.min(W, H) * 0.26); });
+    }
+  }
+
+  /* ---------------- world ---------------- */
+  const bubbles = [];
+  const drops = [];
+  const frags = [];
+  const flashes = [];
+  const wind = { x: 0.35, y: 0, base: 0.35 };
+  const rand = Math.random;
+  let T = 0;
+  function maxR() { return Math.max(40, Math.min(W, H) * 0.15); }
+  function makeBubble(x, y, r, vx, vy) {
+    return {
+      x, y, r, vx: vx || 0, vy: vy || 0,
+      fa: (rand() * 5) | 0, fb: (rand() * 5) | 0,
+      pa: rand() * TAU, pb: rand() * TAU, pc: rand() * TAU,
+      w: 0, wv: 0, axis: rand() * Math.PI, born: T, life: 1, fade: 0,
+      seed: rand() * 100
+    };
+  }
+  function spawnAmbient(initial) {
+    const R = maxR();
+    const t = Math.pow(rand(), 2.7);
+    const r = 12 + t * (R - 12);
+    let x = rand() * W;
+    let y = initial ? H * (0.12 + rand() * 0.95) : H + r + rand() * 80;
+    if (initial) {
+      // opening frame: find a spot that does not overlap its neighbours
+      for (let tries = 0; tries < 24; tries++) {
+        let ok = true;
+        for (const o of bubbles) { if (Math.hypot(o.x - x, o.y - y) < o.r + r + 8) { ok = false; break; } }
+        if (ok) break;
+        x = rand() * W; y = H * (0.1 + rand() * 0.95);
+      }
+    }
+    const b = makeBubble(x, y, r, (rand() - 0.5) * 0.4, -0.2 - rand() * 0.4);
+    b.fade = initial ? 0 : 1;
+    bubbles.push(b);
+    return b;
+  }
+  function target() { return Math.round(clamp((W * H) / 78000, 7, 20) * (reduced ? 0.6 : 1)); }
+
+  /* ---------------- physics ---------------- */
+  function step(dt) {
+    T += dt;
+    const nT = target();
+    let ambient = 0;
+    for (const b of bubbles) if (!b.blowing) ambient++;
+    if (ambient < nT && rand() < 0.04) spawnAmbient(false);
+    wind.x += (wind.base - wind.x) * 0.006;
+    wind.y += (0 - wind.y) * 0.02;
+    const speed = reduced ? 0.45 : 1;
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const b = bubbles[i];
+      if (b.blowing) continue;
+      const small = 40 / (b.r + 20);
+      const n1 = noise2(b.x * 0.004 + b.seed, T * 0.25) * 0.35;
+      const n2 = noise2(b.y * 0.004 - b.seed, T * 0.22 + 9) * 0.25;
+      const lift = -(0.28 + 0.25 * small) * speed;
+      b.vx += ((wind.x * (0.7 + small * 0.6) + n1) * speed - b.vx) * 0.018;
+      b.vy += ((lift + wind.y + n2 * 0.6) - b.vy) * 0.018;
+      b.x += b.vx * dt * 60; b.y += b.vy * dt * 60;
+      // shape wobble: a damped oscillator kicked by collisions and air
+      const om = 0.22 * Math.sqrt(42 / b.r);
+      b.wv += (-om * om * b.w - 0.035 * b.wv) + (rand() - 0.5) * 0.0006;
+      b.w += b.wv;
+      b.w = clamp(b.w, -0.085, 0.085);
+      b.axis += 0.004;
+      if (b.fade < 1) b.fade = Math.min(1, b.fade + dt * 1.6);
+      // wrap horizontally, recycle at the top
+      if (b.x < -b.r * 1.2) b.x = W + b.r;
+      else if (b.x > W + b.r * 1.2) b.x = -b.r;
+      if (b.y < -b.r * 1.3) { bubbles.splice(i, 1); }
+    }
+    // soft collisions
+    for (let i = 0; i < bubbles.length; i++) {
+      const a = bubbles[i];
+      for (let j = i + 1; j < bubbles.length; j++) {
+        const c = bubbles[j];
+        const dx = c.x - a.x, dy = c.y - a.y;
+        const rs = a.r + c.r;
+        const d2 = dx * dx + dy * dy;
+        if (d2 >= rs * rs || d2 < 0.01) continue;
+        const d = Math.sqrt(d2);
+        const ov = rs - d;
+        const nx = dx / d, ny = dy / d;
+        const ma = a.blowing ? 1e6 : a.r * a.r, mc = c.blowing ? 1e6 : c.r * c.r;
+        const ia = mc / (ma + mc), ic = ma / (ma + mc);
+        const push = ov * 0.08;
+        a.x -= nx * push * ia; a.y -= ny * push * ia;
+        c.x += nx * push * ic; c.y += ny * push * ic;
+        const rv = (c.vx - a.vx) * nx + (c.vy - a.vy) * ny;
+        if (rv < 0) {
+          const imp = -rv * 0.6;
+          a.vx -= nx * imp * ia; a.vy -= ny * imp * ia;
+          c.vx += nx * imp * ic; c.vy += ny * imp * ic;
+        }
+        const kick = Math.min(0.008, ov / rs * 0.025);
+        a.wv += kick; c.wv -= kick;
+        a.axis = Math.atan2(ny, nx); c.axis = a.axis;
+      }
+    }
+    // particles
+    for (let i = drops.length - 1; i >= 0; i--) {
+      const p = drops[i];
+      p.vy += 0.06; p.vx *= 0.985; p.vy *= 0.985;
+      p.x += p.vx; p.y += p.vy; p.life -= dt * 1.7;
+      if (p.life <= 0) drops.splice(i, 1);
+    }
+    for (let i = frags.length - 1; i >= 0; i--) {
+      const f = frags[i];
+      f.rad += f.vr; f.vr *= 0.93; f.a0 += f.spin; f.life -= dt * 3.4;
+      f.cx += f.vx; f.cy += f.vy + 0.4;
+      if (f.life <= 0) frags.splice(i, 1);
+    }
+    for (let i = flashes.length - 1; i >= 0; i--) { const f = flashes[i]; f.t += dt * 4.5; if (f.t >= 1) flashes.splice(i, 1); }
+  }
+
+  /* ---------------- drawing ---------------- */
+  const clouds = [];
+  function initClouds() {
+    clouds.length = 0;
+    const n = W < 700 ? 3 : 5;
+    for (let i = 0; i < n; i++) {
+      clouds.push({ img: CLOUDS[i % CLOUDS.length], x: rand() * (W + 600) - 300, y: H * (0.08 + i / n * 0.7) + (rand() - 0.5) * 40, s: 0.55 + rand() * 0.7, a: 0.45 + rand() * 0.4, par: 0.15 + rand() * 0.35 });
+    }
+  }
+  function drawSky() {
+    sctx.clearRect(0, 0, W, H);
+    for (const c of clouds) {
+      c.x += (wind.x * c.par + 0.04) * (reduced ? 0.4 : 1);
+      const w = c.img.width * c.s, h = c.img.height * c.s;
+      if (c.x > W + 40) c.x = -w - 40;
+      if (c.x < -w - 60) c.x = W + 20;
+      sctx.globalAlpha = c.a;
+      sctx.drawImage(c.img, c.x, c.y, w, h);
+    }
+    sctx.globalAlpha = 1;
+  }
+
+  function drawBubble(b, blowing) {
+    const r = b.r;
+    const fa = FILMS[b.fa % FILMS.length], fb = FILMS[b.fb % FILMS.length];
+    if (!fa) return;
+    const k = reduced ? 0.4 : 1;
+    const baseW = Math.sin(T * (1.3 + 16 / r) * k + b.pa) * 0.018;
+    const w = b.w + baseW;
+    const appear = b.fade * b.fade * (3 - 2 * b.fade);
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.globalAlpha = appear;
+    // quadrupole wobble: squash along a slowly turning axis
+    ctx.rotate(b.axis);
+    ctx.scale(1 + w, 1 - w);
+    ctx.rotate(-b.axis);
+    const rot1 = Math.sin(T * 0.21 * k + b.pa) * 0.9 + T * 0.035 * k;
+    const rot2 = -Math.sin(T * 0.17 * k + b.pb) * 1.0 - T * 0.028 * k;
+    const mix = 0.5 + 0.5 * Math.sin(T * 0.33 * k + b.pc);
+    ctx.save();
+    ctx.rotate(rot1);
+    ctx.globalAlpha = appear * (0.62 + 0.3 * mix);
+    ctx.drawImage(fa, -r, -r, r * 2, r * 2);
+    ctx.restore();
+    ctx.save();
+    ctx.rotate(rot2);
+    ctx.globalAlpha = appear * (0.22 + 0.3 * (1 - mix));
+    ctx.drawImage(fb, -r, -r, r * 2, r * 2);
+    ctx.restore();
+    // rim
+    ctx.globalAlpha = appear;
+    ctx.lineWidth = Math.max(0.8, r * 0.016);
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.beginPath(); ctx.arc(0, 0, r - ctx.lineWidth * 0.5, 0, TAU); ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(92,96,150,0.14)';
+    ctx.beginPath(); ctx.arc(0, 0, r - 2.2, 0, TAU); ctx.stroke();
+    // window highlight (upper left) and a smaller secondary glint (lower right)
+    ctx.save();
+    ctx.translate(-r * 0.43, -r * 0.45);
+    ctx.rotate(-0.34);
+    ctx.transform(1, 0.12, -0.18, 1, 0, 0);
+    const ws = r * 0.52;
+    ctx.globalAlpha = appear * 0.92;
+    ctx.drawImage(WIN, -ws / 2, -ws / 2, ws, ws);
+    ctx.restore();
+    const gs = r * 0.3;
+    ctx.globalAlpha = appear * 0.7;
+    ctx.save();
+    ctx.translate(r * 0.5, r * 0.52);
+    ctx.rotate(-0.7);
+    ctx.scale(1, 0.45);
+    ctx.drawImage(GLINT, -gs, -gs, gs * 2, gs * 2);
+    ctx.restore();
+    ctx.globalAlpha = appear * 0.35;
+    ctx.drawImage(GLINT, -r * 0.2 - gs * 0.3, -r * 0.62 - gs * 0.3, gs * 0.6, gs * 0.6);
+    ctx.restore();
+    if (blowing) {
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawWand(x, y, ang, film) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(ang);
+    // handle
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(182,150,226,0.95)';
+    ctx.lineWidth = 7;
+    ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(-120, 0); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-34, -1.6); ctx.lineTo(-116, -1.6); ctx.stroke();
+    // film in the ring
+    if (film && FILMS[0]) {
+      ctx.globalAlpha = 0.7;
+      ctx.drawImage(FILMS[1 % FILMS.length], -24, -24, 48, 48);
+      ctx.globalAlpha = 1;
+    }
+    // ring
+    ctx.strokeStyle = 'rgba(182,150,226,0.95)';
+    ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(0, 0, 26, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(0, 0, 27, Math.PI * 1.05, Math.PI * 1.6); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawFx() {
+    // droplets
+    for (const p of drops) {
+      ctx.globalAlpha = clamp(p.life, 0, 1);
+      ctx.fillStyle = p.c;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath(); ctx.arc(p.x - p.r * 0.3, p.y - p.r * 0.35, p.r * 0.4, 0, TAU); ctx.fill();
+    }
+    // shimmering film fragments
+    for (const f of frags) {
+      const a = clamp(f.life, 0, 1);
+      const x1 = f.cx + Math.cos(f.a0) * f.rad, y1 = f.cy + Math.sin(f.a0) * f.rad;
+      const x2 = f.cx + Math.cos(f.a0 + f.span) * f.rad, y2 = f.cy + Math.sin(f.a0 + f.span) * f.rad;
+      const gr = ctx.createLinearGradient(x1, y1, x2, y2);
+      gr.addColorStop(0, `rgba(255,120,200,${a})`);
+      gr.addColorStop(0.35, `rgba(255,214,110,${a})`);
+      gr.addColorStop(0.7, `rgba(110,225,240,${a})`);
+      gr.addColorStop(1, `rgba(150,235,170,${a * 0.6})`);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = gr;
+      ctx.lineWidth = f.w * a;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(f.cx, f.cy, f.rad, f.a0, f.a0 + f.span); ctx.stroke();
+    }
+    for (const f of flashes) {
+      ctx.globalAlpha = (1 - f.t) * 0.6;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (1 + f.t * 0.35), 0, TAU); ctx.stroke();
+      ctx.globalAlpha = (1 - f.t) * 0.14;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (1 + f.t * 0.2), 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  const DROP_COLS = ['rgba(255,170,215,0.85)', 'rgba(255,226,150,0.85)', 'rgba(150,228,242,0.85)', 'rgba(176,236,196,0.85)', 'rgba(205,190,250,0.85)'];
+  function pop(b) {
+    const i = bubbles.indexOf(b);
+    if (i >= 0) bubbles.splice(i, 1);
+    const nd = clamp(Math.round(b.r * 0.45), 10, 36);
+    for (let k = 0; k < nd; k++) {
+      const a = k / nd * TAU + (rand() - 0.5) * 0.25;
+      const sp = 1.2 + rand() * 2.2 + b.r * 0.012;
+      drops.push({ x: b.x + Math.cos(a) * b.r, y: b.y + Math.sin(a) * b.r, vx: Math.cos(a) * sp + b.vx, vy: Math.sin(a) * sp + b.vy - 0.6, r: 0.9 + rand() * 1.9 + b.r * 0.008, life: 0.8 + rand() * 0.5, c: DROP_COLS[(rand() * DROP_COLS.length) | 0] });
+    }
+    const nf = 5 + ((rand() * 4) | 0);
+    for (let k = 0; k < nf; k++) {
+      frags.push({ cx: b.x, cy: b.y, rad: b.r * (0.8 + rand() * 0.2), vr: 1.5 + rand() * 2.5 + b.r * 0.02, a0: rand() * TAU, span: 0.25 + rand() * 0.6, spin: (rand() - 0.5) * 0.12, w: 1.5 + b.r * 0.035, life: 1, vx: b.vx * 0.5, vy: b.vy * 0.5 });
+    }
+    flashes.push({ x: b.x, y: b.y, r: b.r, t: 0 });
+    popped++;
+    const num = $('num');
+    num.textContent = String(popped).padStart(3, '0');
+    num.classList.remove('bump'); void num.offsetWidth; num.classList.add('bump');
+    store.set('iridescence-popped', String(popped));
+    popSound(b.r);
+  }
+
+  /* ---------------- audio ---------------- */
+  let actx = null, soundOn = store.get('iridescence-sound') !== 'off', noiseBuf = null;
+  function audio() {
+    if (!soundOn) return null;
+    try {
+      if (!actx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        actx = new AC();
+        noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.12), actx.sampleRate);
+        const ch = noiseBuf.getChannelData(0);
+        for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ch.length, 3);
+      }
+      if (actx.state === 'suspended') actx.resume();
+      return actx;
+    } catch (e) { return null; }
+  }
+  function popSound(r) {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime;
+    const src = a.createBufferSource(); src.buffer = noiseBuf;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.value = clamp(3400 - r * 14, 900, 3400); bp.Q.value = 1.4;
+    const g = a.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    src.connect(bp); bp.connect(g); g.connect(a.destination);
+    src.start(t); src.stop(t + 0.12);
+    const o = a.createOscillator(), og = a.createGain();
+    o.type = 'sine';
+    const f0 = clamp(1300 - r * 6, 380, 1300);
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(f0 * 0.35, t + 0.06);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.12, t + 0.004);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+    o.connect(og); og.connect(a.destination);
+    o.start(t); o.stop(t + 0.1);
+  }
+  function blowSound(r) {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime;
+    const src = a.createBufferSource(); src.buffer = noiseBuf;
+    const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700;
+    const g = a.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.08, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    src.connect(lp); lp.connect(g); g.connect(a.destination);
+    src.start(t); src.stop(t + 0.12);
+    const o = a.createOscillator(), og = a.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(clamp(900 - r * 3, 300, 900), t);
+    o.frequency.exponentialRampToValueAtTime(clamp(1300 - r * 3, 500, 1300), t + 0.18);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.04, t + 0.02);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    o.connect(og); og.connect(a.destination);
+    o.start(t); o.stop(t + 0.25);
+  }
+  const sndBtn = $('snd');
+  function syncSnd() { sndBtn.setAttribute('aria-pressed', String(soundOn)); $('sndL').textContent = soundOn ? 'Sound' : 'Muted'; }
+  sndBtn.addEventListener('click', () => { soundOn = !soundOn; store.set('iridescence-sound', soundOn ? 'on' : 'off'); syncSnd(); if (soundOn) audio(); });
+  syncSnd();
+
+  /* ---------------- pointer: pop, blow, steer ---------------- */
+  let wand = null;
+  const last = { x: 0, y: 0, t: 0, has: false };
+  function hit(x, y) {
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const b = bubbles[i];
+      if (b.blowing) continue;
+      const dx = x - b.x, dy = y - b.y;
+      if (dx * dx + dy * dy < (b.r * 1.04) * (b.r * 1.04)) return b;
+    }
+    return null;
+  }
+  fx.addEventListener('pointerdown', e => {
+    const x = e.clientX, y = e.clientY;
+    audio();
+    const b = hit(x, y);
+    if (b) { pop(b); return; }
+    const nb = makeBubble(x, y, 6, 0, 0);
+    nb.blowing = true; nb.fade = 1;
+    bubbles.push(nb);
+    wand = { x, y, sx: x, sy: y, b: nb, id: e.pointerId, hist: [] };
+    try { fx.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  });
+  fx.addEventListener('pointermove', e => {
+    const x = e.clientX, y = e.clientY, now = performance.now();
+    if (last.has) {
+      const dt = Math.max(8, now - last.t);
+      const vx = (x - last.x) / dt, vy = (y - last.y) / dt;
+      if (!wand) {
+        wind.x = clamp(wind.x + vx * 0.35, -3.2, 3.2);
+        wind.y = clamp(wind.y + vy * 0.12, -1.2, 1.2);
+      }
+    }
+    last.x = x; last.y = y; last.t = now; last.has = true;
+    if (wand) {
+      wand.x = x; wand.y = y;
+      wand.hist.push({ x, y, t: now });
+      if (wand.hist.length > 6) wand.hist.shift();
+    } else {
+      fx.style.cursor = hit(x, y) ? 'pointer' : 'crosshair';
+    }
+  });
+  function release(e) {
+    if (!wand) return;
+    const w = wand; wand = null;
+    const b = w.b;
+    b.blowing = false;
+    const h = w.hist;
+    let vx = 0, vy = 0;
+    if (h.length > 1) {
+      const a = h[0], z = h[h.length - 1];
+      const dt = Math.max(16, z.t - a.t);
+      vx = (z.x - a.x) / dt * 7; vy = (z.y - a.y) / dt * 7;
+    }
+    b.vx = clamp(vx, -5, 5); b.vy = clamp(vy, -5, 3) - 0.4;
+    b.w = 0.1; b.wv = -0.01;
+    if (b.r < 12) b.r = 12 + rand() * 6;
+    blowSound(b.r);
+  }
+  fx.addEventListener('pointerup', release);
+  fx.addEventListener('pointercancel', release);
+
+  function blowAuto() {
+    audio();
+    const x = W * (0.3 + rand() * 0.4), y = H * 0.82;
+    const b = makeBubble(x, y, maxR() * (0.45 + rand() * 0.45), (rand() - 0.5) * 2, -1.4);
+    b.fade = 0.2; b.w = 0.12;
+    bubbles.push(b);
+    blowSound(b.r);
+  }
+  $('blow').addEventListener('click', blowAuto);
+  window.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = e.target && e.target.tagName;
+    if (e.key === 'b' || e.key === 'B' || ((e.key === ' ' || e.key === 'Enter') && tag !== 'BUTTON')) { e.preventDefault(); blowAuto(); }
+    else if (e.key === 'p' || e.key === 'P') {
+      let best = null;
+      for (const b of bubbles) if (!b.blowing && b.y > 0 && b.y < H && (!best || b.r > best.r)) best = b;
+      if (best) pop(best);
+    }
+    else if (e.key === 'ArrowLeft') wind.x = clamp(wind.x - 0.8, -3.2, 3.2);
+    else if (e.key === 'ArrowRight') wind.x = clamp(wind.x + 0.8, -3.2, 3.2);
+  });
+
+  /* ---------------- loop ---------------- */
+  let raf = 0, prev = performance.now(), filmsPending = 0, windT = 0;
+  const vane = $('vane'), windV = $('windV');
+  function frame(t) {
+    raf = requestAnimationFrame(frame);
+    const dt = Math.min(0.05, (t - prev) / 1000); prev = t;
+    if (filmsPending > 0) { FILMS.push(makeFilm(1000 + FILMS.length * 77)); filmsPending--; }
+    // a wand in hand: the bubble swells with the drag distance, out of the ring
+    if (wand) {
+      const dx = wand.x - wand.sx, dy = wand.y - wand.sy;
+      const dist = Math.hypot(dx, dy);
+      const b = wand.b;
+      const tr = clamp(dist * 0.55, 8, maxR() * 1.35);
+      b.r += (tr - b.r) * 0.25;
+      const ux = dist > 1 ? dx / dist : 0, uy = dist > 1 ? dy / dist : -1;
+      b.x = wand.sx + ux * (b.r + 22);
+      b.y = wand.sy + uy * (b.r + 22);
+      b.w = Math.sin(t * 0.02) * 0.03;
+      b.axis = Math.atan2(uy, ux);
+    }
+    step(dt);
+    drawSky();
+    ctx.clearRect(0, 0, W, H);
+    bubbles.sort((a, b) => a.r - b.r);
+    for (const b of bubbles) drawBubble(b);
+    if (wand) {
+      const dx = wand.x - wand.sx, dy = wand.y - wand.sy;
+      drawWand(wand.sx, wand.sy, Math.atan2(dy, dx) + (Math.hypot(dx, dy) < 2 ? Math.PI * 0.35 : 0), Math.hypot(dx, dy) < 6);
+    }
+    drawFx();
+    if (t - windT > 180) {
+      windT = t;
+      vane.style.transform = `rotate(${Math.atan2(wind.y, wind.x)}rad)`;
+      windV.textContent = Math.hypot(wind.x, wind.y).toFixed(1);
+    }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+    else if (!raf) { prev = performance.now(); raf = requestAnimationFrame(frame); }
+  });
+
+  /* ---------------- boot ---------------- */
+  let popped = parseInt(store.get('iridescence-popped') || '0', 10) || 0;
+  $('num').textContent = String(popped).padStart(3, '0');
+  FILMS.push(makeFilm(1000), makeFilm(1077));
+  filmsPending = 3;
+  resize();
+  initClouds();
+  // one hero bubble, placed on the right third for the opening frame
+  const hero = makeBubble(W * (W > 760 ? 0.66 : 0.6), H * 0.46, Math.min(W, H) * (W > 760 ? 0.2 : 0.24), 0.1, -0.25);
+  hero.fade = 0; hero.fa = 0; hero.fb = 1;
+  bubbles.push(hero);
+  const n0 = target();
+  for (let i = 0; i < n0; i++) spawnAmbient(true);
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { resize(); initClouds(); }, 80); });
+  raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

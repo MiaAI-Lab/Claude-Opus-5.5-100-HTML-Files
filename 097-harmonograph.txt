@@ -1,0 +1,39 @@
+TITLE: Harmonograph — A Drawing Machine
+FILE: 097-harmonograph.html
+
+=== PROMPT (exact prompt used) ===
+Build "Harmonograph — A Drawing Machine", simulating the Victorian pendulum drawing device. Two or three damped pendulums (x, y and rotary) combine to trace delicate, decaying Lissajous-like curves: x(t) = A1·sin(f1·t + p1)·e^(−d1·t) + A2·sin(f2·t + p2)·e^(−d2·t), and similarly for y. Render a very fine pen line accumulating on cream paper (#f6f1e3) in sepia ink (#3e2c1c) or selectable inks (indigo, oxblood, or gold on black paper). The machine is illustrated beside the drawing (a wooden table with pendulums swinging in sync, SVG). Controls styled as brass knobs and engraved dials: frequencies (with harmonic-ratio presets such as 2:3, 3:4 and near-unison detuning), phases, damping, pen width and speed. "Release pendulums" starts a fresh drawing that animates stroke by stroke; "Randomize" picks tasteful parameters; "Save drawing" downloads a PNG. Show the current ratio as a musical interval name (fifth, fourth). Typography: Victorian scientific-instrument labels in serif small caps.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Harmonograph is laid out like a plate from a Victorian book of scientific recreations. On a dark mahogany desk sits a cream sheet (#f6f1e3) where a simulated three-pendulum machine draws in very fine sepia ink (#3e2c1c): two damped pendulums steer the pen in x and y and a third, rotary pendulum rocks the paper, so the figure spirals inward into the dense, decaying Lissajous knots these parlour machines were loved for. Beside the plate, an engraving of the pendulum table in hatched sepia line work swings in step with the drawing, and below it a walnut instrument panel with brass trim holds engraved ratio tabs, six knurled brass dials and inkwell swatches. A cartouche names the current frequency ratio as a musical interval (perfect fifth, fourth, octave and so on) with its size in cents and how far it is detuned, and every drawing is captioned as a numbered plate in serif small caps. Indigo and oxblood inks are also offered, as is gold ink on black paper.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- The motion follows the brief's model exactly: x(t) = A1·sin(f1·t + p1)·e^(−d1·t) + A2·sin(f2·t + p2)·e^(−d2·t), with a second term on each axis from the rotary pendulum (sine on x, cosine on y), slightly different damping per pendulum, and a rotary frequency just below the x pendulum's so the figure slowly precesses
+- Stroke-by-stroke ink: the pen advances in 0.8 ms steps and is stroked in short runs whose opacity follows pen speed (a slow pen lays down more ink), so overlapping passes build up the dark decaying core
+- Layered canvases: a paper layer painted once with laid fibres, faint foxing and an age vignette (dark fibres for the black paper), the accumulating ink layer, and a pen layer with a small wet-ink bloom at the nib
+- A ghost preview: while a dial is being turned, the whole future figure is sketched faintly across the sheet
+- The engraved Fig. 1 in inline SVG uses hatch and cross-hatch patterns, turned table legs and labelled leader lines; its X and Y pendulums, rotary platform, pen arm and link rod move with the live equations
+- Brass knobs cloned from a template: an engraved dial ring whose tick marks come from dash patterns on a pathLength-normalised circle, a covered bottom wedge for the 270° sweep, a knurled edge from a fine dash ring, and a domed radial-gradient cap whose pointer rotates
+- Victorian typography: Didone and Baskerville-style stacks, small caps throughout, a double-rule masthead and an oval brass cartouche; the plate numbers are Roman numerals
+- A wood-grain page and panel built entirely from layered CSS gradients
+
+=== INTERACTION MODEL ===
+- Frequency-ratio tabs (1:1 unison, 1:2 octave, 2:3 fifth, 3:4 fourth, 3:5 major sixth, 4:5 major third, 5:6 minor third) or keys 1–7 each start a new plate
+- Six brass dials, each an ARIA slider you can drag vertically or horizontally, scroll, or set with arrow, Page, Home and End keys (Shift for bigger steps): Detuning (±2 % for near-unison beating), Phase, Damping, Rotary amplitude, Pen width and Speed; dials that change the figure show a ghost preview and re-release when you let go, while pen width and speed change the running drawing
+- Release pendulums (R) starts a fresh plate from t = 0 and animates it stroke by stroke; Randomize (Z) picks tasteful musical settings; Space lifts and lowers the pen
+- Ink & paper: sepia, indigo and oxblood on cream, or gold on black (I cycles); switching re-inks the drawing so far instantly
+- Save drawing (S) exports a PNG of the sheet with its plate caption, through canvas.toBlob and a temporary download link
+- The cartouche and plate caption update live with the interval name, cents, detuning, phase and rotary settings; the first plate opens part-drawn so the page starts on ink
+- prefers-reduced-motion halves the drawing speed and throttles the engraving's animation; drawing pauses while the tab is hidden

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vast — A Scroll Across the Solar System</title>
+<meta name="description" content="A horizontal journey from the Sun to Pluto at true relative scale. The Sun is drawn about 600 pixels wide and every size and distance follows from it: Earth is a few pixels across and Neptune lies an enormous scroll away. Travel at the speed of light in real time.">
+<meta name="theme-color" content="#000000">
+<style>
+  :root{
+    --ink:#ffffff;
+    --dim:rgba(255,255,255,.52);
+    --faint:rgba(255,255,255,.28);
+    --hair:rgba(255,255,255,.14);
+    --warm:#ffcf8a;
+    --thin:"Helvetica Neue","HelveticaNeue-Light","Segoe UI Light","Segoe UI","Avenir Next","Nimbus Sans",Arial,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  body{color:var(--ink);font-family:var(--thin);font-weight:300;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+  button{font:inherit;color:inherit}
+  :focus-visible{outline:1px solid var(--warm);outline-offset:4px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+  #sky{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #sky.grab{cursor:grabbing}
+  #world{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+
+  .caps{font-size:10px;letter-spacing:.42em;text-transform:uppercase;color:var(--dim);font-weight:400}
+
+  /* ───────── the void's messages and the bodies' tags ───────── */
+  .msg{position:absolute;left:0;top:0;width:min(34ch,80vw);margin:0;text-align:center;font-size:clamp(14px,1.25vw,17px);line-height:1.65;letter-spacing:.06em;color:rgba(255,255,255,.86);
+    display:none;will-change:transform,opacity}
+  .msg.big{font-size:clamp(22px,2.6vw,36px);letter-spacing:.24em;font-weight:200;line-height:1.35;width:min(22ch,86vw)}
+  .msg.note{font-size:clamp(12px,1vw,14px);color:rgba(255,255,255,.62);letter-spacing:.1em}
+  .tag{position:absolute;left:0;top:0;margin:0;text-align:center;white-space:nowrap;display:none;will-change:transform,opacity}
+  .tag b{display:block;font-weight:300;font-size:12px;letter-spacing:.5em;text-transform:uppercase;margin-right:-.5em}
+  .tag span{display:block;margin-top:7px;font-size:10px;letter-spacing:.16em;color:var(--dim)}
+
+  /* ───────── masthead ───────── */
+  .top{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:clamp(18px,3vw,34px) clamp(16px,3.4vw,44px);pointer-events:none}
+  .brand h1{margin:0;font-weight:200;font-size:clamp(20px,2vw,26px);letter-spacing:.9em;margin-right:-.9em}
+  .brand p{margin:12px 0 0}
+  .scale{text-align:right}
+  .scale p{margin:0 0 7px}
+  .scale b{color:var(--ink);font-weight:400}
+
+  /* ───────── hint ───────── */
+  .hint{position:fixed;left:50%;bottom:clamp(170px,22vh,210px);transform:translateX(-50%);margin:0;display:flex;align-items:center;gap:16px;transition:opacity 1.2s;pointer-events:none;white-space:nowrap}
+  .hint i{display:block;width:44px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff);position:relative;animation:nudge 2.4s ease-in-out infinite}
+  .hint i::after{content:"";position:absolute;right:0;top:-3px;width:7px;height:7px;border-top:1px solid #fff;border-right:1px solid #fff;transform:rotate(45deg)}
+  .hint.gone{opacity:0}
+  .hint .hs{display:none}
+  @keyframes nudge{50%{transform:translateX(10px)}}
+
+  /* ───────── HUD ───────── */
+  .hud{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr);align-items:end;gap:clamp(16px,3vw,48px);
+    padding:0 clamp(16px,3.4vw,44px) clamp(18px,3vw,30px);background:linear-gradient(0deg,rgba(0,0,0,.9) 40%,rgba(0,0,0,0));padding-top:60px}
+  .odo p{margin:0}
+  .odo .caps{margin-bottom:12px}
+  .digits{display:flex;align-items:baseline;font-size:clamp(20px,2.1vw,30px);font-weight:200;letter-spacing:.04em;font-variant-numeric:tabular-nums;line-height:1}
+  .dg{display:inline-block;height:1.2em;overflow:hidden;width:.62em;text-align:center;position:relative}
+  .dg span{display:block;will-change:transform}
+  .dg span i{display:block;height:1.2em;line-height:1.2em;font-style:normal}
+  .dg.lead{color:rgba(255,255,255,.26)}
+  .gap{display:inline-block;width:.32em}
+  .unit{margin-left:.5em;font-size:.45em;letter-spacing:.3em;color:var(--dim)}
+  .odo .sub{margin-top:14px;display:flex;gap:22px;flex-wrap:wrap;font-size:11px;letter-spacing:.2em;color:var(--dim);font-variant-numeric:tabular-nums}
+  .odo .sub b{color:var(--ink);font-weight:400;letter-spacing:.12em}
+
+  .travel{min-width:0}
+  .bodies{list-style:none;margin:0 0 14px;padding:0;display:flex;justify-content:space-between;gap:4px}
+  .bodies button{appearance:none;background:none;border:0;padding:6px 2px;cursor:pointer;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);transition:color .3s;white-space:nowrap}
+  .bodies button:hover{color:#fff}
+  .bodies button[aria-current="location"]{color:var(--warm)}
+  .bodies .ab{display:none}
+  .map{position:relative;height:26px;cursor:pointer;touch-action:none}
+  .map .track{position:absolute;left:0;right:0;top:12px;height:1px;background:var(--hair)}
+  .map .done{position:absolute;left:0;top:12px;height:1px;background:rgba(255,255,255,.5);width:0}
+  .map .mk{position:absolute;top:8px;width:1px;height:9px;background:rgba(255,255,255,.55)}
+  .map .mk.big{top:6px;height:13px}
+  .map .cur{position:absolute;top:3px;width:9px;height:19px;margin-left:-4.5px;border-left:1px solid var(--warm);border-right:1px solid var(--warm);pointer-events:none}
+  .map-legend{display:flex;justify-content:space-between;margin-top:8px}
+
+  .light{text-align:right;justify-self:end}
+  .lbtn{appearance:none;background:none;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:13px 20px 13px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:12px;
+    font-size:10px;letter-spacing:.34em;text-transform:uppercase;transition:border-color .4s, box-shadow .6s, color .4s}
+  .lbtn:hover{border-color:#fff}
+  .lbtn .c{font-style:italic;font-size:17px;letter-spacing:0;text-transform:none;font-family:Georgia,"Times New Roman",serif;line-height:1;color:var(--warm)}
+  .lbtn[aria-pressed="true"]{border-color:var(--warm);color:var(--warm);box-shadow:0 0 24px rgba(255,207,138,.18)}
+  .light p{margin:14px 0 0;font-size:11px;letter-spacing:.18em;color:var(--dim);font-variant-numeric:tabular-nums;min-height:1.4em}
+  .light p b{color:#fff;font-weight:400}
+  .light p + p{margin-top:6px}
+
+  .end-btn{pointer-events:auto;appearance:none;margin-top:20px;background:none;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:11px 18px;cursor:pointer;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#fff}
+  .end-btn:hover{border-color:#fff}
+
+  @media (max-width:980px){
+    .hud{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"odo light" "travel travel";row-gap:18px}
+    .odo{grid-area:odo}.light{grid-area:light}.travel{grid-area:travel}
+    .bodies .full{display:none}.bodies .ab{display:inline}
+  }
+  @media (max-width:560px){
+    .top{flex-direction:column;gap:12px}
+    .brand p{margin-top:9px;letter-spacing:.3em;font-size:9px}
+    .scale{text-align:left;font-size:9px;letter-spacing:.3em}
+    .scale p{display:inline;margin-right:12px}
+    .hud{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"odo light" "travel travel";row-gap:14px;padding-top:34px;gap:10px}
+    .light{align-self:start}
+    .light p{display:none}
+    .lbtn{width:48px;height:48px;padding:0;justify-content:center;border-radius:50%}
+    .lbtn #lightLbl{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+    .lbtn .c{font-size:20px}
+    .digits{font-size:22px}
+    .odo .sub{gap:6px 14px;font-size:9px;letter-spacing:.12em;margin-top:10px}
+    .odo .caps{margin-bottom:8px;font-size:9px}
+    .bodies{margin-bottom:8px}
+    .bodies button{letter-spacing:.1em;padding:6px 1px;font-size:9px}
+    .hint .hl{display:none}.hint .hs{display:inline}
+    .hint{bottom:auto;top:calc(36% - 44px);left:auto;right:16px;transform:none;gap:10px}
+    .hint i{width:30px}
+    .brand h1{letter-spacing:.7em}
+    .msg{font-size:14px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .hint i{animation:none}
+  }
+</style>
+</head>
+<body>
+<canvas id="sky" role="img" aria-label="The Solar System drawn to true relative scale on a black sky: the Sun at the left, then the planets spread across an immense horizontal distance."></canvas>
+<div id="world" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="brand">
+    <h1>VAST</h1>
+    <p class="caps">a scroll across the solar system — at true scale</p>
+  </div>
+  <div class="scale caps">
+    <p>the sun · <b id="sunPx">600</b> px wide</p>
+    <p>1 pixel · <b id="kmpp">2,319</b> km</p>
+  </div>
+</header>
+
+<p class="hint caps" id="hint"><span class="hl">scroll · swipe · or press → to travel</span><span class="hs">swipe to travel</span> <i aria-hidden="true"></i></p>
+
+<footer class="hud">
+  <section class="odo" aria-label="Odometer">
+    <p class="caps">distance from the sun</p>
+    <div class="digits" id="digits" aria-hidden="true"></div>
+    <p class="sr" id="odoText"></p>
+    <div class="sub">
+      <span>AU <b id="au">0.0051</b></span>
+      <span>light-time <b id="lt">00:00:02.5</b></span>
+      <span>speed <b id="spd">0 km/s</b></span>
+    </div>
+  </section>
+
+  <nav class="travel" aria-label="Fast travel">
+    <ul class="bodies" id="bodies"></ul>
+    <div class="map" id="map" role="presentation">
+      <div class="track"></div><div class="done" id="mapDone"></div>
+      <div class="cur" id="mapCur"></div>
+    </div>
+    <div class="map-legend caps"><span>sun</span><span id="mapPct">0.01% of the way to pluto</span></div>
+  </nav>
+
+  <section class="light" aria-label="Light speed">
+    <button type="button" class="lbtn" id="lightBtn" aria-pressed="false"><span class="c" aria-hidden="true">c</span><span id="lightLbl">travel at light speed</span></button>
+    <p id="lightInfo">299,792 km every second</p>
+    <p class="next" id="nextInfo">next · mercury</p>
+  </section>
+</footer>
+
+<p class="sr" aria-live="polite" id="live"></p>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ════════════ facts (mean values, km) ════════════ */
+  var SUN_D = 1391400;              // mean diameter of the Sun
+  var C = 299792.458;               // km per second
+  var AU = 149597870.7;
+  var END_KM = 6.2e9;
+  var BODIES = [
+    {id:'sun',     name:'Sun',     ab:'Su', km:0,          d:1391400, dist:'our star',                   dia:'1,391,400 km across'},
+    {id:'mercury', name:'Mercury', ab:'Me', km:57909050,   d:4879.4,  dist:'57.9 million km',            dia:'4,879 km across'},
+    {id:'venus',   name:'Venus',   ab:'Ve', km:108208000,  d:12103.6, dist:'108.2 million km',           dia:'12,104 km across'},
+    {id:'earth',   name:'Earth',   ab:'Ea', km:149598023,  d:12742,   dist:'149.6 million km',           dia:'12,742 km across'},
+    {id:'mars',    name:'Mars',    ab:'Ma', km:227939200,  d:6779,    dist:'227.9 million km',           dia:'6,779 km across'},
+    {id:'jupiter', name:'Jupiter', ab:'Ju', km:778570000,  d:139820,  dist:'778.6 million km',           dia:'139,820 km across'},
+    {id:'saturn',  name:'Saturn',  ab:'Sa', km:1433530000, d:116460,  dist:'1.43 billion km',            dia:'116,460 km across'},
+    {id:'uranus',  name:'Uranus',  ab:'Ur', km:2872460000, d:50724,   dist:'2.87 billion km',            dia:'50,724 km across'},
+    {id:'neptune', name:'Neptune', ab:'Ne', km:4495060000, d:49244,   dist:'4.50 billion km',            dia:'49,244 km across'},
+    {id:'pluto',   name:'Pluto',   ab:'Pl', km:5906380000, d:2376.6,  dist:'5.91 billion km · dwarf planet', dia:'2,377 km across'}
+  ];
+  var MOON = {id:'moon', name:'Moon', km:149598023+384400, d:3474.8};
+  var BELTS = [
+    {id:'belt1', name:'Asteroid belt', km:2.15*149597870.7, d:0, info:'2.2 – 3.3 AU · rocks shown brighter than life, never larger'},
+    {id:'belt2', name:'Kuiper belt',   km:30.4*149597870.7, d:0, info:'30 – 50 AU · icy bodies, brightness exaggerated'}
+  ];
+
+  var MESSAGES = [
+    {km:function(){ return startKm() + (W < 560 ? 0 : W*.3)*KMPP; }, cls:'', pos:.2, text:function(){ return 'This is the Sun, drawn '+sunPx+' pixels wide. From here on, every size and every distance follows from that one choice.'; }},
+    {km:function(){ return startKm() + (W < 560 ? W*1.1 : W*.95)*KMPP; }, cls:'note', pos:-.2, text:function(){ return 'One pixel is '+fmtInt(KMPP)+' kilometres. Scroll, swipe, or let light carry you.'; }},
+    {km:30e6,    cls:'big',  pos:-.2, text:'Most of space is this.'},
+    {km:72e6,    cls:'',     pos:.2,  text:'A year on Mercury lasts 88 Earth days.'},
+    {km:88e6,    cls:'note', pos:-.18,text:'Nothing here is drawn larger than life. The emptiness is to scale too.'},
+    {km:120e6,   cls:'',     pos:.2,  text:'Venus turns so slowly that its day, 243 Earth days, is longer than its year of 225.'},
+    {km:132e6,   cls:'note', pos:-.18,text:'If the Sun were a 20 cm ball, Earth would be a 2 mm bead about 21 metres away.'},
+    {km:153e6,   cls:'',     pos:.22, text:'Everyone you have ever met lives on that dot. The fainter one beside it is the Moon, 384,400 km away.'},
+    {km:168e6,   cls:'note', pos:-.18,text:'Every other planet would fit, side by side, into the gap between Earth and the Moon.'},
+    {km:192e6,   cls:'',     pos:.2,  text:'Sunlight needs 8 minutes 19 seconds to cross the distance you just scrolled.'},
+    {km:241e6,   cls:'',     pos:.2,  text:'Olympus Mons on Mars rises about 22 km — two and a half times the height of Everest.'},
+    {km:292e6,   cls:'big',  pos:-.2, text:'Still, most of space is this.'},
+    {km:395e6,   cls:'',     pos:.24, text:'The asteroid belt. Spacecraft cross it without steering around anything; the rocks are that far apart.'},
+    {km:470e6,   cls:'note', pos:-.2, text:'All of its asteroids together add up to only about 3% of the Moon’s mass.'},
+    {km:610e6,   cls:'note', pos:.2,  text:'Keep going. There is no hurry, and nothing is in the way.'},
+    {km:805e6,   cls:'',     pos:.24, text:'Jupiter is more than twice as massive as all the other planets combined.'},
+    {km:1.1e9,   cls:'note', pos:-.18,text:'Travelling at the speed of light, you would have left the Sun about an hour ago.'},
+    {km:1.47e9,  cls:'',     pos:.24, text:'Saturn’s rings span about 270,000 km, yet in places they are only around ten metres thick.'},
+    {km:2.05e9,  cls:'note', pos:-.18,text:'Out here the Sun is shrinking to a brilliant point.'},
+    {km:2.91e9,  cls:'',     pos:.2,  text:'Uranus is tipped over by about 98°. Each pole gets roughly 42 years of unbroken daylight.'},
+    {km:3.65e9,  cls:'big',  pos:-.2, text:'Space is empty because there is so much of it.'},
+    {km:4.54e9,  cls:'',     pos:.2,  text:'Sunlight takes about four hours to reach Neptune, where winds near 2,000 km/h are the fastest measured in the Solar System.'},
+    {km:5.1e9,   cls:'note', pos:-.18,text:'Beyond Neptune lies the Kuiper Belt: icy leftovers from the birth of the Solar System.'},
+    {km:5.95e9,  cls:'',     pos:.2,  text:function(){ return 'Pluto, a dwarf planet, is '+(2376.6/KMPP).toFixed(1)+' pixel'+((2376.6/KMPP)>=1.5?'s':'')+' wide at this scale.'; }},
+    {km:6.12e9,  cls:'',     pos:-.08, end:true, text:function(){ var ly=4.24*9.4607e12, mm=ly/KMPP*0.26458; return 'The nearest star, Proxima Centauri, is 4.24 light-years away. At this scale it would lie roughly '+fmtInt(Math.round(mm/1e6/100)*100)+' kilometres further along this page.'; }}
+  ];
+
+  /* ════════════ scale ════════════ */
+  var sunPx = 600, KMPP = SUN_D/600;
+  var reduce = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+  function fmtInt(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function setScale(){
+    sunPx = Math.round(Math.max(240, Math.min(600, window.innerWidth*0.42)));
+    KMPP = SUN_D / sunPx;
+    document.getElementById('sunPx').textContent = sunPx;
+    document.getElementById('kmpp').textContent = fmtInt(KMPP);
+  }
+
+  /* ════════════ canvas ════════════ */
+  var sky = document.getElementById('sky'), g = sky.getContext('2d');
+  var W = 0, H = 0, dpr = 1, Y0 = 0, MX = 0;
+  function resize(){
+    setScale();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    sky.width = Math.round(W*dpr); sky.height = Math.round(H*dpr);
+    Y0 = Math.round(H * (W < 560 ? .36 : .42));
+    MX = W * .5;
+    buildSun();
+    seedDust();
+    msgs.forEach(function(m){
+      if(typeof m.src === 'function') m.el.textContent = m.src();
+      if(typeof m.kmf === 'function') m.km = m.kmf();
+    });
+  }
+
+  /* ════════════ procedural bodies ════════════ */
+  function rng(seed){ return function(){ seed = (seed*1664525 + 1013904223) >>> 0; return seed/4294967296; }; }
+  var SPR = 256;
+  function sphereShade(c, R, cx, cy, atmo, rimCol){
+    // light arrives from the left (from the Sun); the right half is night
+    var s = c.createRadialGradient(cx-R*.5, cy-R*.2, R*.1, cx-R*.2, cy, R*1.15);
+    s.addColorStop(0,'rgba(255,255,255,.10)'); s.addColorStop(.55,'rgba(0,0,0,0)'); s.addColorStop(1,'rgba(0,0,0,.45)');
+    c.fillStyle = s; c.fillRect(cx-R,cy-R,2*R,2*R);
+    var t = c.createLinearGradient(cx-R*.12, 0, cx+R*.42, 0);
+    t.addColorStop(0,'rgba(0,0,0,0)'); t.addColorStop(.55,'rgba(0,0,0,.78)'); t.addColorStop(1,'rgba(0,0,0,.96)');
+    c.fillStyle = t; c.fillRect(cx-R,cy-R,2*R,2*R);
+    c.restore();
+    if(atmo){
+      c.save();
+      var a = c.createRadialGradient(cx,cy,R*.9,cx,cy,R*1.07);
+      a.addColorStop(0,'rgba(0,0,0,0)'); a.addColorStop(.62,rimCol); a.addColorStop(1,'rgba(0,0,0,0)');
+      c.fillStyle = a;
+      c.beginPath(); c.arc(cx,cy,R*1.08,0,Math.PI*2); c.fill();
+      c.globalCompositeOperation = 'destination-out';
+      var m = c.createLinearGradient(cx-R*.3,0,cx+R*.5,0); m.addColorStop(0,'rgba(0,0,0,0)'); m.addColorStop(1,'rgba(0,0,0,1)');
+      c.fillStyle = m; c.fillRect(cx-R*1.1,cy-R*1.1,R*2.2,R*2.2);
+      c.restore();
+    }
+  }
+  function disc(c, cx, cy, R, base){ c.save(); c.beginPath(); c.arc(cx,cy,R,0,Math.PI*2); c.clip(); c.fillStyle = base; c.fillRect(cx-R,cy-R,2*R,2*R); }
+  function blobs(c, r, cx, cy, R, n, cols, rmin, rmax, alpha, lat){
+    for(var i=0;i<n;i++){
+      var a = r()*Math.PI*2, d = Math.sqrt(r())*R*.95, x = cx+Math.cos(a)*d, y = cy+Math.sin(a)*d*(lat||1);
+      c.globalAlpha = alpha*(.5+r()*.5); c.fillStyle = cols[i%cols.length];
+      c.beginPath(); c.ellipse(x, y, rmin+r()*(rmax-rmin), (rmin+r()*(rmax-rmin))*(.6+r()*.5), r()*Math.PI, 0, Math.PI*2); c.fill();
+    }
+    c.globalAlpha = 1;
+  }
+  function bands(c, r, cx, cy, R, cols, wob, n){
+    var y = cy-R, i = 0;
+    while(y < cy+R){
+      var h = R*(.05 + r()*.13);
+      c.fillStyle = cols[i%cols.length];
+      c.beginPath(); c.moveTo(cx-R, y);
+      for(var x=-R;x<=R;x+=R/16) c.lineTo(cx+x, y + Math.sin(x/R*6 + i)*wob*R);
+      c.lineTo(cx+R, y+h); for(var x2=R;x2>=-R;x2-=R/16) c.lineTo(cx+x2, y+h+Math.sin(x2/R*5 + i*1.7)*wob*R);
+      c.closePath(); c.fill();
+      y += h; i++;
+    }
+    // fine turbulence streaks
+    c.globalAlpha = .18;
+    for(var k=0;k<(n||60);k++){
+      var yy = cy + (r()*2-1)*R*.95, len = R*(.2+r()*.6), xx = cx + (r()*2-1)*R;
+      c.strokeStyle = r()<.5 ? 'rgba(255,255,255,.8)' : 'rgba(90,50,20,.8)'; c.lineWidth = R*(.01+r()*.02);
+      c.beginPath(); c.moveTo(xx-len/2, yy); c.quadraticCurveTo(xx, yy+(r()-.5)*R*.08, xx+len/2, yy); c.stroke();
+    }
+    c.globalAlpha = 1;
+  }
+  function makeSprite(id){
+    var cv = document.createElement('canvas'); cv.width = cv.height = SPR;
+    var c = cv.getContext('2d'), cx = SPR/2, cy = SPR/2, R = SPR*.44, r = rng(id.length*977+id.charCodeAt(0)*31);
+    if(id==='mercury'){
+      disc(c,cx,cy,R,'#8f8a84');
+      blobs(c,r,cx,cy,R,40,['#a7a29a','#6f6a64','#b8b3ab'],R*.03,R*.16,.55);
+      for(var i=0;i<26;i++){ var a=r()*6.28, d=Math.sqrt(r())*R*.9, x=cx+Math.cos(a)*d, y=cy+Math.sin(a)*d, rr=R*(.02+r()*.07);
+        c.strokeStyle='rgba(40,36,32,.45)'; c.lineWidth=rr*.35; c.beginPath(); c.arc(x,y,rr,0,6.28); c.stroke();
+        c.strokeStyle='rgba(230,225,215,.35)'; c.lineWidth=rr*.2; c.beginPath(); c.arc(x-rr*.2,y-rr*.2,rr,2.4,4.6); c.stroke(); }
+      sphereShade(c,R,cx,cy,false);
+    } else if(id==='venus'){
+      disc(c,cx,cy,R,'#e3cf9e');
+      bands(c,r,cx,cy,R,['#e9d8aa','#d8bf86','#efe0b8','#d2b87e'],.05,40);
+      blobs(c,r,cx,cy,R,18,['#f3e6c4','#c9ab70'],R*.2,R*.5,.25,.5);
+      sphereShade(c,R,cx,cy,true,'rgba(255,236,190,.55)');
+    } else if(id==='earth'){
+      disc(c,cx,cy,R,'#1d4f95');
+      var og = c.createRadialGradient(cx-R*.3,cy-R*.3,R*.1,cx,cy,R); og.addColorStop(0,'#2d6bb8'); og.addColorStop(1,'#123a74');
+      c.fillStyle = og; c.fillRect(cx-R,cy-R,2*R,2*R);
+      blobs(c,r,cx-R*.25,cy-R*.05,R*.55,26,['#4f7d3b','#6d8a45','#8c7b4b'],R*.07,R*.2,.95,.8);
+      blobs(c,r,cx+R*.3,cy+R*.25,R*.4,14,['#58843f','#9b8757','#4a7337'],R*.06,R*.16,.95,.9);
+      c.fillStyle='rgba(240,248,255,.95)'; c.beginPath(); c.ellipse(cx,cy-R*.97,R*.55,R*.12,0,0,6.28); c.fill(); c.beginPath(); c.ellipse(cx,cy+R*.98,R*.5,R*.1,0,0,6.28); c.fill();
+      c.lineCap='round';
+      for(var k=0;k<70;k++){ var yy=cy+(r()*2-1)*R*.88, xx=cx+(r()*2-1)*R*.9, L=R*(.08+r()*.28);
+        c.strokeStyle='rgba(255,255,255,'+(.18+r()*.32)+')'; c.lineWidth=R*(.008+r()*.022);
+        c.beginPath(); c.moveTo(xx-L/2,yy); c.quadraticCurveTo(xx,yy-R*(r()-.5)*.18,xx+L/2,yy+R*(r()-.5)*.08); c.stroke(); }
+      blobs(c,r,cx,cy,R,10,['rgba(255,255,255,.9)'],R*.05,R*.14,.18,.4);
+      sphereShade(c,R,cx,cy,true,'rgba(110,170,255,.8)');
+    } else if(id==='moon'){
+      disc(c,cx,cy,R,'#a9a7a1');
+      blobs(c,r,cx,cy,R,14,['#7d7b76','#8c8a84'],R*.1,R*.3,.7);
+      sphereShade(c,R,cx,cy,false);
+    } else if(id==='mars'){
+      disc(c,cx,cy,R,'#b4532c');
+      blobs(c,r,cx,cy,R,30,['#8a3b1e','#c96b3c','#7a321a','#d38552'],R*.06,R*.28,.6,.7);
+      c.fillStyle='rgba(250,245,240,.92)'; c.beginPath(); c.ellipse(cx-R*.05,cy-R*.93,R*.28,R*.09,0,0,6.28); c.fill();
+      sphereShade(c,R,cx,cy,true,'rgba(255,170,120,.35)');
+    } else if(id==='jupiter'){
+      disc(c,cx,cy,R,'#d8c3a2');
+      bands(c,r,cx,cy,R,['#efe3cc','#c79f76','#e8d6b8','#a8734c','#f2e7d2','#b98b62','#dcc6a3','#9c6a45'],.018,90);
+      c.fillStyle='#c0583a'; c.beginPath(); c.ellipse(cx-R*.18,cy+R*.33,R*.2,R*.1,0,0,6.28); c.fill();
+      c.strokeStyle='rgba(245,220,200,.7)'; c.lineWidth=R*.025; c.beginPath(); c.ellipse(cx-R*.18,cy+R*.33,R*.24,R*.13,0,0,6.28); c.stroke();
+      sphereShade(c,R,cx,cy,true,'rgba(255,230,200,.35)');
+    } else if(id==='saturn'){
+      disc(c,cx,cy,R,'#e3cf98');
+      bands(c,r,cx,cy,R,['#efe0b4','#d9c186','#f3e7c3','#c8ad72','#e6d3a2'],.01,50);
+      sphereShade(c,R,cx,cy,true,'rgba(255,240,200,.3)');
+    } else if(id==='uranus'){
+      disc(c,cx,cy,R,'#9fd8df');
+      var ug=c.createLinearGradient(0,cy-R,0,cy+R); ug.addColorStop(0,'#b7e6ea'); ug.addColorStop(.5,'#93cfd8'); ug.addColorStop(1,'#a9dfe4');
+      c.fillStyle=ug; c.fillRect(cx-R,cy-R,2*R,2*R);
+      sphereShade(c,R,cx,cy,true,'rgba(200,250,255,.45)');
+    } else if(id==='neptune'){
+      disc(c,cx,cy,R,'#3563c9');
+      bands(c,r,cx,cy,R,['#3a6bd2','#2e58b8','#4677dc','#2a4fa6'],.02,24);
+      c.fillStyle='rgba(18,34,96,.85)'; c.beginPath(); c.ellipse(cx-R*.2,cy+R*.22,R*.17,R*.09,-.1,0,6.28); c.fill();
+      c.strokeStyle='rgba(255,255,255,.7)'; c.lineWidth=R*.03; c.lineCap='round'; c.beginPath(); c.moveTo(cx-R*.45,cy+R*.4); c.quadraticCurveTo(cx-R*.2,cy+R*.36,cx+R*.1,cy+R*.42); c.stroke();
+      sphereShade(c,R,cx,cy,true,'rgba(140,180,255,.5)');
+    } else if(id==='pluto'){
+      disc(c,cx,cy,R,'#c9b393');
+      blobs(c,r,cx,cy,R,20,['#8f6f52','#a98a6b','#6f523d'],R*.08,R*.26,.6,.8);
+      c.fillStyle='rgba(245,236,215,.9)'; c.beginPath(); c.moveTo(cx-R*.1,cy+R*.45); c.bezierCurveTo(cx-R*.6,cy+R*.1,cx-R*.35,cy-R*.3,cx-R*.1,cy-R*.05); c.bezierCurveTo(cx+R*.1,cy-R*.3,cx+R*.4,cy+R*.05,cx-R*.1,cy+R*.45); c.fill();
+      sphereShade(c,R,cx,cy,false);
+    }
+    return {cv:cv, R:R};
+  }
+  function makeSaturnRings(){
+    // a separate sprite for the ring system, split into the half behind the planet and the half in front
+    var w = SPR*2.6, h = SPR*.9, back = document.createElement('canvas'), front = document.createElement('canvas');
+    back.width = front.width = w; back.height = front.height = h;
+    var R = SPR*.44, rings = [[1.24,1.52,'rgba(170,150,120,.28)'],[1.53,1.95,'rgba(232,214,176,.82)'],[1.95,2.03,'rgba(0,0,0,0)'],[2.03,2.27,'rgba(214,196,160,.66)']];
+    [back,front].forEach(function(cv, half){
+      var c = cv.getContext('2d'), cx = w/2, cy = h/2;
+      c.save(); c.beginPath();
+      if(half===0) c.rect(0,0,w,cy); else c.rect(0,cy,w,h-cy);
+      c.clip();
+      rings.forEach(function(rg){
+        c.strokeStyle = rg[2]; c.lineWidth = (rg[1]-rg[0])*R*.98;
+        var rr = (rg[0]+rg[1])/2*R;
+        c.beginPath(); c.ellipse(cx,cy,rr,rr*.24,0,0,Math.PI*2); c.stroke();
+      });
+      // night side of the rings and the planet's shadow on them
+      var t = c.createLinearGradient(cx-R*.2,0,cx+R*2.3,0); t.addColorStop(0,'rgba(0,0,0,0)'); t.addColorStop(1,'rgba(0,0,0,.72)');
+      c.globalCompositeOperation='source-atop'; c.fillStyle=t; c.fillRect(0,0,w,h);
+      if(half===0){ c.fillStyle='rgba(0,0,0,.8)'; c.beginPath(); c.ellipse(cx+R*.9,cy,R*1.25,R*.3,0,0,Math.PI*2); c.fill(); }
+      c.restore();
+    });
+    return {back:back, front:front, w:w, h:h};
+  }
+  var sprites = {};
+  BODIES.concat([MOON]).forEach(function(b){ if(b.id!=='sun') sprites[b.id] = makeSprite(b.id); });
+  var saturnRings = makeSaturnRings();
+
+  /* the Sun: a limb-darkened, granulated disc built once per scale */
+  var sunCv = document.createElement('canvas');
+  function buildSun(){
+    var D = Math.round(sunPx*dpr), c;
+    sunCv.width = sunCv.height = D; c = sunCv.getContext('2d');
+    var R = D/2, r = rng(4242);
+    c.clearRect(0,0,D,D);
+    c.save(); c.beginPath(); c.arc(R,R,R,0,Math.PI*2); c.clip();
+    var bg = c.createRadialGradient(R,R,0,R,R,R);
+    bg.addColorStop(0,'#fffaf0'); bg.addColorStop(.45,'#ffe7b0'); bg.addColorStop(.78,'#ffc66b'); bg.addColorStop(.93,'#ff9d3c'); bg.addColorStop(1,'#e8661c');
+    c.fillStyle = bg; c.fillRect(0,0,D,D);
+    // granulation: a fine boiling grain of soft cells
+    var n = Math.round(D*D/60);
+    for(var i=0;i<n;i++){
+      var x = r()*D, y = r()*D, s = (.7+r()*1.5)*dpr;
+      c.fillStyle = r()<.5 ? 'rgba(255,255,236,.075)' : 'rgba(165,62,8,.07)';
+      c.beginPath(); c.arc(x, y, s, 0, 6.28); c.fill();
+    }
+    // supergranulation: very faint, broad mottling
+    for(var j=0;j<Math.round(D*D/1400);j++){
+      c.fillStyle = r()<.5 ? 'rgba(255,248,220,.012)' : 'rgba(190,80,10,.014)';
+      c.beginPath(); c.arc(r()*D, r()*D, (4+r()*9)*dpr, 0, 6.28); c.fill();
+    }
+    // two small, irregular sunspot groups: penumbra, then umbra
+    [[.36,.6,1],[.63,.4,.7]].forEach(function(grp){
+      for(var k=0;k<6;k++){
+        var gx = (grp[0] + (r()-.5)*.05)*D, gy = (grp[1] + (r()-.5)*.025)*D, rr = (.002+r()*.006)*D*grp[2];
+        c.fillStyle='rgba(150,55,5,.28)'; c.beginPath(); c.ellipse(gx,gy,rr*2.1,rr*1.6,r()*3,0,6.28); c.fill();
+        c.fillStyle='rgba(70,20,0,.62)'; c.beginPath(); c.ellipse(gx,gy,rr,rr*.8,r()*3,0,6.28); c.fill();
+      }
+    });
+    // faculae: brighter veins near the limb
+    c.strokeStyle='rgba(255,255,230,.10)'; c.lineWidth=1.2*dpr;
+    for(var f=0;f<60;f++){
+      var fa=r()*6.28, fd=R*(.8+r()*.17), fx=R+Math.cos(fa)*fd, fy=R+Math.sin(fa)*fd;
+      c.beginPath(); c.moveTo(fx,fy); c.quadraticCurveTo(fx+(r()-.5)*14*dpr, fy+(r()-.5)*14*dpr, fx+(r()-.5)*22*dpr, fy+(r()-.5)*22*dpr); c.stroke();
+    }
+    // limb darkening
+    var ld = c.createRadialGradient(R,R,R*.55,R,R,R);
+    ld.addColorStop(0,'rgba(120,30,0,0)'); ld.addColorStop(.8,'rgba(150,40,0,.16)'); ld.addColorStop(1,'rgba(110,20,0,.5)');
+    c.fillStyle = ld; c.fillRect(0,0,D,D);
+    c.restore();
+  }
+
+  /* ════════════ belts of small bodies (brightness exaggerated, never size) ════════════ */
+  function belt(n, a0, a1, spread, seed){
+    var r = rng(seed), arr = [];
+    for(var i=0;i<n;i++){
+      var u = r(), km = (a0 + (a1-a0)*u)*AU;
+      var gy = (r()+r()+r()-1.5)/1.5;
+      var big = r() < .08;
+      arr.push({km:km, y:gy*spread, a:(big?.45:.2)+r()*.35, s:big?1.6:(r()<.7?.9:1.2)});
+    }
+    arr.sort(function(p,q){ return p.km-q.km; });
+    return arr;
+  }
+  var asteroids = belt(2600, 2.15, 3.3, .2, 11), kuiper = belt(3200, 30, 41.5, .26, 23);
+  function firstIndex(arr, km){ var lo=0, hi=arr.length; while(lo<hi){ var m=(lo+hi)>>1; if(arr[m].km<km) lo=m+1; else hi=m; } return lo; }
+
+  /* ════════════ dust for a sense of motion ════════════ */
+  var dust = [];
+  function seedDust(){
+    var r = rng(99), n = Math.round(Math.min(140, W*H/12000));
+    dust.length = 0;
+    for(var i=0;i<n;i++) dust.push({x:r()*W, y:r()*H, z:.08+Math.pow(r(),1.8)*.9, a:.08+r()*.3});
+  }
+
+  /* ════════════ DOM overlays ════════════ */
+  var world = document.getElementById('world');
+  var msgs = MESSAGES.map(function(m){
+    var el = document.createElement('p'); el.className = 'msg '+(m.cls||'');
+    el.textContent = typeof m.text === 'function' ? m.text() : m.text;
+    world.appendChild(el);
+    var o = {kmf:m.km, km:(typeof m.km==='function') ? 0 : m.km, pos:m.pos, el:el, src:(typeof m.text==='function')?m.text:null, vis:false, end:!!m.end};
+    if(m.end){
+      var b = document.createElement('button'); b.type='button'; b.className='end-btn'; b.textContent='return to the sun';
+      b.addEventListener('click', function(){ travelTo(startKm()); });
+      o.btn = b;
+    }
+    return o;
+  });
+  var tags = BODIES.concat([MOON], BELTS).map(function(b){
+    var el = document.createElement('p'); el.className='tag';
+    el.innerHTML = '<b>'+b.name+'</b>'+(b.dist ? '<span>'+b.dist+' · '+b.dia+'</span>' : b.info ? '<span>'+b.info+'</span>' : '<span>384,400 km from Earth</span>');
+    world.appendChild(el);
+    return {b:b, el:el, vis:false};
+  });
+  // the end message owns a button; it lives in its own clickable wrapper
+  var endWrap = document.createElement('div');
+  endWrap.style.cssText = 'position:fixed;left:0;top:0;display:none;pointer-events:none;text-align:center';
+  document.body.appendChild(endWrap);
+  msgs.forEach(function(m){ if(m.btn) endWrap.appendChild(m.btn); });
+
+  /* ════════════ HUD ════════════ */
+  var digitsEl = document.getElementById('digits'), DIG = 10, cols = [];
+  (function(){
+    for(var i=DIG-1;i>=0;i--){
+      var dg = document.createElement('span'); dg.className='dg';
+      var col = document.createElement('span'), html='';
+      for(var k=0;k<=10;k++) html += '<i>'+(k%10)+'</i>';
+      col.innerHTML = html; dg.appendChild(col); digitsEl.appendChild(dg);
+      cols[i] = {dg:dg, col:col, last:-1};
+      if(i%3===0 && i>0){ var gp=document.createElement('span'); gp.className='gap'; digitsEl.appendChild(gp); }
+    }
+    var u = document.createElement('span'); u.className='unit'; u.textContent='km'; digitsEl.appendChild(u);
+  })();
+  function setOdometer(v, moving){
+    // a mechanical odometer: while travelling, each wheel rolls over as the one below it passes 9;
+    // at rest every wheel settles on a whole digit
+    v = Math.floor(Math.max(0, v));
+    var lead = true;
+    for(var i=DIG-1;i>=0;i--){
+      var base = Math.pow(10,i), n = v/base, d = Math.floor(n)%10, p = d;
+      if(moving && i>0){ var rem = v % base, roll = Math.max(0, (rem - base*.9)/(base*.1)); p = d + roll; }
+      if(v >= base) lead = false;
+      var q = Math.round(p*100)/100;
+      if(cols[i].last !== q){ cols[i].last = q; cols[i].col.style.transform = 'translateY('+(-q*1.2).toFixed(3)+'em)'; }
+      cols[i].dg.classList.toggle('lead', lead && i>0);
+    }
+  }
+  var auEl = document.getElementById('au'), ltEl = document.getElementById('lt'), spdEl = document.getElementById('spd'), odoText = document.getElementById('odoText');
+  var mapEl = document.getElementById('map'), mapCur = document.getElementById('mapCur'), mapDone = document.getElementById('mapDone'), mapPct = document.getElementById('mapPct');
+  var lightBtn = document.getElementById('lightBtn'), lightLbl = document.getElementById('lightLbl'), lightInfo = document.getElementById('lightInfo'), nextInfo = document.getElementById('nextInfo');
+  var hint = document.getElementById('hint'), live = document.getElementById('live');
+  var bodyBtns = [];
+  BODIES.forEach(function(b, i){
+    var li = document.createElement('li'), bt = document.createElement('button');
+    bt.type='button'; bt.innerHTML = '<span class="full">'+b.name+'</span><span class="ab" aria-hidden="true">'+b.ab+'</span>';
+    bt.setAttribute('aria-label','Travel to '+b.name);
+    bt.addEventListener('click', function(){ travelTo(i===0 ? startKm() : b.km - 0.0*KMPP); });
+    li.appendChild(bt); document.getElementById('bodies').appendChild(li); bodyBtns.push(bt);
+    if(i>0){ var mk = document.createElement('div'); mk.className = 'mk'+(b.d>40000?' big':''); mk.style.left = (b.km/END_KM*100)+'%'; mapEl.insertBefore(mk, mapCur); }
+  });
+  function pad2(n){ return (n<10?'0':'')+n; }
+  function hms(s, tenths){
+    var h = Math.floor(s/3600), m = Math.floor(s/60)%60, sec = s%60;
+    return pad2(h)+':'+pad2(m)+':'+(tenths ? (sec<10?'0':'')+sec.toFixed(1) : pad2(Math.floor(sec)));
+  }
+  function human(km){
+    if(km < 1e6) return fmtInt(km)+' km';
+    if(km < 1e9) return (km/1e6).toFixed(km<1e7?2:1)+' million km';
+    return (km/1e9).toFixed(2)+' billion km';
+  }
+
+  /* ════════════ motion state ════════════ */
+  function startKm(){ return SUN_D/2 + 34*KMPP; }
+  var cam = 0, prevCam = 0, vel = 0, speedKms = 0;
+  var travel = null, light = null, drag = null;
+  var scrollStart = 0, lastInput = 0;
+  function boostNow(now){
+    if(now - lastInput > 260) scrollStart = now;
+    lastInput = now;
+    var s = (now - scrollStart)/1000;
+    return Math.min(420, 1 + 2*s + 3.2*s*s*s);
+  }
+  function stopLight(){ if(light){ light = null; lightBtn.setAttribute('aria-pressed','false'); lightLbl.textContent='travel at light speed'; } }
+  function impulse(delta){
+    var now = performance.now();
+    travel = null; stopLight();
+    vel += delta * 5.5 * boostNow(now);
+    vel = Math.max(-8e6, Math.min(8e6, vel));
+  }
+  function travelTo(km){
+    stopLight(); vel = 0;
+    km = Math.max(0, Math.min(END_KM, km));
+    var dpx = Math.abs(km - cam)/KMPP;
+    if(reduce || dpx < 2){ cam = km; travel = null; return; }
+    travel = {from:cam, to:km, t:0, dur:Math.min(4.4, 1.2 + .5*Math.log(1+dpx)/Math.LN10)};
+  }
+  lightBtn.addEventListener('click', function(){
+    if(light){ stopLight(); return; }
+    travel = null; vel = 0;
+    if(cam >= END_KM - 1) cam = startKm();
+    light = {t0:performance.now(), cam0:cam};
+    lightBtn.setAttribute('aria-pressed','true');
+  });
+
+  window.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if(e.deltaMode===1) d *= 32; else if(e.deltaMode===2) d *= H;
+    impulse(Math.max(-140, Math.min(140, d)));   // one notch is one gentle push; sustained scrolling is what accelerates
+  }, {passive:false});
+  window.addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var t = e.target && e.target.tagName, k = e.key;
+    if(k==='ArrowRight'||k==='ArrowDown'){ e.preventDefault(); impulse(70); }
+    else if(k==='ArrowLeft'||k==='ArrowUp'){ e.preventDefault(); impulse(-70); }
+    else if(k==='PageDown'||k==='PageUp'){
+      e.preventDefault();
+      var dir = k==='PageDown'?1:-1, best=null;
+      BODIES.forEach(function(b){ var target = b.id==='sun'?startKm():b.km; if(dir>0 && target > cam + 50*KMPP && (best===null||target<best)) best=target; if(dir<0 && target < cam - 50*KMPP && (best===null||target>best)) best=target; });
+      if(best!==null) travelTo(best);
+    }
+    else if(k==='Home'){ e.preventDefault(); travelTo(startKm()); }
+    else if(k==='End'){ e.preventDefault(); travelTo(END_KM - W*.3*KMPP); }
+    else if(k===' ' && t!=='BUTTON'){ e.preventDefault(); lightBtn.click(); }
+    else if(/^[0-9]$/.test(k)){ var b = BODIES[+k]; if(b) travelTo(b.id==='sun'?startKm():b.km); }
+  });
+  // drag or swipe to travel (either axis), with a fling
+  sky.addEventListener('pointerdown', function(e){
+    drag = {x:e.clientX, y:e.clientY, id:e.pointerId, t:performance.now(), v:0};
+    travel = null; stopLight(); vel = 0; scrollStart = performance.now(); lastInput = scrollStart;
+    try{ sky.setPointerCapture(e.pointerId); }catch(err){}
+    sky.classList.add('grab');
+  });
+  sky.addEventListener('pointermove', function(e){
+    if(!drag || e.pointerId!==drag.id) return;
+    var dx = e.clientX-drag.x, dy = e.clientY-drag.y, now = performance.now();
+    var d = -(Math.abs(dx) >= Math.abs(dy) ? dx : dy);
+    var boost = boostNow(now);
+    cam += d * boost * KMPP;
+    var dt = Math.max(8, now - drag.t);
+    drag.v = drag.v*.6 + (d*boost/dt*1000)*.4;
+    drag.x = e.clientX; drag.y = e.clientY; drag.t = now;
+  });
+  function endDrag(e){
+    if(!drag) return;
+    if(performance.now() - drag.t < 90) vel = drag.v * 1.6;
+    drag = null; sky.classList.remove('grab');
+  }
+  sky.addEventListener('pointerup', endDrag);
+  sky.addEventListener('pointercancel', endDrag);
+  sky.addEventListener('lostpointercapture', endDrag);
+  // the map strip scrubs
+  var mapDrag = false;
+  function mapAt(e){ var r = mapEl.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left)/r.width)); }
+  mapEl.addEventListener('pointerdown', function(e){ mapDrag = true; try{ mapEl.setPointerCapture(e.pointerId); }catch(err){} travelTo(mapAt(e)*END_KM); });
+  mapEl.addEventListener('pointermove', function(e){ if(mapDrag){ travel = null; stopLight(); vel = 0; cam = mapAt(e)*END_KM; } });
+  mapEl.addEventListener('pointerup', function(){ mapDrag = false; });
+  mapEl.addEventListener('pointercancel', function(){ mapDrag = false; });
+
+  /* ════════════ drawing ════════════ */
+  function sx(km){ return MX + (km - cam)/KMPP; }
+  function drawBody(b, x, alphaMul){
+    var d = b.d/KMPP, spr = sprites[b.id];
+    if(b.id==='saturn'){
+      var scl = d/(spr.R*2);
+      var rw = saturnRings.w*scl, rh = saturnRings.h*scl;
+      g.drawImage(saturnRings.back, x-rw/2, Y0-rh/2, rw, rh);
+      g.drawImage(spr.cv, x-SPR*scl/2, Y0-SPR*scl/2, SPR*scl, SPR*scl);
+      g.drawImage(saturnRings.front, x-rw/2, Y0-rh/2, rw, rh);
+      return d;
+    }
+    if(d >= 2.2){
+      var s = d/(spr.R*2)*SPR;
+      g.drawImage(spr.cv, x-s/2, Y0-s/2, s, s);
+      if(b.id==='uranus'){ g.strokeStyle='rgba(190,230,240,.28)'; g.lineWidth=.8; g.beginPath(); g.ellipse(x,Y0,d*.18,d*.95,0,0,Math.PI*2); g.stroke(); }
+    } else {
+      g.fillStyle = 'rgba(255,255,255,'+(.55+.4*Math.min(1,d/2))*alphaMul+')';
+      g.beginPath(); g.arc(x, Y0, Math.max(.75, d/2), 0, Math.PI*2); g.fill();
+    }
+    return d;
+  }
+  function drawLoupe(b, x, d, a){
+    var LR = W < 560 ? 42 : 58, lx = x, ly = Y0 - (W < 560 ? 112 : 150), spr = sprites[b.id];
+    var ring = Math.max(d/2+8, 10);
+    g.globalAlpha = a;
+    g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x, Y0-ring); g.lineTo(lx, ly+LR); g.stroke();
+    g.save(); g.beginPath(); g.arc(lx, ly, LR, 0, Math.PI*2); g.fillStyle='#000'; g.fill(); g.clip();
+    var s = LR*1.62/(spr.R*2)*SPR;
+    g.drawImage(spr.cv, lx-s/2, ly-s/2, s, s);
+    g.restore();
+    g.strokeStyle = 'rgba(255,255,255,.38)'; g.beginPath(); g.arc(lx, ly, LR, 0, Math.PI*2); g.stroke();
+    var mag = (LR*1.62*0.88)/Math.max(.1,d);
+    g.fillStyle = 'rgba(255,255,255,.6)'; g.font = '300 10px '+fontStack; setSpacing('2px');
+    g.textAlign = 'left'; g.fillText('×'+fmtInt(mag), lx + LR*.78, ly - LR*.82);
+    setSpacing('0px');
+    g.globalAlpha = 1;
+  }
+  var fontStack = getComputedStyle(document.body).fontFamily;
+  function setSpacing(v){ try{ if('letterSpacing' in g) g.letterSpacing = v; }catch(e){} }
+
+  var lastNear = '';
+  function nearBody(km, within){
+    if(Math.abs(km - MOON.km) < within) return true;
+    for(var i=1;i<BODIES.length;i++){ if(Math.abs(km - BODIES[i].km) < within) return true; }
+    return km < SUN_D/2 + within;
+  }
+  function draw(now, dxScreen){
+    g.setTransform(dpr,0,0,dpr,0,0);
+    g.fillStyle = '#000'; g.fillRect(0,0,W,H);
+
+    // dust: the only thing that tells you that you are moving
+    var i, p;
+    for(i=0;i<dust.length;i++){
+      p = dust[i];
+      var mv = reduce ? 0 : dxScreen*p.z;
+      p.x -= mv; p.x = ((p.x % W) + W) % W;
+      var len = Math.min(Math.abs(mv), W*.35);
+      if(len > 1.2){
+        g.strokeStyle = 'rgba(255,255,255,'+(p.a*Math.min(1, 3/len+.25)).toFixed(3)+')'; g.lineWidth = .8;
+        g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x + (mv>0?len:-len), p.y); g.stroke();
+      } else {
+        g.fillStyle = 'rgba(255,255,255,'+p.a.toFixed(3)+')'; g.fillRect(p.x, p.y, .9, .9);
+      }
+    }
+
+    var leftKm = cam - MX*KMPP, rightKm = cam + (W-MX)*KMPP;
+
+    // the ecliptic hairline and its million-kilometre ticks
+    var lineStart = Math.max(0, sx(SUN_D/2));
+    g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(lineStart, Y0, W-lineStart, 1);
+    var step = 1e6; while(step/KMPP < 60) step *= 10;
+    var k0 = Math.ceil(Math.max(SUN_D/2, leftKm)/step), k1 = Math.floor(rightKm/step);
+    if(k1 - k0 < 400){
+      g.font = '300 9px '+fontStack; g.textAlign = 'center'; setSpacing('2px');
+      for(var k=k0;k<=k1;k++){
+        var km = k*step, x = sx(km), major = (k%10===0), huge = (km % 1e8 === 0);
+        g.fillStyle = major ? 'rgba(255,255,255,.28)' : 'rgba(255,255,255,.12)';
+        g.fillRect(Math.round(x), Y0 + 6, 1, major ? 8 : 4);
+        if(major && !nearBody(km, 120*KMPP)){ g.fillStyle = huge ? 'rgba(255,255,255,.42)' : 'rgba(255,255,255,.2)'; g.fillText(human(km).toUpperCase(), x, Y0 + 30); }
+      }
+      setSpacing('0px');
+    }
+
+    // belts
+    [asteroids, kuiper].forEach(function(arr){
+      var j = firstIndex(arr, leftKm), band = H;
+      for(; j<arr.length && arr[j].km <= rightKm; j++){
+        var q = arr[j], x = sx(q.km), y = Y0 + q.y*band*.5;
+        g.fillStyle = 'rgba(214,205,190,'+q.a.toFixed(2)+')'; g.fillRect(x, y, q.s, q.s);
+      }
+    });
+
+    // the Sun and its glow
+    var sxS = sx(0), Rpx = sunPx/2;
+    if(sxS + Rpx*3.2 > 0){
+      g.save(); g.globalCompositeOperation = 'lighter';
+      var gl = g.createRadialGradient(sxS, Y0, Rpx*.9, sxS, Y0, Rpx*3.1);
+      gl.addColorStop(0,'rgba(255,170,80,.36)'); gl.addColorStop(.18,'rgba(255,140,60,.13)'); gl.addColorStop(.5,'rgba(255,120,50,.04)'); gl.addColorStop(1,'rgba(255,120,50,0)');
+      g.fillStyle = gl; g.fillRect(sxS-Rpx*3.2, Y0-Rpx*3.2, Rpx*6.4, Rpx*6.4);
+      g.restore();
+      var breathe = reduce ? 1 : 1 + Math.sin(now/1700)*.004;
+      g.drawImage(sunCv, sxS-Rpx*breathe, Y0-Rpx*breathe, sunPx*breathe, sunPx*breathe);
+    }
+
+    // planets, the Moon, loupes
+    var near = '', nearDist = 1e18;
+    BODIES.concat([MOON]).forEach(function(b){
+      if(b.id==='sun') return;
+      var x = sx(b.km), d = b.d/KMPP;
+      if(x < -200 || x > W+200) return;
+      var edgeFade = Math.max(0, Math.min(1, Math.min(x+120, W+120-x)/220));
+      var dd = drawBody(b, x, 1);
+      if(dd < 30){
+        g.strokeStyle = 'rgba(255,255,255,'+(.2*edgeFade).toFixed(3)+')'; g.lineWidth = 1;
+        g.beginPath(); g.arc(x, Y0, Math.max(dd/2+8, 10), 0, Math.PI*2); g.stroke();
+        if(b.id!=='moon') drawLoupe(b, x, dd, edgeFade);
+      }
+      var dist = Math.abs(x - MX); if(dist < nearDist && b.id!=='moon'){ nearDist = dist; near = b.name; }
+    });
+    if(sxS + Rpx > 0 && Math.abs(sxS-MX) < nearDist){ near = 'Sun'; nearDist = Math.abs(sxS-MX); }
+    if(nearDist < W*.5 && near !== lastNear){ lastNear = near; live.textContent = 'Passing '+near; }
+
+    // "you are here": a hairline where the odometer measures
+    g.fillStyle = 'rgba(255,207,138,.55)'; g.fillRect(Math.round(MX), Y0-18, 1, 12);
+  }
+
+  function placeOverlays(){
+    var vw = W;
+    msgs.forEach(function(m){
+      var x = sx(m.km), dist = Math.abs(x - MX);
+      var show = dist < vw*.95;
+      if(show !== m.vis){ m.vis = show; m.el.style.display = show ? 'block' : 'none'; if(m.btn) endWrap.style.display = show ? 'block' : 'none'; }
+      if(!show) return;
+      var a = 1 - Math.min(1, Math.max(0, (dist - vw*.2)/(vw*.42)));
+      var w = m.el.offsetWidth || 300, h = m.el.offsetHeight || 60;
+      var y = Y0 + (m.pos + (W < 560 && m.pos > 0 ? .07 : 0))*H - (m.pos < 0 ? h : 0);
+      x = Math.max(w/2 + 14, Math.min(W - w/2 - 14, x));      // words stay readable: they pin at the edge while they fade
+      m.el.style.transform = 'translate3d('+(x - w/2).toFixed(1)+'px,'+y.toFixed(1)+'px,0)';
+      m.el.style.opacity = a.toFixed(3);
+      if(m.btn){ endWrap.style.transform = 'translate3d('+(x - 110).toFixed(1)+'px,'+(y + h + 6).toFixed(1)+'px,0)'; endWrap.style.width = '220px'; endWrap.style.opacity = a.toFixed(3); m.btn.style.pointerEvents = a > .5 ? 'auto' : 'none'; }
+    });
+    tags.forEach(function(t){
+      var x = sx(t.b.km), show = x > -160 && x < W+160;
+      if(t.b.id==='moon' && KMPP > 2600) show = false;
+      if(t.b.id==='sun' && W < 560) show = false;      // on phones the opening message names the Sun instead
+      if(show !== t.vis){ t.vis = show; t.el.style.display = show ? 'block' : 'none'; }
+      if(!show) return;
+      var d = t.b.d/KMPP, below;
+      if(t.b.id==='sun') below = sunPx/2 + 34;
+      else if(t.b.id==='saturn') below = d*.62 + 22;
+      else below = Math.max(d/2 + 8, 10) + 22;
+      var w = t.el.offsetWidth || 120, ty = Y0 + below;
+      if(t.b.id==='moon') ty = Y0 - Math.max(d/2+8, 10) - 16 - (t.el.offsetHeight || 34);   // the Moon's label sits above the line, clear of Earth's
+      if(t.b.info) ty = Y0 - H*.26;                                                             // belt captions float above the band
+      var edge = Math.max(0, Math.min(1, Math.min(x+60, W+60-x)/160));
+      t.el.style.transform = 'translate3d('+(x - w/2).toFixed(1)+'px,'+ty.toFixed(1)+'px,0)';
+      t.el.style.opacity = (edge*(t.b.id==='moon'?.7:1)).toFixed(3);
+    });
+  }
+
+  var lastHud = 0;
+  function hud(now){
+    var dist = Math.max(0, cam);
+    setOdometer(dist, Math.abs(speedKms) > 2000);
+    if(now - lastHud < 90) return; lastHud = now;
+    auEl.textContent = (dist/AU).toFixed(dist < AU ? 4 : 3);
+    ltEl.textContent = hms(dist/C, true);
+    var sp = Math.abs(speedKms);
+    spdEl.textContent = sp < 1 ? '0 km/s' : (sp < 1e6 ? fmtInt(sp)+' km/s' : fmtInt(sp)+' km/s') + (sp > C*.01 ? ' · '+(sp/C).toFixed(sp/C < 10 ? 2 : 0)+' c' : '');
+    odoText.textContent = fmtInt(dist)+' kilometres from the Sun';
+    var f = dist/END_KM;
+    mapCur.style.left = (f*100).toFixed(3)+'%'; mapDone.style.width = (f*100).toFixed(3)+'%';
+    mapPct.textContent = (f*100 < 1 ? (f*100).toFixed(2) : (f*100).toFixed(1))+'% of the way to pluto';
+    // nearest body button
+    var best = 0, bd = 1e30;
+    BODIES.forEach(function(b, i){ var dd = Math.abs((i===0?0:b.km) - dist); if(dd < bd){ bd = dd; best = i; } });
+    bodyBtns.forEach(function(bt, i){ if(i===best) bt.setAttribute('aria-current','location'); else bt.removeAttribute('aria-current'); });
+    // light-speed readouts
+    var next = null;
+    for(var i=1;i<BODIES.length;i++){ if(BODIES[i].km > dist + 10*KMPP){ next = BODIES[i]; break; } }
+    if(next){ var tl = (next.km - dist)/C; nextInfo.innerHTML = 'next · '+next.name.toLowerCase()+' in <b>'+hms(tl, tl < 60)+'</b> at light speed'; }
+    else nextInfo.textContent = 'the planets are behind you';
+    if(light){
+      var el = (now - light.t0)/1000;
+      lightLbl.textContent = 'light speed · '+hms(el);
+      lightInfo.innerHTML = 'real time · <b>'+hms(el)+'</b> travelled';
+    } else {
+      lightInfo.textContent = '299,792 km every second';
+    }
+    if(Math.abs(dist - startKm()) > 3000*KMPP) hint.classList.add('gone');
+  }
+
+  /* ════════════ main loop ════════════ */
+  var last = 0;
+  function frame(now){
+    requestAnimationFrame(frame);
+    var dt = last ? Math.min(.1, (now - last)/1000) : .016; last = now;
+    prevCam = cam;
+    if(travel){
+      travel.t += dt;
+      var u = Math.min(1, travel.t/travel.dur), e = u*u*u*(u*(u*6-15)+10);
+      cam = travel.from + (travel.to - travel.from)*e;
+      if(u >= 1) travel = null;
+    } else if(light){
+      cam = light.cam0 + C*(now - light.t0)/1000;
+      if(cam >= END_KM){ cam = END_KM; stopLight(); }
+    } else if(!drag){
+      cam += vel*KMPP*dt;
+      vel *= Math.exp(-dt*1.7);
+      if(Math.abs(vel) < .5) vel = 0;
+    }
+    if(cam < 0){ cam = 0; vel = 0; }
+    if(cam > END_KM){ cam = END_KM; vel = 0; }
+    var inst = (cam - prevCam)/Math.max(dt,.001);
+    speedKms += (inst - speedKms)*Math.min(1, dt*6);
+    if(Math.abs(inst) < 1e-6 && Math.abs(speedKms) < 1) speedKms = 0;
+    draw(now, (cam - prevCam)/KMPP);
+    placeOverlays();
+    hud(now);
+  }
+
+  var rzT = 0;
+  window.addEventListener('resize', function(){
+    clearTimeout(rzT);
+    rzT = setTimeout(function(){
+      // near the Sun, keep the same framing (the Sun's edge stays at the same share of the screen);
+      // anywhere else, stay at exactly the same kilometre
+      var limb = MX + (SUN_D/2 - cam)/KMPP, ratio = (limb - MX)/W, sunInView = limb > -40, oldTravel = travel;
+      resize();
+      if(sunInView){ cam = prevCam = Math.max(0, SUN_D/2 - ratio*W*KMPP); vel = 0; }
+      travel = oldTravel;
+    }, 60);
+  });
+
+  resize();
+  cam = prevCam = startKm();
+  draw(0, 0); placeOverlays(); hud(0);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

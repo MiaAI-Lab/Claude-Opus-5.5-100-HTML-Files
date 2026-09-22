@@ -1,0 +1,41 @@
+TITLE: Aurora Glass — Stillwater
+FILE: 001-aurora-glass.html
+
+=== PROMPT (exact prompt used) ===
+Design a premium landing page for "Stillwater", a fictional breathing and meditation app, in refined glassmorphism. Background: deep midnight (#070b1f) with three slow-drifting aurora ribbons rendered on a canvas (layered, sine-deformed gradient bands in teal #2de2c4, violet #7b5cff and rose #ff6fa8, additive blending, very soft) over a faint twinkling star field. Foreground: frosted-glass panels (backdrop-filter blur + saturate, 1px inner highlight border, subtle grain) — a hero with a large, airy, light-weight sans headline; a centred "breathing orb" that expands and contracts on a 4-7-8 rhythm with a caption that cross-fades Inhale / Hold / Exhale; a row of three feature cards; a testimonial strip; and a pricing section whose monthly/yearly toggle animates a sliding glass pill. Delight: cards tilt in 3D toward the pointer with a moving specular glare; the aurora bends gently toward the cursor. Interaction: hover/tilt cards; click the orb to start/stop a guided one-minute session with a progress ring; pricing toggle. Mobile: cards stack, the orb stays hero-centred.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A landing page for "Stillwater", a fictional breathing and meditation app, built as refined glassmorphism over a living night sky. A full-viewport canvas paints a faint twinkling star field and three slow aurora curtains (teal #2de2c4, violet #7b5cff, rose #ff6fa8) on deep midnight #070b1f; everything else floats above it on frosted glass with grain and a hairline inner highlight. The hero is an editorial composition rather than a centred template: a huge, ultra-light two-line headline staggered left/right, a breathing orb centred beneath it on a 4-7-8 dial, the lede and calls to action anchored bottom-left, and a glass legend card top-right that lights up the current phase. Below: three tilting feature cards with small animated SVG vignettes, a glass testimonial strip with a drifting marquee, a pricing section with a sliding glass billing pill, and a footer that states plainly that the product and people are fictional.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Aurora rendered on a quarter-resolution offscreen canvas: each ribbon is hundreds of 1px columns drawn from a pre-rendered vertical gradient sprite, their edge deformed by layered sines, their alpha modulated into curtain "rays", composited additively ("lighter") and upscaled with smoothing plus a second, wider pass for a soft glow
+- Aurora bends toward the pointer via a Gaussian falloff around the smoothed cursor position, brightening where it is pulled; it also lifts slightly as the page scrolls
+- Star field from one pre-rendered radial sprite with per-star twinkle phases; density scales with viewport area
+- Frosted glass: backdrop-filter blur + saturate, a 1px gradient border made with a masked pseudo-element (mask-composite exclude), inset highlight shadows, and a runtime-generated noise tile used as overlay grain
+- Breathing orb: stacked radial gradients with a slowly rotating conic "caustic" layer in soft-light, a specular highlight, a scaling halo and an expanding ripple at every inhale
+- SVG 4-7-8 dial: three phase arcs sized 4/19, 7/19 and 8/19 of the circumference (stroke-dasharray), 19 second ticks with majors at phase boundaries, and a travelling marker dot
+- Session progress ring built from a conic gradient masked into a ring and swept by a second conic mask, with a glowing head whose colour interpolates teal to violet to rose
+- Gradient-clipped accent words, staggered intro animations, IntersectionObserver reveals, CSS-only marquee with edge fade masks
+- 3D card tilt with a moving radial specular glare plus an angled sheen, both driven by CSS custom properties from one rAF loop
+
+=== INTERACTION MODEL ===
+- The orb breathes continuously on the 4-7-8 rhythm; the caption cross-fades Inhale / Hold / Exhale with a per-second countdown and the matching legend row and dial arc light up
+- Click, tap, Enter or Space on the orb starts or stops a guided one-minute session: the progress ring sweeps, the status line counts down, and completed minutes are tallied in localStorage (guarded with try/catch)
+- Optional "Chime" toggle (off by default) creates a Web Audio context on first use and rings a soft synthesized bell at each phase change during a session
+- Feature and pricing cards tilt toward the pointer with a moving glare (reduced for touch, disabled for reduced motion)
+- Monthly / Yearly billing toggle slides a glass pill with a spring, rolls the prices numerically and cross-fades the billing notes; arrow keys switch periods
+- The aurora follows the cursor; the testimonial marquee pauses on hover or focus
+- prefers-reduced-motion slows the sky, stops twinkle, marquee and ornament animation and disables tilt; the canvas loop pauses while the tab is hidden

@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pocket Metropolis</title>
+<meta name="description" content="A tiny isometric city-builder toy in soft pastels. Place houses, towers, trees, parks, roads and water; watch little cars drive and the town light up at night.">
+<meta name="theme-color" content="#bfe3f2">
+<style>
+  :root {
+    --grass: #a8d5a2;
+    --water: #7ec8e3;
+    --road: #d6d0c4;
+    --peach: #ffb5a7;
+    --blush: #fcd5ce;
+    --mint: #b8e0d2;
+    --lav: #cdb4db;
+    --ink: #4a4063;
+    --ink-2: #6f6689;
+    --ink-3: #9a93ad;
+    --cream: #fffaf3;
+    --cream-2: #fbf1e6;
+    --line: rgba(74, 64, 99, .12);
+    --shadow: 0 10px 28px -12px rgba(74, 64, 99, .45), 0 2px 0 rgba(255, 255, 255, .7) inset;
+    --round: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", "Quicksand", "Arial Rounded MT Bold", "M PLUS Rounded 1c", "URW Gothic", "Century Gothic", "Trebuchet MS", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #bfe3f2;
+    color: var(--ink);
+    font-family: var(--round);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #world {
+    position: fixed;
+    inset: 0;
+    touch-action: none;
+    outline: none;
+    cursor: pointer;
+  }
+  #world.panning { cursor: grabbing; }
+  #world canvas { width: 100%; height: 100%; display: block; }
+  #world:focus-visible { box-shadow: inset 0 0 0 3px rgba(74, 64, 99, .35); }
+
+  /* ---------- HUD ---------- */
+  .hud {
+    position: fixed;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .hud > * { pointer-events: auto; }
+  .title-card {
+    top: 18px;
+    left: 18px;
+    background: var(--cream);
+    border-radius: 22px;
+    padding: 14px 18px 12px;
+    box-shadow: var(--shadow);
+    min-width: 238px;
+  }
+  .title-card h1 {
+    margin: 0;
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -.01em;
+    line-height: 1.05;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .title-card h1 svg { width: 30px; height: 30px; flex: none; }
+  .title-card .tag {
+    margin: 4px 0 10px 39px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    letter-spacing: .01em;
+  }
+  .clock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1.5px dashed var(--line);
+  }
+  .dial {
+    width: 30px;
+    height: 30px;
+    flex: none;
+  }
+  .clock-read {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 15px;
+    min-width: 5.6em;
+  }
+  .clock-read small { display: block; font-weight: 600; font-size: 11px; color: var(--ink-3); letter-spacing: .04em; }
+  .chip {
+    appearance: none;
+    border: 0;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--cream-2);
+    border-radius: 999px;
+    height: 30px;
+    min-width: 30px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: transform .2s cubic-bezier(.3, 1.6, .5, 1), background .2s ease;
+  }
+  .chip:hover { background: #f6e6d6; transform: translateY(-1px); }
+  .chip:active { transform: translateY(1px) scale(.96); }
+  .chip svg { width: 14px; height: 14px; }
+  .chip[aria-pressed="true"] { background: var(--lav); }
+
+  .stats {
+    top: 18px;
+    right: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  .bubble {
+    position: relative;
+    background: var(--cream);
+    border-radius: 22px;
+    padding: 12px 16px 12px 14px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transform-origin: 15% 100%;
+  }
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 30px;
+    bottom: -9px;
+    width: 18px;
+    height: 18px;
+    background: var(--cream);
+    border-radius: 0 0 6px 0;
+    transform: rotate(45deg);
+    box-shadow: 6px 6px 12px -8px rgba(74, 64, 99, .4);
+  }
+  .bubble.pop { animation: pop .5s cubic-bezier(.3, 1.8, .5, 1); }
+  @keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.07, .95); } 100% { transform: scale(1); } }
+  .stat { display: grid; gap: 1px; }
+  .stat .k { font-size: 11px; font-weight: 700; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+  .stat .v { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.05; }
+  .stat .v small { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .face { width: 40px; height: 40px; flex: none; }
+  .face .mouth { transition: d .4s ease; }
+  .meter {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #f1e7dc;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .meter i {
+    display: block;
+    height: 100%;
+    width: 50%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #ffb5a7, #fcd5ce 40%, #b8e0d2);
+    transition: width .6s cubic-bezier(.3, 1.3, .5, 1);
+  }
+  .quick { display: flex; gap: 8px; }
+  .pill {
+    appearance: none;
+    border: 0;
+    font: inherit;
+    font-weight: 800;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--cream);
+    border-radius: 999px;
+    height: 40px;
+    padding: 0 16px 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform .25s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  .pill svg { width: 20px; height: 20px; }
+  .pill:hover { transform: translateY(-2px) rotate(-1deg); }
+  .pill:active { transform: translateY(1px) scale(.97); }
+  .pill.icon { padding: 0; width: 40px; justify-content: center; }
+  .pill.icon .off { display: none; }
+  .pill.icon[aria-pressed="false"] .on { display: none; }
+  .pill.icon[aria-pressed="false"] .off { display: inline; }
+
+  /* ---------- toolbar ---------- */
+  .toolbar {
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    background: var(--cream);
+    border-radius: 26px;
+    padding: 8px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 6px;
+    max-width: calc(100vw - 24px);
+  }
+  .tool {
+    appearance: none;
+    border: 0;
+    font: inherit;
+    background: transparent;
+    color: var(--ink-2);
+    width: 72px;
+    padding: 6px 4px 7px;
+    border-radius: 18px;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    cursor: pointer;
+    position: relative;
+    transition: background .25s ease, color .25s ease, transform .3s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  .tool svg { width: 40px; height: 34px; transition: transform .35s cubic-bezier(.3, 1.8, .5, 1); }
+  .tool span { font-size: 12px; font-weight: 800; letter-spacing: .01em; }
+  .tool kbd {
+    position: absolute;
+    top: 4px;
+    right: 7px;
+    font: inherit;
+    font-size: 9.5px;
+    font-weight: 800;
+    color: var(--ink-3);
+    opacity: .8;
+  }
+  .tool:hover { background: var(--cream-2); color: var(--ink); }
+  .tool:hover svg { transform: translateY(-3px) scale(1.06); }
+  .tool[aria-pressed="true"] {
+    background: var(--tint, var(--mint));
+    color: var(--ink);
+    transform: translateY(-6px);
+    box-shadow: 0 10px 18px -10px rgba(74, 64, 99, .55);
+  }
+  .tool[aria-pressed="true"] svg { transform: translateY(-2px) scale(1.1); }
+  .tool[data-tool="bulldoze"] { --tint: #ffd6cc; }
+  .tool[data-tool="house"] { --tint: var(--peach); }
+  .tool[data-tool="tower"] { --tint: var(--lav); }
+  .tool[data-tool="tree"] { --tint: #cfe8c8; }
+  .tool[data-tool="park"] { --tint: var(--mint); }
+  .tool[data-tool="road"] { --tint: #ebe4d8; }
+  .tool[data-tool="water"] { --tint: #c6e8f3; }
+  .sep { width: 1.5px; margin: 8px 2px; background: var(--line); border-radius: 1px; }
+
+  .toast {
+    left: 50%;
+    bottom: 118px;
+    transform: translate(-50%, 10px);
+    background: var(--ink);
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 16px;
+    border-radius: 999px;
+    opacity: 0;
+    transition: opacity .35s ease, transform .35s cubic-bezier(.3, 1.6, .5, 1);
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .help {
+    left: 18px;
+    bottom: 22px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    background: rgba(255, 250, 243, .72);
+    padding: 8px 12px;
+    border-radius: 14px;
+    line-height: 1.6;
+    max-width: 260px;
+  }
+  .help b { color: var(--ink); }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  :focus-visible { outline: 3px solid #8e7cc3; outline-offset: 2px; }
+  button:focus:not(:focus-visible) { outline: none; }
+
+  @media (max-width: 1100px) { .help { display: none; } }
+  @media (max-width: 760px) {
+    .title-card {
+      top: 10px; left: 10px; right: 10px;
+      padding: 8px 8px 8px 12px; min-width: 0; border-radius: 18px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .title-card h1 { font-size: 16px; gap: 7px; white-space: nowrap; }
+    .title-card h1 svg { width: 22px; height: 22px; }
+    .title-card .tag { display: none; }
+    .clock { padding-top: 0; margin-top: 0; border-top: 0; gap: 5px; }
+    .dial { width: 22px; height: 22px; }
+    .clock-read { font-size: 13px; min-width: 3.3em; }
+    .clock-read small { font-size: 9.5px; }
+    .chip { height: 26px; min-width: 26px; padding: 0 7px; }
+    .chip .lbl { display: none; }
+    .stats {
+      top: 82px; left: 10px; right: 10px;
+      flex-direction: row; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .bubble { padding: 8px 12px 8px 9px; gap: 10px; border-radius: 18px; }
+    .bubble::after { display: none; }
+    .face { width: 28px; height: 28px; }
+    .stat .v { font-size: 16px; }
+    .stat .k { font-size: 9px; }
+    .meter { height: 4px; margin-top: 3px; }
+    .pill { height: 36px; font-size: 12px; padding: 0 12px 0 9px; }
+    .pill.icon { width: 36px; }
+    .pill svg { width: 17px; height: 17px; }
+    .toolbar { bottom: 10px; padding: 5px; gap: 2px; border-radius: 20px; }
+    .tool { width: 47px; padding: 5px 2px 5px; border-radius: 14px; }
+    .tool svg { width: 30px; height: 26px; }
+    .tool span { font-size: 9.5px; }
+    .tool kbd { display: none; }
+    .tool[aria-pressed="true"] { transform: translateY(-4px); }
+    .sep { display: none; }
+    .toast { bottom: 92px; font-size: 12px; }
+  }
+  @media (max-width: 380px) {
+    .tool { width: 44px; }
+    .quick .pill .lbl { display: none; }
+    .quick .pill { width: 34px; padding: 0; justify-content: center; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<main id="world" tabindex="0" aria-label="Isometric town map. Click or tap a tile to build with the selected tool. Right-click or long-press to bulldoze. Drag to pan, scroll or pinch to zoom. Arrow keys move the cursor, Enter builds, Delete bulldozes." aria-describedby="status">
+  <canvas id="scene" aria-hidden="true"></canvas>
+</main>
+
+<section class="hud title-card" aria-label="Pocket Metropolis">
+  <h1>
+    <svg viewBox="0 0 30 30" aria-hidden="true">
+      <path d="M15 4l11 5.5-11 5.5L4 9.5z" fill="#a8d5a2"/>
+      <path d="M4 9.5l11 5.5v11L4 20.5z" fill="#8cbf86"/>
+      <path d="M26 9.5L15 15v11l11-5.5z" fill="#79ad74"/>
+      <path d="M10.5 3.5l5 2.5v6.5l-5-2.5z" fill="#ffb5a7"/>
+      <path d="M15.5 6l3.5-1.8v6.5L15.5 12.5z" fill="#f29a8a"/>
+      <path d="M10.5 3.5l3.6-1.8 4.9 2.5-3.5 1.8z" fill="#ffd3c9"/>
+      <circle cx="21" cy="12" r="2.4" fill="#b8e0d2"/>
+    </svg>
+    Pocket Metropolis
+  </h1>
+  <p class="tag">a tiny town that fits in your pocket</p>
+  <div class="clock">
+    <svg class="dial" viewBox="0 0 30 30" aria-hidden="true">
+      <circle cx="15" cy="15" r="13.5" fill="#fbf1e6" stroke="rgba(74,64,99,.15)"/>
+      <path d="M1.5 15a13.5 13.5 0 0 1 27 0z" fill="#dff1f8"/>
+      <path d="M1.5 15a13.5 13.5 0 0 0 27 0z" fill="#3d4a73" opacity=".85"/>
+      <g id="dial-hand"><circle cx="15" cy="4.6" r="3.1" fill="#ffc86b"/></g>
+      <circle cx="15" cy="15" r="1.6" fill="#4a4063"/>
+    </svg>
+    <p class="clock-read" id="clock" aria-live="off">10:00<small>Day 1</small></p>
+    <button type="button" class="chip" id="pause" aria-pressed="false" aria-label="Pause the clock">
+      <svg viewBox="0 0 14 14" aria-hidden="true"><rect x="3" y="2.5" width="2.8" height="9" rx="1" fill="currentColor"/><rect x="8.2" y="2.5" width="2.8" height="9" rx="1" fill="currentColor"/></svg>
+    </button>
+    <button type="button" class="chip" id="speed" aria-label="Clock speed">
+      <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1.5 3l5 4-5 4zM7 3l5 4-5 4z" fill="currentColor"/></svg><span class="lbl" id="speed-lbl">1×</span>
+    </button>
+  </div>
+</section>
+
+<section class="hud stats" aria-label="Town statistics">
+  <div class="bubble" id="bubble">
+    <svg class="face" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="18" fill="#ffe29a"/>
+      <circle cx="20" cy="20" r="18" fill="none" stroke="#f0c46a" stroke-width="1.5"/>
+      <ellipse cx="11" cy="23" rx="3.4" ry="2.2" fill="#ffb5a7" opacity=".8"/>
+      <ellipse cx="29" cy="23" rx="3.4" ry="2.2" fill="#ffb5a7" opacity=".8"/>
+      <circle cx="14" cy="16.5" r="2" fill="#4a4063"/>
+      <circle cx="26" cy="16.5" r="2" fill="#4a4063"/>
+      <path class="mouth" id="mouth" d="M13 24 Q20 30 27 24" fill="none" stroke="#4a4063" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <div class="stat">
+      <span class="k">Population</span>
+      <span class="v" id="pop">0</span>
+    </div>
+    <div class="stat">
+      <span class="k">Happiness</span>
+      <span class="v" id="happy">—</span>
+      <span class="meter" aria-hidden="true"><i id="happy-bar"></i></span>
+    </div>
+  </div>
+  <div class="quick">
+    <button type="button" class="pill" id="random">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="15" height="15" rx="4" fill="#cdb4db"/><circle cx="7" cy="7" r="1.6" fill="#fff"/><circle cx="13" cy="13" r="1.6" fill="#fff"/><circle cx="13" cy="7" r="1.6" fill="#fff"/><circle cx="7" cy="13" r="1.6" fill="#fff"/><circle cx="10" cy="10" r="1.6" fill="#fff"/></svg>
+      <span class="lbl">Random town</span>
+    </button>
+    <button type="button" class="pill icon" id="sound" aria-pressed="true" aria-label="Sound effects">
+      <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8h3l4-3.5v11L6 12H3z" fill="#fcd5ce"/>
+        <path class="on" d="M13 7.3c1.2 1.4 1.2 4 0 5.4M15.3 5.2c2.3 2.6 2.3 7 0 9.6"/>
+        <path class="off" d="M13.2 8l4 4m0-4l-4 4"/>
+      </svg>
+    </button>
+  </div>
+</section>
+
+<nav class="hud toolbar" aria-label="Building tools">
+  <button type="button" class="tool" data-tool="house" aria-pressed="true" aria-label="House">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><path d="M20 22l14-7-14-7-14 7z" fill="#a8d5a2"/><path d="M11 17v-6l7 3.5v6z" fill="#ffb5a7"/><path d="M18 20.5v-6l9-4.5v6z" fill="#f09a8b"/><path d="M11 11l5-6 9 4.5-7 5z" fill="#8e9aaf"/><path d="M16 5l11 5.5-2 .1-9-4.5z" fill="#a9b3c6"/><rect x="21" y="14.5" width="2.4" height="3" rx=".5" fill="#fff6d6" transform="skewY(-27)" transform-origin="21 14.5"/></svg>
+    <span>House</span><kbd>1</kbd>
+  </button>
+  <button type="button" class="tool" data-tool="tower" aria-pressed="false" aria-label="Tower">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><path d="M20 30l12-6-12-6-12 6z" fill="#a8d5a2"/><path d="M13 24V6l7 3.5v18z" fill="#cdb4db"/><path d="M20 27.5v-18l7-3.5v18z" fill="#b39cc4"/><path d="M13 6l7-3.5 7 3.5-7 3.5z" fill="#e3d4ec"/><g fill="#fff6d6" opacity=".95"><rect x="22" y="12" width="1.6" height="2.2"/><rect x="24.6" y="10.7" width="1.6" height="2.2"/><rect x="22" y="17" width="1.6" height="2.2"/><rect x="24.6" y="15.7" width="1.6" height="2.2"/><rect x="22" y="22" width="1.6" height="2.2"/><rect x="24.6" y="20.7" width="1.6" height="2.2"/></g></svg>
+    <span>Tower</span><kbd>2</kbd>
+  </button>
+  <button type="button" class="tool" data-tool="tree" aria-pressed="false" aria-label="Tree">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><path d="M20 30l12-6-12-6-12 6z" fill="#a8d5a2"/><rect x="18.8" y="17" width="2.4" height="8" rx="1" fill="#b08968"/><circle cx="20" cy="13" r="7.5" fill="#86c07f"/><circle cx="17.5" cy="10.5" r="3.2" fill="#a6d69f"/></svg>
+    <span>Tree</span><kbd>3</kbd>
+  </button>
+  <button type="button" class="tool" data-tool="park" aria-pressed="false" aria-label="Park">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><path d="M20 28l15-7.5-15-7.5-15 7.5z" fill="#bfe6b6"/><path d="M9 19c6 1 10-2 14 0s6 3 8 1" stroke="#f3e6cf" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="26" cy="17" r="3" fill="#7ec8e3"/><circle cx="14" cy="15" r="3.4" fill="#86c07f"/><rect x="13.3" y="17" width="1.4" height="3" fill="#b08968"/><circle cx="20" cy="24" r="1.1" fill="#ffb5a7"/><circle cx="23" cy="22.5" r="1.1" fill="#cdb4db"/></svg>
+    <span>Park</span><kbd>4</kbd>
+  </button>
+  <button type="button" class="tool" data-tool="road" aria-pressed="false" aria-label="Road">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><path d="M20 28l15-7.5-15-7.5-15 7.5z" fill="#d6d0c4"/><path d="M8.5 18.8l8.2 4.1M9 22.3l2.8-1.4" stroke="#ece8df" stroke-width="1.2"/><path d="M12.5 17.5l15 7.5" stroke="#fff" stroke-width="1.4" stroke-dasharray="2.6 2.4" transform="translate(0 -2)"/><rect x="28" y="12" width="1.2" height="9" fill="#8e8aa3"/><circle cx="28.6" cy="11.6" r="1.8" fill="#ffe29a"/></svg>
+    <span>Road</span><kbd>5</kbd>
+  </button>
+  <button type="button" class="tool" data-tool="water" aria-pressed="false" aria-label="Water">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><path d="M20 28l15-7.5-15-7.5-15 7.5z" fill="#7ec8e3"/><path d="M12 20.5q2-1.3 4 0t4 0M20 23.5q2-1.3 4 0t4 0M18 17q2-1.3 4 0" stroke="#e6f6fb" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>
+    <span>Water</span><kbd>6</kbd>
+  </button>
+  <span class="sep" aria-hidden="true"></span>
+  <button type="button" class="tool" data-tool="bulldoze" aria-pressed="false" aria-label="Bulldoze">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><rect x="8" y="17" width="18" height="8" rx="3" fill="#ffc86b"/><rect x="13" y="10" width="9" height="8" rx="2" fill="#ffd98f"/><rect x="15" y="12" width="5" height="4" rx="1" fill="#dff1f8"/><path d="M26 15h3l4 10h-7z" fill="#9a93ad"/><rect x="7" y="24" width="20" height="5" rx="2.5" fill="#6f6689"/><circle cx="10.5" cy="26.5" r="1.4" fill="#cdc6da"/><circle cx="17" cy="26.5" r="1.4" fill="#cdc6da"/><circle cx="23.5" cy="26.5" r="1.4" fill="#cdc6da"/></svg>
+    <span>Bulldoze</span><kbd>7</kbd>
+  </button>
+</nav>
+
+<p class="hud help" aria-hidden="true"><b>Click</b> to build &middot; <b>Right-click</b> to bulldoze<br><b>Drag</b> to pan &middot; <b>Scroll</b> to zoom<br>Parks near homes make people happy.</p>
+<p class="hud toast" id="toast" role="status"></p>
+<p class="sr-only" id="status" aria-live="polite"></p>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ================================================================
+     Pocket Metropolis — a 12×12 isometric toy town
+     ================================================================ */
+  const N = 12;
+  const EMPTY = 0, WATER = 1, ROAD = 2, HOUSE = 3, TOWER = 4, TREE = 5, PARK = 6;
+  const TOOL_TYPE = { house: HOUSE, tower: TOWER, tree: TREE, park: PARK, road: ROAD, water: WATER, bulldoze: EMPTY };
+  const TYPE_NAME = ['grass', 'water', 'road', 'house', 'tower', 'tree', 'park'];
+  const TWH = 32, THH = 16;          // half tile width / height in world pixels
+  const STORE_KEY = 'pocket-metropolis-v1';
+
+  const world = document.getElementById('world');
+  const canvas = document.getElementById('scene');
+  const ctx = canvas.getContext('2d');
+  const statusEl = document.getElementById('status');
+  const toastEl = document.getElementById('toast');
+  const popEl = document.getElementById('pop');
+  const happyEl = document.getElementById('happy');
+  const happyBar = document.getElementById('happy-bar');
+  const mouthEl = document.getElementById('mouth');
+  const bubbleEl = document.getElementById('bubble');
+  const clockEl = document.getElementById('clock');
+  const dialHand = document.getElementById('dial-hand');
+  const pauseBtn = document.getElementById('pause');
+  const speedBtn = document.getElementById('speed');
+  const speedLbl = document.getElementById('speed-lbl');
+  const soundBtn = document.getElementById('sound');
+  const toolBtns = Array.from(document.querySelectorAll('.tool'));
+
+  const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = reduceMQ.matches;
+
+  /* ---------------- guarded storage ---------------- */
+  const store = {
+    get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* file:// may refuse */ } }
+  };
+
+  /* ---------------- helpers ---------------- */
+  let seed = (Date.now() & 0xffffffff) >>> 0;
+  function rand() {
+    seed = (seed + 0x6D2B79F5) >>> 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  function hash(a, b, c) {
+    let h = Math.imul(a + 1, 374761393) ^ Math.imul(b + 7, 668265263) ^ Math.imul(c + 13, 2246822519);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+  const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  function hexRGB(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+
+  /* ---------------- palette ---------------- */
+  const C = {
+    grass: hexRGB('#a8d5a2'), grassDeep: hexRGB('#94c78e'), lawn: hexRGB('#bde4b4'),
+    water: hexRGB('#7ec8e3'), waterDeep: hexRGB('#62b3d3'), foam: hexRGB('#e9f7fb'), sand: hexRGB('#f1e4c8'),
+    road: hexRGB('#d6d0c4'), walk: hexRGB('#ebe6dc'), curb: hexRGB('#c3bcae'), paint: hexRGB('#fffdf6'),
+    path: hexRGB('#f3e6cf'), trunk: hexRGB('#b08968'),
+    leaf: [hexRGB('#86c07f'), hexRGB('#79b774'), hexRGB('#95cb87')], leafHi: hexRGB('#b2dea9'),
+    soilTop: hexRGB('#e2c3a3'), soil: hexRGB('#d2ad8a'), soilDeep: hexRGB('#bf9676'),
+    walls: [hexRGB('#ffb5a7'), hexRGB('#fcd5ce'), hexRGB('#b8e0d2'), hexRGB('#cdb4db')],
+    roofs: [hexRGB('#8e9aaf'), hexRGB('#f4978e'), hexRGB('#84a9ac'), hexRGB('#b5838d'), hexRGB('#9d8fbd')],
+    trim: hexRGB('#fff8ee'), door: hexRGB('#8d7b9e'), glass: hexRGB('#dff1f8'), glow: hexRGB('#ffe7a1'),
+    lamp: hexRGB('#8e8aa3'), metal: hexRGB('#b9b3c9'),
+    cars: [hexRGB('#ff8fab'), hexRGB('#ffc86b'), hexRGB('#7fb8e6'), hexRGB('#fffaf3'), hexRGB('#b39cd0'), hexRGB('#8fd3b6')],
+    shirts: [hexRGB('#ff8fab'), hexRGB('#7fb8e6'), hexRGB('#ffc86b'), hexRGB('#b39cd0'), hexRGB('#f4978e'), hexRGB('#6fc2a4')],
+    flowers: [hexRGB('#ff9fb2'), hexRGB('#fff1a8'), hexRGB('#c9b6f2'), hexRGB('#ffffff')]
+  };
+
+  /* ================================================================
+     Town state
+     ================================================================ */
+  const grid = new Uint8Array(N * N);
+  const vari = new Uint8Array(N * N);
+  const born = new Float64Array(N * N);
+  const IDX = (i, j) => i + j * N;
+  const inside = (i, j) => i >= 0 && j >= 0 && i < N && j < N;
+  const at = (i, j) => (inside(i, j) ? grid[IDX(i, j)] : -1);
+
+  function roadMask(i, j) {
+    let m = 0;
+    if (at(i + 1, j) === ROAD) m |= 1;
+    if (at(i, j + 1) === ROAD) m |= 2;
+    if (at(i - 1, j) === ROAD) m |= 4;
+    if (at(i, j - 1) === ROAD) m |= 8;
+    return m;
+  }
+
+  function save() {
+    let s = '';
+    for (let k = 0; k < N * N; k++) s += grid[k].toString() + String.fromCharCode(97 + (vari[k] % 26));
+    store.set(STORE_KEY, JSON.stringify({ v: 1, day: dayCount, t: timeOfDay, g: s }));
+  }
+  let saveTimer = 0;
+  function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 350); }
+  function load() {
+    const raw = store.get(STORE_KEY);
+    if (!raw) return false;
+    try {
+      const d = JSON.parse(raw);
+      if (!d || typeof d.g !== 'string' || d.g.length !== N * N * 2) return false;
+      for (let k = 0; k < N * N; k++) {
+        const t = +d.g[k * 2];
+        grid[k] = t >= 0 && t <= 6 ? t : 0;
+        vari[k] = (d.g.charCodeAt(k * 2 + 1) - 97 + 26) % 26;
+      }
+      if (typeof d.t === 'number') timeOfDay = clamp(d.t, 0, 0.999);
+      if (typeof d.day === 'number') dayCount = Math.max(1, Math.floor(d.day));
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* ---------------- a charming random town ---------------- */
+  function randomTown(animate) {
+    grid.fill(EMPTY);
+    for (let k = 0; k < N * N; k++) vari[k] = Math.floor(rand() * 26);
+    // a lazy river along one side, sometimes widening into a pond
+    const riverSide = rand() < 0.5;
+    let r = 8 + Math.floor(rand() * 3);
+    for (let s = 0; s < N; s++) {
+      if (s > 0 && rand() < 0.45) r = clamp(r + (rand() < 0.5 ? -1 : 1), 8, 10);
+      const [i, j] = riverSide ? [s, r] : [r, s];
+      grid[IDX(i, j)] = WATER;
+      if (rand() < 0.3 && inside(riverSide ? i : i + 1, riverSide ? j + 1 : j)) grid[IDX(riverSide ? i : i + 1, riverSide ? j + 1 : j)] = WATER;
+    }
+    // two avenues and a cross street
+    const a1 = 2 + Math.floor(rand() * 2), a2 = 6 + Math.floor(rand() * 2), cs = 3 + Math.floor(rand() * 3);
+    const lim = riverSide ? 7 : N;
+    const along = (i, j) => { if (inside(i, j) && grid[IDX(i, j)] !== WATER) grid[IDX(i, j)] = ROAD; };
+    for (let s = 0; s < N; s++) {
+      if (riverSide) { if (s < lim) { along(a1, s); along(a2, s); } along(s, cs); }
+      else { if (s < 8) { along(s, a1); along(s, a2); } along(cs, s); }
+    }
+    // a little bridge over the river
+    const bridgeAt = riverSide ? a2 : a2;
+    for (let s = 0; s < N; s++) {
+      const i = riverSide ? bridgeAt : s, j = riverSide ? s : bridgeAt;
+      if (s >= 7 && inside(i, j)) grid[IDX(i, j)] = ROAD;
+    }
+    // homes beside the roads, towers in the middle
+    const cx = (N - 1) / 2 - 1, cy = (N - 1) / 2 - 1;
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const k = IDX(i, j);
+        if (grid[k] !== EMPTY) continue;
+        const nearRoad = roadMask(i, j) !== 0;
+        const d = Math.hypot(i - cx, j - cy);
+        if (nearRoad) {
+          if (d < 3.2 && rand() < 0.62) grid[k] = TOWER;
+          else if (rand() < 0.72) grid[k] = HOUSE;
+        }
+      }
+    }
+    // parks sprinkled next to homes, trees along the banks and in gaps
+    let parks = 0;
+    for (let tries = 0; tries < 60 && parks < 4; tries++) {
+      const i = Math.floor(rand() * N), j = Math.floor(rand() * N), k = IDX(i, j);
+      if (grid[k] === EMPTY || (grid[k] === HOUSE && rand() < 0.3)) {
+        grid[k] = PARK; parks++;
+        if (rand() < 0.5 && at(i + 1, j) === EMPTY) { grid[IDX(i + 1, j)] = PARK; parks++; }
+      }
+    }
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const k = IDX(i, j);
+        if (grid[k] !== EMPTY) continue;
+        const bank = at(i + 1, j) === WATER || at(i - 1, j) === WATER || at(i, j + 1) === WATER || at(i, j - 1) === WATER;
+        if (rand() < (bank ? 0.6 : 0.34)) grid[k] = TREE;
+      }
+    }
+    const now = performance.now();
+    for (let k = 0; k < N * N; k++) {
+      // cascade the pop-in from the centre outwards
+      const i = k % N, j = (k / N) | 0;
+      born[k] = animate && !reduced ? now + (Math.abs(i - N / 2) + Math.abs(j - N / 2)) * 55 + rand() * 60 : 0;
+    }
+    rebuildLife();
+    recount(true);
+    saveSoon();
+  }
+
+  /* ================================================================
+     Time of day and light
+     ================================================================ */
+  let timeOfDay = 0.42;    // 0 = midnight
+  let dayCount = 1;
+  let clockSpeed = 1;      // 1×, 4×, 12×
+  let paused = false;
+  const DAY_SECONDS = 240; // one full day at 1×
+
+  // keyframes: t, ambient light rgb, sky top, sky horizon
+  const KEYS = [
+    [0.00, [0.42, 0.45, 0.72], '#1f2a4f', '#3d4f7c'],
+    [0.21, [0.44, 0.46, 0.72], '#26325c', '#4d5e8e'],
+    [0.26, [1.00, 0.80, 0.82], '#9cb8e8', '#ffc9d3'],
+    [0.33, [1.00, 0.97, 0.95], '#9fd3ee', '#fbe9e2'],
+    [0.50, [1.00, 1.00, 1.00], '#8fcdeb', '#e4f5fb'],
+    [0.68, [1.00, 0.97, 0.94], '#9bcbe8', '#fdebdc'],
+    [0.75, [1.00, 0.76, 0.68], '#8a7bb0', '#ffb8a1'],
+    [0.80, [0.52, 0.50, 0.76], '#3a3d6e', '#8a6f9a'],
+    [1.00, [0.42, 0.45, 0.72], '#1f2a4f', '#3d4f7c']
+  ];
+  const light = { amb: [1, 1, 1], skyTop: [143, 205, 235], skyLow: [228, 245, 251], night: 0, sunX: 0, sunY: 1, sunUp: 1 };
+  function mixHex(a, b, t) { const A = hexRGB(a), B = hexRGB(b); return [lerp(A[0], B[0], t), lerp(A[1], B[1], t), lerp(A[2], B[2], t)]; }
+  function updateLight() {
+    const t = timeOfDay;
+    let k = 0;
+    while (k < KEYS.length - 2 && KEYS[k + 1][0] <= t) k++;
+    const a = KEYS[k], b = KEYS[k + 1];
+    const f = clamp((t - a[0]) / (b[0] - a[0]), 0, 1);
+    const s = f * f * (3 - 2 * f);
+    light.amb = [lerp(a[1][0], b[1][0], s), lerp(a[1][1], b[1][1], s), lerp(a[1][2], b[1][2], s)];
+    light.skyTop = mixHex(a[2], b[2], s);
+    light.skyLow = mixHex(a[3], b[3], s);
+    // how much the lamps and windows should glow
+    const sunH = Math.sin((t - 0.25) * Math.PI * 2);
+    light.night = clamp(0.25 - sunH * 2.2, 0, 1);
+    light.sunUp = sunH;
+    // sun direction across the sky, used for face shading and shadow direction
+    light.sunX = Math.cos((t - 0.25) * Math.PI * 2);
+  }
+
+  /* lit colour: base rgb * ambient * face factor -> css */
+  function lit(rgb, f, a) {
+    const r = clamp(rgb[0] * light.amb[0] * f, 0, 255) | 0;
+    const g = clamp(rgb[1] * light.amb[1] * f, 0, 255) | 0;
+    const b = clamp(rgb[2] * light.amb[2] * f, 0, 255) | 0;
+    return a === undefined ? 'rgb(' + r + ',' + g + ',' + b + ')' : 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+  function emit(rgb, a) { return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')'; }
+
+  /* ================================================================
+     Camera
+     ================================================================ */
+  let W = 0, H = 0, DPR = 1;
+  const cam = { x: 0, y: 0, zoom: 1, fit: 1, user: 1 };
+  function fitCamera(keepUser) {
+    const boardW = N * TWH * 2, boardH = N * THH * 2 + 150;
+    const topPad = W < 760 ? 140 : 110, botPad = W < 760 ? 88 : 120;
+    const availW = W < 760 ? W + 24 : W - 80, availH = H - topPad - botPad;
+    cam.fit = clamp(Math.min(availW / boardW, availH / boardH), 0.3, 2.4);
+    if (!keepUser) cam.user = 1;
+    cam.zoom = cam.fit * cam.user;
+    // board centre in world space is (0, N*THH); leave room for towers above
+    cam.x = W / 2;
+    cam.y = topPad + availH / 2 - (N * THH - 40) * cam.zoom;
+  }
+  function toWorld(sx, sy) { return [(sx - cam.x) / cam.zoom, (sy - cam.y) / cam.zoom]; }
+  function tileAt(sx, sy) {
+    const [wx, wy] = toWorld(sx, sy);
+    const a = wx / TWH, b = wy / THH;
+    const i = Math.floor((b + a) / 2), j = Math.floor((b - a) / 2);
+    return inside(i, j) ? [i, j] : null;
+  }
+  function zoomAt(sx, sy, factor) {
+    const nz = clamp(cam.zoom * factor, cam.fit * 0.55, cam.fit * 3.2);
+    const f = nz / cam.zoom;
+    cam.x = sx - (sx - cam.x) * f;
+    cam.y = sy - (sy - cam.y) * f;
+    cam.zoom = nz;
+    cam.user = nz / cam.fit;
+  }
+  function resize() {
+    const prevW = W;
+    W = window.innerWidth; H = window.innerHeight;
+    if (prevW && Math.abs(W - prevW) / prevW > 0.3) cam.user = 1; // a new kind of screen: start from a fresh fit
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    fitCamera(true);
+    makeStars();
+  }
+
+  /* ================================================================
+     Drawing primitives (world px: x right, y down; P(x,y,z) iso)
+     ================================================================ */
+  const PX = (x, y) => (x - y) * TWH;
+  const PY = (x, y, z) => (x + y) * THH - z;
+  function pathQuad(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3) {
+    ctx.beginPath();
+    ctx.moveTo(PX(x0, y0), PY(x0, y0, z0));
+    ctx.lineTo(PX(x1, y1), PY(x1, y1, z1));
+    ctx.lineTo(PX(x2, y2), PY(x2, y2, z2));
+    ctx.lineTo(PX(x3, y3), PY(x3, y3, z3));
+    ctx.closePath();
+  }
+  function diamond(x0, y0, x1, y1, z) { pathQuad(x0, y0, z, x1, y0, z, x1, y1, z, x0, y1, z); }
+
+  /* a box with ambient occlusion toward the ground; returns nothing */
+  function box(x0, y0, x1, y1, z0, z1, rgb, opt) {
+    const sunL = light.sunX; // -1 morning (light from the left) .. 1 evening
+    const soft = opt && opt.soft || 0;
+    const fl = 0.9 + soft * 0.05 - 0.07 * sunL, fr = 0.76 + soft * 0.12 + 0.07 * sunL;
+    const topF = opt && opt.topF || 1.04;
+    // left face (y = y1)
+    pathQuad(x0, y1, z0, x1, y1, z0, x1, y1, z1, x0, y1, z1);
+    let g = ctx.createLinearGradient(0, PY(x0, y1, z1), 0, PY(x0, y1, z0) + 6);
+    g.addColorStop(0, lit(rgb, fl));
+    g.addColorStop(1, lit(rgb, fl * 0.8));
+    ctx.fillStyle = g;
+    ctx.fill();
+    // right face (x = x1)
+    pathQuad(x1, y1, z0, x1, y0, z0, x1, y0, z1, x1, y1, z1);
+    g = ctx.createLinearGradient(0, PY(x1, y0, z1), 0, PY(x1, y1, z0) + 6);
+    g.addColorStop(0, lit(rgb, fr));
+    g.addColorStop(1, lit(rgb, fr * 0.8));
+    ctx.fillStyle = g;
+    ctx.fill();
+    // top
+    if (!(opt && opt.noTop)) {
+      pathQuad(x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1);
+      ctx.fillStyle = lit(opt && opt.top || rgb, topF);
+      ctx.fill();
+    }
+    // a soft highlight along the front vertical edge
+    ctx.beginPath();
+    ctx.moveTo(PX(x1, y1), PY(x1, y1, z0));
+    ctx.lineTo(PX(x1, y1), PY(x1, y1, z1));
+    ctx.strokeStyle = 'rgba(255,255,255,' + (0.35 * (1 - light.night * 0.7)).toFixed(3) + ')';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+
+  /* windows on a face; lit at night (emissive) */
+  function windowsLeft(x0, x1, y, z0, z1, cols, rows, key, w, h) {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const fx = x0 + (x1 - x0) * (c + 0.5) / cols, fz = z0 + (z1 - z0) * (r + 0.5) / rows;
+        const on = hash(key, r, c) < 0.72;
+        winQuad(fx - w / 2, y, fx + w / 2, y, fz - h / 2, fz + h / 2, on);
+      }
+    }
+  }
+  function windowsRight(y0, y1, x, z0, z1, cols, rows, key, w, h) {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const fy = y1 - (y1 - y0) * (c + 0.5) / cols, fz = z0 + (z1 - z0) * (r + 0.5) / rows;
+        const on = hash(key + 99, r, c) < 0.66;
+        winQuad(x, fy + w / 2, x, fy - w / 2, fz - h / 2, fz + h / 2, on);
+      }
+    }
+  }
+  function winQuad(xa, ya, xb, yb, za, zb, on) {
+    pathQuad(xa, ya, za, xb, yb, za, xb, yb, zb, xa, ya, zb);
+    const n = light.night;
+    if (on && n > 0.05) {
+      const day = lit(C.glass, 0.95);
+      ctx.fillStyle = day;
+      ctx.fill();
+      ctx.fillStyle = emit(C.glow, n.toFixed(3));
+      ctx.fill();
+      glows.push(PX((xa + xb) / 2, (ya + yb) / 2), PY((xa + xb) / 2, (ya + yb) / 2, (za + zb) / 2), 5, 0.22 * n);
+    } else {
+      ctx.fillStyle = lit(C.glass, 0.95 - 0.3 * n);
+      ctx.fill();
+    }
+  }
+
+  /* ================================================================
+     Life: cars on roads, strollers in parks, dust puffs
+     ================================================================ */
+  const cars = [];
+  const walkers = [];
+  const puffs = [];
+  for (let q = 0; q < 90; q++) puffs.push({ on: false });
+  const rings = [];
+  for (let q = 0; q < 12; q++) rings.push({ on: false });
+
+  function roadTiles() {
+    const out = [];
+    for (let k = 0; k < N * N; k++) if (grid[k] === ROAD) out.push(k);
+    return out;
+  }
+  function spawnCar(k) {
+    const i = k % N, j = (k / N) | 0;
+    const car = { i, j, pi: i, pj: j, ni: i, nj: j, t: 1, speed: 0.75 + rand() * 0.5, col: C.cars[Math.floor(rand() * C.cars.length)], x: i + 0.5, y: j + 0.5, dx: 1, dy: 0 };
+    pickNext(car);
+    cars.push(car);
+  }
+  function pickNext(car) {
+    const opts = [];
+    const dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+    for (const d of dirs) {
+      const ni = car.i + d[0], nj = car.j + d[1];
+      if (at(ni, nj) === ROAD && !(ni === car.pi && nj === car.pj)) opts.push([ni, nj]);
+    }
+    if (!opts.length && at(car.pi, car.pj) === ROAD && !(car.pi === car.i && car.pj === car.j)) opts.push([car.pi, car.pj]);
+    if (!opts.length) { car.ni = car.i; car.nj = car.j; car.t = 1; return; }
+    const pick = opts[Math.floor(rand() * opts.length)];
+    car.ni = pick[0]; car.nj = pick[1]; car.t = 0;
+  }
+  function syncCars() {
+    const roads = roadTiles();
+    // drop cars whose road vanished
+    for (let q = cars.length - 1; q >= 0; q--) {
+      const c = cars[q];
+      if (at(c.i, c.j) !== ROAD || (c.t < 1 && at(c.ni, c.nj) !== ROAD)) cars.splice(q, 1);
+    }
+    const target = Math.min(16, Math.floor(roads.length / 3));
+    while (cars.length > target) cars.pop();
+    let guard = 0;
+    while (cars.length < target && roads.length && guard++ < 40) spawnCar(roads[Math.floor(rand() * roads.length)]);
+  }
+  function updateCars(dt) {
+    for (const c of cars) {
+      if (c.ni === c.i && c.nj === c.j) { pickNext(c); if (c.ni === c.i && c.nj === c.j) { c.x = c.i + 0.5; c.y = c.j + 0.5; continue; } }
+      c.t += dt * c.speed * (reduced ? 0.5 : 1);
+      if (c.t >= 1) {
+        c.pi = c.i; c.pj = c.j;
+        c.i = c.ni; c.j = c.nj;
+        c.t = 0;
+        pickNext(c);
+      }
+      const dx = c.ni - c.i, dy = c.nj - c.j;
+      if (dx || dy) { c.dx = dx; c.dy = dy; }
+      // drive on the right-hand side of the road
+      const ox = -c.dy * 0.17, oy = c.dx * 0.17;
+      c.x = c.i + 0.5 + dx * c.t + ox;
+      c.y = c.j + 0.5 + dy * c.t + oy;
+    }
+  }
+
+  function rebuildLife() {
+    walkers.length = 0;
+    for (let k = 0; k < N * N; k++) {
+      if (grid[k] !== PARK) continue;
+      const n = 2 + (vari[k] % 2);
+      for (let q = 0; q < n; q++) {
+        walkers.push({ k, x: 0.25 + rand() * 0.5, y: 0.25 + rand() * 0.5, tx: 0.5, ty: 0.5, wait: rand() * 2, col: C.shirts[Math.floor(rand() * C.shirts.length)], ph: rand() * 6 });
+      }
+    }
+    syncCars();
+  }
+  function updateWalkers(dt) {
+    for (const w of walkers) {
+      if (grid[w.k] !== PARK) continue;
+      if (w.wait > 0) { w.wait -= dt; continue; }
+      const dx = w.tx - w.x, dy = w.ty - w.y, d = Math.hypot(dx, dy);
+      if (d < 0.02) { w.tx = 0.18 + rand() * 0.64; w.ty = 0.18 + rand() * 0.64; w.wait = 0.6 + rand() * 2.4; continue; }
+      const sp = 0.16 * dt * (reduced ? 0.5 : 1);
+      w.x += dx / d * Math.min(sp, d);
+      w.y += dy / d * Math.min(sp, d);
+      w.ph += dt * 9;
+    }
+  }
+
+  function puff(i, j, n) {
+    for (let q = 0; q < n; q++) {
+      const p = puffs.find(o => !o.on);
+      if (!p) break;
+      const a = rand() * Math.PI * 2, r = 0.1 + rand() * 0.35;
+      p.on = true;
+      p.x = i + 0.5 + Math.cos(a) * r * 0.5; p.y = j + 0.5 + Math.sin(a) * r * 0.5;
+      p.vx = Math.cos(a) * (0.25 + rand() * 0.5); p.vy = Math.sin(a) * (0.25 + rand() * 0.5);
+      p.z = 2 + rand() * 10; p.vz = 14 + rand() * 26;
+      p.r = 3 + rand() * 5; p.life = 0; p.max = 0.7 + rand() * 0.6;
+      p.shade = 0.85 + rand() * 0.25;
+    }
+  }
+  function ring(i, j, rgb) {
+    const r = rings.find(o => !o.on) || rings[0];
+    r.on = true; r.i = i; r.j = j; r.t = 0; r.rgb = rgb;
+  }
+
+  /* ================================================================
+     Stats
+     ================================================================ */
+  let lastPop = -1, lastHappy = -1;
+  function recount(silent) {
+    let pop = 0, sum = 0, weight = 0, homes = 0;
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const t = grid[IDX(i, j)];
+        if (t !== HOUSE && t !== TOWER) continue;
+        homes++;
+        const v = vari[IDX(i, j)];
+        const res = t === HOUSE ? 3 + (v % 3) : 18 + (v % 4) * 6;
+        let h = 52, parks = 0, trees = 0, water = false, towers = 0;
+        for (let dj = -2; dj <= 2; dj++) {
+          for (let di = -2; di <= 2; di++) {
+            if (!di && !dj) continue;
+            const n = at(i + di, j + dj);
+            const near = Math.abs(di) <= 1 && Math.abs(dj) <= 1;
+            if (n === PARK) parks++;
+            if (n === TREE && near) trees++;
+            if (n === WATER) water = true;
+            if (n === TOWER && near) towers++;
+          }
+        }
+        h += Math.min(3, parks) * 11 + Math.min(4, trees) * 3.5 + (water ? 6 : 0);
+        h += roadMask(i, j) ? 5 : -14;
+        if (t === HOUSE) h -= towers * 4;
+        h = clamp(h, 0, 100);
+        pop += res; sum += h * res; weight += res;
+      }
+    }
+    const happy = weight ? Math.round(sum / weight) : -1;
+    popEl.textContent = pop.toLocaleString('en-US');
+    happyEl.textContent = happy < 0 ? '—' : happy + '%';
+    happyBar.style.width = (happy < 0 ? 0 : happy) + '%';
+    // the face: a frown below 45, a grin above 75
+    const m = happy < 0 ? 0.5 : happy / 100;
+    const curve = lerp(-5, 7, m);
+    mouthEl.setAttribute('d', 'M13 ' + (25 - curve * 0.3).toFixed(1) + ' Q20 ' + (25 + curve).toFixed(1) + ' 27 ' + (25 - curve * 0.3).toFixed(1));
+    if (!silent && (pop !== lastPop || happy !== lastHappy)) {
+      bubbleEl.classList.remove('pop');
+      void bubbleEl.offsetWidth;
+      bubbleEl.classList.add('pop');
+    }
+    lastPop = pop; lastHappy = happy;
+    return homes;
+  }
+
+  /* ================================================================
+     Sound (Web Audio, after a gesture, with a toggle)
+     ================================================================ */
+  let soundOn = store.get('pocket-metropolis-sound') !== 'off';
+  let actx = null, master = null;
+  function ensureAudio() {
+    if (!soundOn) return;
+    if (!actx) {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        actx = new AC();
+        master = actx.createGain();
+        master.gain.value = 0.35;
+        master.connect(actx.destination);
+      } catch (e) { actx = null; return; }
+    }
+    if (actx.state === 'suspended') actx.resume().catch(() => {});
+  }
+  function blip(type) {
+    if (!soundOn || !actx || actx.state !== 'running') return;
+    const t = actx.currentTime + 0.005;
+    if (type === 'dust') {
+      const len = Math.floor(actx.sampleRate * 0.35);
+      const buf = actx.createBuffer(1, len, actx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let q = 0; q < len; q++) d[q] = (Math.random() * 2 - 1) * Math.pow(1 - q / len, 2.5);
+      const src = actx.createBufferSource();
+      src.buffer = buf;
+      const f = actx.createBiquadFilter();
+      f.type = 'lowpass'; f.frequency.value = 900;
+      const g = actx.createGain(); g.gain.value = 0.5;
+      src.connect(f); f.connect(g); g.connect(master);
+      src.start(t);
+      return;
+    }
+    const notes = { 3: 523.25, 4: 392, 5: 659.25, 6: 587.33, 2: 440, 1: 349.23 };
+    const base = notes[type] || 523.25;
+    for (let q = 0; q < 2; q++) {
+      const o = actx.createOscillator();
+      o.type = q ? 'sine' : 'triangle';
+      o.frequency.setValueAtTime(base * (q ? 2 : 1) * 0.8, t);
+      o.frequency.exponentialRampToValueAtTime(base * (q ? 2 : 1), t + 0.06);
+      const g = actx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(q ? 0.08 : 0.22, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + 0.3);
+    }
+  }
+
+  /* ================================================================
+     Building actions
+     ================================================================ */
+  let tool = 'house';
+  function announce(msg) { statusEl.textContent = msg; }
+  let toastTimer = 0;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1600);
+  }
+
+  function place(i, j, type) {
+    const k = IDX(i, j);
+    const prev = grid[k];
+    if (type === EMPTY) {
+      if (prev === EMPTY) return;
+      grid[k] = EMPTY;
+      born[k] = 0;
+      puff(i, j, reduced ? 4 : 16);
+      blip('dust');
+      announce('Bulldozed the ' + TYPE_NAME[prev] + '.');
+    } else {
+      if (prev === type) {
+        // tapping the same thing again gives it a fresh look
+        vari[k] = (vari[k] + 1 + Math.floor(rand() * 5)) % 26;
+      } else {
+        if (prev !== EMPTY) puff(i, j, reduced ? 3 : 8);
+        grid[k] = type;
+        vari[k] = Math.floor(rand() * 26);
+      }
+      born[k] = reduced ? 0 : performance.now();
+      ring(i, j, type === WATER ? C.foam : C.trim);
+      blip(type);
+      announce('Placed a ' + TYPE_NAME[type] + ' at column ' + (i + 1) + ', row ' + (j + 1) + '.');
+    }
+    rebuildLife();
+    recount(false);
+    saveSoon();
+  }
+
+  /* ================================================================
+     Rendering
+     ================================================================ */
+  let stars = [];
+  function makeStars() {
+    stars = [];
+    const n = Math.round(W * H / 9000);
+    for (let q = 0; q < n; q++) stars.push([rand() * W, rand() * H * 0.62, 0.4 + rand() * 1.1, rand() * 6.28]);
+  }
+  const clouds = [];
+  for (let q = 0; q < 6; q++) clouds.push({ x: rand(), y: 0.06 + rand() * 0.34, s: 0.6 + rand() * 0.8, v: 0.004 + rand() * 0.006 });
+
+  const glows = [];     // flat list: x, y, radius, alpha (world px)
+  const lampGlows = []; // x, y, alpha (world px) — ground pools
+
+  function drawSky(now) {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    const T = light.skyTop, L = light.skyLow;
+    g.addColorStop(0, 'rgb(' + (T[0] | 0) + ',' + (T[1] | 0) + ',' + (T[2] | 0) + ')');
+    g.addColorStop(0.72, 'rgb(' + (L[0] | 0) + ',' + (L[1] | 0) + ',' + (L[2] | 0) + ')');
+    g.addColorStop(1, 'rgb(' + (L[0] * 0.96 | 0) + ',' + (L[1] * 0.97 | 0) + ',' + (L[2] * 0.95 | 0) + ')');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    // stars
+    const n = light.night;
+    if (n > 0.02) {
+      for (const s of stars) {
+        const tw = 0.55 + 0.45 * Math.sin(now * 0.002 + s[3]);
+        ctx.fillStyle = 'rgba(255,250,235,' + (n * tw * 0.9).toFixed(3) + ')';
+        ctx.fillRect(s[0], s[1], s[2], s[2]);
+      }
+    }
+    // sun and moon ride the same arc
+    const ang = (timeOfDay - 0.25) * Math.PI * 2;
+    const ax = W * 0.44, ay = Math.min(H * 0.55, W * 0.5), base = Math.min(H * 0.7, W * 0.9);
+    const cx = W / 2 - Math.cos(ang) * ax, cy = base - Math.sin(ang) * ay;
+    if (light.sunUp > -0.2) {
+      const a = clamp((light.sunUp + 0.2) * 3, 0, 1);
+      const sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 90);
+      sg.addColorStop(0, 'rgba(255,244,214,' + (0.9 * a).toFixed(3) + ')');
+      sg.addColorStop(0.25, 'rgba(255,226,160,' + (0.55 * a).toFixed(3) + ')');
+      sg.addColorStop(1, 'rgba(255,214,170,0)');
+      ctx.fillStyle = sg;
+      ctx.beginPath(); ctx.arc(cx, cy, 90, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,248,226,' + a.toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2); ctx.fill();
+    }
+    const mx = W / 2 + Math.cos(ang) * ax, my = base + Math.sin(ang) * ay;
+    if (light.sunUp < 0.2) {
+      const a = clamp((0.2 - light.sunUp) * 3, 0, 1);
+      ctx.fillStyle = 'rgba(255,250,235,' + (0.95 * a).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(mx, my, 15, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(' + (light.skyTop[0] | 0) + ',' + (light.skyTop[1] | 0) + ',' + (light.skyTop[2] | 0) + ',' + a.toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(mx + 6, my - 4, 13, 0, Math.PI * 2); ctx.fill();
+    }
+    // pastel clouds
+    for (const c of clouds) {
+      const x = ((c.x + now * 0.00001 * c.v * 60) % 1.3 - 0.15) * W, y = c.y * H, s = c.s * Math.min(1.2, W / 900 + 0.4);
+      ctx.fillStyle = lit([255, 255, 255], 1, (0.7 - n * 0.45).toFixed(3));
+      ctx.beginPath();
+      ctx.ellipse(x, y, 60 * s, 18 * s, 0, 0, Math.PI * 2);
+      ctx.ellipse(x - 30 * s, y + 2 * s, 32 * s, 16 * s, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + 20 * s, y - 12 * s, 34 * s, 22 * s, 0, 0, Math.PI * 2);
+      ctx.ellipse(x - 16 * s, y - 10 * s, 24 * s, 17 * s, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawBoardBase() {
+    const depth = 26;
+    // floating island shadow
+    ctx.save();
+    ctx.translate(0, N * THH * 2 + 58);
+    ctx.scale(1, 0.09);
+    const sg = ctx.createRadialGradient(0, 0, 0, 0, 0, N * TWH * 0.85);
+    sg.addColorStop(0, 'rgba(60,50,90,' + (0.2 + light.night * 0.06).toFixed(3) + ')');
+    sg.addColorStop(0.6, 'rgba(60,50,90,' + (0.08 + light.night * 0.03).toFixed(3) + ')');
+    sg.addColorStop(1, 'rgba(60,50,90,0)');
+    ctx.fillStyle = sg;
+    ctx.beginPath();
+    ctx.arc(0, 0, N * TWH * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    // front-left side (y = N)
+    pathQuad(0, N, 0, N, N, 0, N, N, -depth, 0, N, -depth);
+    let g = ctx.createLinearGradient(0, PY(0, N, 0), 0, PY(0, N, -depth) + 30);
+    g.addColorStop(0, lit(C.soilTop, 0.95));
+    g.addColorStop(0.35, lit(C.soil, 0.9));
+    g.addColorStop(1, lit(C.soilDeep, 0.78));
+    ctx.fillStyle = g;
+    ctx.fill();
+    // front-right side (x = N)
+    pathQuad(N, N, 0, N, 0, 0, N, 0, -depth, N, N, -depth);
+    g = ctx.createLinearGradient(0, PY(N, 0, 0), 0, PY(N, N, -depth) + 30);
+    g.addColorStop(0, lit(C.soilTop, 0.8));
+    g.addColorStop(0.35, lit(C.soil, 0.74));
+    g.addColorStop(1, lit(C.soilDeep, 0.64));
+    ctx.fillStyle = g;
+    ctx.fill();
+    // strata lines and pebbles
+    ctx.strokeStyle = lit(C.soilDeep, 0.85, 0.55);
+    ctx.lineWidth = 1.2;
+    for (const z of [-10, -18]) {
+      ctx.beginPath();
+      ctx.moveTo(PX(0, N), PY(0, N, z));
+      for (let s = 1; s <= 12; s++) ctx.lineTo(PX(s, N), PY(s, N, z + Math.sin(s * 1.7 + z) * 1.5));
+      for (let s = 11; s >= 0; s--) ctx.lineTo(PX(N, s), PY(N, s, z + Math.sin(s * 2.1 - z) * 1.5));
+      ctx.stroke();
+    }
+    ctx.fillStyle = lit(C.soilTop, 1.02, 0.8);
+    for (let s = 0; s < 22; s++) {
+      const u = hash(s, 3, 9) * N, zz = -6 - hash(s, 5, 1) * 18;
+      const onLeft = s % 2 === 0;
+      const x = onLeft ? PX(u, N) : PX(N, u), y = onLeft ? PY(u, N, zz) : PY(N, u, zz);
+      ctx.beginPath(); ctx.ellipse(x, y, 2.2, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    // grassy lip
+    ctx.beginPath();
+    ctx.moveTo(PX(0, N), PY(0, N, 0));
+    ctx.lineTo(PX(N, N), PY(N, N, 0));
+    ctx.lineTo(PX(N, 0), PY(N, 0, 0));
+    ctx.lineTo(PX(N, 0), PY(N, 0, -3));
+    ctx.lineTo(PX(N, N), PY(N, N, -3));
+    ctx.lineTo(PX(0, N), PY(0, N, -3));
+    ctx.closePath();
+    ctx.fillStyle = lit(C.grassDeep, 0.9);
+    ctx.fill();
+  }
+
+  function drawGround(i, j, now) {
+    const k = IDX(i, j), t = grid[k], v = vari[k];
+    if (t === WATER) {
+      const e = 0.07;
+      diamond(i, j, i + 1, j + 1, 0);
+      ctx.fillStyle = lit(C.sand, 1);
+      ctx.fill();
+      const x0 = i + (at(i - 1, j) === WATER ? 0 : e), x1 = i + 1 - (at(i + 1, j) === WATER ? 0 : e);
+      const y0 = j + (at(i, j - 1) === WATER ? 0 : e), y1 = j + 1 - (at(i, j + 1) === WATER ? 0 : e);
+      diamond(x0, y0, x1, y1, -2);
+      const g = ctx.createLinearGradient(0, PY(i, j, 0), 0, PY(i + 1, j + 1, 0));
+      g.addColorStop(0, lit(C.water, 1.04));
+      g.addColorStop(1, lit(C.waterDeep, 0.98));
+      ctx.fillStyle = g;
+      ctx.fill();
+      // drifting glints
+      ctx.strokeStyle = lit(C.foam, 1, 0.75);
+      ctx.lineWidth = 1.2;
+      ctx.lineCap = 'round';
+      for (let q = 0; q < 2; q++) {
+        const ph = (now * 0.00012 * (reduced ? 0.3 : 1) + hash(i, j, q)) % 1;
+        const gx = i + 0.2 + ph * 0.6, gy = j + 0.25 + q * 0.45 + Math.sin(ph * 6.28) * 0.05;
+        const a = Math.sin(ph * Math.PI);
+        ctx.globalAlpha = a;
+        ctx.beginPath();
+        ctx.moveTo(PX(gx - 0.1, gy), PY(gx - 0.1, gy, -2));
+        ctx.quadraticCurveTo(PX(gx, gy - 0.05), PY(gx, gy - 0.05, -2), PX(gx + 0.1, gy), PY(gx + 0.1, gy, -2));
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      return;
+    }
+    if (t === ROAD) { drawRoad(i, j); return; }
+    const base = t === PARK ? C.lawn : ((i + j) % 2 ? C.grass : [C.grass[0] - 5, C.grass[1] - 3, C.grass[2] - 6]);
+    diamond(i, j, i + 1, j + 1, 0);
+    ctx.fillStyle = lit(base, 1);
+    ctx.fill();
+    ctx.strokeStyle = lit(C.grassDeep, 1, 0.35);
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+    if (t === EMPTY || t === TREE) {
+      // tufts
+      ctx.strokeStyle = lit(C.grassDeep, 0.92, 0.9);
+      ctx.lineWidth = 1;
+      for (let q = 0; q < 3; q++) {
+        const gx = i + 0.2 + hash(i, j, q) * 0.6, gy = j + 0.2 + hash(j, i, q + 5) * 0.6;
+        const sx = PX(gx, gy), sy = PY(gx, gy, 0);
+        ctx.beginPath();
+        ctx.moveTo(sx - 2, sy); ctx.lineTo(sx - 1, sy - 3);
+        ctx.moveTo(sx, sy); ctx.lineTo(sx, sy - 4);
+        ctx.moveTo(sx + 2, sy); ctx.lineTo(sx + 1, sy - 3);
+        ctx.stroke();
+      }
+      if (t === EMPTY && hash(i, j, 77) < 0.3) {
+        const gx = i + 0.3 + hash(i, j, 78) * 0.4, gy = j + 0.3 + hash(i, j, 79) * 0.4;
+        ctx.fillStyle = lit(C.flowers[v % 4], 1);
+        ctx.beginPath(); ctx.arc(PX(gx, gy), PY(gx, gy, 0) - 1, 1.6, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    if (t === PARK) drawParkGround(i, j, v);
+  }
+
+  function drawParkGround(i, j, v) {
+    // a winding path through the lawn
+    ctx.strokeStyle = lit(C.path, 1);
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    const flip = v % 2;
+    const a = flip ? [i, j + 0.5] : [i + 0.5, j], b = flip ? [i + 1, j + 0.5] : [i + 0.5, j + 1];
+    ctx.moveTo(PX(a[0], a[1]), PY(a[0], a[1], 0));
+    ctx.bezierCurveTo(PX(i + 0.3, j + 0.7), PY(i + 0.3, j + 0.7, 0), PX(i + 0.7, j + 0.3), PY(i + 0.7, j + 0.3, 0), PX(b[0], b[1]), PY(b[0], b[1], 0));
+    ctx.stroke();
+    // a pond or a fountain
+    const px = i + 0.68, py = j + 0.62;
+    ctx.fillStyle = lit(C.path, 0.95);
+    ctx.beginPath(); ctx.ellipse(PX(px, py), PY(px, py, 0), 10.5, 5.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = lit(C.water, 1.03);
+    ctx.beginPath(); ctx.ellipse(PX(px, py), PY(px, py, 0) - 0.5, 8, 4.1, 0, 0, Math.PI * 2); ctx.fill();
+    // flowerbeds
+    for (let q = 0; q < 7; q++) {
+      const fx = i + 0.12 + hash(i, j, q + 30) * 0.3, fy = j + 0.12 + hash(i, j, q + 40) * 0.35;
+      ctx.fillStyle = lit(C.flowers[(q + v) % 4], 1);
+      ctx.beginPath(); ctx.arc(PX(fx, fy), PY(fx, fy, 0) - 1, 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  function drawRoad(i, j) {
+    const m = roadMask(i, j);
+    diamond(i, j, i + 1, j + 1, 0);
+    ctx.fillStyle = lit(C.road, 1);
+    ctx.fill();
+    // sidewalks on the sides that do not continue
+    const w = 0.13;
+    ctx.fillStyle = lit(C.walk, 1.02);
+    if (!(m & 1)) { diamond(i + 1 - w, j, i + 1, j + 1, 0.8); ctx.fill(); }
+    if (!(m & 4)) { diamond(i, j, i + w, j + 1, 0.8); ctx.fill(); }
+    if (!(m & 2)) { diamond(i, j + 1 - w, i + 1, j + 1, 0.8); ctx.fill(); }
+    if (!(m & 8)) { diamond(i, j, i + 1, j + w, 0.8); ctx.fill(); }
+    // corner curbs where two sidewalks do not meet
+    ctx.fillStyle = lit(C.walk, 1.02);
+    if ((m & 1) && (m & 2)) { diamond(i + 1 - w, j + 1 - w, i + 1, j + 1, 0.8); ctx.fill(); }
+    if ((m & 1) && (m & 8)) { diamond(i + 1 - w, j, i + 1, j + w, 0.8); ctx.fill(); }
+    if ((m & 4) && (m & 2)) { diamond(i, j + 1 - w, i + w, j + 1, 0.8); ctx.fill(); }
+    if ((m & 4) && (m & 8)) { diamond(i, j, i + w, j + w, 0.8); ctx.fill(); }
+    const cnt = (m & 1 ? 1 : 0) + (m & 2 ? 1 : 0) + (m & 4 ? 1 : 0) + (m & 8 ? 1 : 0);
+    ctx.lineCap = 'butt';
+    if (cnt >= 3) {
+      // zebra crossings on each approach
+      ctx.fillStyle = lit(C.paint, 1, 0.9);
+      const dirs = [[1, 1, 0], [2, 0, 1], [4, -1, 0], [8, 0, -1]];
+      for (const d of dirs) {
+        if (!(m & d[0])) continue;
+        for (let s = 0; s < 4; s++) {
+          const o = 0.28 + s * 0.13;
+          if (d[1]) {
+            const x = d[1] > 0 ? i + 0.82 : i + 0.1;
+            diamond(x, j + o - 0.04, x + 0.08, j + o + 0.04, 0.2);
+          } else {
+            const y = d[2] > 0 ? j + 0.82 : j + 0.1;
+            diamond(i + o - 0.04, y, i + o + 0.04, y + 0.08, 0.2);
+          }
+          ctx.fill();
+        }
+      }
+    } else {
+      ctx.strokeStyle = lit(C.paint, 1, 0.95);
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([4, 4]);
+      const cx = i + 0.5, cy = j + 0.5;
+      const ends = [];
+      if (m & 1) ends.push([i + 1, cy]);
+      if (m & 4) ends.push([i, cy]);
+      if (m & 2) ends.push([cx, j + 1]);
+      if (m & 8) ends.push([cx, j]);
+      ctx.beginPath();
+      if (ends.length === 0) {
+        ctx.setLineDash([]);
+        ctx.ellipse(PX(cx, cy), PY(cx, cy, 0), 9, 4.6, 0, 0, Math.PI * 2);
+      } else {
+        for (const e of ends) {
+          ctx.moveTo(PX(cx, cy), PY(cx, cy, 0));
+          ctx.lineTo(PX(e[0], e[1]), PY(e[0], e[1], 0));
+        }
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  function hasLamp(i, j) { return grid[IDX(i, j)] === ROAD && (i * 5 + j * 3) % 4 === 0; }
+
+  /* shadows fall away from the sun onto the ground */
+  function drawShadows() {
+    const sh = clamp(1.25 - Math.max(0, light.sunUp) * 1.1, 0.25, 1.4);
+    const sx = light.sunX * 0.55 * sh, sy = -light.sunX * 0.2 * sh + 0.25 * sh;
+    const alpha = 0.16 * clamp(light.sunUp * 3, 0.25, 1) * (1 - light.night * 0.6);
+    ctx.fillStyle = 'rgba(56,48,92,' + alpha.toFixed(3) + ')';
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const t = grid[IDX(i, j)];
+        let h = 0, inset = 0.14;
+        if (t === HOUSE) { h = 38; inset = 0.17; }
+        else if (t === TOWER) { h = 48 + (vari[IDX(i, j)] % 4) * 18; inset = 0.14; }
+        else if (t === TREE) { h = 30; inset = 0.3; }
+        else continue;
+        const k = h / 40;
+        const x0 = i + inset, x1 = i + 1 - inset, y0 = j + inset, y1 = j + 1 - inset;
+        const ox = sx * k, oy = sy * k;
+        ctx.beginPath();
+        ctx.moveTo(PX(x0, y0), PY(x0, y0, 0));
+        ctx.lineTo(PX(x1, y0), PY(x1, y0, 0));
+        ctx.lineTo(PX(x1 + ox, y0 + oy), PY(x1 + ox, y0 + oy, 0));
+        ctx.lineTo(PX(x1 + ox, y1 + oy), PY(x1 + ox, y1 + oy, 0));
+        ctx.lineTo(PX(x0 + ox, y1 + oy), PY(x0 + ox, y1 + oy, 0));
+        ctx.lineTo(PX(x0, y1), PY(x0, y1, 0));
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+    // soft contact shadow (ambient occlusion) hugging every building base
+    ctx.fillStyle = 'rgba(56,48,92,0.12)';
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const t = grid[IDX(i, j)];
+        if (t !== HOUSE && t !== TOWER) continue;
+        const e = t === HOUSE ? 0.12 : 0.09;
+        diamond(i + e, j + e, i + 1 - e, j + 1 - e, 0);
+        ctx.fill();
+      }
+    }
+  }
+
+  /* squash-and-stretch as a building pops in */
+  function popScale(k, now) {
+    const b = born[k];
+    if (!b) return 1;
+    const p = (now - b) / 650;
+    if (p < 0) return 0;
+    if (p >= 1) { born[k] = 0; return 1; }
+    const rise = Math.min(1, p * 3.2);
+    return rise * (1 + 0.28 * Math.sin(p * Math.PI * 3.2) * (1 - p));
+  }
+
+  function withPop(i, j, s, fn) {
+    if (s === 1) { fn(); return; }
+    if (s <= 0) return;
+    const ax = PX(i + 0.5, j + 0.5), ay = PY(i + 0.5, j + 0.5, 0);
+    const ws = 1 / Math.sqrt(Math.max(0.3, s));
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.scale(ws, s);
+    ctx.translate(-ax, -ay);
+    fn();
+    ctx.restore();
+  }
+
+  function drawHouse(i, j, v) {
+    const e = 0.18;
+    const x0 = i + e, x1 = i + 1 - e, y0 = j + e, y1 = j + 1 - e;
+    const wall = C.walls[v % 4], roof = C.roofs[(v >> 2) % C.roofs.length];
+    const h = 20 + (v % 3) * 3;
+    box(x0, y0, x1, y1, 0, h, wall);
+    // door and windows
+    const midx = (x0 + x1) / 2;
+    pathQuad(midx - 0.07, y1, 0, midx + 0.07, y1, 0, midx + 0.07, y1, 11, midx - 0.07, y1, 11);
+    ctx.fillStyle = lit(C.door, 0.9);
+    ctx.fill();
+    winQuad(x0 + 0.08, y1, x0 + 0.2, y1, 7, 14, hash(i, j, 1) < 0.8);
+    winQuad(x1 - 0.2, y1, x1 - 0.08, y1, 7, 14, hash(i, j, 2) < 0.6);
+    winQuad(x1, y1 - 0.12, x1, y1 - 0.26, 7, 14, hash(i, j, 3) < 0.7);
+    winQuad(x1, y0 + 0.26, x1, y0 + 0.12, 7, 14, hash(i, j, 4) < 0.5);
+    // gabled roof, ridge running along x
+    const ov = 0.05, rz = h + 14;
+    const ym = (y0 + y1) / 2;
+    // left roof slope (towards +y)
+    pathQuad(x0 - ov, y1 + ov, h, x1 + ov, y1 + ov, h, x1 + ov, ym, rz, x0 - ov, ym, rz);
+    ctx.fillStyle = lit(roof, 0.95 - 0.06 * light.sunX);
+    ctx.fill();
+    // right gable end (x = x1)
+    ctx.beginPath();
+    ctx.moveTo(PX(x1, y1), PY(x1, y1, h));
+    ctx.lineTo(PX(x1, y0), PY(x1, y0, h));
+    ctx.lineTo(PX(x1, ym), PY(x1, ym, rz - 1));
+    ctx.closePath();
+    ctx.fillStyle = lit(wall, 0.72 + 0.06 * light.sunX);
+    ctx.fill();
+    // back slope peeking + ridge line
+    pathQuad(x1 + ov, y0 - ov, h, x1 + ov, ym, rz, x1 + ov, y1 + ov, h, x1 + ov, y1 + ov, h);
+    ctx.fillStyle = lit(roof, 0.7);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(PX(x0 - ov, ym), PY(x0 - ov, ym, rz));
+    ctx.lineTo(PX(x1 + ov, ym), PY(x1 + ov, ym, rz));
+    ctx.strokeStyle = lit(roof, 1.18);
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    // roof eave shade
+    ctx.beginPath();
+    ctx.moveTo(PX(x0 - ov, y1 + ov), PY(x0 - ov, y1 + ov, h));
+    ctx.lineTo(PX(x1 + ov, y1 + ov), PY(x1 + ov, y1 + ov, h));
+    ctx.strokeStyle = lit(roof, 0.62);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    // chimney
+    if (v % 2 === 0) {
+      const cxx = x0 + 0.12;
+      box(cxx, ym - 0.12, cxx + 0.1, ym - 0.02, rz - 8, rz + 5, C.walls[(v + 1) % 4]);
+    }
+  }
+
+  function drawTower(i, j, v) {
+    const e = 0.14;
+    const x0 = i + e, x1 = i + 1 - e, y0 = j + e, y1 = j + 1 - e;
+    const col = C.walls[(v + 2) % 4];
+    const floors = 4 + (v % 4) * 2;
+    const h = floors * 9 + 12;
+    box(x0, y0, x1, y1, 0, h, col, { soft: 1, top: [col[0] * 1.02, col[1] * 1.02, col[2] * 1.02] });
+    // lobby band
+    pathQuad(x0, y1, 0, x1, y1, 0, x1, y1, 8, x0, y1, 8);
+    ctx.fillStyle = lit(C.trim, 0.9);
+    ctx.fill();
+    pathQuad(x1, y1, 0, x1, y0, 0, x1, y0, 8, x1, y1, 8);
+    ctx.fillStyle = lit(C.trim, 0.78);
+    ctx.fill();
+    windowsLeft(x0 + 0.04, x1 - 0.04, y1, 11, h - 3, 2, floors, i * 31 + j * 7 + v, 0.15, 4.4);
+    windowsRight(y0 + 0.04, y1 - 0.04, x1, 11, h - 3, 2, floors, i * 31 + j * 7 + v, 0.15, 4.4);
+    // a pale pilaster between the window columns
+    const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    pathQuad(mx - 0.012, y1, 9, mx + 0.012, y1, 9, mx + 0.012, y1, h, mx - 0.012, y1, h);
+    ctx.fillStyle = lit(C.trim, 0.96, 0.7);
+    ctx.fill();
+    pathQuad(x1, my + 0.012, 9, x1, my - 0.012, 9, x1, my - 0.012, h, x1, my + 0.012, h);
+    ctx.fillStyle = lit(C.trim, 0.86, 0.6);
+    ctx.fill();
+    // cornice
+    box(x0 - 0.03, y0 - 0.03, x1 + 0.03, y1 + 0.03, h, h + 3, C.trim);
+    // rooftop: water tank, garden or antenna
+    const kind = (v >> 1) % 3;
+    if (kind === 0) {
+      box(x0 + 0.12, y0 + 0.12, x0 + 0.34, y0 + 0.34, h + 3, h + 11, C.metal);
+    } else if (kind === 1) {
+      box(x0 + 0.08, y0 + 0.08, x1 - 0.08, y1 - 0.08, h + 3, h + 5, C.leaf[1]);
+      ctx.fillStyle = lit(C.leaf[2], 1.05);
+      ctx.beginPath(); ctx.arc(PX(x0 + 0.3, y0 + 0.3), PY(x0 + 0.3, y0 + 0.3, h + 9), 4.5, 0, Math.PI * 2); ctx.fill();
+    } else {
+      const ax = PX(x0 + 0.3, y0 + 0.3), ay = PY(x0 + 0.3, y0 + 0.3, h + 3);
+      ctx.strokeStyle = lit(C.lamp, 0.9);
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax, ay - 18); ctx.stroke();
+      const blink = (performance.now() % 1600) < 800 ? 1 : 0.35;
+      ctx.fillStyle = 'rgba(255,120,130,' + (0.5 + 0.5 * blink * (0.4 + light.night * 0.6)).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(ax, ay - 19, 1.8, 0, Math.PI * 2); ctx.fill();
+      if (light.night > 0.1) glows.push(ax, ay - 19, 7, 0.4 * light.night * blink);
+    }
+  }
+
+  function drawTree(x, y, s, v) {
+    const sx = PX(x, y), sy = PY(x, y, 0);
+    ctx.fillStyle = lit(C.trunk, 0.9);
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(sx - 1.6 * s, sy - 12 * s, 3.2 * s, 12 * s, 1.2) : ctx.rect(sx - 1.6 * s, sy - 12 * s, 3.2 * s, 12 * s);
+    ctx.fill();
+    const leaf = C.leaf[v % 3];
+    const sway = reduced ? 0 : Math.sin(performance.now() * 0.0012 + x * 3 + y * 5) * 0.8;
+    const cy = sy - 19 * s;
+    const g = ctx.createRadialGradient(sx - 3 * s + sway, cy - 4 * s, 1, sx + sway, cy, 11 * s);
+    g.addColorStop(0, lit(C.leafHi, 1.02));
+    g.addColorStop(0.55, lit(leaf, 1));
+    g.addColorStop(1, lit(leaf, 0.8));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(sx + sway, cy, 10 * s, 0, Math.PI * 2);
+    ctx.arc(sx - 5 * s + sway, cy + 4 * s, 6.5 * s, 0, Math.PI * 2);
+    ctx.arc(sx + 5.5 * s + sway, cy + 3.5 * s, 6.5 * s, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawTreesTile(i, j, v) {
+    const n = 1 + (v % 3);
+    const spots = [[0.5, 0.5], [0.3, 0.35], [0.7, 0.62], [0.32, 0.7], [0.7, 0.3]];
+    const order = n === 1 ? [0] : n === 2 ? [1, 2] : [1, 4, 3];
+    for (const q of order) drawTree(i + spots[q][0], j + spots[q][1], n === 1 ? 1.1 : 0.85, v + q);
+  }
+
+  function drawParkThings(i, j, v) {
+    // bench
+    const bx = i + 0.28, by = j + 0.8;
+    box(bx, by, bx + 0.22, by + 0.06, 3, 4.5, C.trunk);
+    box(bx, by - 0.02, bx + 0.22, by, 4.5, 8, C.trunk);
+    // one tree in the corner
+    drawTree(i + 0.25, j + 0.28, 0.85, v + 1);
+    // fountain spray
+    const px = i + 0.68, py = j + 0.62;
+    const sx = PX(px, py), sy = PY(px, py, 0);
+    ctx.fillStyle = lit(C.trim, 0.95);
+    ctx.fillRect(sx - 1.3, sy - 7, 2.6, 7);
+    const t = performance.now() * 0.004;
+    ctx.fillStyle = lit(C.foam, 1, 0.9);
+    for (let q = 0; q < 5; q++) {
+      const a = t + q * 1.26;
+      const r = (q % 2 ? 3.5 : 5) + Math.sin(a * 2) * 0.6;
+      ctx.beginPath(); ctx.arc(sx + Math.cos(a) * r, sy - 6 + Math.abs(Math.sin(a)) * 3 - 3, 1.1, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  function drawLamp(i, j) {
+    const m = roadMask(i, j);
+    // stand on a sidewalk corner
+    const lx = m & 1 ? i + 0.08 : i + 0.92, ly = m & 2 ? j + 0.08 : j + 0.92;
+    const sx = PX(lx, ly), sy = PY(lx, ly, 0);
+    ctx.strokeStyle = lit(C.lamp, 0.9);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy - 22); ctx.stroke();
+    const n = light.night;
+    ctx.fillStyle = n > 0.05 ? emit([255, 236, 170], (0.55 + 0.45 * n).toFixed(3)) : lit(C.trim, 0.95);
+    ctx.beginPath(); ctx.arc(sx, sy - 23, 2.6, 0, Math.PI * 2); ctx.fill();
+    if (n > 0.05) {
+      lampGlows.push(sx, sy, n);
+      glows.push(sx, sy - 23, 12, 0.55 * n);
+    }
+  }
+
+  function drawCar(c) {
+    const along = c.dx !== 0;
+    const L = 0.2, Wd = 0.11;
+    const x0 = c.x - (along ? L : Wd), x1 = c.x + (along ? L : Wd);
+    const y0 = c.y - (along ? Wd : L), y1 = c.y + (along ? Wd : L);
+    box(x0, y0, x1, y1, 1.5, 6.5, c.col);
+    const ix = along ? 0.07 : 0.02, iy = along ? 0.02 : 0.07;
+    box(x0 + ix + (c.dx < 0 ? 0.04 : 0), y0 + iy + (c.dy < 0 ? 0.04 : 0), x1 - ix - (c.dx > 0 ? 0.04 : 0), y1 - iy - (c.dy > 0 ? 0.04 : 0), 6.5, 10.5, C.glass, { top: c.col });
+    if (light.night > 0.1) {
+      const hx = c.x + c.dx * 0.26, hy = c.y + c.dy * 0.26;
+      glows.push(PX(hx, hy), PY(hx, hy, 4), 9, 0.5 * light.night);
+    }
+  }
+
+  function drawWalker(w) {
+    const i = w.k % N, j = (w.k / N) | 0;
+    const x = i + w.x, y = j + w.y;
+    const sx = PX(x, y), sy = PY(x, y, 0);
+    const bob = w.wait > 0 ? 0 : Math.abs(Math.sin(w.ph)) * 1.2;
+    ctx.fillStyle = 'rgba(56,48,92,0.18)';
+    ctx.beginPath(); ctx.ellipse(sx, sy, 2.6, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = lit(w.col, 1);
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(sx - 1.7, sy - 7.5 - bob, 3.4, 6, 1.4) : ctx.rect(sx - 1.7, sy - 7.5 - bob, 3.4, 6);
+    ctx.fill();
+    ctx.fillStyle = lit([255, 219, 196], 1);
+    ctx.beginPath(); ctx.arc(sx, sy - 9.4 - bob, 1.9, 0, Math.PI * 2); ctx.fill();
+  }
+
+  /* ---------------- per-frame object list, sorted back to front ---------------- */
+  const drawList = [];
+  function frameScene(now) {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    drawSky(now);
+    ctx.setTransform(DPR * cam.zoom, 0, 0, DPR * cam.zoom, DPR * cam.x, DPR * cam.y);
+    drawBoardBase();
+    glows.length = 0;
+    lampGlows.length = 0;
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) drawGround(i, j, now);
+    // ground rings from new placements
+    for (const r of rings) {
+      if (!r.on) continue;
+      r.t += 1 / 60 * 1.6;
+      if (r.t >= 1) { r.on = false; continue; }
+      const cx = PX(r.i + 0.5, r.j + 0.5), cy = PY(r.i + 0.5, r.j + 0.5, 0);
+      ctx.strokeStyle = emit(r.rgb, (0.9 * (1 - r.t)).toFixed(3));
+      ctx.lineWidth = 2.5 * (1 - r.t) + 0.5;
+      ctx.beginPath(); ctx.ellipse(cx, cy, 10 + 30 * r.t, (10 + 30 * r.t) / 2, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    drawShadows();
+    // lamp pools on the ground (under everything that stands)
+    drawList.length = 0;
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const t = grid[IDX(i, j)];
+        if (t === HOUSE || t === TOWER || t === TREE || t === PARK) drawList.push([i + j + 1, 0, i, j]);
+        if (hasLamp(i, j)) drawList.push([i + j + 1.9, 3, i, j]);
+      }
+    }
+    for (let q = 0; q < cars.length; q++) drawList.push([cars[q].x + cars[q].y, 1, q, 0]);
+    for (let q = 0; q < walkers.length; q++) {
+      const w = walkers[q];
+      if (grid[w.k] !== PARK) continue;
+      drawList.push([(w.k % N) + ((w.k / N) | 0) + w.x + w.y, 2, q, 0]);
+    }
+    drawList.sort((a, b) => a[0] - b[0]);
+    for (const d of drawList) {
+      if (d[1] === 0) {
+        const i = d[2], j = d[3], k = IDX(i, j), t = grid[k], v = vari[k];
+        const s = popScale(k, now);
+        withPop(i, j, s, () => {
+          if (t === HOUSE) drawHouse(i, j, v);
+          else if (t === TOWER) drawTower(i, j, v);
+          else if (t === TREE) drawTreesTile(i, j, v);
+          else if (t === PARK) drawParkThings(i, j, v);
+        });
+      } else if (d[1] === 1) drawCar(cars[d[2]]);
+      else if (d[1] === 2) drawWalker(walkers[d[2]]);
+      else drawLamp(d[2], d[3]);
+    }
+    // night glows: lamp pools, windows, headlights
+    if (light.night > 0.05) {
+      ctx.globalCompositeOperation = 'lighter';
+      for (let q = 0; q < lampGlows.length; q += 3) {
+        const x = lampGlows[q], y = lampGlows[q + 1], a = lampGlows[q + 2];
+        const g = ctx.createRadialGradient(x, y, 0, x, y, 30);
+        g.addColorStop(0, 'rgba(255,214,140,' + (0.32 * a).toFixed(3) + ')');
+        g.addColorStop(1, 'rgba(255,214,140,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.ellipse(x, y, 30, 15, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      for (let q = 0; q < glows.length; q += 4) {
+        const x = glows[q], y = glows[q + 1], r = glows[q + 2], a = glows[q + 3];
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, 'rgba(255,226,160,' + a.toFixed(3) + ')');
+        g.addColorStop(1, 'rgba(255,226,160,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    // dust
+    for (const p of puffs) {
+      if (!p.on) continue;
+      const a = 1 - p.life / p.max;
+      ctx.fillStyle = lit([236, 226, 210], p.shade, (0.85 * a).toFixed(3));
+      ctx.beginPath();
+      ctx.arc(PX(p.x, p.y), PY(p.x, p.y, p.z), p.r * (1 + p.life * 1.8), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    drawCursor(now);
+  }
+
+  /* hover / keyboard cursor and a ghost preview of the tool */
+  const hover = { i: -1, j: -1, show: false };
+  const kbd = { i: 5, j: 5, show: false };
+  function drawCursor(now) {
+    const c = hover.show ? hover : kbd.show ? kbd : null;
+    if (!c || c.i < 0) return;
+    const i = c.i, j = c.j;
+    const pulse = 0.6 + 0.4 * Math.sin(now * 0.006);
+    diamond(i, j, i + 1, j + 1, 0.5);
+    ctx.lineWidth = 2 / cam.zoom + 1;
+    ctx.setLineDash([5, 4]);
+    ctx.lineDashOffset = -now * 0.02;
+    ctx.strokeStyle = tool === 'bulldoze' ? 'rgba(240,110,100,' + pulse.toFixed(3) + ')' : 'rgba(255,255,255,' + (0.7 + 0.3 * pulse).toFixed(3) + ')';
+    ctx.stroke();
+    ctx.setLineDash([]);
+    const t = TOOL_TYPE[tool];
+    if (t !== EMPTY && grid[IDX(i, j)] !== t) {
+      ctx.globalAlpha = 0.5;
+      const v = (i * 7 + j * 13) % 26;
+      if (t === HOUSE) drawHouse(i, j, v);
+      else if (t === TOWER) drawTower(i, j, v);
+      else if (t === TREE) drawTreesTile(i, j, v);
+      else if (t === PARK || t === ROAD || t === WATER) {
+        diamond(i, j, i + 1, j + 1, 1);
+        ctx.fillStyle = lit(t === PARK ? C.lawn : t === ROAD ? C.road : C.water, 1);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  /* ================================================================
+     Loop
+     ================================================================ */
+  let last = 0, raf = 0, hudTimer = 0;
+  function tick(now) {
+    raf = requestAnimationFrame(tick);
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
+    last = now;
+    if (!paused) {
+      timeOfDay += dt * clockSpeed * (reduced ? 0.5 : 1) / DAY_SECONDS;
+      if (timeOfDay >= 1) { timeOfDay -= 1; dayCount++; }
+    }
+    updateLight();
+    updateCars(dt);
+    updateWalkers(dt);
+    for (const p of puffs) {
+      if (!p.on) continue;
+      p.life += dt;
+      if (p.life >= p.max) { p.on = false; continue; }
+      p.x += p.vx * dt * 0.6; p.y += p.vy * dt * 0.6; p.z += p.vz * dt; p.vz *= 0.94;
+    }
+    frameScene(now);
+    hudTimer -= dt;
+    if (hudTimer <= 0) { hudTimer = 0.25; updateClock(); }
+  }
+  function updateClock() {
+    const mins = Math.floor(timeOfDay * 24 * 60);
+    const hh = Math.floor(mins / 60), mm = mins % 60;
+    const txt = String(hh).padStart(2, '0') + ':' + String(Math.floor(mm / 5) * 5).padStart(2, '0');
+    if (clockEl.firstChild.nodeValue !== txt) clockEl.firstChild.nodeValue = txt;
+    const sm = clockEl.querySelector('small');
+    const d = 'Day ' + dayCount;
+    if (sm.textContent !== d) sm.textContent = d;
+    dialHand.setAttribute('transform', 'rotate(' + ((timeOfDay - 0.5) * 360).toFixed(1) + ' 15 15)');
+  }
+  function start() { if (!raf) { last = 0; raf = requestAnimationFrame(tick); } }
+  function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { stop(); save(); } else start(); });
+
+  /* ================================================================
+     Input: tap to build, right-click / long-press to bulldoze,
+     drag to pan, wheel / pinch to zoom
+     ================================================================ */
+  const pointers = new Map();
+  let gesture = null; // { mode: 'tap'|'pan'|'pinch', ... }
+  let longTimer = 0;
+
+  function selectTool(name, speak) {
+    tool = name;
+    for (const b of toolBtns) b.setAttribute('aria-pressed', b.dataset.tool === name ? 'true' : 'false');
+    if (speak) announce(name === 'bulldoze' ? 'Bulldozer selected.' : name.charAt(0).toUpperCase() + name.slice(1) + ' selected.');
+  }
+
+  world.addEventListener('pointerdown', (e) => {
+    ensureAudio();
+    try { world.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      clearTimeout(longTimer);
+      const [a, b] = Array.from(pointers.values());
+      gesture = { mode: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+      return;
+    }
+    if (pointers.size > 2) return;
+    gesture = { mode: 'tap', sx: e.clientX, sy: e.clientY, lx: e.clientX, ly: e.clientY, button: e.button, id: e.pointerId, bulldozed: false };
+    if (e.pointerType !== 'mouse') {
+      longTimer = setTimeout(() => {
+        if (gesture && gesture.mode === 'tap') {
+          const t = tileAt(gesture.sx, gesture.sy);
+          if (t) {
+            place(t[0], t[1], EMPTY);
+            try { if (navigator.vibrate) navigator.vibrate(18); } catch (err) { /* ignore */ }
+          }
+          gesture.bulldozed = true;
+        }
+      }, 520);
+    }
+  });
+  world.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'mouse') {
+      const t = tileAt(e.clientX, e.clientY);
+      hover.show = !!t;
+      if (t) { hover.i = t[0]; hover.j = t[1]; }
+      kbd.show = false;
+    }
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (!gesture) return;
+    if (gesture.mode === 'pinch' && pointers.size >= 2) {
+      const [a, b] = Array.from(pointers.values());
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      cam.x += mx - gesture.mx; cam.y += my - gesture.my;
+      zoomAt(mx, my, d / (gesture.d || d));
+      gesture.d = d; gesture.mx = mx; gesture.my = my;
+      return;
+    }
+    if (gesture.mode === 'tap' && Math.hypot(e.clientX - gesture.sx, e.clientY - gesture.sy) > 7) {
+      gesture.mode = 'pan';
+      clearTimeout(longTimer);
+      world.classList.add('panning');
+    }
+    if (gesture.mode === 'pan') {
+      cam.x += e.clientX - gesture.lx;
+      cam.y += e.clientY - gesture.ly;
+      gesture.lx = e.clientX; gesture.ly = e.clientY;
+    }
+  });
+  function endPointer(e) {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.delete(e.pointerId);
+    clearTimeout(longTimer);
+    world.classList.remove('panning');
+    if (!gesture) return;
+    if (gesture.mode === 'tap' && e.type === 'pointerup' && !gesture.bulldozed) {
+      const t = tileAt(e.clientX, e.clientY);
+      if (t) place(t[0], t[1], gesture.button === 2 ? EMPTY : TOOL_TYPE[tool]);
+    }
+    if (pointers.size === 0) gesture = null;
+    else if (gesture.mode === 'pinch') gesture = { mode: 'pan', lx: Array.from(pointers.values())[0].x, ly: Array.from(pointers.values())[0].y };
+  }
+  world.addEventListener('pointerup', endPointer);
+  world.addEventListener('pointercancel', endPointer);
+  world.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hover.show = false; });
+  world.addEventListener('contextmenu', (e) => e.preventDefault());
+  world.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const f = Math.exp(-clamp(e.deltaY, -120, 120) * 0.0016);
+    zoomAt(e.clientX, e.clientY, f);
+  }, { passive: false });
+
+  for (const b of toolBtns) b.addEventListener('click', () => { selectTool(b.dataset.tool, true); ensureAudio(); });
+
+  document.getElementById('random').addEventListener('click', () => {
+    ensureAudio();
+    randomTown(true);
+    blip(5);
+    toast('A brand-new town, freshly seeded');
+    announce('Generated a random town.');
+  });
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    pauseBtn.setAttribute('aria-label', paused ? 'Resume the clock' : 'Pause the clock');
+    announce(paused ? 'Clock paused.' : 'Clock running.');
+  });
+  const SPEEDS = [1, 6, 24];
+  speedBtn.addEventListener('click', () => {
+    clockSpeed = SPEEDS[(SPEEDS.indexOf(clockSpeed) + 1) % SPEEDS.length];
+    speedLbl.textContent = clockSpeed + '×';
+    toast(clockSpeed === 1 ? 'Time drifts gently (1×)' : clockSpeed === 6 ? 'Time hurries along (6×)' : 'Days fly by (24×)');
+    announce('Clock speed ' + clockSpeed + ' times.');
+  });
+  function setSoundUI() {
+    soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+    soundBtn.setAttribute('aria-label', soundOn ? 'Sound effects on' : 'Sound effects off');
+  }
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    store.set('pocket-metropolis-sound', soundOn ? 'on' : 'off');
+    setSoundUI();
+    if (soundOn) ensureAudio();
+    else if (actx && actx.state === 'running') actx.suspend().catch(() => {});
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = document.activeElement && document.activeElement.tagName;
+    const k = e.key;
+    const names = ['house', 'tower', 'tree', 'park', 'road', 'water', 'bulldoze'];
+    if (k >= '1' && k <= '7') { selectTool(names[+k - 1], true); return; }
+    if (k === 'r' || k === 'R') { document.getElementById('random').click(); return; }
+    if (k === '+' || k === '=') { zoomAt(W / 2, H / 2, 1.15); return; }
+    if (k === '-' || k === '_') { zoomAt(W / 2, H / 2, 1 / 1.15); return; }
+    if (document.activeElement !== world || tag === 'BUTTON') return;
+    const moves = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+    if (moves[k]) {
+      e.preventDefault();
+      kbd.show = true; hover.show = false;
+      kbd.i = clamp(kbd.i + moves[k][0], 0, N - 1);
+      kbd.j = clamp(kbd.j + moves[k][1], 0, N - 1);
+      announce('Tile ' + (kbd.i + 1) + ', ' + (kbd.j + 1) + ': ' + TYPE_NAME[grid[IDX(kbd.i, kbd.j)]] + '.');
+    } else if (k === 'Enter' || k === ' ') {
+      e.preventDefault();
+      ensureAudio();
+      kbd.show = true;
+      place(kbd.i, kbd.j, TOOL_TYPE[tool]);
+    } else if (k === 'Delete' || k === 'Backspace') {
+      e.preventDefault();
+      ensureAudio();
+      place(kbd.i, kbd.j, EMPTY);
+    }
+  });
+  world.addEventListener('focus', () => { if (!hover.show) kbd.show = true; });
+  world.addEventListener('blur', () => { kbd.show = false; });
+
+  window.addEventListener('resize', resize);
+  reduceMQ.addEventListener && reduceMQ.addEventListener('change', (e) => { reduced = e.matches; });
+  window.addEventListener('pagehide', save);
+
+  /* ================================================================
+     Start
+     ================================================================ */
+  setSoundUI();
+  resize();
+  if (load()) { rebuildLife(); recount(true); }
+  else randomTown(true);
+  updateLight();
+  updateClock();
+  start();
+})();
+</script>
+</body>
+</html>

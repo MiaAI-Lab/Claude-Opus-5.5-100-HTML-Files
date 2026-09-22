@@ -1,0 +1,39 @@
+TITLE: Senbazuru — Fold a Paper Crane
+FILE: 027-origami-crane.html
+
+=== PROMPT (exact prompt used) ===
+Create "Senbazuru — Fold a Paper Crane", an animated, step-by-step origami crane made with CSS 3D transforms or canvas 3D projection. A square of patterned washi paper (generated seigaiha waves or asanoha pattern in indigo #264653 on cream, with a coral #e76f51 reverse side) folds through about eight key stages — square base, bird base, narrowing folds, head fold, wings — with smooth hinge rotations, correct front/back faces and soft directional shading on each facet that changes with its angle. A clean Japanese-minimal layout: off-white #f7f3ec, lots of space, the step number as a large thin numeral, a one-line instruction for each step, and a progress rail of eight dots. Interaction: next/previous buttons, arrow keys and an auto-play toggle; drag to orbit the model; a picker for three washi patterns. Finale: the finished crane flaps gently and floats above a soft shadow while a counter reads "1 of 1000". Typography: an elegant serif plus tiny wide-tracked sans labels.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Senbazuru — Fold a Paper Crane" folds a real, physically consistent paper crane in the browser. A square of washi (indigo #264653 pattern on cream, coral #e76f51 reverse) is simulated as rigid facets hinged along true crease lines. It passes through eight stages (square, triangle, square base by reverse-folding the corners, front petal fold, back petal fold / bird base, narrowing, inside-reverse-folded neck and tail, then a reverse-folded head and opening wings) and each fold animates as hinge rotations that keep the paper attached. Front and back faces are always correct, so the coral reverse appears exactly where real paper would show it: the lifted petals and the wings. The layout is Japanese-minimal on off-white #f7f3ec with plenty of space: a huge hairline-outline step numeral, the step name in italic serif, one line of instruction, quiet circular controls, three washi swatches, and an eight-dot progress rail under the model. A pale coral sun sits behind the paper, and a soft ground shadow sits beneath it. At the finale the crane flaps gently, floats and slowly turns, and a counter reads "1 of 1000" (it keeps counting cranes folded in this browser).
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A small rigid-origami engine: each facet is a paper-space polygon with a 3x4 rigid transform; every fold splits the facets it crosses and rotates the moving side by pi about the crease line (60 facets by the end)
+- Folds are recorded as timed hinge rotations and composed in order during playback (kite folds then petal lift, back then front, neck then tail), so adjacent facets stay joined throughout the motion rather than being morphed
+- Layer order is tracked explicitly (reverse folds tuck flaps between layers) and converted to tiny per-layer offsets along the paper normal so stacked paper sorts correctly
+- Rendered with CSS 3D: every facet is two backface-hidden elements (washi front, coral back) with a matrix3d transform, a clip-path polygon grown ~0.6px to hide seams, and the browser's own 3D depth sorting
+- Procedural washi painted onto canvases: seigaiha waves, asanoha hemp-leaf star lattice and shippo interlocking circles, all set at 45 degrees to the diamond, plus paper fibres and a faint edge line so stacked layers read clearly; each facet samples its own region, so patterns stay continuous across folds
+- Per-facet directional lighting: the facet normal is taken through the camera rotation and dotted with a key light; the result drives a dark or warm-light overlay, so each facet's shade changes live with its angle
+- Camera direction per stage (it swings round behind the model for the back petal fold, then returns), auto-fitted to each stage's bounding box, with gentle idle sway
+- Finale: wings flap about their true hinge line, the crane bobs above a shadow that shrinks and fades as it rises, and it turns slowly like a hanging mobile
+- Outline numeral via -webkit-text-stroke, wide-tracked micro labels, a hand-drawn SVG hanko seal with a crane silhouette
+
+=== INTERACTION MODEL ===
+- Auto-play starts shortly after load (not with reduced motion) and loops: fold, pause on each stage, fly for a while, then unfold and begin again; Pause/Auto-play toggle and the P or Space key control it
+- Previous / next buttons, Left/Right arrow keys, Home (unfold to the square) and End (jump to the crane); clicking a rail dot animates quickly through the intermediate folds to that step
+- Drag (mouse or touch) on the stage to orbit with inertia; double-click resets the view; with the stage focused, W A S D orbit and 0 resets
+- Washi picker (radio group, arrow keys supported) repaints the paper's textures instantly, mid-fold if you like; the choice persists in localStorage
+- The "of 1000" crane counter persists in localStorage (all storage access guarded with try/catch)
+- prefers-reduced-motion: no auto-play, shorter folds, no sway, turning, bobbing or flapping; animation pauses while the tab is hidden

@@ -1,0 +1,36 @@
+TITLE: MONOLITH — Architecture & Landscape
+FILE: 096-concrete-monolith.html
+
+=== PROMPT (exact prompt used) ===
+Design "MONOLITH — Architecture & Landscape" (a fictional studio), a brutalist-minimal architecture portfolio: raw concrete surfaces (procedural texture from layered noise with formwork tie-hole dots and board-mark grain) in greys #8d8d8a, #b5b3ad, #d6d4ce and charcoal #262624, with a single accent of oxidised-copper green #4f7f73. Typography: huge, tight, uppercase grotesk headlines and precise small captions with project data (location, year, area in m²). Composition: a severe grid, vast negative space, heavy slabs. Five fictional buildings appear as axonometric SVG drawings of monolithic volumes whose light and shadow shift as a "sun angle" slider moves (shadows computed from the angle). Scroll storytelling: slabs slide in; a building assembles piece by piece as you scroll; a horizontal material-library strip shows concrete, corten, timber and glass as procedural textures. Interaction: the sun slider; hovering a project rotates its axonometric slightly; clicking opens a project sheet. Calm, heavy, precise motion.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+MONOLITH is the portfolio of a fictional brutalist architecture and landscape studio, built on a severe 12-column grid whose hairline guides stay visible over the whole page. The hero is a full-bleed wall of procedurally generated board-formed concrete (formwork panel joints, 150 mm board marks, tie holes with rust-free drip stains). Over it sit a tight uppercase grotesk "MONOLITH" across the full width, a short manifesto, precise uppercase captions, and a large axonometric of the chapel "Vessel" standing on a model plinth. A heavy charcoal manifesto slab slides in from the left. Five fictional buildings follow as rows of vast negative space, each an axonometric monolith beside tabulated data (location, latitude, year, area in m², height), with a huge outlined index number behind. Next, a pinned sequence assembles the Archive of Rain piece by piece as you scroll. A horizontal material library shows concrete, weathering steel, larch, low-iron glass and oxidised copper as live procedural textures, and a charcoal studio footer ends the page. Oxidised-copper green (#4f7f73) is the only accent. A fixed sun control drives every drawing: shadows, face shading and even the light across the hero concrete follow a real equinox sun path at 50° N.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Tileable procedural textures on canvas: periodic value-noise fBm for mottling, anisotropic noise for board-grain streaks, per-board tone shifts, joint lines, and radial-gradient tie holes with drip stains; separate generators for rusted weathering steel (blotches, pitting, runoff), silvered larch (warped grain, open joints, knots), low-iron glass (sky noise, reflection bands, mullions) and copper verdigris (standing seams, brown remnants)
+- A small axonometric engine in SVG: orthographic camera (30° elevation, adjustable azimuth), back-face culling, painter's ordering along the view vector, and Lambert shading of each face from the sun vector into a five-stop concrete ramp (a separate copper ramp for the lantern)
+- Real sun geometry: altitude and azimuth from the equinox hour angle at 50° N; every box's eight corners are projected along the sun ray onto the ground and convex-hulled into one shadow path, clipped to a physical model plinth so long evening shadows stay on the base
+- Facade detail derived from the geometry: board-mark lines every 0.6 m and tie holes on a 1.2 m grid on each visible face, cut openings, glazing, cast-glass pools on roofs, copper seams, and non-scaling hairline edges, like an architectural model drawing
+- Calm, heavy motion: 1.2–1.5 s ease-out rises, slabs sliding in from the sides, hover rotation eased toward a target azimuth, and pieces in the construction sequence dropping and settling with a cubic ease-out
+- Typography: huge tight uppercase grotesk (Helvetica Neue / Arial / Nimbus Sans) at −0.05 to −0.07 em tracking, outlined ghost numerals, wide-tracked micro-captions and monospace indices
+
+=== INTERACTION MODEL ===
+- The fixed sun control (07:00–17:00) re-computes shadows and shading on every visible drawing, moves the sun on the mini dial, updates the header readout (time, azimuth, altitude) and shifts the light across the hero concrete
+- Hovering (or focusing) a project slowly rotates its axonometric by about 9°; clicking the drawing or "Project sheet" opens a modal sheet with a larger, gently turning axonometric, the description, a full data table and a north-up footprint plan (Esc, the close button or clicking the backdrop closes it, and focus returns to the trigger)
+- The Process section is pinned while you scroll: six steps (raft, walls, floors, screen, roof, copper lantern) assemble in order, with the active step highlighted and a progress meter
+- The material strip can be swiped, dragged with the mouse, stepped with the arrow buttons, or scrolled with the keyboard, and snaps card by card; hovering a swatch slowly zooms it
+- Anchor navigation in the header; responsive layout (on phones the giant wordmark leads the hero, the grid collapses to one column and the sun control becomes a bottom bar); reduced motion removes the slides and easing

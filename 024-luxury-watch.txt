@@ -1,0 +1,41 @@
+TITLE: Maison Varenne — Calibre 01
+FILE: 024-luxury-watch.html
+
+=== PROMPT (exact prompt used) ===
+Design a product page for "Maison Varenne — Calibre 01", a fictional minimalist luxury watch. Palette: ivory #f5f1ea, champagne #d8c3a5, charcoal #1c1c1c and a hint of midnight blue #1b2a41 for a dial variant. The hero is a large, photoreal-feeling SVG watch built entirely from gradients: a brushed-steel case with conical highlights, a domed sapphire reflection, applied indices with tiny shadows, dauphine hands showing the REAL current local time, and a smoothly sweeping seconds hand (8 beats per second). Typography: a refined high-contrast serif for headings with wide-tracked small sans captions. Sections with generous whitespace: an exploded view of the movement whose layers separate on scroll; a dial variant selector (ivory / midnight / salmon) that recolours the watch with a smooth transition; a specification table; and a "Reserve" CTA. Interaction: hovering the watch tilts it slightly and moves the sapphire reflection; a "Night" toggle shows lume glowing on the hands and indices. Quiet, precise animation — nothing gaudy.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A quiet, editorial product page for "Maison Varenne, Calibre 01", a fictional 39 mm automatic watch. The palette is ivory (#f5f1ea), champagne (#d8c3a5) and charcoal (#1c1c1c), with a midnight-blue (#1b2a41) dial variant. The hero splits into a high-contrast serif headline ("Time, rendered quietly.") on the left and a large gradient-built SVG watch on the right. The watch shows the viewer's real local time with faceted dauphine hands and a seconds hand that beats eight times a second (4 Hz). It opens in the classic 10:10:35 catalogue pose, then glides to the true time. Below the hero, a sticky scroll scene opens the watch into eight layers in 3D. Then comes a technical-drawing specification sheet, and finally a charcoal reservation desk. A Night toggle turns the page dark so that the luminescent hands and indices glow.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Brushed steel built procedurally as conical "fans" of 180 to 320 thin annular SVG sectors. Their brightness follows two-lobe cosine highlights plus seeded per-sector noise, which reads as radial brushing, and blurred specular arcs sit on top
+- Domed sapphire: a rim-weighted radial gradient plus a crescent glare path that slides opposite the 3D tilt. The floor shadow moves with it
+- Dial built from a CSS-variable radial gradient, a clipped 180-wedge sunray whose opacity is set per variant, and a rehaut inner shadow. Ivory, midnight and salmon recolour smoothly through transitions on stop-color and fill
+- Applied indices, each built from two facet rectangles whose light and dark overlays are computed from the index angle against a fixed top-left light. A blurred shadow copy is offset in screen space, and each index carries a lume pip
+- Dauphine hands are split into lit and shaded halves. Blurred shadow silhouettes sit at increasing offsets for hour, minute and seconds, to suggest the height of each hand
+- Night mode: CSS filter brightness on the case, dial and hands, plus a separate lume layer run through a two-radius Gaussian glow filter that fades in
+- Leather strap with a gradient, a grain pattern and contrast dashed stitching, faded into the page with SVG masks. The crown has knurled flutes and slides out when pulled
+- Exploded movement uses CSS 3D (preserve-3d, rotateX 62°). Eight hand-drawn SVG layers separate along the scroll: crystal, hands, dial, a perlage mainplate with cut-outs, the going train, bridges with a Côtes de Genève stripe pattern and ruby jewels, a swinging gold rotor with text on a path, and the caseback. Leader-line labels are placed by projecting each layer's depth through the perspective
+- The technical drawing combines plan and profile views with champagne dimension lines over a faint drafting grid
+
+=== INTERACTION MODEL ===
+- Hover over the watch to tilt it in 3D (up to about 9°). The sapphire reflection and floor shadow move with the tilt and ease back when the pointer leaves
+- The dial radiogroup (three swatches, with arrow-key support) recolours the watch and the exploded dial and updates the name and note. The reservation form and localStorage stay in sync with the choice
+- Clicking the crown, or pressing Enter or Space on it, pulls it out and "hacks" the seconds hand to a stop, like a real watch. Pushing it back resynchronises to the live time
+- The Night toggle darkens the page and brings out the glowing lume. The label switches between Night and Day
+- Scrolling through "The Movement" opens the eight layers with an eased progress meter and slowly rotates the stack. Labels fade in one after another. The balance wheel beats at 4 Hz and the rotor swings
+- The Reserve form (dial, strap, boutique) shows an on-page confirmation with a fictional reference and stores it locally (guarded by try/catch). Nothing is transmitted
+- The nav turns frosted after scrolling, and anchor links scroll smoothly. prefers-reduced-motion removes the tilt, the intro glide and the animations, and shows the movement fully opened

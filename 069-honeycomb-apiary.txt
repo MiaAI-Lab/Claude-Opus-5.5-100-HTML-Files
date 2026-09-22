@@ -1,0 +1,40 @@
+TITLE: Apiary — The Honeycomb
+FILE: 069-honeycomb-apiary.html
+
+=== PROMPT (exact prompt used) ===
+Build "Apiary — The Honeycomb", an interactive hexagonal-grid artwork. The screen fills with hexagonal cells (canvas or SVG) in honey tones — amber #f6a821, gold #ffc93c, deep honey #c77d0a, wax #fff1c1 — with dark comb gaps (#2a1a05). Cells have a subtle inner bevel and translucency: some are filled with glowing honey (animated fill level with a meniscus shine), others are empty wax, a few are capped. Hovering sends a spreading ripple of brightness through neighbouring cells (delayed by hex distance). A handful of bees (small creatures with blurred beating wings) fly figure-eight "waggle dance" paths and visit cells, filling them over time. Interaction: click a cell to fill it with honey (drip animation); drag across cells to paint; a "Harvest" button drains the cells with a flowing animation into a jar counter; the grid regenerates on resize. A side panel explains the waggle dance in two short, accurate sentences. Typography: a warm serif title with small-caps labels.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Apiary is a living honeycomb that fills the screen: hundreds of pointy-top hexagonal cells in amber #f6a821, gold #ffc93c, deep honey #c77d0a and wax #fff1c1, separated by dark comb walls (#2a1a05). Empty cells read as faceted wax tubes lit from the upper left. Honey cells are translucent and glow from within, each filled to its own level with a curved meniscus and a small specular glint. Capped cells, clustered toward the top of the frame as in a real comb, are pale domed wax lids. Seven bees with banded abdomens, fuzzy thoraxes and ghosted, motion-blurred wings trace figure-eight waggle dances whose dotted trails fade on the comb, then fly off to visit cells and top them up. A warm glass panel with a serif title and small-caps labels holds an illustrated honey jar, the Harvest button, live counts of honey, capped and empty cells, and a two-sentence account of the waggle dance with a diagram and a live readout of what the current dancer is signalling.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Hex grid in axial/offset coordinates with exact pixel-to-cell cube rounding and hex distance; organic honey, capped and empty zones from a smooth sine-noise field plus a top-to-bottom gradient
+- Pre-rendered sprites rebuilt on resize: a faceted wax tube (six walls shaded by a light vector, beveled rim), a translucent radially glowing honey body, a domed textured cap, and a hex-shaped glow
+- The static comb is baked into one base canvas; each frame layers honey (cropped from the sprite bottom-up, so the fill level is exact inside the hexagon), meniscus curves, caps and an additive 'lighter' pass for the honey's inner glow and ripples
+- Brightness ripples spread by hex distance with a delay per ring, from hover, keyboard moves and an intro wave across the comb
+- Drip animation: a stretching droplet falls under gravity to the honey surface, then the level eases up with a sloshing surface
+- Bees drawn with canvas paths (legs, clipped abdomen bands, radial-gradient thorax with fuzz, antennae, three ghosted wing positions per side for blur) plus soft shadows; the waggle run wiggles along its axis, then alternating left and right Bézier return loops form the figure-eight
+- Harvest stream: pooled particles fly along quadratic curves from each draining cell into the jar on a top overlay canvas, with fading tails; the SVG jar's honey level rises with an animated wave and the lid bumps when a jar seals
+- A baked vignette and warm light falloff; the glass panel carries a faint hexagonal pattern
+
+=== INTERACTION MODEL ===
+- Hover: each new cell under the pointer sends a ripple of light through its neighbours, delayed by hex distance
+- Click or tap a cell to drip honey into it; drag to paint many cells; clicking a full cell asks the bees to cap it
+- Harvest (panel or mobile dock, or H) uncaps and drains every filled cell in a wave that starts nearest the jar; honey flows into the jar, which counts poured cells, seals jars and shows progress toward the next
+- Keyboard: focus the comb and use the arrow keys to move a cursor, Enter or Space to fill, H to harvest
+- New frame regenerates the comb with a fresh pattern; Bees flying / resting toggles the bees; the grid also regenerates on resize
+- The live dance readout translates the current dancer's waggle angle and run length into the direction of the flowers relative to the sun
+- On phones: a compact title bar with a jar counter, a bottom dock with Harvest and "The dance", which slides up the explanation sheet; reduced motion stops wing blur, instant-fills cells and slows the bees; animation pauses when the tab is hidden

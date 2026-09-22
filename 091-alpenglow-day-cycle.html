@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpenglow — A Day in the Mountains</title>
+<meta name="description" content="A parallax mountain landscape that lives through a whole day: six generated ridges, a mirror lake, pines and birds, pink alpenglow at sunrise, golden hour, violet dusk and a starry night with a moon and meteors.">
+<style>
+:root{
+  --ui:"Avenir Next","Avenir","Gill Sans","Gill Sans MT","Segoe UI","URW Gothic","Nimbus Sans",sans-serif;
+  --glass:rgba(12,16,34,.34);
+  --line:rgba(255,255,255,.22);
+  --txt:#f7f3ee;
+  --accent:#ffd6a5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#0b1030}
+body{font-family:var(--ui);color:var(--txt);-webkit-font-smoothing:antialiased}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:pointer;touch-action:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.brand{position:fixed;left:30px;top:26px;margin:0;pointer-events:none;text-shadow:0 1px 12px rgba(0,0,0,.25)}
+.brand b{display:block;font-weight:500;font-size:13px;letter-spacing:.52em;text-transform:uppercase}
+.brand span{display:block;margin-top:6px;font-weight:400;font-size:12.5px;letter-spacing:.18em;opacity:.78}
+.clock{position:fixed;right:30px;top:22px;text-align:right;pointer-events:none;text-shadow:0 1px 14px rgba(0,0,0,.28)}
+.time{font-weight:200;font-size:54px;line-height:1;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.phase{margin-top:8px;font-size:12.5px;letter-spacing:.42em;text-transform:uppercase;font-weight:500;color:var(--accent);transition:color 1s}
+.line{margin-top:6px;font-size:14px;letter-spacing:.02em;opacity:.86;max-width:320px;margin-left:auto;font-weight:400}
+.dock{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);width:min(760px,calc(100% - 32px));display:flex;align-items:center;gap:14px;padding:12px 16px 12px 12px;border-radius:18px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);box-shadow:0 20px 40px -20px rgba(0,0,0,.5)}
+.play{-webkit-appearance:none;appearance:none;flex:none;height:44px;padding:0 18px 0 14px;border-radius:22px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:var(--txt);font:500 13px/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px;cursor:pointer;transition:background-color .25s}
+.play:hover{background:rgba(255,255,255,.24)}
+.play svg{width:16px;height:16px}
+.play .pa{display:none}
+.play[aria-pressed="true"] .pa{display:block}
+.play[aria-pressed="true"] .pl{display:none}
+.track{position:relative;flex:1;min-width:0;height:44px}
+.strip{position:absolute;left:0;right:0;top:24px;height:6px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.icons{position:absolute;left:0;right:0;top:0;height:18px;pointer-events:none}
+.icons span{position:absolute;top:0;transform:translateX(-50%);width:18px;height:18px;opacity:.75}
+.icons svg{width:18px;height:18px;display:block}
+#time{-webkit-appearance:none;appearance:none;position:absolute;left:-9px;right:-9px;width:calc(100% + 18px);top:16px;height:22px;margin:0;background:transparent;cursor:pointer}
+#time::-webkit-slider-runnable-track{height:22px;background:transparent}
+#time::-moz-range-track{height:22px;background:transparent}
+#time::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;margin-top:2px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px rgba(255,255,255,.25),0 2px 8px rgba(0,0,0,.4)}
+#time::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px rgba(255,255,255,.25)}
+.mini{-webkit-appearance:none;appearance:none;flex:none;height:44px;padding:0 13px;border-radius:12px;border:1px solid rgba(255,255,255,.26);background:transparent;color:var(--txt);font:500 12px/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background-color .25s}
+.mini:hover{background:rgba(255,255,255,.14)}
+.mini svg{width:15px;height:15px}
+.hint{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);margin:0;font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;pointer-events:none;white-space:nowrap;text-shadow:0 1px 10px rgba(0,0,0,.4);transition:opacity 1.2s}
+.hint.gone{opacity:0}
+.seed{position:fixed;left:30px;bottom:30px;margin:0;font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;opacity:.62;pointer-events:none}
+@media (max-width:900px){ .seed{display:none} }
+@media (max-width:640px){
+  .brand{left:18px;top:18px}
+  .brand b{font-size:12px;letter-spacing:.42em}
+  .brand span{font-size:11.5px}
+  .clock{right:18px;top:16px}
+  .time{font-size:40px}
+  .phase{font-size:11px;letter-spacing:.34em}
+  .line{font-size:12.5px;max-width:250px}
+  .dock{flex-wrap:wrap;gap:10px;padding:10px;bottom:14px}
+  .track{order:-1;flex:1 1 100%}
+  .play{flex:1}
+  .mini .lbl{display:none}
+  .hint{bottom:150px;font-size:10.5px;letter-spacing:.14em}
+}
+@media (prefers-reduced-motion:reduce){ .phase{transition:none} }
+</style>
+</head>
+<body>
+<canvas id="scene" role="img" aria-label="A mountain lake landscape whose light follows the time of day. Click the sky to raise a new mountain range."></canvas>
+<p class="brand"><b>Alpenglow</b><span>a day in the mountains</span></p>
+<div class="clock" aria-live="off"><div class="time" id="clock">06:00</div><div class="phase" id="phase">Alpenglow</div><div class="line" id="line"></div></div>
+<p class="hint" id="hint">Click the sky for new mountains</p>
+<p class="seed" id="seed"></p>
+<div class="dock" role="group" aria-label="Time of day">
+  <button type="button" class="play" id="play" aria-pressed="true"><svg class="pl" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg><svg class="pa" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/></svg><span id="play-l">Pause</span></button>
+  <div class="track">
+    <div class="icons" aria-hidden="true" id="icons"></div>
+    <div class="strip" id="strip"></div>
+    <label class="sr" for="time">Time of day</label>
+    <input type="range" id="time" min="0" max="1440" step="1" value="360">
+  </div>
+  <button type="button" class="mini" id="now" aria-label="Jump to the current local time"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="lbl">Now</span></button>
+  <button type="button" class="mini" id="regen" aria-label="Raise a new mountain range"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 13l4.5-8 3 5 2-3 3.5 6z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="lbl">New range</span></button>
+</div>
+<p class="sr" id="live" aria-live="polite"></p>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TAU = Math.PI * 2;
+
+/* ------------------------------------------------------------------
+   Colour keyframes through the day (hours)
+------------------------------------------------------------------ */
+const K = [
+  { h: 0, top: '#03050f', mid: '#0a0f2a', hor: '#171d40', haze: '#1c2248', far: '#1a2142', near: '#04060e', glow: '#3a3a70', gs: 0, snow: '#7d86ad', water: '#060a1a', stars: 1, cloud: '#1e2446' },
+  { h: 4.4, top: '#080b28', mid: '#171e52', hor: '#343a78', haze: '#303670', far: '#262c62', near: '#070919', glow: '#6a5aa8', gs: .12, snow: '#9da2cf', water: '#0c1130', stars: .8, cloud: '#2c2f66' },
+  { h: 5.5, top: '#172666', mid: '#4757a2', hor: '#b09ac4', haze: '#8588bd', far: '#474c88', near: '#0f1128', glow: '#ff9eaa', gs: .55, snow: '#d6d0ee', water: '#1b234e', stars: .25, cloud: '#9a86b8' },
+  { h: 6.4, top: '#3a5dad', mid: '#9b98cf', hor: '#ffd6a5', haze: '#e6bfc2', far: '#7a6a9a', near: '#1b1930', glow: '#ff9eaa', gs: 1, snow: '#ffe0dc', water: '#394a80', stars: 0, cloud: '#ffc4b4' },
+  { h: 7.7, top: '#4a88d4', mid: '#9cc3ea', hor: '#f4e2ca', haze: '#c5d5e7', far: '#8196b6', near: '#1f2d37', glow: '#ffd6a5', gs: .2, snow: '#fff6ee', water: '#4b78a6', stars: 0, cloud: '#fff4e8' },
+  { h: 12, top: '#2872d4', mid: '#67aaeb', hor: '#d0e7fa', haze: '#bad5ee', far: '#7c98bf', near: '#1d3838', glow: '#ffffff', gs: 0, snow: '#ffffff', water: '#3c7cb6', stars: 0, cloud: '#ffffff' },
+  { h: 16.2, top: '#3880d0', mid: '#84bce7', hor: '#e7eee8', haze: '#c7d7e3', far: '#899bb7', near: '#223434', glow: '#ffe8b0', gs: .08, snow: '#fffaf0', water: '#4880b2', stars: 0, cloud: '#fffaf0' },
+  { h: 18.2, top: '#4d72b6', mid: '#d8ac7c', hor: '#ffcf7a', haze: '#e7bf8d', far: '#938399', near: '#29212f', glow: '#ffb870', gs: .62, snow: '#ffe6c4', water: '#68688a', stars: 0, cloud: '#ffd29a' },
+  { h: 19.4, top: '#33387c', mid: '#d3677b', hor: '#ff8a4c', haze: '#d77789', far: '#75587d', near: '#1d1327', glow: '#ff6f78', gs: 1, snow: '#ffc2ba', water: '#583e69', stars: 0, cloud: '#ff9a84' },
+  { h: 20.3, top: '#1c1b55', mid: '#5a3c8b', hor: '#ae668e', haze: '#795997', far: '#493973', near: '#110b21', glow: '#ff9eaa', gs: .55, snow: '#c6aed6', water: '#29214f', stars: .22, cloud: '#9c6aa0' },
+  { h: 21.4, top: '#0b1143', mid: '#202b71', hor: '#44498d', haze: '#393f7f', far: '#292f67', near: '#08091b', glow: '#6a5aa8', gs: .08, snow: '#999fcb', water: '#0f1737', stars: .72, cloud: '#2e3470' },
+  { h: 24, top: '#03050f', mid: '#0a0f2a', hor: '#171d40', haze: '#1c2248', far: '#1a2142', near: '#04060e', glow: '#3a3a70', gs: 0, snow: '#7d86ad', water: '#060a1a', stars: 1, cloud: '#1e2446' }
+];
+const PHASES = [
+  [0, 'Deep night', 'The lake holds every star it can find.'],
+  [4.2, 'Before dawn', 'Indigo thins above the eastern ridges.'],
+  [5.3, 'Blue hour', 'A cold blue light that seems to come from nowhere.'],
+  [6.0, 'Alpenglow', 'The summits blush before the valley wakes.'],
+  [7.2, 'Morning', 'Mist lifts off the water in slow threads.'],
+  [10.5, 'High noon', 'Shadows shrink to nothing beneath the pines.'],
+  [14.5, 'Afternoon', 'The haze deepens and the far peaks pale.'],
+  [17.6, 'Golden hour', 'Everything the light touches turns to honey.'],
+  [18.9, 'Sunset', 'The sun slips behind the western shoulder.'],
+  [19.9, 'Afterglow', 'The peaks keep burning after the sun has gone.'],
+  [20.8, 'Dusk', 'Violet pools gather in the valleys.'],
+  [21.8, 'Nightfall', 'First one star, and then all of them.']
+];
+const RISE = 6.15, SET = 19.55;
+const rgbOf = (h) => { const n = parseInt(h.slice(1, 7), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+K.forEach((k) => { for (const f of ['top', 'mid', 'hor', 'haze', 'far', 'near', 'glow', 'snow', 'water', 'cloud']) k[f] = rgbOf(k[f]); });
+const smooth = (x) => x * x * (3 - 2 * x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const mixA = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+const css = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a == null ? 1 : a})`;
+function paletteAt(t){
+  t = ((t % 24) + 24) % 24;
+  let i = 0;
+  while (i < K.length - 2 && K[i + 1].h <= t) i++;
+  const a = K[i], b = K[i + 1], f = smooth((t - a.h) / (b.h - a.h));
+  const o = {};
+  for (const key of ['top', 'mid', 'hor', 'haze', 'far', 'near', 'glow', 'snow', 'water', 'cloud']) o[key] = mixA(a[key], b[key], f);
+  o.gs = lerp(a.gs, b.gs, f); o.stars = lerp(a.stars, b.stars, f);
+  return o;
+}
+function phaseAt(t){ let p = PHASES[0]; for (const x of PHASES) if (t >= x[0]) p = x; return p; }
+
+/* ------------------------------------------------------------------
+   Ridges by midpoint displacement
+------------------------------------------------------------------ */
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function midpoint(R, n, rough, sharp){
+  const N = 1 << n, h = new Float32Array(N + 1);
+  h[0] = R(); h[N] = R();
+  let step = N, amp = 1;
+  while (step > 1){
+    const half = step >> 1;
+    for (let i = half; i < N; i += step) h[i] = (h[i - half] + h[i + half]) / 2 + (R() - .5) * amp;
+    amp *= rough; step = half;
+  }
+  let mn = Infinity, mx = -Infinity;
+  for (const v of h){ if (v < mn) mn = v; if (v > mx) mx = v; }
+  for (let i = 0; i <= N; i++) h[i] = Math.pow((h[i] - mn) / (mx - mn || 1), sharp);
+  return h;
+}
+// six layers, far to near: [peak (fraction of H above the waterline), base, roughness, sharpness, snow, depth]
+const LAYERS = [
+  { peak: .47, base: .15, rough: .56, sharp: 1.35, snow: .42, depth: 1, par: .08 },
+  { peak: .39, base: .10, rough: .56, sharp: 1.3, snow: .36, depth: .8, par: .16 },
+  { peak: .29, base: .06, rough: .52, sharp: 1.2, snow: .2, depth: .6, par: .27 },
+  { peak: .205, base: .035, rough: .48, sharp: 1.1, snow: 0, depth: .42, par: .4 },
+  { peak: .135, base: .015, rough: .44, sharp: 1, snow: 0, depth: .22, par: .58 },
+  { peak: .085, base: 0, rough: .4, sharp: .95, snow: 0, depth: 0, par: .8 }
+];
+let seed = (Math.random() * 1e6) | 0, ridges = [], pines = [], rise = [];
+function buildRange(s){
+  const R = mulberry(s);
+  ridges = LAYERS.map((L, i) => {
+    const h = midpoint(R, 9, L.rough + (R() - .5) * .06, L.sharp);
+    // gently lift one or two summits so each range has a character
+    const k = Math.floor(R() * 512), w = 60 + R() * 90;
+    let mx = 0;
+    for (let j = 0; j <= 512; j++){ h[j] += .18 * Math.exp(-Math.pow((j - k) / w, 2)) * (i < 3 ? 1 : .4); mx = Math.max(mx, h[j]); }
+    for (let j = 0; j <= 512; j++) h[j] /= mx;
+    const snowN = midpoint(R, 7, .6, 1);
+    // slope over a wide window, so light and shadow fall on whole faces rather than on every jag
+    const slope = new Float32Array(513), win = i < 3 ? 7 : 12;
+    for (let j = 0; j <= 512; j++) slope[j] = h[Math.min(512, j + win)] - h[Math.max(0, j - win)];
+    return { h, snowN, slope };
+  });
+  pines = [];
+  for (let i = 0; i < 150; i++) pines.push({ u: R(), s: .6 + R() * .8, lay: 5 });
+  for (let i = 0; i < 90; i++) pines.push({ u: R(), s: .35 + R() * .4, lay: 4 });
+  pines.sort((a, b) => a.lay - b.lay);
+  rise = LAYERS.map((L, i) => ({ t0: performance.now() + i * 110, from: 1 }));
+  $('#seed').textContent = `Range no. ${String(s % 100000).padStart(5, '0')}`;
+}
+
+/* ------------------------------------------------------------------
+   Canvas setup
+------------------------------------------------------------------ */
+const cv = $('#scene'), g = cv.getContext('2d');
+const up = document.createElement('canvas'), u = up.getContext('2d');
+let W = 0, H = 0, DPR = 1, WL = 0, M = 60, AMP = 1, stars = [], clouds = [];
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  WL = Math.round(H * (W / H < .8 ? .62 : .69));
+  AMP = W / H < .8 ? Math.max(.62, W / H * 1.05) : 1;
+  M = Math.round(Math.max(60, W * .06));
+  up.width = Math.round((W + 2 * M) * DPR); up.height = Math.round(WL * DPR);
+  const R = mulberry(9);
+  stars = [];
+  const n = Math.round(W * WL / 1700);
+  for (let i = 0; i < n; i++) stars.push({ x: R() * (W + 2 * M), y: R() * WL * .92, r: .35 + Math.pow(R(), 3) * 1.5, ph: R() * TAU, f: .5 + R() * 2.5, c: R() });
+  clouds = [];
+  for (let i = 0; i < 6; i++) clouds.push({ x: R() * (W + 2 * M), y: WL * (.12 + R() * .32), w: W * (.16 + R() * .22), h: 6 + R() * 14, v: 3 + R() * 6, puffs: Array.from({ length: 7 }, () => [R() - .5, (R() - .5) * .8, .4 + R() * .6]) });
+  paintStrip();
+}
+const cloudSprite = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(.55, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return c; })();
+const tint = document.createElement('canvas'); tint.width = tint.height = 64; const tctx = tint.getContext('2d');
+function tintedCloud(col){
+  tctx.globalCompositeOperation = 'source-over'; tctx.clearRect(0, 0, 64, 64); tctx.drawImage(cloudSprite, 0, 0);
+  tctx.globalCompositeOperation = 'source-in'; tctx.fillStyle = css(col); tctx.fillRect(0, 0, 64, 64);
+  tctx.globalCompositeOperation = 'source-over';
+  return tint;
+}
+
+/* ------------------------------------------------------------------
+   State
+------------------------------------------------------------------ */
+let hour = 5.95, playing = !reduce, lastT = performance.now(), T = 0;
+const DAY_SECONDS = 60;
+let px = 0, py = 0, tx = 0, ty = 0;
+let meteors = [], nextMeteor = 3, flocks = [], nextFlock = 4;
+
+function sunPos(t){
+  const p = (t - RISE) / (SET - RISE);
+  const x = lerp(-.06, 1.06, p) * (W + 2 * M);
+  const y = WL * 1.02 - Math.sin(Math.PI * Math.max(-.2, Math.min(1.2, p))) * WL * .86;
+  return { p, x, y, elev: Math.sin(Math.PI * p) };
+}
+function moonPos(t){
+  let q = ((t - 19.9) % 24 + 24) % 24 / 10.4;
+  const x = lerp(-.04, 1.04, q) * (W + 2 * M);
+  const y = WL * 1.02 - Math.sin(Math.PI * Math.max(-.2, Math.min(1.2, q))) * WL * .74;
+  return { q, x, y, elev: Math.sin(Math.PI * q) };
+}
+
+/* ------------------------------------------------------------------
+   Drawing the world above the waterline (reflected below)
+------------------------------------------------------------------ */
+function ridgeY(L, r, j, riseK){ return WL - (L.base + (L.peak - L.base) * r.h[j]) * H * AMP + riseK; }
+function drawUp(P, now){
+  const c = u, TW = W + 2 * M;
+  c.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // sky
+  const sg = c.createLinearGradient(0, 0, 0, WL);
+  sg.addColorStop(0, css(P.top)); sg.addColorStop(.55, css(P.mid)); sg.addColorStop(1, css(P.hor));
+  c.fillStyle = sg; c.fillRect(0, 0, TW, WL);
+  const sun = sunPos(hour), moon = moonPos(hour);
+  // warm band where the sun is low
+  if (sun.elev > -.35 && sun.elev < .5){
+    const k = (1 - Math.abs(sun.elev - .02) / .5) * .7;
+    const bg = c.createRadialGradient(sun.x, WL, 10, sun.x, WL, TW * .7);
+    bg.addColorStop(0, css(P.glow, .45 * k)); bg.addColorStop(.5, css(P.glow, .12 * k)); bg.addColorStop(1, css(P.glow, 0));
+    c.fillStyle = bg; c.fillRect(0, 0, TW, WL);
+  }
+  // stars and meteors
+  if (P.stars > .01){
+    for (const s of stars){
+      const a = P.stars * (.45 + .55 * Math.pow(Math.sin(T * s.f + s.ph) * .5 + .5, 2)) * (1 - s.y / WL * .55);
+      c.fillStyle = s.c > .85 ? `rgba(255,220,190,${a.toFixed(3)})` : s.c > .7 ? `rgba(200,215,255,${a.toFixed(3)})` : `rgba(255,255,255,${a.toFixed(3)})`;
+      c.fillRect(s.x + tx * .02, s.y, s.r, s.r);
+    }
+    c.lineCap = 'round';
+    for (const m of meteors){
+      const k = m.life / m.dur, hx = m.x + m.vx * m.life, hy = m.y + m.vy * m.life;
+      const gr = c.createLinearGradient(hx, hy, hx - m.vx * .18, hy - m.vy * .18);
+      gr.addColorStop(0, `rgba(255,255,255,${(P.stars * (1 - k)).toFixed(3)})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      c.strokeStyle = gr; c.lineWidth = 1.6; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx - m.vx * .18, hy - m.vy * .18); c.stroke();
+    }
+  }
+  // sun
+  if (sun.p > -.08 && sun.p < 1.08){
+    const low = 1 - Math.min(1, Math.max(0, sun.elev) / .45);
+    const core = mixA([255, 252, 238], [255, 150, 90], low), halo = mixA([255, 244, 214], [255, 120, 70], low);
+    const hg = c.createRadialGradient(sun.x, sun.y, 0, sun.x, sun.y, H * .34);
+    hg.addColorStop(0, css(halo, .55)); hg.addColorStop(.18, css(halo, .18)); hg.addColorStop(1, css(halo, 0));
+    c.fillStyle = hg; c.fillRect(sun.x - H * .34, sun.y - H * .34, H * .68, H * .68);
+    c.fillStyle = css(core); c.beginPath(); c.arc(sun.x, sun.y, Math.max(11, H * .022), 0, TAU); c.fill();
+  }
+  // moon, waxing gibbous
+  if (moon.q > -.06 && moon.q < 1.06){
+    const r = Math.max(9, H * .018), vis = Math.min(1, P.stars * 1.4 + .1);
+    const mg = c.createRadialGradient(moon.x, moon.y, 0, moon.x, moon.y, r * 7);
+    mg.addColorStop(0, `rgba(210,220,255,${(.28 * vis).toFixed(3)})`); mg.addColorStop(1, 'rgba(210,220,255,0)');
+    c.fillStyle = mg; c.fillRect(moon.x - r * 7, moon.y - r * 7, r * 14, r * 14);
+    c.save();
+    c.beginPath(); c.arc(moon.x, moon.y, r, 0, TAU); c.clip();
+    c.fillStyle = `rgba(244,240,226,${vis.toFixed(3)})`; c.fillRect(moon.x - r, moon.y - r, r * 2, r * 2);
+    c.fillStyle = `rgba(190,188,176,${(.55 * vis).toFixed(3)})`;
+    for (const [ox, oy, rr] of [[-.3, -.2, .22], [.25, .3, .16], [.1, -.45, .1], [-.05, .15, .12]]){ c.beginPath(); c.arc(moon.x + ox * r, moon.y + oy * r, rr * r, 0, TAU); c.fill(); }
+    c.fillStyle = css(P.top, .82 * vis);
+    c.beginPath(); c.ellipse(moon.x - r * 1.35, moon.y, r * .95, r * 1.1, 0, 0, TAU); c.fill();
+    c.restore();
+  }
+  // clouds
+  for (const cl of clouds){
+    const lit = mixA(P.cloud, P.glow, P.gs * .35);
+    const spr = tintedCloud(lit);
+    c.globalAlpha = .28 + .3 * (1 - P.stars);
+    for (const [ox, oy, s] of cl.puffs){
+      const w = cl.w * s, h2 = cl.h * 2.6 * s;
+      c.drawImage(spr, cl.x + ox * cl.w - w / 2 + tx * .05, cl.y + oy * cl.h * 2 - h2 / 2, w, h2);
+    }
+    c.globalAlpha = 1;
+  }
+  // ridges, far to near
+  const sunSide = sun.x < TW / 2 ? -1 : 1;
+  const shadeK = sun.elev > 0 ? .1 + .28 * (1 - Math.min(1, sun.elev / .7)) : (P.stars > .5 ? .05 : .16);
+  LAYERS.forEach((L, i) => {
+    const r = ridges[i];
+    const rs = rise[i], rk = rs ? smooth(Math.max(0, Math.min(1, (now - rs.t0) / 1300))) : 1;
+    const riseOff = (1 - rk) * H * (L.peak + .05);
+    const col = mixA(mixA(P.near, P.far, L.depth), P.haze, .04 + .34 * L.depth);
+    const ox = tx * L.par, oy = ty * L.par * .35;
+    const step = TW / 512 * (1 + M / TW);
+    const X = (j) => -M * .5 + j * step;
+    c.save();
+    c.translate(ox, oy);
+    const path = new Path2D();
+    path.moveTo(-M, WL + 4);
+    for (let j = 0; j <= 512; j++) path.lineTo(X(j), ridgeY(L, r, j, riseOff));
+    path.lineTo(TW + M, WL + 4);
+    path.closePath();
+    const top = WL - L.peak * H * AMP + riseOff;
+    const fg = c.createLinearGradient(0, top, 0, WL);
+    fg.addColorStop(0, css(col));
+    fg.addColorStop(1, css(mixA(col, P.haze, i < 5 ? .32 : .1)));
+    c.fillStyle = fg; c.fill(path);
+    c.save();
+    c.clip(path);
+    // faces turned away from the sun: each run of shadowed crest becomes a triangular face that
+    // drops from the high end of the run, the way a lit pyramid of rock shows one dark side
+    const D = H * AMP * (L.peak - L.base) * .5;
+    const shade = shadeK * (1 - L.depth * .35);
+    const faces = new Path2D();
+    {
+      let j = 0;
+      while (j < 512){
+        while (j < 512 && r.slope[j] * sunSide <= 0) j++;
+        const a = j;
+        while (j < 512 && r.slope[j] * sunSide > 0) j++;
+        const b = Math.min(512, j);
+        if (b - a < 3) continue;
+        // the high end is where the crest starts falling away from the light
+        const hi = sunSide < 0 ? a : b, lo = sunSide < 0 ? b : a;
+        const yh = ridgeY(L, r, hi, riseOff), yl = ridgeY(L, r, lo, riseOff);
+        const drop = Math.max(D * .45, (yl - yh) * 1.25 + D * .25);
+        faces.moveTo(X(a), ridgeY(L, r, a, riseOff));
+        for (let q = a + 1; q <= b; q++) faces.lineTo(X(q), ridgeY(L, r, q, riseOff));
+        faces.lineTo(X(lo) + (X(hi) - X(lo)) * .62, yh + drop);
+        faces.closePath();
+      }
+    }
+    if (shade > .01){
+      const fgr = c.createLinearGradient(0, top, 0, WL);
+      fgr.addColorStop(0, css(P.near, shade)); fgr.addColorStop(.7, css(P.near, shade * .45)); fgr.addColorStop(1, css(P.near, shade * .2));
+      c.fillStyle = fgr; c.fill(faces);
+    }
+    // snow above a ragged snowline, catching the colour of the light
+    if (L.snow > 0){
+      const sn = new Path2D();
+      sn.moveTo(-M, -10);
+      for (let j = 0; j <= 128; j++){
+        const y = WL - (L.base + (L.peak - L.base) * (1 - L.snow + .18 * (r.snowN[j] - .5))) * H * AMP + riseOff;
+        sn.lineTo(X(j * 4), y);
+      }
+      sn.lineTo(TW + M, -10); sn.closePath();
+      const snowCol = mixA(mixA(P.snow, P.haze, .1 + .22 * L.depth), P.glow, P.gs * .18);
+      c.fillStyle = css(snowCol, .95); c.fill(sn);
+      // the shaded faces read as cool blue shadow on the snow
+      c.save(); c.clip(sn);
+      c.fillStyle = css(mixA(P.haze, P.near, .3), .2 + shadeK * .55);
+      c.fill(faces);
+      c.restore();
+    }
+    // alpenglow: the upper faces catch pink and gold light
+    if (P.gs > .01 && i < 4){
+      const ag = c.createLinearGradient(0, top, 0, top + (WL - top) * .7);
+      const k = P.gs * (1 - i * .22);
+      ag.addColorStop(0, css(P.glow, .34 * k)); ag.addColorStop(.5, css(P.glow, .1 * k)); ag.addColorStop(1, css(P.glow, 0));
+      c.fillStyle = ag; c.fillRect(-M, top - 5, TW + 2 * M, WL - top + 10);
+    }
+    c.restore();
+    // pines on the two nearest ridges
+    if (i >= 4){
+      c.fillStyle = css(mixA(col, [0, 0, 0], .25));
+      for (const p of pines){
+        if (p.lay !== i) continue;
+        const j = Math.round(p.u * 512), x = X(j), y = ridgeY(L, r, j, riseOff) + 2;
+        const hgt = H * (i === 5 ? .032 : .016) * p.s, wd = hgt * .36;
+        c.beginPath(); c.moveTo(x, y - hgt);
+        for (let k2 = 1; k2 <= 4; k2++){ const yy = y - hgt + hgt * k2 / 4 * .92, ww = wd * k2 / 4; c.lineTo(x + ww, yy); c.lineTo(x + ww * .35, yy - hgt * .06); }
+        c.lineTo(x + wd * .1, y + 3); c.lineTo(x - wd * .1, y + 3);
+        for (let k2 = 4; k2 >= 1; k2--){ const yy = y - hgt + hgt * k2 / 4 * .92, ww = wd * k2 / 4; c.lineTo(x - ww * .35, yy - hgt * .06); c.lineTo(x - ww, yy); }
+        c.closePath(); c.fill();
+      }
+    }
+    c.restore();
+  });
+  // mist lying on the water in the morning
+  const mist = Math.max(0, 1 - Math.abs(hour - 7.4) / 1.8) * .5 + Math.max(0, 1 - Math.abs(hour - 20.6) / 1.2) * .25;
+  if (mist > .01){
+    const mg = c.createLinearGradient(0, WL - H * .07, 0, WL);
+    mg.addColorStop(0, css(P.hor, 0)); mg.addColorStop(1, css(mixA(P.hor, [255, 255, 255], .3), mist));
+    c.fillStyle = mg; c.fillRect(0, WL - H * .07, TW, H * .07);
+  }
+  // birds
+  for (const f of flocks){
+    for (const b of f.birds){
+      const x = f.x + b.dx, y = f.y + b.dy + Math.sin(T * 1.3 + b.ph) * 3;
+      const fl = Math.sin(T * 9 + b.ph), s = b.s;
+      c.strokeStyle = css(mixA(P.near, [0, 0, 0], .3), .8); c.lineWidth = 1.3; c.lineJoin = 'round'; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(x - s, y - fl * s * .6); c.quadraticCurveTo(x - s * .4, y - s * .35 - fl * s * .2, x, y); c.quadraticCurveTo(x + s * .4, y - s * .35 - fl * s * .2, x + s, y - fl * s * .6); c.stroke();
+    }
+  }
+}
+
+/* ------------------------------------------------------------------
+   Composite: world, mirrored lake, water light
+------------------------------------------------------------------ */
+function frame(now){
+  const dt = Math.min(.05, (now - lastT) / 1000);
+  lastT = now; T += dt;
+  if (playing){ hour = (hour + dt * 24 / DAY_SECONDS) % 24; syncUI(); }
+  // parallax easing
+  tx += (px * Math.min(W, 1400) * .045 - tx) * Math.min(1, dt * 3.5);
+  ty += (py * H * .04 - ty) * Math.min(1, dt * 3.5);
+  const P = paletteAt(hour);
+  updateSky(dt, P);
+  drawUp(P, now);
+  // the world above
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.drawImage(up, M * DPR, 0, W * DPR, WL * DPR, 0, 0, W * DPR, WL * DPR);
+  // the lake: strips of the world, flipped and rippled
+  const lakeH = H - WL, stripH = 2;
+  for (let d = 0; d < lakeH; d += stripH){
+    const k = d / lakeH;
+    const amp = (.6 + k * 7) * (reduce ? .4 : 1);
+    const dx = Math.sin(d * .11 - T * 1.6) * amp + Math.sin(d * .031 + T * .7) * amp * .7;
+    const sy = Math.max(0, WL - (d + stripH) * (1 - k * .12));
+    g.drawImage(up, (M + dx) * DPR, sy * DPR, W * DPR, stripH * DPR, 0, (WL + d) * DPR, W * DPR, stripH * DPR + 1);
+  }
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const wg = g.createLinearGradient(0, WL, 0, H);
+  wg.addColorStop(0, css(P.water, .28)); wg.addColorStop(.35, css(P.water, .5)); wg.addColorStop(1, css(mixA(P.water, [0, 0, 0], .35), .8));
+  g.fillStyle = wg; g.fillRect(0, WL, W, lakeH);
+  // shimmering bands
+  g.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 16; i++){
+    const y = WL + lakeH * Math.pow((i + .5) / 16, 1.6);
+    const a = .012 + .022 * Math.sin(T * .8 + i * 2.1) ** 2;
+    g.fillStyle = css(P.hor, a);
+    g.fillRect(0, y, W, 1 + i * .12);
+  }
+  // glitter path under the sun or moon
+  const sun = sunPos(hour), moon = moonPos(hour);
+  const src = sun.elev > .02 ? { x: sun.x - M + tx * .08, col: mixA([255, 236, 190], P.glow, P.gs * .6), k: Math.min(1, sun.elev * 3) } : moon.elev > .02 ? { x: moon.x - M + tx * .08, col: [215, 225, 255], k: Math.min(1, moon.elev * 3) * P.stars * .7 } : null;
+  if (src){
+    for (let i = 0; i < 140; i++){
+      const yk = ((i * 0.618034) % 1), y = WL + 3 + Math.pow(yk, 1.4) * lakeH;
+      const spread = 14 + (y - WL) * .55;
+      const x = src.x + Math.sin(i * 12.9898) * spread;
+      const tw = Math.pow(Math.max(0, Math.sin(T * (2 + (i % 7) * .6) + i)), 6);
+      if (tw < .05) continue;
+      g.fillStyle = css(src.col, .75 * tw * src.k);
+      g.fillRect(x - (2 + yk * 7) / 2, y, 2 + yk * 7, 1 + yk * 1.2);
+    }
+  }
+  g.globalCompositeOperation = 'source-over';
+  // shoreline
+  g.fillStyle = css(mixA(P.hor, [255, 255, 255], .2), .25); g.fillRect(0, WL, W, 1);
+  // foreground bank at the lower left, with its own strong parallax
+  drawBank(P);
+  requestAnimationFrame(frame);
+}
+function drawBank(P){
+  const c = g, ox = tx * 1.15, bx = -40 + ox, by = H;
+  const col = mixA(P.near, [0, 0, 0], .45);
+  c.fillStyle = css(col);
+  c.beginPath();
+  c.moveTo(bx, by);
+  c.lineTo(bx, H - H * .1);
+  c.quadraticCurveTo(bx + W * .08, H - H * .14, bx + W * .16, H - H * .09);
+  c.quadraticCurveTo(bx + W * .22, H - H * .06, bx + W * .3, H - H * .02);
+  c.lineTo(bx + W * .34, by);
+  c.closePath(); c.fill();
+  // reeds
+  c.strokeStyle = css(col); c.lineCap = 'round';
+  for (let i = 0; i < 22; i++){
+    const x = bx + W * (.04 + i * .012), base = H - H * (.1 - i * .003), hgt = H * (.05 + ((i * 7) % 5) * .012);
+    const sway = Math.sin(T * 1.2 + i) * 4 * (reduce ? .2 : 1);
+    c.lineWidth = 1.4 + (i % 3) * .5;
+    c.beginPath(); c.moveTo(x, base); c.quadraticCurveTo(x + sway * .4, base - hgt * .6, x + sway, base - hgt); c.stroke();
+  }
+  // two pines on the bank
+  for (const [fx, fh] of [[.07, .2], [.13, .15]]){
+    const x = bx + W * fx, y = H - H * .1, hgt = H * fh, wd = hgt * .34;
+    c.beginPath(); c.moveTo(x, y - hgt);
+    for (let k = 1; k <= 6; k++){ const yy = y - hgt + hgt * k / 6 * .9, ww = wd * k / 6; c.lineTo(x + ww, yy); c.lineTo(x + ww * .3, yy - hgt * .04); }
+    c.lineTo(x + 3, y + 10); c.lineTo(x - 3, y + 10);
+    for (let k = 6; k >= 1; k--){ const yy = y - hgt + hgt * k / 6 * .9, ww = wd * k / 6; c.lineTo(x - ww * .3, yy - hgt * .04); c.lineTo(x - ww, yy); }
+    c.closePath(); c.fill();
+  }
+}
+function updateSky(dt, P){
+  // meteors at night
+  if (!reduce && P.stars > .55){
+    nextMeteor -= dt;
+    if (nextMeteor < 0){
+      nextMeteor = 5 + Math.random() * 9;
+      const a = (20 + Math.random() * 30) * Math.PI / 180, sp = 520 + Math.random() * 380, dir = Math.random() < .5 ? 1 : -1;
+      meteors.push({ x: M + Math.random() * W, y: Math.random() * WL * .35, vx: Math.cos(a) * sp * dir, vy: Math.sin(a) * sp, life: 0, dur: .7 + Math.random() * .5 });
+    }
+  }
+  meteors = meteors.filter((m) => (m.life += dt) < m.dur);
+  // birds by day
+  if (!reduce && hour > 7 && hour < 18.6){
+    nextFlock -= dt;
+    if (nextFlock < 0){
+      nextFlock = 9 + Math.random() * 12;
+      const dir = Math.random() < .5 ? 1 : -1, n = 3 + Math.floor(Math.random() * 4), s = 3 + Math.random() * 3;
+      const birds = [];
+      for (let i = 0; i < n; i++) birds.push({ dx: -dir * (i * 18 + Math.random() * 8), dy: (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 9 + Math.random() * 4, ph: Math.random() * 6, s: s * (.8 + Math.random() * .4) });
+      flocks.push({ x: dir > 0 ? -60 : W + 2 * M + 60, y: WL * (.22 + Math.random() * .3), vx: dir * (55 + Math.random() * 40), birds });
+    }
+  }
+  for (const f of flocks){ f.x += f.vx * dt; f.y += Math.sin(T * .5) * 4 * dt; }
+  flocks = flocks.filter((f) => f.x > -300 && f.x < W + 2 * M + 300);
+  for (const cl of clouds){ cl.x += cl.v * dt; if (cl.x - cl.w > W + 2 * M) cl.x = -cl.w; }
+}
+
+/* ------------------------------------------------------------------
+   UI
+------------------------------------------------------------------ */
+const slider = $('#time');
+function fmt(h){ const m = Math.floor(((h % 24) + 24) % 24 * 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+let lastPhase = '';
+function syncUI(){
+  $('#clock').textContent = fmt(hour);
+  slider.value = Math.round(hour * 60) % 1440;
+  const ph = phaseAt(hour);
+  if (ph[1] !== lastPhase){
+    lastPhase = ph[1];
+    $('#phase').textContent = ph[1]; $('#line').textContent = ph[2];
+    const P = paletteAt(hour);
+    $('#phase').style.color = css(mixA(P.glow, [255, 255, 255], .35));
+    $('#live').textContent = `${ph[1]}. ${ph[2]}`;
+  }
+  slider.setAttribute('aria-valuetext', `${fmt(hour)}, ${ph[1]}`);
+}
+function paintStrip(){
+  const stops = [];
+  for (let i = 0; i <= 24; i++){ const P = paletteAt(i); stops.push(`${css(mixA(P.mid, P.hor, .5))} ${(i / 24 * 100).toFixed(2)}%`); }
+  $('#strip').style.background = `linear-gradient(90deg, ${stops.join(', ')})`;
+  const ic = (d) => `<svg viewBox="0 0 18 18">${d}</svg>`;
+  const moon = ic('<path d="M11.5 3.2a6 6 0 1 0 3.3 9.6A5 5 0 0 1 11.5 3.2z" fill="#fff"/>');
+  const rise = ic('<path d="M3 13h12M5.5 13a3.5 3.5 0 0 1 7 0" fill="none" stroke="#ffd6a5" stroke-width="1.5" stroke-linecap="round"/><path d="M9 3.5v3M6.5 6l1-1M11.5 6l-1-1" stroke="#ffd6a5" stroke-width="1.3" stroke-linecap="round"/>');
+  const sun = ic('<circle cx="9" cy="9" r="3.4" fill="#fff4c8"/><path d="M9 1.8v2M9 14.2v2M1.8 9h2M14.2 9h2M3.9 3.9l1.4 1.4M12.7 12.7l1.4 1.4M3.9 14.1l1.4-1.4M12.7 5.3l1.4-1.4" stroke="#fff4c8" stroke-width="1.3" stroke-linecap="round"/>');
+  const set = ic('<path d="M3 13h12M5.5 13a3.5 3.5 0 0 1 7 0" fill="none" stroke="#ff9eaa" stroke-width="1.5" stroke-linecap="round"/><path d="M9 3.5v3M7.5 5l1.5 1.5L10.5 5" fill="none" stroke="#ff9eaa" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>');
+  $('#icons').innerHTML = [[0, moon], [RISE, rise], [12, sun], [SET, set], [24, moon]].map(([h, s]) => `<span style="left:${(h / 24 * 100).toFixed(2)}%">${s}</span>`).join('');
+}
+const playBtn = $('#play');
+function setPlaying(v){
+  playing = v;
+  playBtn.setAttribute('aria-pressed', String(v));
+  $('#play-l').textContent = v ? 'Pause' : 'Play day';
+}
+playBtn.addEventListener('click', () => setPlaying(!playing));
+slider.addEventListener('input', () => { hour = +slider.value / 60; setPlaying(false); syncUI(); });
+$('#now').addEventListener('click', () => { const d = new Date(); hour = d.getHours() + d.getMinutes() / 60; setPlaying(false); syncUI(); });
+function regenerate(){
+  seed = (seed * 1103515245 + 12345) >>> 0;
+  buildRange(seed);
+  $('#hint').classList.add('gone');
+  $('#live').textContent = 'A new mountain range rises from the lake.';
+}
+$('#regen').addEventListener('click', regenerate);
+
+// pointer parallax; clicks on open sky raise a new range
+function skyAt(x, y){
+  if (y >= WL) return false;
+  const TW = W + 2 * M, step = TW / 512 * (1 + M / TW);
+  let minY = Infinity;
+  LAYERS.forEach((L, i) => {
+    // undo the layer's parallax shift, then find the ridge sample under the pointer
+    const xa = x + M - tx * L.par;
+    const j = Math.max(0, Math.min(512, Math.round((xa + M * .5) / step)));
+    minY = Math.min(minY, ridgeY(L, ridges[i], j, 0) + ty * L.par * .35);
+  });
+  return y < minY - 6;
+}
+let downAt = null;
+cv.addEventListener('pointermove', (e) => { px = (e.clientX / W) * 2 - 1; py = (e.clientY / H) * 2 - 1; });
+cv.addEventListener('pointerdown', (e) => { downAt = [e.clientX, e.clientY]; px = (e.clientX / W) * 2 - 1; py = (e.clientY / H) * 2 - 1; });
+cv.addEventListener('pointerup', (e) => {
+  if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 8 && skyAt(e.clientX, e.clientY)) regenerate();
+  downAt = null;
+});
+cv.addEventListener('pointerleave', () => { px = 0; py = 0; });
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (e.key === ' ' && tag !== 'BUTTON' && tag !== 'INPUT'){ e.preventDefault(); setPlaying(!playing); }
+  if ((e.key === 'n' || e.key === 'N') && tag !== 'INPUT') regenerate();
+});
+
+// requestAnimationFrame already sleeps in hidden tabs; restart the clock on return so time does not jump
+document.addEventListener('visibilitychange', () => { if (!document.hidden) lastT = performance.now(); });
+let rsT = 0;
+window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(resize, 60); });
+
+resize();
+buildRange(seed);
+rise = LAYERS.map(() => null); // the first range is simply there; later ones rise from the lake
+setPlaying(playing);
+syncUI();
+requestAnimationFrame((n) => { lastT = n; frame(n); });
+})();
+</script>
+</body>
+</html>

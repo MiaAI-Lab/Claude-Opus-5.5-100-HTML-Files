@@ -1,0 +1,36 @@
+TITLE: PULSE — Generative Audio Visualizer
+FILE: 026-pulse-visualizer.html
+
+=== PROMPT (exact prompt used) ===
+Build "PULSE — Generative Audio Visualizer". On first click, a built-in generative electronic track starts, synthesized entirely with Web Audio (kick, hi-hat from filtered noise, a bassline and an arpeggiated pad in a minor key at ~110 BPM, evolving every 8 bars). An AnalyserNode drives the centrepiece: a radial frequency bloom — 128 bars around a circle with mirrored symmetry, a pulsating core that swells on each kick, orbiting particles that accelerate with high frequencies, and a smoky trail (canvas feedback with a slight zoom/rotation each frame). Before audio starts, an idle breathing version of the visual must already look beautiful. Palette: sunset-to-violet gradient (#ff9a3c → #ff3c78 → #7b2ff7 → #16d9e3) on deep plum-black #0c0612. Typography: wide, spaced uppercase sans for the title and a small monospace readout of BPM, bar count and track section. Controls: play/pause; mode switch between "Bloom", "Tunnel" (concentric rings rushing toward the viewer) and "Horizon" (mirrored waveform landscape); volume. Optional "Use microphone" button with a graceful fallback if permission is denied.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+PULSE is a full-screen generative music instrument and visualizer on deep plum-black #0c0612. A single canvas fills the viewport; before any sound it already breathes as a symmetric flower of 128 bars that fades orange #ff9a3c at the top through hot pink #ff3c78 and violet #7b2ff7 to cyan #16d9e3 at the bottom, with orbiting sparks smeared into smoky spiral trails. The first click starts an original track synthesized entirely in the browser (A minor, 110 BPM) that moves through a new section every 8 bars (Intro, Groove, Lift, Drop, Breakdown, Drop II, Drift, then cycles with variations), and the visuals switch from breathing to listening. Typography is a wide, widely tracked uppercase geometric sans with a sunset-gradient "P U L S E" wordmark, set against small monospace readouts; the controls live in a single frosted pill dock.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Canvas feedback loop: every frame the previous frame is copied to an offscreen buffer and redrawn slightly zoomed, rotated and faded (per-mode zoom/rotation/fade), which turns bars and particles into smoke, spirals and warp streaks; the ring's interior is damped each frame so the core stays a glowing core
+- Bloom: 128 bars around a circle using 64 log-spaced frequency bands mirrored left/right, drawn crisp over the smoke with a 256-step gradient lookup table, faint inward reflections, glow sprites on hot bar tips, a pre-rendered radial core sprite that swells on every kick, and 340 orbiting sprite particles whose angular speed scales with high-frequency energy
+- Tunnel: 28 spectrum-modulated rings on a perspective z-axis (radius = base / z) rushing toward the viewer with depth-based width, fade and hue cycling, plus radial speed streaks and a strong-zoom feedback for warp trails
+- Horizon: a 34-row scrolling history of the spectrum rendered as a perspective landscape (mountains highest at the bass centre), each row occlusion-filled then stroked, mirrored above the horizon as a faint reflection, a striped synthwave sun sprite, perspective guide lines and the live time-domain waveform drawn along the horizon
+- Idle mode synthesizes a breathing pseudo-spectrum and a slow heartbeat so the first frame is fully alive; live/idle crossfade smoothly on play/pause
+- Pre-rendered tinted glow sprites, typed arrays and pooled particles/rings (no per-frame allocation in the hot loops); canvas sized to viewport x devicePixelRatio (capped at 2 and a pixel budget)
+- Frosted-glass UI panels, CSS vignette and animated grain overlay, gradient-clipped title, conic-gradient play button, sliding gradient pill in the mode switch, live LO/MID/HI meters and a 7-segment section timeline with in-section progress
+
+=== INTERACTION MODEL ===
+- First click/tap anywhere (or the play button) starts the Web Audio track: sine-sweep kick with sidechain ducking of the pad, band-passed noise hi-hats and open hats, clap and rim, saw+sub bassline, detuned-saw pad through a section-automated low-pass, and a square/triangle arpeggio through a dotted-eighth feedback delay and a generated-impulse convolution reverb; patterns, progressions (Am-F-C-G, Am-Dm-F-Em, F-G-Am) and arp shapes change every 8 bars
+- Readout shows BPM, bar count, current section and bar within it, and the audio source; kicks are taken from the scheduler's own event queue so the core pulses exactly on the beat
+- Play/pause (Space), mode switch Bloom/Tunnel/Horizon (radio group, arrow keys, or 1/2/3), volume slider (Arrow Up/Down), mute toggle (M), fullscreen; mode, volume and mute persist in guarded localStorage
+- "Use microphone" analyses live input with onset detection for kicks; if permission is denied or unavailable, a toast explains and the built-in track keeps playing
+- Clicking the canvas while playing fires a coloured shockwave ring from the pointer; audio suspends when the tab is hidden; prefers-reduced-motion lowers particle count and removes rotation/zoom drift

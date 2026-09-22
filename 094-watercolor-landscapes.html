@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aquarelle — Generative Watercolour Landscapes</title>
+<meta name="description" content="Aquarelle paints a new watercolour landscape each time: layered translucent washes, distant hills, mountains, a lake, dabbed trees and a sun or moon on cold-press paper. Drop water for blooms, then sign and save.">
+<meta name="theme-color" content="#5e3f27">
+<style>
+:root{
+  --wood:#8a5d3a;
+  --cream:#f6efdf;
+  --cream-dim:rgba(246,239,223,.68);
+  --ink:#2b2420;
+  --paper:#f8f3e6;
+  --brass:#c9a35b;
+  --enamel:#1d2124;
+  --enamel-2:#262b2f;
+  --serif:"Cormorant Garamond","Cormorant","Garamond","EB Garamond","Baskerville","Iowan Old Style","Palatino Linotype","P052",Georgia,serif;
+  --script:"Snell Roundhand","Apple Chancery","Z003","URW Chancery L","Lucida Calligraphy","Brush Script MT",cursive;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:#6e4a2e;color:var(--cream);font-family:var(--serif);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+#wood{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.vig{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(120% 90% at 45% 45%,rgba(255,228,190,.10),transparent 45%,rgba(30,16,6,.5) 100%)}
+
+.table{position:relative;z-index:1;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;padding:clamp(16px,3vh,34px) clamp(16px,3.4vw,52px) clamp(16px,3vh,30px)}
+.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:clamp(10px,2.2vh,24px)}
+.mast h1{margin:0;font:400 clamp(44px,5.4vw,78px)/.9 var(--script);color:var(--cream);letter-spacing:.005em;text-shadow:0 1px 0 rgba(0,0,0,.35),0 -1px 0 rgba(255,240,210,.12)}
+.mast p{margin:6px 0 0 4px;font:500 12px/1.4 var(--serif);letter-spacing:.3em;text-transform:uppercase;color:var(--cream-dim)}
+.mast p i{letter-spacing:.06em;text-transform:none;font-size:15px;font-style:italic}
+.mast .no{font:italic 400 18px/1.2 var(--serif);color:var(--cream-dim);text-align:right;text-transform:none;letter-spacing:.02em}
+.mast .no b{display:block;font:400 34px/1 var(--serif);color:var(--cream);font-style:normal;letter-spacing:.04em;font-variant-numeric:oldstyle-nums}
+
+.board{flex:1;min-height:0;display:flex;gap:clamp(20px,3vw,44px);align-items:center;justify-content:center}
+.sheetbox{flex:1;min-width:0;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sheetwrap{position:relative;filter:drop-shadow(0 18px 22px rgba(24,12,4,.45)) drop-shadow(0 2px 3px rgba(24,12,4,.35));transform:rotate(-.7deg)}
+.sheet{position:relative;background:var(--paper);overflow:hidden}
+.sheet canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#paint{cursor:crosshair;touch-action:manipulation}
+#grain{pointer-events:none;mix-blend-mode:multiply;opacity:.55}
+.sheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(118deg,transparent 22%,rgba(255,255,255,.16) 42%,transparent 62%),radial-gradient(80% 60% at 30% 20%,rgba(255,255,255,.12),transparent 70%);mix-blend-mode:screen;opacity:0;transition:opacity 1.2s ease}
+.tape{position:absolute;width:118px;height:34px;background:linear-gradient(180deg,rgba(236,224,190,.9),rgba(226,212,176,.86));box-shadow:0 1px 2px rgba(40,24,8,.25);pointer-events:none;z-index:3;clip-path:polygon(0 8%,4% 0,9% 10%,14% 2%,20% 6%,80% 3%,86% 9%,91% 0,96% 8%,100% 4%,100% 92%,95% 100%,90% 90%,85% 98%,80% 93%,20% 97%,14% 90%,9% 100%,4% 91%,0 96%)}
+.tape::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 2px,transparent 2px 5px)}
+.t1{left:-40px;top:-8px;transform:rotate(-38deg)}
+.t2{right:-40px;top:-8px;transform:rotate(38deg)}
+.t3{left:-40px;bottom:-8px;transform:rotate(38deg)}
+.t4{right:-40px;bottom:-8px;transform:rotate(-38deg)}
+.status{margin:clamp(12px,2vh,20px) 0 0;display:flex;align-items:center;gap:14px;font:italic 400 17px/1.2 var(--serif);color:var(--cream);min-height:22px;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.status .bar{width:120px;height:1px;background:rgba(246,239,223,.25);position:relative;overflow:hidden}
+.status .bar i{position:absolute;inset:0;background:var(--cream);transform-origin:0 50%;transform:scaleX(0)}
+.status small{font:500 10px/1 var(--serif);letter-spacing:.24em;text-transform:uppercase;font-style:normal;color:var(--cream-dim)}
+
+/* the paint box */
+.tin{width:300px;flex:none;align-self:center;background:linear-gradient(160deg,var(--enamel-2),var(--enamel));border-radius:16px;padding:20px 20px 18px;box-shadow:0 22px 40px rgba(20,10,4,.5),inset 0 1px 0 rgba(255,255,255,.08),inset 0 0 0 1px rgba(255,255,255,.04);position:relative}
+.tin::before{content:"";position:absolute;left:14px;right:14px;top:8px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,rgba(201,163,91,.45),transparent)}
+.tin h2{margin:4px 0 12px;font:500 10.5px/1 var(--serif);letter-spacing:.3em;text-transform:uppercase;color:var(--brass)}
+.pals{display:flex;flex-direction:column;gap:8px}
+.pal{appearance:none;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);color:var(--cream);cursor:pointer;transition:background-color .2s,border-color .2s,transform .2s}
+.pal:hover{background:rgba(255,255,255,.07)}
+.pal[aria-pressed="true"]{border-color:var(--brass);background:rgba(201,163,91,.1)}
+.pans{display:grid;grid-template-columns:repeat(5,15px);gap:4px;padding:5px;border-radius:6px;background:#f4f1ea;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+.pans i{display:block;width:15px;height:15px;border-radius:3px;box-shadow:inset 0 -2px 3px rgba(0,0,0,.18),inset 0 2px 2px rgba(255,255,255,.35)}
+.pal span{font:italic 400 16px/1.15 var(--serif)}
+.pal small{display:block;font:500 9px/1.3 var(--serif);letter-spacing:.2em;text-transform:uppercase;color:var(--cream-dim);font-style:normal;margin-top:3px}
+.wet{margin:16px 0 4px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.wet .lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.wet label{font:500 10.5px/1 var(--serif);letter-spacing:.28em;text-transform:uppercase;color:var(--brass)}
+.wet output{font:italic 400 16px/1 var(--serif);color:var(--cream)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;margin:0;background:transparent;cursor:pointer;--v:55%}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(90deg,#6f93b8 0,#9fc0dd var(--v),rgba(255,255,255,.12) var(--v))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:radial-gradient(circle at 35% 35%,#dcecff,#7fa6cc);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:rgba(255,255,255,.12)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:4px;background:#8fb2d6}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:#9fc0dd}
+.hint{margin:10px 0 0;font:italic 400 14px/1.4 var(--serif);color:var(--cream-dim)}
+.acts{display:grid;gap:8px;margin-top:16px}
+.btn{appearance:none;border:0;cursor:pointer;height:46px;border-radius:10px;font:italic 500 18px/1 var(--serif);letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .15s ease,filter .2s}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn.paper{background:var(--paper);color:var(--ink);box-shadow:0 2px 0 #d8ccb1,0 6px 14px rgba(0,0,0,.25)}
+.btn.brass{background:linear-gradient(180deg,#d9b56c,#b88f45);color:#2a1d0c;box-shadow:0 2px 0 #8d6a2d,0 6px 14px rgba(0,0,0,.25)}
+.btn:hover{filter:brightness(1.05)}
+.btn svg{width:18px;height:18px}
+.sndrow{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.keys{font:500 9px/1.4 var(--serif);letter-spacing:.18em;text-transform:uppercase;color:rgba(246,239,223,.45)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);opacity:0;pointer-events:none;z-index:9;background:var(--paper);color:var(--ink);border-radius:999px;padding:10px 18px;font:italic 400 16px/1 var(--serif);box-shadow:0 10px 30px rgba(0,0,0,.35);transition:opacity .3s,transform .3s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:900px){
+  .board{flex-direction:column;align-items:stretch}
+  .sheetbox{align-self:auto}
+  .tin{width:auto;align-self:stretch}
+  .pals{display:grid;grid-template-columns:1fr 1fr}
+  .pal{grid-template-columns:1fr;gap:8px}
+  .mast .no{display:none}
+  /* tapes stay inside the 390px viewport: they overhang the sheet by at most 16px */
+  .tape{width:76px;height:24px}
+  .t1,.t3{left:-16px}.t2,.t4{right:-16px}
+  .status{flex-wrap:wrap;gap:8px 12px;font-size:15px}
+  .status .bar{width:48px}
+}
+@media (prefers-reduced-motion:reduce){ .sheen{transition:none} }
+</style>
+</head>
+<body>
+<canvas id="wood" aria-hidden="true"></canvas>
+<div class="vig" aria-hidden="true"></div>
+<main class="table">
+  <header class="mast">
+    <div>
+      <h1>Aquarelle</h1>
+      <p>Generative watercolour <i>landscapes</i></p>
+    </div>
+    <p class="no" aria-live="polite"><b id="no">No. 1</b><span id="palTitle">Ultramarine &amp; Burnt Sienna</span></p>
+  </header>
+
+  <div class="board">
+    <section class="sheetbox" aria-label="The painting">
+      <div class="sheetwrap" id="sheetwrap">
+        <div class="sheet" id="sheet">
+          <canvas id="paint" role="img" aria-label="A generative watercolour landscape being painted on textured paper. Click the paper to drop water into the wash."></canvas>
+          <canvas id="grain" aria-hidden="true"></canvas>
+          <div class="sheen" id="sheen" aria-hidden="true"></div>
+        </div>
+        <span class="tape t1" aria-hidden="true"></span><span class="tape t2" aria-hidden="true"></span>
+        <span class="tape t3" aria-hidden="true"></span><span class="tape t4" aria-hidden="true"></span>
+      </div>
+      <p class="status" aria-live="polite"><span class="bar" aria-hidden="true"><i id="prog"></i></span><span id="stat">Wetting the paper…</span><small id="wetness">wet</small></p>
+    </section>
+
+    <aside class="tin" aria-label="Paint box">
+      <h2 id="palLab">Pans</h2>
+      <div class="pals" id="pals" role="group" aria-labelledby="palLab"></div>
+      <div class="wet">
+        <div class="lab"><label for="wetIn">Wet-in-wet</label><output id="wetOut" for="wetIn">damp</output></div>
+        <input type="range" id="wetIn" min="0" max="100" value="55">
+      </div>
+      <p class="hint">Click the paper to drop clean water into the wash, and watch it bloom.</p>
+      <div class="acts">
+        <button type="button" class="btn paper" id="again"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 15c2-1 3-3 4.5-6S11 3 15 2.5c-.5 4-3 5.5-6 7S4.5 12.5 3 15z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M3 15l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Paint another</button>
+        <button type="button" class="btn brass" id="sign"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 13c2-3 3.5-6 5-6s-1 6 1 6 2.5-4 4-4-1 3 .5 3S15 11 16 10" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M2 16h14" stroke="currentColor" stroke-width="1" opacity=".6"/></svg>Sign &amp; download</button>
+      </div>
+      <div class="sndrow"><span class="keys">N · new &nbsp; 1–4 · pans &nbsp; S · sign</span></div>
+    </aside>
+  </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const TAU = Math.PI * 2;
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* unavailable */ } }
+  };
+  function mulberry(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(r) { let u = 0, v = 0; while (u === 0) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v); }
+  function hexRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function rgba(h, a) { const c = hexRgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+  function shade(h, k) { const c = hexRgb(h).map(v => clamp(Math.round(v * k), 0, 255)); return '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''); }
+
+  /* ---------------- value noise (for wood and paper) ---------------- */
+  const vperm = new Uint8Array(512), vval = new Float32Array(256);
+  (function () { const r = mulberry(7331); for (let i = 0; i < 256; i++) { vperm[i] = i; vval[i] = r(); } for (let i = 255; i > 0; i--) { const j = (r() * (i + 1)) | 0; const t = vperm[i]; vperm[i] = vperm[j]; vperm[j] = t; } for (let i = 0; i < 256; i++) vperm[i + 256] = vperm[i]; })();
+  function vnoise(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y);
+    const xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = vval[vperm[(xi & 255) + vperm[yi & 255]]], b = vval[vperm[((xi + 1) & 255) + vperm[yi & 255]]];
+    const c = vval[vperm[(xi & 255) + vperm[(yi + 1) & 255]]], d = vval[vperm[((xi + 1) & 255) + vperm[(yi + 1) & 255]]];
+    return lerp(lerp(a, b, u), lerp(c, d, u), v);
+  }
+
+  /* ---------------- palettes: four seasonal sets ---------------- */
+  const PALS = [
+    { id: 'ultra', name: 'Ultramarine & Burnt Sienna', short: 'the classic pairing',
+      pans: ['#3f5bab', '#8ea3d6', '#e9b98f', '#a8653d', '#55607f'],
+      skyTop: '#4a64b0', skyMid: '#93a7d8', horizon: '#ecbd92', cel: 'sun', celC: '#e7b04f',
+      far: ['#8d90b9', '#aa9db3'], mtn: ['#56617f', '#8a5a44'], snow: false,
+      lake: '#8199cb', lakeDeep: '#4b5b8c', trees: ['#3a3a40', '#5b4a38', '#2c3748'], round: 0.4,
+      ground: ['#a9653c', '#7b5738'], ink: '#33292a', sig: '#6e3f26', gran: true },
+    { id: 'spring', name: 'Sap Green Spring', short: 'new leaves, wide skies',
+      pans: ['#5f9dc9', '#f2e6a6', '#6b8e3a', '#9bb65a', '#3f6b2e'],
+      skyTop: '#5d9bc8', skyMid: '#aad0e4', horizon: '#f3e6a3', cel: 'sun', celC: '#f1d059',
+      far: ['#91b8a9', '#b8cf9b'], mtn: ['#5e8a6f', '#7ea35a'], snow: false,
+      lake: '#8fc4d3', lakeDeep: '#4d88a0', trees: ['#3f6b2e', '#5e8b3a', '#2d5130'], round: 0.7,
+      ground: ['#9db55b', '#6e8e3a'], ink: '#26351f', sig: '#3f5224', gran: false },
+    { id: 'sunset', name: 'Quinacridone Sunset', short: 'rose, gold and violet',
+      pans: ['#6a4c93', '#d4577f', '#f4a24a', '#f07a3a', '#3b2a3f'],
+      skyTop: '#6b4d94', skyMid: '#d65a82', horizon: '#f5a64c', cel: 'sun', celC: '#f07a3a',
+      far: ['#9b5c8b', '#bb6c7c'], mtn: ['#4b3664', '#5f3e5d'], snow: false,
+      lake: '#dc8ea2', lakeDeep: '#5b3e6f', trees: ['#2d2133', '#3d293a', '#231c2d'], round: 0.15,
+      ground: ['#5b3b4b', '#3e2a3a'], ink: '#241a26', sig: '#5b2a3b', gran: false },
+    { id: 'winter', name: "Payne's Grey Winter", short: 'snow light, still water',
+      pans: ['#5d6b7c', '#aab6c4', '#dfe3e6', '#4f5a68', '#2d363f'],
+      skyTop: '#5f6d7e', skyMid: '#acb8c6', horizon: '#e2e5e8', cel: 'moon', celC: '#f8f3e6',
+      far: ['#909aa8', '#aab2bd'], mtn: ['#505b69', '#6b7583'], snow: true,
+      lake: '#b9c5d0', lakeDeep: '#707d8d', trees: ['#2c353e', '#3a444f', '#242b32'], round: 0,
+      ground: ['#c3cbd2', '#9aa5b0'], ink: '#222a31', sig: '#39434f', gran: true }
+  ];
+
+  /* ---------------- DOM + sizing ---------------- */
+  const wood = $('wood'), wctx = wood.getContext('2d');
+  const paint = $('paint'), ctx = paint.getContext('2d', { willReadFrequently: true });
+  const grain = $('grain'), gctx = grain.getContext('2d');
+  const sheet = $('sheet'), sheetwrap = $('sheetwrap'), sheetbox = document.querySelector('.sheetbox');
+  let SW = 0, SH = 0, dpr = 1;
+  let pal = PALS[0], seed = 1, number = 1;
+  let wet = 0.55;
+
+  function drawWood() {
+    const w = Math.ceil(window.innerWidth / 2), h = Math.ceil(window.innerHeight / 2);
+    wood.width = w; wood.height = h;
+    const img = wctx.createImageData(w, h), d = img.data;
+    const plank = Math.max(46, h / 6.5);
+    const light = [184, 138, 96], mid = [138, 95, 62], dark = [92, 60, 37];
+    for (let y = 0; y < h; y++) {
+      const pi = Math.floor(y / plank), py = (y % plank) / plank;
+      const tone = 0.9 + vval[(pi * 37) & 255] * 0.2;
+      const off = pi * 131.7;
+      for (let x = 0; x < w; x++) {
+        const warp = vnoise(x * 0.006 + off, y * 0.05) * 9 + vnoise(x * 0.02 + off, y * 0.2) * 2.2;
+        const ring = Math.sin((y + warp * 3.2) * 0.9 + off) * 0.5 + 0.5;
+        const fine = vnoise(x * 0.35, y * 1.6 + off) * 0.35;
+        let t = ring * 0.55 + fine + vnoise(x * 0.01 + off, y * 0.03) * 0.25;
+        t = clamp(t, 0, 1);
+        const c0 = t < 0.5 ? dark : mid, c1 = t < 0.5 ? mid : light, tt = t < 0.5 ? t * 2 : (t - 0.5) * 2;
+        let seam = py < 0.035 ? 0.55 : py > 0.97 ? 0.8 : 1;
+        const k = (y * w + x) * 4;
+        d[k] = (c0[0] + (c1[0] - c0[0]) * tt) * tone * seam;
+        d[k + 1] = (c0[1] + (c1[1] - c0[1]) * tt) * tone * seam;
+        d[k + 2] = (c0[2] + (c1[2] - c0[2]) * tt) * tone * seam;
+        d[k + 3] = 255;
+      }
+    }
+    wctx.putImageData(img, 0, 0);
+  }
+
+  function sheetAspect() { return window.innerWidth / window.innerHeight < 0.85 ? 0.8 : 1.5; }
+  function fitSheet() {
+    const box = sheetbox.getBoundingClientRect();
+    const asp = sheetAspect();
+    const narrow = window.innerWidth <= 900;
+    // on phones leave room for the corner tapes, which overhang the sheet edge
+    const availW = Math.max(200, box.width - (narrow ? 28 : 60));
+    const availH = narrow ? availW / asp : Math.max(200, box.height - 70);
+    let w = availW, h = w / asp;
+    if (h > availH) { h = availH; w = h * asp; }
+    return { w: Math.round(w), h: Math.round(h) };
+  }
+  function sizeSheet() {
+    const s = fitSheet();
+    const nd = Math.min(window.devicePixelRatio || 1, 2);
+    const changed = s.w !== SW || s.h !== SH || nd !== dpr;
+    if (!changed) return false;
+    SW = s.w; SH = s.h; dpr = nd;
+    sheet.style.width = SW + 'px'; sheet.style.height = SH + 'px';
+    paint.width = Math.round(SW * dpr); paint.height = Math.round(SH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    deckle();
+    makeGrain();
+    return true;
+  }
+  function deckle() {
+    // a lightly torn, cold-press deckle along the sheet edge
+    const r = mulberry(99), pts = [];
+    const seg = 26;
+    for (let i = 0; i <= seg; i++) pts.push(`${(i / seg * 100).toFixed(2)}% ${(r() * 0.5).toFixed(2)}%`);
+    for (let i = 1; i <= seg; i++) pts.push(`${(100 - r() * 0.45).toFixed(2)}% ${(i / seg * 100).toFixed(2)}%`);
+    for (let i = seg - 1; i >= 0; i--) pts.push(`${(i / seg * 100).toFixed(2)}% ${(100 - r() * 0.5).toFixed(2)}%`);
+    for (let i = seg - 1; i > 0; i--) pts.push(`${(r() * 0.45).toFixed(2)}% ${(i / seg * 100).toFixed(2)}%`);
+    sheet.style.clipPath = `polygon(${pts.join(',')})`;
+  }
+  function makeGrain() {
+    grain.width = SW; grain.height = SH;
+    const img = gctx.createImageData(SW, SH), d = img.data;
+    const r = mulberry(4401);
+    for (let y = 0; y < SH; y++) {
+      for (let x = 0; x < SW; x++) {
+        // cold-press tooth: coarse bumps + fine speckle + the odd fibre
+        const n = vnoise(x * 0.16, y * 0.16) * 0.6 + vnoise(x * 0.45 + 17, y * 0.45 - 9) * 0.3 + r() * 0.18;
+        const v = 255 - Math.pow(n, 1.6) * 62;
+        const k = (y * SW + x) * 4;
+        d[k] = v; d[k + 1] = v - 2; d[k + 2] = v - 7; d[k + 3] = 255;
+      }
+    }
+    gctx.putImageData(img, 0, 0);
+    // a few paper fibres
+    gctx.strokeStyle = 'rgba(150,130,100,0.18)';
+    gctx.lineWidth = 0.6;
+    for (let i = 0; i < SW * SH / 9000; i++) {
+      const x = r() * SW, y = r() * SH, a = r() * TAU, l = 4 + r() * 12;
+      gctx.beginPath(); gctx.moveTo(x, y); gctx.quadraticCurveTo(x + Math.cos(a + 0.6) * l * 0.5, y + Math.sin(a + 0.6) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l); gctx.stroke();
+    }
+  }
+
+  /* ---------------- watercolour engine ----------------
+     A wash is one base polygon, recursively deformed; every layer deforms it again
+     and is filled at very low alpha (multiply), with a darker stroke so pigment
+     collects at the edges the way it does when a wash dries. */
+  let R = Math.random;
+  function deform(poly, depth, vm) {
+    let p = poly;
+    for (let d = 0; d < depth; d++) {
+      const out = [];
+      for (let i = 0; i < p.length; i++) {
+        const a = p[i], b = p[(i + 1) % p.length];
+        out.push(a);
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const v = (a.v + b.v) * 0.5;
+        const mag = gauss(R) * len * v * vm * 0.45;
+        const ang = R() * TAU;
+        out.push({ x: (a.x + b.x) * 0.5 + Math.cos(ang) * mag, y: (a.y + b.y) * 0.5 + Math.sin(ang) * mag, v: v * (0.82 + R() * 0.36) });
+      }
+      p = out;
+    }
+    return p;
+  }
+  function pathOf(p) {
+    ctx.beginPath();
+    ctx.moveTo(p[0].x, p[0].y);
+    for (let i = 1; i < p.length; i++) ctx.lineTo(p[i].x, p[i].y);
+    ctx.closePath();
+  }
+  const granCache = new Map();
+  function granPattern(hex) {
+    if (granCache.has(hex)) return granCache.get(hex);
+    const c = document.createElement('canvas'); c.width = c.height = 96;
+    const g = c.getContext('2d'), img = g.createImageData(96, 96), d = img.data;
+    const col = hexRgb(hex), r = mulberry(hex.length * 97 + col[0]);
+    for (let i = 0; i < d.length; i += 4) {
+      const n = r();
+      d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2];
+      d[i + 3] = n > 0.62 ? 255 * (n - 0.62) / 0.38 : 0;
+    }
+    g.putImageData(img, 0, 0);
+    const pat = ctx.createPattern(c, 'repeat');
+    granCache.set(hex, pat);
+    return pat;
+  }
+  // returns a task: n layers of one wash
+  function wash(poly, hex, o) {
+    const vm = (o.vm || 1) * (0.6 + wet * 1.05);
+    const base = deform(poly, o.baseDepth || 3, vm);
+    const n = Math.round((o.layers || 30) * (0.8 + wet * 0.5));
+    const a = (o.alpha || 0.04) * (1.12 - wet * 0.32);
+    const edge = shade(hex, 0.62);
+    return {
+      n,
+      fn(i) {
+        const p = deform(base, o.depth || 2, vm * (0.7 + R() * 0.6));
+        pathOf(p);
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.globalAlpha = a * (0.75 + R() * 0.5);
+        ctx.fillStyle = (o.gran && pal.gran && i % 3 === 1) ? granPattern(shade(hex, 0.8)) : hex;
+        ctx.fill();
+        if (o.edge !== false) {
+          ctx.globalAlpha = a * (o.edgeK || 0.9);
+          ctx.strokeStyle = edge;
+          ctx.lineWidth = 0.8 + R() * 1.4;
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    };
+  }
+  function lift(poly, o) {
+    // lifting pigment back towards the paper (moons, snow, glints)
+    const vm = (o.vm || 1) * (0.5 + wet * 0.6);
+    const base = deform(poly, 3, vm);
+    return {
+      n: o.layers || 12,
+      fn() {
+        const p = deform(base, 2, vm * (0.6 + R() * 0.6));
+        pathOf(p);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = o.alpha || 0.12;
+        ctx.fillStyle = o.color || '#f8f3e6';
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    };
+  }
+  function V(x, y, v) { return { x, y, v }; }
+  // midpoint-displacement skyline. peaky: sharp summits from |noise|; otherwise rolling hills
+  function ridge(x0, x1, yb, amp, rough, pow2, peaky) {
+    const n = (1 << pow2) + 1, ys = new Float32Array(n);
+    ys[0] = (R() - 0.5) * amp; ys[n - 1] = (R() - 0.5) * amp;
+    let step = n - 1, a = amp;
+    while (step > 1) {
+      const h = step >> 1;
+      for (let i = h; i < n; i += step) ys[i] = (ys[i - h] + ys[i + h]) * 0.5 + (R() - 0.5) * a;
+      step = h; a *= rough;
+    }
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const y = peaky ? yb - amp * 0.12 - Math.abs(ys[i]) * 1.5 : yb - amp * 0.35 - ys[i] * 0.6;
+      pts.push({ x: lerp(x0, x1, i / (n - 1)), y });
+    }
+    return pts;
+  }
+  function circle(cx, cy, r, sides, v, sx) {
+    const p = [];
+    for (let i = 0; i < sides; i++) { const a = i / sides * TAU; p.push(V(cx + Math.cos(a) * r * (sx || 1), cy + Math.sin(a) * r, v)); }
+    return p;
+  }
+  function band(x0, x1, y0, y1, vTop, vBot) {
+    // a wash band with soft top and bottom edges and quiet sides
+    const p = [];
+    const steps = 8;
+    for (let i = 0; i <= steps; i++) p.push(V(lerp(x0, x1, i / steps), y0, vTop));
+    p.push(V(x1, lerp(y0, y1, 0.5), 0.02));
+    for (let i = steps; i >= 0; i--) p.push(V(lerp(x0, x1, i / steps), y1, vBot));
+    p.push(V(x0, lerp(y0, y1, 0.5), 0.02));
+    return p;
+  }
+
+  /* ---------------- composing a landscape ---------------- */
+  let tasks = [], clipRect = null, tStart = 0, totalDur = 1, painting = false, signed = false, doneAt = 0;
+  function compose() {
+    R = mulberry(seed * 7919 + 17);
+    const w = SW, h = SH;
+    const m = Math.round(Math.min(w, h) * 0.05);
+    const x0 = m, y0 = m, pw = w - 2 * m, ph = h - m - Math.round(m * 1.7);
+    clipRect = { x: x0, y: y0, w: pw, h: ph, m };
+    const portrait = h > w;
+    const P = pal;
+    const hy = y0 + ph * (portrait ? 0.54 : 0.57) + R() * ph * 0.08;
+    const ly = hy + ph * (0.09 + R() * 0.07);
+    const T = [];
+    const add = (label, dur, task) => T.push({ label, dur, task });
+    const L = x0 - 60, Rr = x0 + pw + 60;
+
+    // sky: three wet bands that bleed into one another
+    add('Laying in the sky', 1.1, wash(band(L, Rr, y0 - 80, y0 + (hy - y0) * 0.55, 0.02, 0.7), P.skyTop, { layers: 26, alpha: 0.05, vm: 1.1, edgeK: 0.25, gran: true }));
+    add('Laying in the sky', 0.0, wash(band(L, Rr, y0 + (hy - y0) * 0.25, hy - (hy - y0) * 0.05, 0.8, 0.6), P.skyMid, { layers: 22, alpha: 0.045, vm: 1.2, edgeK: 0.2 }));
+    add('Laying in the sky', 0.0, wash(band(L, Rr, y0 + (hy - y0) * 0.55, hy + 12, 0.9, 0.3), P.horizon, { layers: 24, alpha: 0.05, vm: 1.1, edgeK: 0.15 }));
+    // a few soft cloud lifts
+    const nClouds = 1 + ((R() * 3) | 0);
+    for (let c = 0; c < nClouds; c++) {
+      const cx = x0 + pw * (0.15 + R() * 0.7), cy = y0 + (hy - y0) * (0.18 + R() * 0.35), cr = pw * (0.07 + R() * 0.08);
+      add('Lifting out clouds', 0.08, lift(circle(cx, cy, cr, 10, 0.55, 2.2), { layers: 8, alpha: 0.07, vm: 1.3 }));
+    }
+    // sun or moon
+    const sunset = P.id === 'sunset';
+    const cx = x0 + pw * (0.2 + R() * 0.6);
+    const cy = sunset ? hy - ph * (0.1 + R() * 0.08) : y0 + ph * (0.14 + R() * 0.16);
+    const cr = Math.min(pw, ph) * (sunset ? 0.085 : 0.05 + R() * 0.03);
+    if (P.cel === 'moon') {
+      add('Lifting out the moon', 0.45, lift(circle(cx, cy, cr, 14, 0.12), { layers: 16, alpha: 0.2, vm: 0.9 }));
+      add('Lifting out the moon', 0, wash(circle(cx - cr * 0.25, cy + cr * 0.1, cr * 0.35, 9, 0.5), '#c4cad2', { layers: 6, alpha: 0.05, edge: false }));
+    } else {
+      // lift a halo and a disc back towards the paper, then glaze them warm
+      add('Lifting a halo', 0.2, lift(circle(cx, cy, cr * 1.8, 16, 0.45), { layers: 8, alpha: 0.045, vm: 1.2 }));
+      add('Dropping in the sun', 0.3, lift(circle(cx, cy, cr, 14, 0.1), { layers: 14, alpha: 0.2, vm: 0.8 }));
+      add('Dropping in the sun', 0, wash(circle(cx, cy, cr * 1.05, 14, 0.12), P.celC, { layers: 12, alpha: 0.06, vm: 0.8, edgeK: 0.25 }));
+      add('Dropping in the sun', 0, wash(circle(cx, cy, cr * 2.2, 16, 0.5), P.celC, { layers: 10, alpha: 0.014, vm: 1.4, edge: false }));
+    }
+    // birds later; far hills
+    const fyb = hy + 4;
+    const fr = ridge(L, Rr, fyb - ph * 0.03, ph * 0.16, 0.5, 5, false);
+    const farPoly = fr.map(p => V(p.x, p.y, 0.5)).concat([V(Rr, fyb + 3, 0.01), V(L, fyb + 3, 0.01)]);
+    add('Glazing the far hills', 0.7, wash(farPoly, P.far[0], { layers: 22, alpha: 0.045, vm: 0.9, edgeK: 0.7 }));
+    add('Glazing the far hills', 0, wash(farPoly.map(p => V(p.x, p.y + 6, p.v)), P.far[1], { layers: 10, alpha: 0.03, vm: 1.1, edgeK: 0.4 }));
+    // mountains
+    const mr = ridge(L, Rr, hy + 2, ph * (0.16 + R() * 0.12), 0.56, 6, true);
+    const mPoly = mr.map(p => V(p.x, p.y, 0.26)).concat([V(Rr, hy + 3, 0.01), V(L, hy + 3, 0.01)]);
+    add('Blocking in the mountains', 0.9, wash(mPoly, P.mtn[0], { layers: 26, alpha: 0.055, vm: 0.8, edgeK: 1.1, gran: true }));
+    add('Blocking in the mountains', 0, wash(mPoly.map(p => V(p.x + 6, p.y + ph * 0.03, p.v)), P.mtn[1], { layers: 14, alpha: 0.04, vm: 0.9, edgeK: 0.9, gran: true }));
+    if (P.snow) {
+      // snow only above a snowline, with a ragged lower edge
+      const peakTop = Math.min(...mr.map(p => p.y));
+      const snowLine = lerp(peakTop, hy, 0.5);
+      const cap = mr.map(p => V(p.x, p.y - 1, 0.03)).concat(mr.slice().reverse().map(p => V(p.x, p.y < snowLine ? p.y + (snowLine - p.y) * (0.55 + R() * 0.4) : p.y, 0.55)));
+      add('Leaving the snow', 0.35, lift(cap, { layers: 10, alpha: 0.16, vm: 0.6 }));
+    }
+    // lake
+    const lakePoly = band(L, Rr, hy - 2, ly + ph * 0.07, 0.08, 0.2);
+    add('Pulling the lake across', 0.55, wash(lakePoly, P.lake, { layers: 22, alpha: 0.045, vm: 0.6, edgeK: 0.3 }));
+    add('Pulling the lake across', 0, wash(band(L, Rr, lerp(hy, ly, 0.45), ly + ph * 0.07, 0.25, 0.2), P.lakeDeep, { layers: 12, alpha: 0.04, vm: 0.7, edgeK: 0.3 }));
+    // reflections: the mountain line mirrored, compressed and broken by ripples
+    const refl = mr.map(p => V(p.x, hy + (hy - p.y) * 0.5, 0.3)).concat([V(Rr, hy, 0.02), V(L, hy, 0.02)]);
+    add('Mirroring the reflections', 0.4, wash(refl, P.mtn[0], { layers: 12, alpha: 0.03, vm: 0.9, edgeK: 0.4 }));
+    const nGl = 4 + ((R() * 6) | 0);
+    for (let g = 0; g < nGl; g++) {
+      const gy = lerp(hy + 6, ly - 6, R()), gx = x0 + pw * R(), gw = pw * (0.03 + R() * 0.12);
+      add('Mirroring the reflections', 0.02, lift([V(gx, gy, 0.04), V(gx + gw, gy - 0.4, 0.04), V(gx + gw, gy + 0.9, 0.04), V(gx, gy + 1.2, 0.04)], { layers: 2, alpha: 0.4, vm: 0.3 }));
+    }
+    // far-shore trees: tiny dabs along the waterline
+    const groups = 1 + ((R() * 3) | 0);
+    for (let g = 0; g < groups; g++) {
+      const gx = x0 + pw * R(), cnt = 5 + ((R() * 12) | 0), spread = pw * (0.06 + R() * 0.14);
+      for (let t = 0; t < cnt; t++) {
+        const tx = gx + (R() - 0.5) * spread, th = ph * (0.022 + R() * 0.03);
+        add('Dabbing the far shore', 0.03, pine(tx, hy + 1, th, P.trees[(R() * 3) | 0], 0.5));
+      }
+    }
+    // foreground ground
+    const sh = ridge(L, Rr, ly + ph * 0.035, ph * 0.08, 0.5, 5, false);
+    const gPoly = sh.map(p => V(p.x, p.y, 0.4)).concat([V(Rr, y0 + ph + 60, 0.02), V(L, y0 + ph + 60, 0.02)]);
+    add('Washing in the foreground', 0.5, wash(gPoly, P.ground[0], { layers: 22, alpha: 0.055, vm: 0.9, edgeK: 0.8, gran: true }));
+    add('Washing in the foreground', 0, wash(gPoly.map(p => V(p.x, p.y + ph * 0.06, p.v)), P.ground[1], { layers: 14, alpha: 0.05, vm: 1.1, edgeK: 0.6 }));
+    // foreground trees, framing one or both sides
+    const side = R();
+    const nT = 2 + ((R() * 3) | 0);
+    for (let t = 0; t < nT; t++) {
+      const leftSide = side < 0.4 ? true : side > 0.8 ? t % 2 === 0 : false;
+      const tx = leftSide ? x0 + pw * (0.02 + R() * 0.2) : x0 + pw * (0.78 + R() * 0.2);
+      const base = y0 + ph * (0.93 + R() * 0.06);
+      const th = ph * (0.22 + R() * 0.24) * (t === 0 ? 1.15 : 0.8);
+      const col = P.trees[t % 3];
+      if (R() < P.round) add('Dabbing the trees', 0.22, roundTree(tx, base, th, col));
+      else add('Dabbing the trees', 0.22, pine(tx, base, th, col, 1));
+    }
+    // birds and a few splatters
+    const nb = (R() * 5) | 0;
+    for (let b = 0; b < nb; b++) add('Final touches', 0.05, bird(x0 + pw * (0.2 + R() * 0.6), y0 + ph * (0.12 + R() * 0.22), 4 + R() * 7, P.ink));
+    add('Final touches', 0.2, grass(x0, sh, y0 + ph, P.ground[1], pw));
+    add('Final touches', 0.2, splatter(x0, y0 + ph * 0.72, pw, ph * 0.28, P.ground[1]));
+    return T;
+  }
+  function pine(x, yb, hgt, col, scale) {
+    // a conifer silhouette: a tall zig-zag of drooping branch tips, washed in a few glazes,
+    // with a darker glaze down the shadow side
+    const tiers = Math.max(4, Math.round(4 + hgt / 16));
+    const maxW = hgt * (0.2 + R() * 0.06);
+    const right = [], left = [];
+    for (let k = 1; k <= tiers; k++) {
+      const t = k / tiers;
+      const y = yb - hgt + hgt * 0.9 * t;
+      const w = maxW * Math.pow(t, 0.85) * (0.85 + R() * 0.3);
+      right.push(V(x + w, y + hgt * 0.015, 0.14), V(x + w * 0.38, y - hgt * 0.012, 0.08));
+      const wl = maxW * Math.pow(t, 0.85) * (0.85 + R() * 0.3);
+      left.push(V(x - wl, y + hgt * 0.015, 0.14), V(x - wl * 0.38, y - hgt * 0.012, 0.08));
+    }
+    const top = V(x + (R() - 0.5) * 2, yb - hgt, 0.05);
+    const trunkB = [V(x + 1.4, yb - hgt * 0.1, 0.03), V(x + 1.6, yb, 0.03), V(x - 1.6, yb, 0.03), V(x - 1.4, yb - hgt * 0.1, 0.03)];
+    const body = [top].concat(right, trunkB, left.reverse());
+    const shadow = [top].concat(right, [V(x + 1, yb - hgt * 0.08, 0.05), V(x, yb - hgt * 0.1, 0.05)]);
+    const vm = (0.4 + wet * 0.35) * (scale > 0.8 ? 1 : 0.6);
+    const base = deform(body, 1, vm), sBase = deform(shadow, 1, vm);
+    const dark = shade(col, 0.7);
+    const layers = scale > 0.8 ? 5 : 3;
+    return { n: layers + 2, fn(i) {
+      const shadowPass = i >= layers;
+      const p = deform(shadowPass ? sBase : base, 2, vm * (0.7 + R() * 0.5));
+      pathOf(p);
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = (shadowPass ? 0.16 : 0.2) * (0.8 + R() * 0.4);
+      ctx.fillStyle = shadowPass ? dark : col;
+      ctx.fill();
+      ctx.globalAlpha = 0.12;
+      ctx.strokeStyle = dark;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    } };
+  }
+  function roundTree(x, yb, hgt, col) {
+    const cr = hgt * 0.36, cy = yb - hgt + cr;
+    const blobs = [];
+    const nb = 9 + ((R() * 6) | 0);
+    for (let k = 0; k < nb; k++) {
+      const a = R() * TAU, d = Math.sqrt(R()) * cr * 0.75;
+      blobs.push(circle(x + Math.cos(a) * d, cy + Math.sin(a) * d * 0.8, cr * (0.3 + R() * 0.25), 10, 0.5, 1.1));
+    }
+    const trunk = [V(x - 2.4, yb, 0.05), V(x + 2.4, yb, 0.05), V(x + 1.2, cy + cr * 0.4, 0.08), V(x - 1.2, cy + cr * 0.4, 0.08)];
+    const light = shade(col, 1.35);
+    const shapes = [trunk].concat(blobs);
+    return { n: shapes.length * 2, fn(i) {
+      const k = Math.floor(i / 2);
+      const s = shapes[k];
+      const p = deform(s, 2, 0.7 + wet * 0.6);
+      pathOf(p);
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = (i % 2 === 0 ? 0.15 : 0.07) * (0.8 + R() * 0.4);
+      ctx.fillStyle = k > 0 && k % 3 === 0 ? light : col;
+      ctx.fill();
+      ctx.globalAlpha = 0.1;
+      ctx.strokeStyle = shade(col, 0.6);
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    } };
+  }
+  function bird(x, y, s, col) {
+    return { n: 1, fn() {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.strokeStyle = col; ctx.globalAlpha = 0.75; ctx.lineWidth = Math.max(0.9, s * 0.16); ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x - s, y - s * 0.2);
+      ctx.quadraticCurveTo(x - s * 0.45, y - s * 0.55, x, y);
+      ctx.quadraticCurveTo(x + s * 0.5, y - s * 0.6, x + s * 1.05, y - s * 0.25);
+      ctx.stroke();
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    } };
+  }
+  function grass(x0, shore, yEnd, col, pw) {
+    // dry-brush flicks along the foreground: short, tapering, slightly curved
+    const flicks = [];
+    const n = Math.round(pw / 9);
+    for (let i = 0; i < n; i++) {
+      const sp = shore[(R() * shore.length) | 0];
+      const y = lerp(sp.y + 6, yEnd, Math.pow(R(), 0.8));
+      flicks.push({ x: sp.x + (R() - 0.5) * 20, y, h: 4 + R() * 12 * (y - sp.y) / (yEnd - sp.y + 1) + 3, lean: (R() - 0.5) * 5 });
+    }
+    return { n: flicks.length, fn(i) {
+      const f = flicks[i];
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = 0.18 + R() * 0.25;
+      ctx.strokeStyle = shade(col, 0.8 + R() * 0.4);
+      ctx.lineWidth = 0.7 + R() * 0.9;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.quadraticCurveTo(f.x + f.lean * 0.3, f.y - f.h * 0.6, f.x + f.lean, f.y - f.h);
+      ctx.stroke();
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    } };
+  }
+  function splatter(x, y, w, h, col) {
+    const drops = [];
+    const n = 10 + ((R() * 16) | 0);
+    for (let i = 0; i < n; i++) drops.push({ x: x + R() * w, y: y + R() * h, r: 0.6 + Math.pow(R(), 3) * 4 });
+    return { n: drops.length, fn(i) {
+      const d = drops[i];
+      pathOf(deform(circle(d.x, d.y, d.r, 7, 0.3), 2, 1));
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = 0.25 + R() * 0.3;
+      ctx.fillStyle = col; ctx.fill();
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    } };
+  }
+
+  /* ---------------- scheduling: about six seconds of painting ---------------- */
+  const statEl = $('stat'), prog = $('prog'), wetEl = $('wetness'), sheen = $('sheen');
+  function begin(animated) {
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#f8f3e6';
+    ctx.fillRect(0, 0, SW, SH);
+    ctx.restore();
+    signed = false;
+    const T = compose();
+    // durations become a timeline; zero-length steps share the previous step's window
+    let t = 0, lastStart = 0, lastDur = 0;
+    tasks = T.map(s => {
+      let start, dur;
+      if (s.dur > 0) { start = t; dur = s.dur; t += s.dur; lastStart = start; lastDur = dur; }
+      else { start = lastStart; dur = lastDur; }
+      return { label: s.label, start, dur, task: s.task, done: 0 };
+    });
+    totalDur = Math.max(0.1, t);
+    painting = true;
+    tStart = performance.now();
+    sheen.style.opacity = '1';
+    if (!animated) finishNow();
+  }
+  function run(budgetMs) {
+    // map real time onto the timeline so a whole painting takes about six seconds
+    const el = (performance.now() - tStart) / 1000 * (totalDur / 6);
+    const t0 = performance.now();
+    let label = null, all = true;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(clipRect.x, clipRect.y, clipRect.w, clipRect.h); ctx.clip();
+    for (const s of tasks) {
+      const want = s.dur > 0 ? Math.floor(clamp((el - s.start) / s.dur, 0, 1) * s.task.n) : s.task.n;
+      if (s.done < s.task.n) all = false;
+      if (want > s.done && !label) label = s.label;
+      while (s.done < want && performance.now() - t0 < budgetMs) { s.task.fn(s.done); s.done++; }
+      if (performance.now() - t0 >= budgetMs) break;
+    }
+    ctx.restore();
+    const doneLayers = tasks.reduce((a, s) => a + s.done, 0), allLayers = tasks.reduce((a, s) => a + s.task.n, 0);
+    prog.style.transform = `scaleX(${(doneLayers / allLayers).toFixed(3)})`;
+    if (label) statEl.textContent = label + '…';
+    if (all) { painting = false; doneAt = performance.now(); statEl.textContent = 'Finished — the paper is'; prog.style.transform = 'scaleX(1)'; }
+  }
+  function finishNow() {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(clipRect.x, clipRect.y, clipRect.w, clipRect.h); ctx.clip();
+    for (const s of tasks) while (s.done < s.task.n) { s.task.fn(s.done); s.done++; }
+    ctx.restore();
+    painting = false; doneAt = performance.now();
+    statEl.textContent = 'Finished — the paper is';
+    prog.style.transform = 'scaleX(1)';
+  }
+
+  /* ---------------- blooms: water dropped into the wash ---------------- */
+  const blooms = [];
+  function wetness() {
+    if (painting) return 1;
+    const s = (performance.now() - doneAt) / 1000;
+    return clamp(1 - s / 40, 0.3, 1);
+  }
+  function dropWater(x, y) {
+    if (!clipRect) return;
+    if (x < clipRect.x || y < clipRect.y || x > clipRect.x + clipRect.w || y > clipRect.y + clipRect.h) return;
+    const px = ctx.getImageData(Math.round(x * dpr), Math.round(y * dpr), 1, 1).data;
+    const pig = '#' + [px[0], px[1], px[2]].map(v => v.toString(16).padStart(2, '0')).join('');
+    const wf = wetness();
+    const r = Math.min(SW, SH) * (0.035 + wet * 0.05) * (0.55 + wf * 0.6) * (0.8 + Math.random() * 0.4);
+    const saveR = R; R = Math.random;
+    // a lumpy, many-lobed outline: the start of a cauliflower
+    const lobes = [];
+    const nl = 16;
+    for (let i = 0; i < nl; i++) {
+      const a = i / nl * TAU + (R() - 0.5) * 0.2;
+      const rr = r * (0.78 + R() * 0.38);
+      lobes.push(V(x + Math.cos(a) * rr, y + Math.sin(a) * rr, 0.42));
+    }
+    const edgeBase = deform(lobes, 2, 1.1);
+    R = saveR;
+    blooms.push({ x, y, r, pig: shade(pig, 0.66), base: edgeBase, t: 0, wf });
+    sheen.style.opacity = '0.6';
+  }
+  function stepBlooms() {
+    if (!blooms.length) return;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(clipRect.x, clipRect.y, clipRect.w, clipRect.h); ctx.clip();
+    const saveR = R; R = Math.random;
+    for (let i = blooms.length - 1; i >= 0; i--) {
+      const b = blooms[i];
+      b.t += 1 / 64;
+      const e = 1 - Math.pow(1 - clamp(b.t, 0, 1), 2.4);
+      const s = 0.18 + e * 0.82;
+      const shape = b.base.map(p => V(b.x + (p.x - b.x) * s, b.y + (p.y - b.y) * s, p.v));
+      // every frame a new fine frill: over time they pile into a ragged, branching rim
+      const frill = deform(shape, 2, 1.25);
+      pathOf(frill);
+      // water pushes pigment out: a gentle lift that is strongest where it has been longest
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 0.016 * b.wf;
+      ctx.fillStyle = '#f8f3e6';
+      ctx.fill();
+      // ...and the pigment it carries piles up at the drying front
+      if (e > 0.55) {
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.globalAlpha = (0.05 + 0.07 * (e - 0.55) / 0.45) * b.wf;
+        ctx.strokeStyle = b.pig;
+        ctx.lineWidth = 0.5 + R() * 1.1;
+        ctx.stroke();
+      }
+      if (b.t >= 1) blooms.splice(i, 1);
+    }
+    R = saveR;
+    ctx.restore();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+
+  /* ---------------- sign & download ---------------- */
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+  function signIt() {
+    if (painting) finishNow();
+    if (signed) return;
+    const d = new Date();
+    const date = `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    const m = clipRect.m;
+    const fs = Math.max(13, Math.min(26, SH * 0.034));
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = pal.sig;
+    ctx.globalAlpha = 0.86;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+    const baseY = clipRect.y + clipRect.h + m * 1.12;
+    ctx.font = `italic 400 ${fs}px ${getComputedStyle(document.querySelector('.mast h1')).fontFamily}`;
+    const name = 'Aquarelle';
+    ctx.fillText(name, clipRect.x + clipRect.w - fs * 5.4, baseY);
+    const nw = ctx.measureText(name).width;
+    ctx.globalAlpha = 0.6;
+    ctx.strokeStyle = pal.sig; ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    const sx = clipRect.x + clipRect.w - fs * 5.4 - nw, sy = baseY + fs * 0.22;
+    ctx.moveTo(sx + nw * 0.1, sy); ctx.quadraticCurveTo(sx + nw * 0.6, sy + fs * 0.18, sx + nw * 1.05, sy - fs * 0.05);
+    ctx.stroke();
+    ctx.globalAlpha = 0.75;
+    ctx.font = `italic 400 ${fs * 0.62}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.fillText(`No. ${number} · ${date}`, clipRect.x + clipRect.w, baseY);
+    ctx.restore();
+    signed = true;
+  }
+  function download() {
+    signIt();
+    const out = document.createElement('canvas');
+    out.width = paint.width; out.height = paint.height;
+    const o = out.getContext('2d');
+    o.drawImage(paint, 0, 0);
+    o.globalCompositeOperation = 'multiply';
+    o.globalAlpha = 0.55;
+    o.drawImage(grain, 0, 0, out.width, out.height);
+    const name = `aquarelle-no-${number}-${pal.id}.png`;
+    try {
+      out.toBlob(b => {
+        if (!b) { toast('Saving is blocked in this browser'); return; }
+        const makeHref = window.URL.createObjectURL.bind(window.URL);
+        const dropHref = window.URL.revokeObjectURL.bind(window.URL);
+        const href = makeHref(b);
+        const a = document.createElement('a');
+        a.href = href; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => dropHref(href), 4000);
+        toast('Signed and saved as ' + name);
+      }, 'image/png');
+    } catch (e) { toast('Saving is blocked in this browser'); }
+  }
+  let toastT = 0;
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
+
+  /* ---------------- controls ---------------- */
+  const palsEl = $('pals');
+  PALS.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'pal'; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<span class="pans" aria-hidden="true">${p.pans.map(c => `<i style="background:${c}"></i>`).join('')}</span><span>${p.name.replace('&', '&amp;')}<small>${p.short}</small></span>`;
+    b.addEventListener('click', () => { setPal(i); begin(!reduced); });
+    palsEl.appendChild(b);
+  });
+  function setPal(i) {
+    pal = PALS[i];
+    Array.from(palsEl.children).forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+    $('palTitle').textContent = pal.name;
+    store.set('aquarelle-pal', pal.id);
+  }
+  const wetIn = $('wetIn'), wetOut = $('wetOut');
+  function readWet() {
+    wet = +wetIn.value / 100;
+    wetIn.style.setProperty('--v', wetIn.value + '%');
+    wetOut.textContent = wet < 0.2 ? 'dry brush' : wet < 0.45 ? 'damp' : wet < 0.75 ? 'wet' : 'soaked';
+  }
+  wetIn.addEventListener('input', readWet);
+  wetIn.addEventListener('change', () => { store.set('aquarelle-wet', wetIn.value); begin(!reduced); });
+  function another() {
+    seed = (Math.random() * 1e9) | 0;
+    number++;
+    store.set('aquarelle-no', String(number));
+    $('no').textContent = 'No. ' + number;
+    begin(!reduced);
+  }
+  $('again').addEventListener('click', another);
+  $('sign').addEventListener('click', download);
+  paint.addEventListener('pointerdown', e => {
+    const r = paint.getBoundingClientRect();
+    // the sheet is rotated slightly; map back into its own frame
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const a = 0.7 * Math.PI / 180;
+    const dx = e.clientX - cx, dy = e.clientY - cy;
+    const x = dx * Math.cos(a) - dy * Math.sin(a) + SW / 2;
+    const y = dx * Math.sin(a) + dy * Math.cos(a) + SH / 2;
+    dropWater(x, y);
+  });
+  window.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target && e.target.tagName === 'INPUT') return;
+    const k = e.key.toLowerCase();
+    if (k === 'n') another();
+    else if (k === 's') download();
+    else if (/^[1-4]$/.test(k)) { setPal(+k - 1); begin(!reduced); }
+  });
+
+  /* ---------------- loop ---------------- */
+  let raf = 0, lastWetLabel = '';
+  function frame() {
+    raf = requestAnimationFrame(frame);
+    if (painting) run(12);
+    stepBlooms();
+    const w = wetness();
+    const lab = painting ? 'wet' : w > 0.75 ? 'damp' : w > 0.45 ? 'drying' : 'dry';
+    if (lab !== lastWetLabel) { lastWetLabel = lab; wetEl.textContent = lab; }
+    if (!painting && !blooms.length) sheen.style.opacity = String(clamp((w - 0.3) * 0.9, 0, 0.6).toFixed(2));
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+    else if (!raf) raf = requestAnimationFrame(frame);
+  });
+
+  /* ---------------- boot ---------------- */
+  const sp = store.get('aquarelle-pal');
+  const pi = PALS.findIndex(p => p.id === sp);
+  setPal(pi >= 0 ? pi : 0);
+  const sw = store.get('aquarelle-wet');
+  if (sw !== null) wetIn.value = sw;
+  readWet();
+  number = parseInt(store.get('aquarelle-no') || '1', 10) || 1;
+  $('no').textContent = 'No. ' + number;
+  seed = 20260922 + number;
+  drawWood();
+  sizeSheet();
+  begin(!reduced);
+  let rt = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      drawWood();
+      // the same seed repaints the same landscape at the new size (blooms and signature are not kept)
+      if (sizeSheet()) { blooms.length = 0; begin(false); }
+    }, 120);
+  });
+  raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+TITLE: Asterism — Draw Your Own Sky
+FILE: 009-constellation-mapper.html
+
+=== PROMPT (exact prompt used) ===
+Build "Asterism — Draw Your Own Sky", an interactive star chart where you invent constellations. A deep indigo night gradient (#060818 → #141a3d) with a procedurally placed star field (varying magnitude, subtle colour temperature from blue-white to amber, twinkle), a faint Milky Way band made of clustered noise particles, and fine gold line work (#e8c872) in the style of antique celestial atlases. Click one star and then another to draw gold connecting lines; when you close a shape (or press "Name it"), the constellation receives a generated mythic name (combined from curated word lists, e.g. "The Weeping Heron") and an engraved label with a faint illustrated halo appears. A side panel (glass, collapsible on mobile) lists your constellations; hovering highlights them. Also: a slowly rotating sky (drag to rotate), a toggle for a coordinate grid of curved RA/Dec-style lines, "Clear sky" and "Save as PNG". Constellations persist in localStorage. Typography: elegant serif capitals with wide tracking and italic Latin-flavoured subtitles.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Asterism is an antique celestial atlas that you engrave yourself. A full-bleed canvas shows a deep indigo night (#060818 to #141a3d) under an aquatint grain, with about 4,300 seeded stars on a real celestial sphere: a logarithmic magnitude distribution, colour temperatures from blue-white to amber, gentle twinkle and diffraction glints on the brightest. A Milky Way of clustered noise particles follows the true galactic plane, with a dark rift toward the galactic centre. A stereographic projection lets the sky turn slowly about the pole, and you can drag it anywhere. Click one star, then another, and fine gold (#e8c872) line work is drawn between them. Each line stops just short of its stars, as the old plates did. Closing a figure (or pressing Name it) gives it a mythic English name and a true Latin participle subtitle ("The Weeping Heron / Ardea Lacrimans"). The figure then inks itself in edge by edge, gains an engraved cartouche label in widely tracked serif capitals, and is wrapped in a rounded-hull halo of dotted outline and breathing burin hatching. A thin gold double frame with corner ornaments and a degree-tick ruler holds the page. A glass catalogue panel lists every figure with Roman numerals.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Real spherical geometry: stars are unit vectors with a stereographic projection about a moving view centre (right ascension and declination), so rotation turns the sky about the celestial pole and grid lines curve correctly
+- Seeded PRNG (mulberry32), so the same sky comes back on every visit and constellations persist as star indices
+- Magnitude drawn from a logarithmic distribution; colour temperature interpolated across five stops; pre-rendered tinted glow sprites for bright stars; cross glints on stars brighter than mag 1.2
+- Milky Way: about 2,300 additive ('lighter') soft blobs plus 3,600 dust points, sampled along the real J2000 galactic plane, thicker toward the galactic centre, clumped by a trigonometric noise field and cut by a Great-Rift-style dark lane
+- Coordinate grid (toggle): true RA meridians every hour and declination parallels every 15°, an emphasised celestial equator, a dashed ecliptic inclined 23.44°, hour and degree labels, and pole markers
+- Constellation halo: the convex hull of the figure (monotone chain), grown by a radius into a rounded "cloud", filled with a faint radial gold wash, edged with a dotted engraving and arc-length-spaced hatching whose stroke lengths ripple slowly
+- Line work in two passes (soft glow and a crisp 1.15px stroke) with gaps at each star and small gold rings on member stars; new figures ink in edge by edge
+- Engraved labels: per-character letter-spaced serif capitals, diamond-tipped flourish rules, an italic Latin subtitle, and greedy collision avoidance that tries positions below and above the halo while staying clear of the toolbar and panel
+- Pre-rendered background canvas (gradient, vignette, aquatint grain); occasional shooting star; a live AR/Decl. readout of the chart centre
+- Glass panel with backdrop blur, a double inner rule, and a CSS repeating-gradient tick ruler on the frame
+
+=== INTERACTION MODEL ===
+- Click or tap a star to start a figure, then click more stars to draw gold lines; a dashed rubber-band line follows the pointer and snaps to the hovered star
+- Selecting an already linked star branches the figure; returning to the first star (after 2+ lines) closes the shape and names it automatically; "Name it" (or Enter) names an open figure
+- Hovering a star shows a rotating reticle and its fictional catalogue number and magnitude; hovering a named figure on the sky lights it and its catalogue entry
+- Drag (mouse or touch) to rotate the sky, with inertia; the wheel zooms; arrow keys turn the chart; the Rotate toggle pauses the slow westward drift
+- Catalogue panel: hovering or focusing an entry lights that constellation and dims the others; selecting it flies the sky to centre that figure; × removes it
+- Undo (Backspace or Ctrl/Cmd+Z) removes the last line, or the last named figure when no figure is open; Esc sets an open figure aside
+- Grid (button or G) shows the RA/Dec grid, the ecliptic and the poles; Clear sky asks you to confirm with a second press
+- Save PNG exports the chart with an engraved title cartouche
+- Figures and the grid preference persist in localStorage (guarded); a first visit is seeded with three example figures
+- The panel collapses into a "Catalogue" pill on phones; reduced motion stops the drift, twinkle mostly settles and reveals appear at once

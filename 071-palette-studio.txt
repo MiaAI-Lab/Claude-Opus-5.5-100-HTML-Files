@@ -1,0 +1,39 @@
+TITLE: Chroma — Colour Palette Studio
+FILE: 071-palette-studio.html
+
+=== PROMPT (exact prompt used) ===
+Build "Chroma — Color Palette Studio", an elegant tool for generating harmonious palettes. A clean white UI (#ffffff, #f4f4f5 panels, #18181b text). The main view is five tall colour columns filling the screen (horizontal bands on mobile); each shows hex, RGB, HSL and a name (nearest match from a curated list of ~150 named colours) and has lock, copy and adjust controls. Space (or a button) generates a new palette that respects locked colours using harmony rules — analogous, complementary, split-complementary, triadic, tetradic, monochromatic — computed in OKLCH for perceptual evenness (implement the conversion). Extra panels: a WCAG AA/AAA contrast checker for text on each colour; a live preview card (a mini UI mockup) using the palette; a gradient preview; and export (CSS variables, JSON) copied to the clipboard. Interaction: drag columns to reorder, click a hex to edit it, and a colour-wheel diagram showing the harmony geometry with draggable points. Smooth colour transitions. Typography: a crisp sans plus monospace.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Chroma is a calm, precise palette studio in a white interface (#ffffff, #f4f4f5 panels, #18181b ink) set in a crisp system sans with monospace values. Five full-height colour columns fill the screen, and they become horizontal bands on phones. Each column shows the nearest of the 148 CSS named colours, a large editable hex, RGB, HSL and OKLCH values, and a contrast chip with its WCAG grade. Each also has drag, lock, copy and adjust controls in quiet translucent circles. A sidebar holds an OKLCH harmony wheel that draws the rule's geometry (triangle, rectangle, arc or line) with a draggable point per colour, plus the rule's name and description and a lightness ramp. Below the fold, "Check it, try it, take it" gathers a 7×5 WCAG contrast matrix, a live mock interface for a fictional trip-planning app whose roles are assigned automatically, an OKLab gradient with a side-by-side comparison against sRGB interpolation, and CSS or JSON export.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A hand-written colour pipeline: sRGB ↔ linear RGB ↔ OKLab ↔ OKLCH (Ottosson's matrices), with gamut mapping by binary search on chroma at constant lightness and hue
+- Six harmony rules (analogous, complementary, split-complementary, triadic, tetradic, monochromatic) defined as hue offsets for five slots, with a deliberate OKLCH lightness plan (one deep, one pale, three between) and chroma shaped to peak at mid lightness; locked colours anchor the base hue at their own slot
+- The harmony wheel is a per-pixel OKLCH disc (hue by angle, chroma by radius) rendered once to an ImageData cache, with the rule's geometry drawn on the rim, dashed spokes, and colour-filled handles that carry white rings, shadows and dashed rings when locked
+- Nearest-name lookup uses Euclidean distance in OKLab across all 148 CSS named colours; a ≈ marks near matches
+- Exact WCAG relative luminance and contrast ratio in the column chips and the matrix, with AAA, AA, AA-large and fail badges and hatched "same" cells
+- A mock UI coloured entirely through CSS custom properties: roles are assigned by lightness and chroma (ink, surface, primary, secondary, accent), accessible "on" colours are chosen automatically, and tints are mixed in OKLab
+- Gradient stops are pre-interpolated in OKLab and emitted as ordinary CSS stops, so they work in every browser; linear, radial and a seamless conic variant are offered
+- Smooth transitions of background and text colour on every column, matrix cell, ramp bar and preview element; slider tracks are live OKLCH gradients for L, C and H
+- A live logo mark whose five dots show the current palette, syntax-coloured export code with inline swatches, and toasts that carry a colour chip
+
+=== INTERACTION MODEL ===
+- Space or the Generate button makes a new palette with the chosen rule, keeping locked colours. The segmented control switches rules
+- Per column: drag the grip to reorder (the other columns slide aside; the arrow keys work on a focused grip), lock or unlock, copy the hex, click the hex to edit it inline (#rgb or #rrggbb; invalid input shakes), or open the adjust popover with OKLCH lightness, chroma and hue sliders
+- On the wheel, dragging a point rotates the whole harmony while that point's radius sets its chroma. Shift-drag, or dragging a locked colour, moves just that one colour
+- Undo and redo with buttons or Ctrl/⌘+Z and Shift+Ctrl/⌘+Z (60 steps). The palette and rule are saved to localStorage and mirrored into the address hash (both guarded with try/catch), so a reload or a shared hash restores them
+- Export copies CSS custom properties (hex plus oklch()) or JSON to the clipboard, with an execCommand fallback and a toast. The gradient's CSS copies the same way, with a Linear, Radial or Conic choice and an angle slider
+- Visible focus rings, labelled icon buttons, aria-pressed on toggles, Escape closes the popover, and reduced motion removes the colour transitions

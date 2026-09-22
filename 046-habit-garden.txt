@@ -1,0 +1,37 @@
+TITLE: Tend — A Habit Garden
+FILE: 046-habit-garden.html
+
+=== PROMPT (exact prompt used) ===
+Design "Tend — A Habit Garden", an elegant habit tracker in which every habit is a plant that grows with its streak. Soft sage palette: #f4f6f0 background, sage #9cb59a, deep green #2f4f3a, clay #d98e73, sun yellow #f2c14e. A header with today's date and a greeting based on the time of day. Each habit card holds a small SVG plant whose growth stage (seed → sprout → leaves → bud → bloom) reflects the current streak, a "done today" button with a satisfying bloom/particle animation, the streak count, and a 12-week contribution-style heatmap in greens (hover shows the date). Add, edit and delete habits in a modal (name, an icon from a set of SVG glyphs, colour). All data persists in localStorage; on first run, prefill three example habits with generated history so the page feels alive. A stats view shows a completion-rate ring chart and best streaks. Typography: a friendly humanist sans with rounded numerals. Micro-interactions: plants sway slightly; a watering-can cursor over the done button. Fully keyboard accessible and responsive.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Tend is a calm, greenhouse-flavoured habit tracker in which every habit is a potted plant. The page sits on soft #f4f6f0 with sage #9cb59a, deep green #2f4f3a, clay #d98e73 and sun yellow #f2c14e; the header pairs today's date and a time-of-day greeting ("Good evening, gardener.") with a small landscape of sage hills where the sun (or a crescent moon at night) sits on an arc that follows the actual hour. Each habit card holds an arched glasshouse window with a hand-built SVG plant in a terracotta pot whose growth stage — seed, sprout, leaves, bud, bloom — is driven by the current streak, a big rounded streak number, a "Water today" button, and a 12-week heatmap in greens. A Stats tab turns the same data into concentric completion rings, best-streak bars with miniature plants, summary tiles and a weekday rhythm chart. Type uses a rounded/humanist system stack (ui-rounded, SF Pro Rounded, Seravek, Segoe UI and friends) with tabular numerals.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Procedural SVG plants assembled from reusable leaf/stem/petal primitives: five distinct growth stages, flower and bud tinted by the habit's colour, a side bud and floating pollen at bloom, each stem swaying on its own CSS rhythm around the pot's rim
+- Arched "glasshouse" plant windows (asymmetric border-radius) with colour-mix() tints of the habit colour and a soft light bloom behind the plant
+- Particle celebration from a pooled fixed layer: water droplets fall onto the soil and squash, then petals in the habit colour, sage leaves and star-shaped sun sparkles burst outward (Web Animations API); the flower head or plant bounces, and a stage-up regrows the plant from 55% scale
+- 12-week contribution heatmap on an explicit 13-column CSS grid (weekday labels + 12 weeks), shaded by the length of the streak on each day rather than a flat done/not-done, with today ringed in clay
+- Header landscape: gradient-faded SVG hills, a time-of-day sun/moon position and CSS masks that dissolve the illustration into the page
+- Stats: SVG ring chart with animated stroke-dashoffset per habit, scaleX-animated streak bars, scaleY weekday bars with the best day highlighted in sun-to-clay
+- A watering-can cursor drawn at runtime on a canvas and applied to every water button
+- Sliding tab knob, pop-in dialog with blurred backdrop, staggered card rise-in, reduced-motion fallbacks for every animation
+
+=== INTERACTION MODEL ===
+- "Water today" toggles today's completion (aria-pressed), updates streak, stage, heatmap and the header's "n of m tended today" bar; a stage change triggers a toast ("Morning stretch grew into full bloom!")
+- Heatmap: hover shows a tooltip with the date and streak position; click any past day to toggle it; the grid is one focusable element — arrow keys move a day cursor (with tooltip), Enter/Space toggles, Home/End jump
+- Add / edit / delete in a native dialog: name (validated), a radio group of ten SVG icon glyphs, six colour swatches, live plant preview; deleting requires a second confirming click ("Really uproot?"); N opens the dialog, Esc closes it
+- Garden/Stats tabs with arrow-key navigation; stats re-render live when data changes
+- All data persists in localStorage (guarded; a toast explains if storage is blocked); first run seeds three example habits with generated history (a 16-day bloom, a 5-day leafy plant, and a 13-day bud that blooms when watered today); "Replant the demo garden" resets after confirmation

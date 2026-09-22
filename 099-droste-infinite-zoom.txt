@@ -1,0 +1,37 @@
+TITLE: Droste — The Infinite Room
+FILE: 099-droste-infinite-zoom.html
+
+=== PROMPT (exact prompt used) ===
+Build "Droste — The Infinite Room", an endless-zoom artwork: a self-similar scene that zooms forever — a room with a framed picture on the wall that contains the same room, which contains the picture… Render on canvas by drawing the scene recursively at successive scales (each level scaled by the frame ratio), animating the zoom continuously and wrapping seamlessly each time a full level is reached. The room is illustrated in a flat, elegant mid-century-modern style: warm walls (#f1dac4), a teal armchair (#2a9d8f), a mustard lamp (#e9c46a), a geometric rug, a window with a changing sky and a plant; the framed painting is the recursion portal. Each depth level shifts the palette subtly so the journey feels alive. Interaction: scroll/pinch controls zoom speed and direction (zooming out is infinite too); click to switch scenes ("Room", "Spiral staircase" with an Escher-like spiral, "Ocean window"); pause; and a "Droste twist" toggle that applies a logarithmic-spiral (conformal) transform for the famous Droste spiral effect. Typography: tiny modernist sans captions.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Droste — The Infinite Room is a flat, mid-century-modern illustration that never ends. A room with warm striped walls (#f1dac4), a teal lounge chair (#2a9d8f), a mustard floor lamp (#e9c46a), an oval geometric rug, a potted rubber plant, a tulip side table, a sunburst clock that shows the real time, and a window onto hills under a moving sky has a framed painting on its wall. The painting contains the same room, which contains the painting, and so on. The camera drifts into the painting continuously and wraps seamlessly at each level, and scrolling reverses it into an endless zoom out. Every level carries its own gently shifted palette and its own time of day in the windows, from dawn through golden hour to a starry night with the lamp aglow. The journey therefore keeps changing while the room stays the same. Two more scenes share the conceit: an Escher-like spiral staircase whose portal lies at the bottom of the stairwell, and an ocean window with a lighthouse, sailboat and gulls, whose portal is a canvas on an easel. A "Droste twist" bends the whole infinite image into the famous logarithmic spiral. The only labels are tiny, tracked, geometric-sans captions on paper chips.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- True recursive rendering on canvas. Each scene is drawn in 1600×1000 design units with a portal of identical aspect ratio. Levels from the first one that fully covers the screen down to the one where the portal falls below ~2 px are drawn with setTransform, each clipped to its own frame.
+- The zoom centre is the fixed point c = P0 / (1 − s) of the similarity map that sends the scene into its portal. Magnification r^f with f in [0,1) therefore wraps exactly onto the next level, forward or backward, with no seam.
+- Per-depth palettes: every base colour is converted to HSL and nudged by a smooth function of absolute depth (cached), so levels differ subtly and stay stable through each wrap.
+- The sky model blends five sky states (night, dawn, day, golden, dusk) with time and depth. It drives window gradients, sun and moon arcs, stars, drifting clouds, hill shading, sea colour, the lighthouse beam, and the brightness of the lamp's light cone.
+- Flat vector illustration built from paths, béziers, ellipses and gradients: the tufted chair, the sunburst clock (live time), the concentric diamond rug, and the swaying leaves. The spiral stair is a logarithmic spiral of wedge treads with risers, a handrail, balusters and tiny walkers descending forever. The ocean has animated wave bands and glitter.
+- Droste twist (WebGL): the self-similar image is rendered once into a 1–2k texture centred on c. A fragment shader maps each pixel through log-polar coordinates, multiplies by α = 1 − i·ln(r)/2π, reduces the real part modulo ln r, and samples the texture. The result is Escher's conformal spiral, zooming along the spiral as the level phase advances. A CPU per-pixel fallback runs at reduced resolution if WebGL is unavailable.
+- Scene switches cross-fade two full recursive renders. The twist view cross-fades with CSS opacity, and the 2D renderer idles once the twist fully covers it.
+
+=== INTERACTION MODEL ===
+- The mouse wheel or trackpad changes zoom speed and direction continuously, from outward through stillness to inward. On touch devices, pinch outward to speed up the zoom in and inward to slow it or reverse it; a vertical drag also works. The − and + buttons and ↑/↓ nudge speed, and 0 resets it. A gauge shows direction and levels per second, and a depth counter (desktop) shows how deep you are.
+- Click or tap the picture, the Scene button, → or N (← goes back), Enter on the focused canvas, or keys 1–3 to switch between Room, Spiral staircase and Ocean window.
+- Pause or Space freezes zoom and ambient motion. Droste twist or T toggles the logarithmic-spiral view.
+- Captions sit on small paper chips with 9–12 px tracked uppercase sans, laid out for phones with a two-row bottom bar.
+- Reduced motion slows the default zoom, stops the stair rotation, waves and drift, and makes cross-fades instant. Animation pauses while the tab is hidden.

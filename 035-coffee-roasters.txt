@@ -1,0 +1,43 @@
+TITLE: Ember & Oak Coffee Roasters
+FILE: 035-coffee-roasters.html
+
+=== PROMPT (exact prompt used) ===
+Design a landing page for "Ember & Oak Coffee Roasters" (fictional). Warm palette: espresso #2b1a12, roasted brown #5c3a21, crema #c8a27a, oat #efe5d6, copper #b87333. Hero: a large SVG coffee cup at a three-quarter angle with animated curling steam (turbulence-displaced SVG paths) and a latte-art rosetta in the crema that redraws on hover. Sections: "Our Beans" — a horizontal scroll-snap carousel of origin cards (fictional estates in real coffee-growing countries such as Ethiopia, Colombia and Guatemala), each with a custom SVG illustration and altitude/process notes; an interactive tasting-notes flavour wheel (SVG donut with sub-segments — fruity, floral, sweet, nutty, spices, roasted) where hovering expands segments and selecting one shows matching beans; a "Roast level" slider that shifts a bean illustration from green to dark roast with crackle particles at first crack; brew-guide steps with timers; and a subscription CTA. Typography: characterful serif headings (Cooper, Rockwell, Georgia, serif) with a clean sans for body text. Tactile hover states throughout.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A warm, tactile landing page for Ember & Oak, a fictional small-batch roastery, built in the brief's espresso, roasted brown, crema, oat and copper palette with a faint paper grain over everything. The hero pairs a chunky Cooper-style serif headline ("Roasted slow, over ember & oak", with a hand-inked copper underline) with a large SVG stoneware cup seen at a three-quarter angle: a two-tone drip glaze, a saucer, steam that curls through an animated turbulence displacement, a rosetta that pours itself into the crema, and a slowly turning seal of ring text. Below, an espresso ticker lists the season's regions, then come a drag-and-snap carousel of origin cards with hand-drawn landscapes, a flavour wheel on a warm oat panel, a dark roasting section where a bean darkens from green to glossy French roast, a brew bar with step timers, and a copper subscription block with a kraft coffee bag.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Hero cup drawn entirely in inline SVG: layered linear and radial gradients for the ceramic body, the drip glaze with a wavy edge, the rim and crema, speckles in the clay, a saucer with its own shadow, and a handle drawn as a closed loop
+- Steam: four thick strokes passed through an feTurbulence + feDisplacementMap + blur filter whose baseFrequency is animated with SMIL, while each plume rises and fades on a staggered CSS loop
+- Latte-art rosetta: seven stacked leaf strokes, a heart and a pull-through line drawn in flat space, squashed with scale(1, .3) to sit in the perspective of the crema, and drawn one after another with pathLength and stroke-dashoffset
+- A rotating seal: textPath around the backdrop disc, fitted exactly with textLength
+- Seven hand-drawn SVG landscape vignettes (Ethiopian highlands with a cherry branch, Colombian slopes with wax palms, a Guatemalan volcano, Kenyan terraces, a Brazilian drying patio, Sumatran lake mist, Costa Rican cloud forest)
+- Flavour wheel generated procedurally: annular sector paths for six families and eighteen sub-notes, tinted per family, with tangential and radial labels that flip to stay upright
+- Roast bean: an SVG bean with a fractal-noise surface texture, a shading overlay, a crease that widens, a body colour interpolated across nine roast stops, swelling scale and an oil sheen that appears after second crack; a canvas overlay throws pooled chaff flakes and sparks at first and second crack
+- An illustrative bean-temperature curve with a marker that rides the path via getPointAtLength
+- Tactile UI: buttons with a solid bottom "edge" shadow that press down, pill tabs, radio chips, and cards that tilt in 3D toward the pointer
+- A full-page feTurbulence grain overlay blended with multiply for a printed-paper feel
+
+=== INTERACTION MODEL ===
+- Hovering the cup with a mouse, or tapping it, pours the rosetta again; the cup also drifts slightly toward the pointer
+- Origin carousel: native scroll-snap for touch and trackpads, click-and-drag with the mouse (snapping to the nearest card on release), previous/next buttons, arrow keys when focused, and a progress bar showing position
+- Flavour wheel: hovering or focusing a family slides its segment outward; clicking or pressing Enter/Space selects it, dims the rest, updates the centre count and lists the matching beans; each match scrolls the carousel to that card and flashes it
+- Roast slider: dragging updates the stage name, approximate bean temperature, tasting description, the bean's colour, size and sheen, and the marker on the roast curve; crossing first crack (and second crack) bursts chaff and sparks and shakes the bean
+- Brew guide: accessible tabs (arrow-key navigation) switch between pour-over, French press and moka pot recipes; the timer starts, pauses, resumes and resets, highlights the active step, fills each step's progress bar and counts down the time left in the step
+- Optional sound (off by default, toggled in the header): synthesized crackle bursts at first and second crack, soft tones on step changes, the finish and wheel picks
+- Subscription: bag size and frequency chips update the per-bag and monthly price live; submitting validates the email and shows a fictional confirmation; the choice is remembered in guarded localStorage; the bag's label shows the next Tuesday or Friday roast day
+- prefers-reduced-motion stops the ticker, steam loop, tilt and parallax and shows the rosetta already poured

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meridian Metro — Network Map</title>
+<meta name="description" content="An animated diagrammatic transit map of the fictional city of Meridian: six lines drawn at 45 and 90 degrees, simulated trains, live departure boards, a shortest-path journey planner and service status.">
+<meta name="theme-color" content="#fbfbf9">
+<style>
+:root{
+  --paper:#fbfbf9; --ink:#1a1a1a; --ink2:#55554f; --rule:#d9d8d1; --river:#cfe5f2; --park:#dcecd3;
+  --red:#e4002b; --blue:#0072ce; --green:#00a651; --amber:#ffb81c; --purple:#9b26b6; --teal:#00b2a9;
+  --sans:Frutiger,"Frutiger Linotype",Seravek,"Segoe UI","Myriad Pro",Calibri,"Gill Sans","Gill Sans MT",Cantarell,"Noto Sans","DejaVu Sans",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font:15px/1.45 var(--sans);-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1,"lnum" 1}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) 352px;gap:20px;padding:18px 20px;height:100vh;min-height:620px}
+/* ---------- the printed sheet ---------- */
+.sheet{display:flex;flex-direction:column;min-width:0;min-height:0;border:1.5px solid var(--ink);box-shadow:inset 0 0 0 5px var(--paper),inset 0 0 0 6px var(--ink);background:var(--paper);padding:6px}
+.titleband{display:flex;align-items:center;gap:16px;padding:12px 16px 12px 14px;border-bottom:1.5px solid var(--ink);flex:none}
+.logo{width:44px;height:44px;flex:none}
+.titleband h1{margin:0;font-size:27px;line-height:1;font-weight:700;letter-spacing:-.015em;white-space:nowrap}
+.titleband h1 span{font-weight:400;color:var(--ink2)}
+.issue{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);margin-top:5px;white-space:nowrap}
+.clockbox{margin-left:auto;display:flex;align-items:center;gap:14px}
+.clock{text-align:right;line-height:1.05}
+.clock b{display:block;font-size:24px;font-weight:600;letter-spacing:.01em}
+.clock small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.seg{display:flex;border:1.5px solid var(--ink)}
+.seg button{background:none;border:0;padding:6px 10px;font-size:13px;font-weight:600;cursor:pointer;min-width:40px}
+.seg button+button{border-left:1.5px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:hover:not([aria-pressed="true"]){background:#ecebe5}
+
+.mapwrap{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.mapwrap.panning{cursor:grabbing}
+#map{display:block;width:100%;height:100%}
+#map text{font-family:var(--sans)}
+.zoom{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;border:1.5px solid var(--ink);background:var(--paper);z-index:4}
+.zoom button{width:34px;height:34px;border:0;background:none;font-size:18px;font-weight:600;cursor:pointer;display:grid;place-items:center}
+.zoom button+button{border-top:1.5px solid var(--ink)}
+.zoom button:hover{background:#ecebe5}
+.zoom svg{width:15px;height:15px}
+.hint{position:absolute;left:14px;bottom:10px;font-size:11px;color:var(--ink2);letter-spacing:.04em;pointer-events:none;background:rgba(251,251,249,.85);padding:2px 6px}
+
+/* map layers */
+.ln{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:9;transition:opacity .25s}
+.ln.draw{stroke-dasharray:1 1;stroke-dashoffset:1;animation:draw 1.05s cubic-bezier(.55,.05,.3,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.hit{fill:none;stroke:transparent;stroke-width:26;stroke-linecap:round;cursor:pointer;pointer-events:stroke}
+.stn{transition:opacity .25s}
+.fadein{animation:fadein .5s ease-out both}
+@keyframes fadein{from{opacity:0}}
+.lbl{font-size:13px;fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:3.2px;stroke-linejoin:round;transition:opacity .25s}
+.lbl.x{font-weight:700}
+.lbl.hub{font-size:15.5px;font-weight:700}
+.lbl.term{font-weight:600}
+.dim{opacity:.13}
+.dim.lbl{opacity:.3}
+.sh{fill:transparent;cursor:pointer}
+.sh:focus{outline:none}
+.sh:focus-visible{fill:rgba(0,114,206,.18);stroke:var(--blue);stroke-width:2}
+.train{transition:opacity .3s}
+.hidden-line{display:none}
+.route-casing{fill:none;stroke:var(--paper);stroke-width:19;stroke-linecap:round;stroke-linejoin:round}
+.route-line{fill:none;stroke-width:11;stroke-linecap:round;stroke-linejoin:round}
+.route-pulse{fill:none;stroke-width:3;opacity:.0}
+.pin text{font-weight:700;font-size:12px;fill:var(--paper)}
+
+/* legend */
+.legend{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-top:1.5px solid var(--ink);flex:none;margin:0;padding:0;list-style:none}
+.legend li+li{border-left:1px solid var(--rule)}
+.lg{display:flex;flex-direction:column;align-items:flex-start;gap:5px;width:100%;height:100%;padding:10px 12px 11px;background:none;border:0;text-align:left;cursor:pointer}
+.lg:hover{background:#f1f0eb}
+.lg .bar{display:block;width:46px;height:9px;border-radius:5px;background:var(--c);border:2px solid var(--c)}
+.lg b{font-size:14px;font-weight:700;line-height:1.1}
+.lg small{font-size:11px;color:var(--ink2);line-height:1.2}
+.lg[aria-pressed="false"] .bar{background:transparent}
+.lg[aria-pressed="false"] b{color:#9a9a93;text-decoration:line-through;text-decoration-thickness:1.5px}
+
+/* sidebar */
+.side{display:flex;flex-direction:column;gap:16px;min-height:0;overflow:auto;padding-right:2px}
+.panel{border:1.5px solid var(--ink);padding:15px 16px 16px;background:var(--paper)}
+.panel h2{margin:0 0 12px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.panel h2 span{font-weight:400;letter-spacing:.06em;color:var(--ink2);text-transform:none;font-size:12px}
+.field{display:grid;grid-template-columns:22px 1fr;align-items:center;gap:10px;margin-bottom:8px}
+.field label{grid-column:2;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin-bottom:-6px}
+.pinA,.pinB{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;grid-row:2}
+.pinA{background:var(--ink);color:var(--paper)}
+.pinB{background:var(--paper);border:2.5px solid var(--ink)}
+.sel{position:relative;grid-column:2}
+.sel::after{content:"";position:absolute;right:13px;top:50%;width:8px;height:8px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.sel select{appearance:none;-webkit-appearance:none;width:100%;border:1.5px solid var(--ink);border-radius:0;background:var(--paper);padding:9px 34px 9px 11px;font-size:15px;cursor:pointer}
+.planrow{display:flex;gap:8px;margin-top:10px}
+.btn{border:1.5px solid var(--ink);background:var(--paper);padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{background:#ecebe5}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.primary:hover{background:#333}
+.btn svg{width:14px;height:14px}
+.result{margin-top:14px;border-top:1.5px solid var(--ink);padding-top:12px}
+.result[hidden]{display:none}
+.sum{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.sum b{font-size:34px;line-height:1;font-weight:700;letter-spacing:-.02em}
+.sum span{font-size:13px;color:var(--ink2)}
+.nextdep{font-size:12.5px;margin:6px 0 10px;color:var(--ink)}
+.nextdep strong{font-weight:700}
+.legs{list-style:none;margin:0;padding:0}
+.leg{position:relative;padding:2px 0 12px 26px}
+.leg::before{content:"";position:absolute;left:7px;top:8px;bottom:-2px;width:7px;border-radius:4px;background:var(--c)}
+.leg::after{content:"";position:absolute;left:3px;top:3px;width:11px;height:11px;border-radius:50%;background:var(--paper);border:2.5px solid var(--ink)}
+.leg.change{padding:0 0 12px 26px;font-size:12.5px;color:var(--ink2)}
+.leg.change::before{background:repeating-linear-gradient(180deg,var(--ink2) 0 3px,transparent 3px 7px);width:2px;left:9.5px}
+.leg.change::after{display:none}
+.leg.end::before{display:none}
+.leg b{display:block;font-size:14.5px}
+.leg small{display:block;font-size:12.5px;color:var(--ink2)}
+.chip{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:4px;background:var(--c);color:#fff;font-size:11.5px;font-weight:700;vertical-align:1px}
+.chip.dark{color:var(--ink)}
+.status{list-style:none;margin:0;padding:0}
+.status li{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--rule)}
+.status li:first-child{border-top:0;padding-top:0}
+.status b{font-size:14px;font-weight:600}
+.status .st{font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.status .st i{width:9px;height:9px;border-radius:50%;background:#1f8f4e;display:inline-block}
+.status .st.minor{background:#fff1cc;padding:2px 7px;border:1px solid #d99a00}
+.status .st.minor i{background:#d98a00;border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%);width:10px}
+.status .note{grid-column:2 / 4;font-size:12px;color:var(--ink2);margin-top:-4px}
+.keyrow{display:grid;grid-template-columns:repeat(2,1fr);gap:9px 14px;font-size:12.5px;color:var(--ink2)}
+.keyrow span{display:flex;align-items:center;gap:8px}
+.keyrow svg{width:34px;height:16px;flex:none}
+.imprint{font-size:11px;color:var(--ink2);line-height:1.5;padding:0 2px}
+
+/* station card */
+.card{position:absolute;z-index:6;width:292px;max-width:calc(100% - 20px);background:var(--paper);border:1.5px solid var(--ink);box-shadow:7px 7px 0 rgba(26,26,26,.1);padding:13px 15px 14px;pointer-events:auto;opacity:0;transform:translateY(4px);transition:opacity .16s,transform .16s;visibility:hidden}
+.card.on{opacity:1;transform:none;visibility:visible}
+.card h3{margin:0 26px 6px 0;font-size:19px;line-height:1.15;font-weight:700;letter-spacing:-.01em}
+.card .meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);margin-bottom:9px}
+.card .meta em{font-style:normal;margin-left:6px;letter-spacing:.08em;text-transform:uppercase}
+.card .x{position:absolute;right:8px;top:8px;width:28px;height:28px;border:0;background:none;cursor:pointer;display:grid;place-items:center}
+.card .x svg{width:13px;height:13px}
+.card .x:hover{background:#ecebe5}
+.deps{max-height:238px;overflow:auto;margin:0 -4px;padding:0 4px}
+.dl{border-left:5px solid var(--c);padding:2px 0 3px 9px;margin-bottom:8px}
+.dl h4{margin:0 0 2px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.dr{display:grid;grid-template-columns:1fr 46px 46px;gap:6px;font-size:13.5px;align-items:baseline}
+.dr span:nth-child(n+2){text-align:right;font-weight:600}
+.dr span.due{color:var(--red)}
+.dr span:nth-child(3){color:var(--ink2);font-weight:400}
+.card .acts{display:flex;gap:8px;margin-top:6px}
+.card .acts .btn{flex:1;justify-content:center;padding:7px 8px;font-size:12.5px}
+
+@media (max-width:980px){
+  .app{grid-template-columns:1fr;height:auto;min-height:0;padding:12px 12px 24px}
+  .sheet{height:auto}
+  .mapwrap{flex:none;height:62vh;min-height:360px}
+  .side{overflow:visible}
+}
+@media (max-width:640px){
+  .titleband{flex-wrap:wrap;gap:10px 12px;padding:10px 10px 10px 8px}
+  .logo{width:36px;height:36px}
+  .titleband h1{font-size:21px}
+  .issue{font-size:9.5px;letter-spacing:.1em}
+  .clockbox{margin-left:0;width:100%;justify-content:space-between}
+  .clock{text-align:left}
+  .clock b{font-size:20px}
+  .clock small{font-size:9px;letter-spacing:.1em;white-space:nowrap}
+  .legend{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .legend li:nth-child(4){border-left:0}
+  .legend li:nth-child(n+4){border-top:1px solid var(--rule)}
+  .lg{padding:8px 9px}
+  .lg b{font-size:12.5px}
+  .lg small{font-size:10px}
+  .lg .bar{width:34px;height:8px}
+  .hint{display:none}
+  .card{width:calc(100% - 20px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .ln.draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+  .fadein{animation:none}
+  .card,.ln,.stn,.lbl{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="sheet" aria-labelledby="ttl">
+    <header class="titleband">
+      <svg class="logo" viewBox="0 0 44 44" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="41" height="41" rx="9" fill="#1a1a1a"/>
+        <path d="M10 33V14l12 12 12-12v19" fill="none" stroke="#fbfbf9" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="22" cy="26" r="3.2" fill="#e4002b"/>
+      </svg>
+      <div>
+        <h1 id="ttl">Meridian Metro <span>Network map</span></h1>
+        <div class="issue">Issue 07 · Autumn 2026 · Fictional city · Not to scale</div>
+      </div>
+      <div class="clockbox">
+        <div class="clock" aria-live="off"><b id="clock">08:00:00</b><small id="clockNote">Simulated service · 20× speed</small></div>
+        <div class="seg" role="group" aria-label="Simulation speed">
+          <button type="button" data-speed="1" aria-pressed="false">1×</button>
+          <button type="button" data-speed="20" aria-pressed="true">20×</button>
+          <button type="button" data-speed="60" aria-pressed="false">60×</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="mapwrap" id="mapwrap" tabindex="0" aria-label="Interactive network map. Drag to pan, scroll or pinch to zoom, arrow keys pan, plus and minus zoom.">
+      <svg id="map" viewBox="0 0 1200 880" role="img" aria-labelledby="mapTitle">
+        <title id="mapTitle">Diagram of the six Meridian Metro lines with their stations and trains</title>
+        <defs>
+          <pattern id="parkDots" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#dcecd3"/><circle cx="3" cy="3" r=".9" fill="#b9d7aa"/><circle cx="8" cy="8" r=".9" fill="#b9d7aa"/></pattern>
+        </defs>
+        <g id="base">
+          <rect x="648" y="34" width="142" height="116" rx="20" fill="url(#parkDots)"/>
+          <text x="719" y="96" text-anchor="middle" font-size="12" font-style="italic" fill="#4f7a3f" letter-spacing=".04em">Hollins Park</text>
+          <rect x="86" y="424" width="212" height="164" rx="24" fill="url(#parkDots)"/>
+          <ellipse cx="178" cy="530" rx="30" ry="14" fill="#cfe5f2"/>
+          <text x="196" y="494" text-anchor="middle" font-size="12" font-style="italic" fill="#4f7a3f" letter-spacing=".04em">Fenmore Common</text>
+          <path d="M-60 800H180L300 680H980L1100 800H1260" fill="none" stroke="#cfe5f2" stroke-width="38" stroke-linejoin="round"/>
+          <path d="M-60 800H180L300 680H980L1100 800H1260" fill="none" stroke="#bcd9ea" stroke-width="1" stroke-dasharray="2 8" opacity=".9"/>
+          <text x="740" y="686" font-size="11.5" font-style="italic" fill="#5d93b3" letter-spacing=".42em">RIVER VELL</text>
+          <text x="80" y="804" font-size="11" font-style="italic" fill="#5d93b3" letter-spacing=".3em">VELL</text>
+          <g transform="translate(70 76)" fill="#1a1a1a">
+            <circle r="22" fill="none" stroke="#1a1a1a" stroke-width="1.2"/>
+            <path d="M0-17 6 6 0 2-6 6Z"/>
+            <text y="-27" text-anchor="middle" font-size="11" font-weight="700">N</text>
+          </g>
+          <text x="1186" y="872" text-anchor="end" font-size="10" fill="#77776f" letter-spacing=".06em">Meridian Metro · diagrammatic map · all stations, lines and times are fictional</text>
+        </g>
+        <g id="lines"></g>
+        <g id="hits"></g>
+        <g id="route"></g>
+        <g id="trains"></g>
+        <g id="marks"></g>
+        <g id="labels"></g>
+        <g id="shits"></g>
+      </svg>
+      <div class="zoom" role="group" aria-label="Map zoom">
+        <button type="button" id="zin" aria-label="Zoom in">+</button>
+        <button type="button" id="zout" aria-label="Zoom out">&minus;</button>
+        <button type="button" id="zfit" aria-label="Reset view"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="#1a1a1a" stroke-width="2"/></svg></button>
+      </div>
+      <div class="hint">Hover a line to spotlight it · click a station for departures</div>
+      <div class="card" id="card" role="dialog" aria-labelledby="cardName" aria-hidden="true">
+        <button type="button" class="x" id="cardX" aria-label="Close station card"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1l10 10M11 1 1 11" stroke="#1a1a1a" stroke-width="2"/></svg></button>
+        <h3 id="cardName">Station</h3>
+        <div class="meta" id="cardMeta"></div>
+        <div class="deps" id="cardDeps"></div>
+        <div class="acts"><button type="button" class="btn" id="cardFrom">Route from here</button><button type="button" class="btn" id="cardTo">Route to here</button></div>
+      </div>
+    </div>
+
+    <ul class="legend" id="legend" aria-label="Lines — toggle visibility"></ul>
+  </main>
+
+  <aside class="side" aria-label="Journey planner and service information">
+    <section class="panel" aria-labelledby="planH">
+      <h2 id="planH">Plan a journey <span>fastest route</span></h2>
+      <div class="field"><label for="from">From</label><span class="pinA" aria-hidden="true">A</span><span class="sel"><select id="from"></select></span></div>
+      <div class="field"><label for="to">To</label><span class="pinB" aria-hidden="true">B</span><span class="sel"><select id="to"></select></span></div>
+      <div class="planrow">
+        <button type="button" class="btn" id="swap"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4 1v11M1 9l3 3 3-3M10 13V2M7 5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Swap</button>
+        <button type="button" class="btn" id="clear">Clear</button>
+      </div>
+      <div class="result" id="result" hidden aria-live="polite">
+        <div class="sum"><b id="rTime">0 min</b><span id="rMeta"></span></div>
+        <div class="nextdep" id="rNext"></div>
+        <ol class="legs" id="rLegs"></ol>
+      </div>
+      <p class="imprint" id="planHint" style="margin:12px 0 0">Choose two stations, or click any station on the map and pick “Route from here”.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="statH">
+      <h2 id="statH">Service status <span id="statTime">as of 08:00</span></h2>
+      <ul class="status" id="status"></ul>
+    </section>
+
+    <section class="panel" aria-labelledby="keyH">
+      <h2 id="keyH">Map key</h2>
+      <div class="keyrow">
+        <span><svg viewBox="0 0 34 16" aria-hidden="true"><path d="M2 8h30" stroke="#0072ce" stroke-width="6" stroke-linecap="round"/><rect x="8" y="1.5" width="18" height="13" rx="6.5" fill="#fbfbf9" stroke="#1a1a1a" stroke-width="2.4"/></svg>Interchange</span>
+        <span><svg viewBox="0 0 34 16" aria-hidden="true"><path d="M2 11h30" stroke="#00a651" stroke-width="6" stroke-linecap="round"/><path d="M17 11V3" stroke="#00a651" stroke-width="3.5"/></svg>Station</span>
+        <span><svg viewBox="0 0 34 16" aria-hidden="true"><path d="M2 11h30" stroke="#9b26b6" stroke-width="6" stroke-linecap="round"/><rect x="9" y=".8" width="16" height="6.6" rx="3.3" fill="#9b26b6" stroke="#1a1a1a" stroke-width="1"/><path d="M12.6 4.1h8.8" stroke="#fbfbf9" stroke-width="1.5" stroke-dasharray="2 1.5"/></svg>Train in service</span>
+        <span><svg viewBox="0 0 34 16" aria-hidden="true"><path d="M2 8h24" stroke="#e4002b" stroke-width="6" stroke-linecap="round"/><path d="M28 1v14" stroke="#e4002b" stroke-width="4"/></svg>Terminus</span>
+        <span><svg viewBox="0 0 34 16" aria-hidden="true"><rect x="1" y="3" width="32" height="10" rx="5" fill="#cfe5f2"/></svg>River Vell</span>
+        <span><svg viewBox="0 0 34 16" aria-hidden="true"><rect x="1" y="1" width="32" height="14" rx="5" fill="#dcecd3"/></svg>Park</span>
+      </div>
+    </section>
+    <p class="imprint">Meridian is an invented city. Trains, headways and delays are simulated in your browser from a timetable model; journey times assume a 4-minute allowance for each change.</p>
+  </aside>
+</div>
+
+<script>
+(function(){
+'use strict';
+var SVGNS = 'http://www.w3.org/2000/svg';
+function $(s){ return document.querySelector(s); }
+function mk(tag, attrs, parent){ var el = document.createElementNS(SVGNS, tag); for (var k in attrs) el.setAttribute(k, attrs[k]); if (parent) parent.appendChild(el); return el; }
+function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
+var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ======================= NETWORK DATA ======================= */
+// id: [name, x, y, labelDx, labelDy, anchor]
+var SD = {
+  westgate:['Westgate',60,200,0,-17,'m'], ashcombe:['Ashcombe',150,290,12,-6,'s'], rookery:['Rookery Lane',300,380,0,27,'m'],
+  kingsway:['Kingsway',400,380,-15,-15,'e'], central:['Meridian Central',600,380,25,24,'s'], mercer:['Mercer Street',800,380,15,-14,'s'],
+  tollgate:['Tollgate',900,380,0,27,'m'], fenwick:['Fenwick',1060,440,12,-7,'s'], eastfield:['Eastfield',1140,520,0,28,'m'],
+  northcote:['Northcote',600,50,15,5,'s'], hillcrest:['Hillcrest',600,115,13,5,'s'], observatory:['Observatory',600,180,14,-13,'s'],
+  oldmarket:['Old Market',600,580,13,-11,'s'], riverside:['Riverside',600,636,14,24,'s'], southbank:['South Bank',600,740,13,5,'s'],
+  lighthouse:['Lighthouse Quay',660,840,15,5,'s'],
+  elmpark:['Elm Park',260,40,-15,5,'e'], larkfield:['Larkfield',340,120,12,-6,'s'], beacon:['Beacon Road',400,180,12,-6,'s'],
+  chapel:['Chapel End',460,240,17,7,'s'], tanners:['Tanner’s Yard',740,520,17,7,'s'], ferry:['Ferry Lane',856,636,13,-13,'s'],
+  quarry:['Quarry Hill',960,740,-12,21,'e'], southmead:['Southmead',1020,800,0,28,'m'],
+  sunrise:['Sunrise Heights',900,80,15,5,'s'], orchard:['Orchard Row',820,160,12,15,'s'], crownhill:['Crown Hill',740,240,17,7,'s'],
+  guildhall:['Guildhall',460,520,-17,7,'e'], pier:['Pier Road',380,636,-13,-13,'e'], brookside:['Brookside',380,750,13,5,'s'],
+  lowmoor:['Low Moor',380,840,15,5,'s'], lantern:['Lantern Hill',400,330,-13,5,'e'], vine:['Vine Street',800,430,13,5,'s'],
+  westquay:['West Quay',40,756,0,-17,'m'], millstream:['Mill Stream',110,756,0,23,'m'], weir:['Weir Gardens',222,696,-12,-6,'e'],
+  boatyard:['Boatyard',490,636,0,-14,'m'], wharfside:['Wharfside',730,636,0,-14,'m'], saltmills:['Salt Mills',1058,696,12,-6,'s'],
+  eastwharf:['Eastwharf',1160,756,0,-17,'m']
+};
+var LINES = [
+  { id:'red', name:'Crown Line', code:'C', color:'#e4002b', pts:[[60,200],[240,380],[1000,380],[1140,520]],
+    st:['westgate','ashcombe','rookery','kingsway','central','mercer','tollgate','fenwick','eastfield'], H:240, dwell:30, status:'good' },
+  { id:'blue', name:'Harbour Line', code:'H', color:'#0072ce', pts:[[600,50],[600,780],[660,840]],
+    st:['northcote','hillcrest','observatory','central','oldmarket','riverside','southbank','lighthouse'], H:270, dwell:30, status:'good' },
+  { id:'green', name:'Parkway Line', code:'P', color:'#00a651', pts:[[260,40],[1020,800]],
+    st:['elmpark','larkfield','beacon','chapel','central','tanners','ferry','quarry','southmead'], H:270, dwell:30, status:'good' },
+  { id:'amber', name:'Sunrise Line', code:'S', color:'#ffb81c', dark:true, pts:[[900,80],[380,600],[380,840]],
+    st:['sunrise','orchard','crownhill','central','guildhall','pier','brookside','lowmoor'], H:330, dwell:52, status:'minor',
+    note:'Signal repairs near Pier Road. Trains are running with longer stops; allow a few extra minutes.' },
+  { id:'purple', name:'Meridian Circle', code:'M', color:'#9b26b6', loop:true,
+    pts:[[600,180],[680,180],[800,300],[800,460],[680,580],[520,580],[400,460],[400,300],[520,180]],
+    st:['observatory','crownhill','mercer','vine','tanners','oldmarket','guildhall','kingsway','lantern','chapel'], H:300, dwell:30, status:'good' },
+  { id:'teal', name:'Riverside Line', code:'R', color:'#00b2a9', pts:[[40,756],[162,756],[282,636],[998,636],[1118,756],[1160,756]],
+    st:['westquay','millstream','weir','pier','boatyard','riverside','wharfside','ferry','saltmills','eastwharf'], H:300, dwell:30, status:'good',
+    note:'Good service. Planned engineering works after 23:30 on Sunday.' }
+];
+var V = 1.1;          // map units per simulated second (≈ 50 km/h at 12 m per unit)
+var TRANSFER = 240;   // seconds allowed per change
+var CORNER = 24;
+
+var STN = {}, STLIST = [];
+Object.keys(SD).forEach(function(id, i){
+  var d = SD[id];
+  var s = { id:id, i:i, name:d[0], x:d[1], y:d[2], lab:[d[3], d[4], d[5]], lines:[] };
+  STN[id] = s; STLIST.push(s);
+});
+
+/* ---------- geometry ---------- */
+function buildGeom(L){
+  var P = L.pts.slice(), n = P.length, samples = [], i;
+  function push(x, y){ var l = samples[samples.length - 1]; if (!l || Math.abs(l[0] - x) > 0.01 || Math.abs(l[1] - y) > 0.01) samples.push([x, y]); }
+  var d = '';
+  var verts = L.loop ? P.concat([P[0]]) : P;
+  var m = verts.length;
+  push(verts[0][0], verts[0][1]); d = 'M' + verts[0][0] + ' ' + verts[0][1];
+  for (i = 1; i < m; i++){
+    var V1 = verts[i];
+    var isCorner = i < m - 1;
+    if (isCorner){
+      var P0 = verts[i - 1], N = verts[i + 1];
+      var ax = V1[0] - P0[0], ay = V1[1] - P0[1], al = Math.hypot(ax, ay), bx = N[0] - V1[0], by = N[1] - V1[1], bl = Math.hypot(bx, by);
+      ax /= al; ay /= al; bx /= bl; by /= bl;
+      if (Math.abs(ax - bx) < 1e-6 && Math.abs(ay - by) < 1e-6){ push(V1[0], V1[1]); d += 'L' + V1[0] + ' ' + V1[1]; continue; }
+      var r = Math.min(CORNER, al / 2, bl / 2);
+      var A = [V1[0] - ax * r, V1[1] - ay * r], B = [V1[0] + bx * r, V1[1] + by * r];
+      push(A[0], A[1]); d += 'L' + A[0].toFixed(2) + ' ' + A[1].toFixed(2) + 'Q' + V1[0] + ' ' + V1[1] + ' ' + B[0].toFixed(2) + ' ' + B[1].toFixed(2);
+      for (var k = 1; k <= 8; k++){
+        var t = k / 8, u = 1 - t;
+        push(u * u * A[0] + 2 * u * t * V1[0] + t * t * B[0], u * u * A[1] + 2 * u * t * V1[1] + t * t * B[1]);
+      }
+    } else { push(V1[0], V1[1]); d += 'L' + V1[0] + ' ' + V1[1]; }
+  }
+  if (L.loop) d += 'Z';
+  var cum = [0];
+  for (i = 1; i < samples.length; i++) cum.push(cum[i - 1] + Math.hypot(samples[i][0] - samples[i - 1][0], samples[i][1] - samples[i - 1][1]));
+  L.d = d; L.S = samples; L.cum = cum; L.len = cum[cum.length - 1];
+}
+var G = { x:0, y:0, tx:1, ty:0 };
+function at(L, s){
+  var c = L.cum, S = L.S;
+  if (L.loop){ s = ((s % L.len) + L.len) % L.len; } else s = clamp(s, 0, L.len);
+  var lo = 0, hi = c.length - 1;
+  while (hi - lo > 1){ var mid = (lo + hi) >> 1; if (c[mid] <= s) lo = mid; else hi = mid; }
+  var seg = c[hi] - c[lo] || 1, u = (s - c[lo]) / seg;
+  var ax = S[lo][0], ay = S[lo][1], bx = S[hi][0], by = S[hi][1];
+  G.x = ax + (bx - ax) * u; G.y = ay + (by - ay) * u;
+  var tl = Math.hypot(bx - ax, by - ay) || 1; G.tx = (bx - ax) / tl; G.ty = (by - ay) / tl;
+  return G;
+}
+function project(L, x, y){
+  var best = 1e9, bs = 0, S = L.S, c = L.cum;
+  for (var i = 1; i < S.length; i++){
+    var ax = S[i - 1][0], ay = S[i - 1][1], dx = S[i][0] - ax, dy = S[i][1] - ay, l2 = dx * dx + dy * dy || 1;
+    var t = clamp(((x - ax) * dx + (y - ay) * dy) / l2, 0, 1), px = ax + dx * t, py = ay + dy * t, dd = (px - x) * (px - x) + (py - y) * (py - y);
+    if (dd < best){ best = dd; bs = c[i - 1] + Math.sqrt(l2) * t; }
+  }
+  return bs;
+}
+/* ---------- timetable ---------- */
+function timetable(pos, dwell, loopLen){
+  var arr = [0], dep = [dwell * (loopLen ? 1 : 0)], n = pos.length;
+  if (!loopLen) dep[0] = 0;
+  for (var i = 1; i < n; i++){
+    arr.push(dep[i - 1] + (pos[i] - pos[i - 1]) / V * 1.12);
+    dep.push(i === n - 1 && !loopLen ? arr[i] : arr[i] + dwell);
+  }
+  var total = loopLen ? dep[n - 1] + (loopLen - pos[n - 1] + pos[0]) / V * 1.12 : arr[n - 1];
+  return { pos:pos, arr:arr, dep:dep, total:total };
+}
+LINES.forEach(function(L, li){
+  L.idx = li;
+  buildGeom(L);
+  L.spos = L.st.map(function(id){ var s = STN[id]; s.lines.push(li); return project(L, s.x, s.y); });
+  if (L.loop){
+    L.tt0 = timetable(L.spos, L.dwell, L.len);
+    var rev = L.spos.map(function(p){ return (L.len - p) % L.len; });
+    // anticlockwise order: station 0 then the rest reversed
+    L.revOrder = [0]; for (var r = L.st.length - 1; r >= 1; r--) L.revOrder.push(r);
+    L.tt1 = timetable(L.revOrder.map(function(k){ return rev[k]; }), L.dwell, L.len);
+    L.cycle = L.tt0.total;
+    L.N = Math.max(2, Math.round(L.cycle / L.H)); L.Hr = L.cycle / L.N;
+  } else {
+    L.tt0 = timetable(L.spos, L.dwell, 0);
+    var n = L.spos.length;
+    L.tt1 = timetable(L.spos.slice().reverse().map(function(p){ return L.len - p; }), L.dwell, 0);
+    L.trip = L.tt0.total;
+    L.N = Math.ceil(2 * (L.trip + 90) / L.H); L.Hr = L.H;
+    L.cycle = L.N * L.H; L.turn = L.cycle / 2 - L.trip;
+  }
+  L.phase = li * 53 + 17;
+});
+function posInTT(tt, tau){
+  var n = tt.pos.length;
+  for (var i = 0; i < n; i++){
+    if (tau < tt.arr[i]) {
+      var u = (tau - tt.dep[i - 1]) / (tt.arr[i] - tt.dep[i - 1]);
+      var e = u - Math.sin(2 * Math.PI * u) / (2 * Math.PI);
+      return tt.pos[i - 1] + (tt.pos[i] - tt.pos[i - 1]) * e;
+    }
+    if (tau < tt.dep[i]) return tt.pos[i];
+  }
+  return null; // beyond last departure (loop tail)
+}
+
+/* ======================= DRAW MAP ======================= */
+var svg = $('#map'), gLines = $('#lines'), gHits = $('#hits'), gRoute = $('#route'), gTrains = $('#trains'), gMarks = $('#marks'), gLabels = $('#labels'), gSh = $('#shits');
+var lineEls = [];
+LINES.forEach(function(L, li){
+  var p = mk('path', { d:L.d, stroke:L.color, class:'ln' + (reduced ? '' : ' draw'), pathLength:'1', 'data-line':L.id }, gLines);
+  if (!reduced) p.style.animationDelay = (li * 0.09) + 's';
+  var h = mk('path', { d:L.d, class:'hit', 'data-line':L.id }, gHits);
+  h.addEventListener('pointerenter', function(e){ if (e.pointerType === 'mouse') spot(li); });
+  h.addEventListener('pointerleave', function(e){ if (e.pointerType === 'mouse') spot(-1); });
+  var tg = mk('g', { 'data-line':L.id, class:'fadein' }, gTrains);
+  if (!reduced) tg.style.animationDelay = '1s';
+  var trains = [];
+  var count = L.N * (L.loop ? 2 : 1);
+  for (var k = 0; k < count; k++){
+    var tr = mk('g', { class:'train' }, tg);
+    mk('rect', { x:-8.5, y:-3.7, width:17, height:7.4, rx:3.7, fill:L.color, stroke:'#1a1a1a', 'stroke-width':'1.1' }, tr);
+    mk('path', { d:'M-4.8 0H4.8', stroke:'#fbfbf9', 'stroke-width':'1.7', 'stroke-linecap':'round', 'stroke-dasharray':'2.2 1.6' }, tr);
+    trains.push(tr);
+  }
+  L.trainEls = trains;
+  lineEls.push({ path:p, hit:h, trains:tg, marks:[] });
+});
+// station marks
+STLIST.forEach(function(s){
+  var inter = s.lines.length > 1;
+  var g = mk('g', { class:'stn fadein', 'data-lines':s.lines.map(function(i){ return LINES[i].id; }).join(' ') }, gMarks);
+  if (!reduced) g.style.animationDelay = '.75s';
+  s.markG = g;
+  if (s.id === 'central'){
+    mk('circle', { cx:s.x, cy:s.y, r:17, fill:'#fbfbf9', stroke:'#1a1a1a', 'stroke-width':'3.6' }, g);
+    mk('circle', { cx:s.x, cy:s.y, r:6, fill:'#1a1a1a' }, g);
+  } else if (inter){
+    var L0 = LINES[s.lines[0]]; at(L0, project(L0, s.x, s.y));
+    var ang = Math.atan2(G.ty, G.tx) * 180 / Math.PI;
+    mk('rect', { x:-13, y:-7.5, width:26, height:15, rx:7.5, fill:'#fbfbf9', stroke:'#1a1a1a', 'stroke-width':'3', transform:'translate(' + s.x + ' ' + s.y + ') rotate(' + ang.toFixed(1) + ')' }, g);
+  } else {
+    var L = LINES[s.lines[0]], sp = project(L, s.x, s.y); at(L, sp);
+    var nx = -G.ty, ny = G.tx;
+    if (nx * s.lab[0] + ny * s.lab[1] < 0){ nx = -nx; ny = -ny; }
+    var term = L.st[0] === s.id || L.st[L.st.length - 1] === s.id;
+    if (term && !L.loop){
+      mk('path', { d:'M' + (s.x - nx * 13).toFixed(1) + ' ' + (s.y - ny * 13).toFixed(1) + 'L' + (s.x + nx * 13).toFixed(1) + ' ' + (s.y + ny * 13).toFixed(1), stroke:L.color, 'stroke-width':'6' }, g);
+      s.term = true;
+    } else {
+      mk('path', { d:'M' + s.x + ' ' + s.y + 'L' + (s.x + nx * 11.5).toFixed(1) + ' ' + (s.y + ny * 11.5).toFixed(1), stroke:L.color, 'stroke-width':'4.5' }, g);
+    }
+  }
+  // label
+  var t = mk('text', { x:s.x + s.lab[0], y:s.y + s.lab[1] + 4, 'text-anchor':s.lab[2] === 's' ? 'start' : s.lab[2] === 'e' ? 'end' : 'middle',
+    class:'lbl fadein' + (inter ? ' x' : '') + (s.id === 'central' ? ' hub' : '') + (s.term ? ' term' : ''), 'data-lines':g.getAttribute('data-lines') }, gLabels);
+  if (!reduced) t.style.animationDelay = '.85s';
+  t.textContent = s.name;
+  s.labelEl = t;
+  var hit = mk('circle', { cx:s.x, cy:s.y, r:inter ? 17 : 13, class:'sh', tabindex:'0', role:'button', 'aria-label':s.name + ' station, ' + s.lines.map(function(i){ return LINES[i].name; }).join(', ') }, gSh);
+  hit.addEventListener('pointerenter', function(e){ if (e.pointerType === 'mouse' && !cardPinned) showCard(s, false); });
+  hit.addEventListener('pointerleave', function(e){ if (e.pointerType === 'mouse' && !cardPinned) hideCardSoon(); });
+  hit.addEventListener('click', function(){ if (dragMoved) return; showCard(s, true); });
+  hit.addEventListener('focus', function(){ showCard(s, false); });
+  hit.addEventListener('blur', function(){ if (!cardPinned) hideCardSoon(); });
+  hit.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showCard(s, true); $('#cardFrom').focus(); } });
+});
+
+/* ======================= SIM CLOCK & TRAINS ======================= */
+var now0 = new Date(), simT = now0.getHours() * 3600 + now0.getMinutes() * 60 + now0.getSeconds();
+var speed = reduced ? 1 : 20;
+function hhmmss(t, sec){
+  t = ((Math.floor(t) % 86400) + 86400) % 86400;
+  var h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60;
+  return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + (sec ? ':' + (s < 10 ? '0' : '') + s : '');
+}
+function mod(a, b){ return ((a % b) + b) % b; }
+function updateTrains(){
+  for (var li = 0; li < LINES.length; li++){
+    var L = LINES[li], els = L.trainEls, k, tau, s, side, pos;
+    if (L.hidden) continue;
+    if (L.loop){
+      for (k = 0; k < L.N * 2; k++){
+        var dir = k < L.N ? 0 : 1, kk = k % L.N;
+        tau = mod(simT - L.phase - kk * L.Hr - dir * L.Hr * 0.5, L.cycle);
+        var tt = dir ? L.tt1 : L.tt0;
+        pos = posInTT(tt, tau);
+        if (pos === null){
+          var lastDep = tt.dep[tt.pos.length - 1], u = (tau - lastDep) / (tt.total - lastDep);
+          var e = u - Math.sin(2 * Math.PI * u) / (2 * Math.PI);
+          pos = tt.pos[tt.pos.length - 1] + (L.len - tt.pos[tt.pos.length - 1]) * e;
+        }
+        s = dir ? L.len - pos : pos;
+        place(els[k], L, s, dir ? -1 : 1);
+      }
+    } else {
+      for (k = 0; k < L.N; k++){
+        tau = mod(simT - L.phase - k * L.H, L.cycle);
+        if (tau < L.trip){ s = posInTT(L.tt0, tau); side = 1; }
+        else if (tau < L.trip + L.turn){ s = L.len; side = tau < L.trip + L.turn / 2 ? 1 : -1; }
+        else if (tau < 2 * L.trip + L.turn){ s = L.len - posInTT(L.tt1, tau - L.trip - L.turn); side = -1; }
+        else { s = 0; side = tau < 2 * L.trip + L.turn * 1.5 ? -1 : 1; }
+        place(els[k], L, s, side);
+      }
+    }
+  }
+}
+function place(el, L, s, side){
+  at(L, s);
+  var ox = -G.ty * 8.6 * side, oy = G.tx * 8.6 * side;
+  el.setAttribute('transform', 'translate(' + (G.x + ox).toFixed(1) + ' ' + (G.y + oy).toFixed(1) + ') rotate(' + (Math.atan2(G.ty, G.tx) * 57.2958).toFixed(1) + ')');
+}
+function departures(L, i){
+  // returns [{dest, t:[secs...]}] for each direction serving station index i
+  var out = [], n = L.st.length, off;
+  if (L.loop){
+    off = L.tt0.dep[i];
+    out.push({ dest:'Clockwise · via ' + STN[L.st[(i + 1) % n]].name, t:nextTimes(L.phase + off, L.Hr) });
+    var ri = L.revOrder.indexOf(i);
+    off = L.tt1.dep[ri];
+    out.push({ dest:'Anticlockwise · via ' + STN[L.st[(i - 1 + n) % n]].name, t:nextTimes(L.phase + L.Hr * 0.5 + off, L.Hr) });
+  } else {
+    if (i < n - 1) out.push({ dest:STN[L.st[n - 1]].name, t:nextTimes(L.phase + L.tt0.dep[i], L.H) });
+    if (i > 0) out.push({ dest:STN[L.st[0]].name, t:nextTimes(L.phase + L.trip + L.turn + L.tt1.dep[n - 1 - i], L.H) });
+  }
+  return out;
+}
+function nextTimes(base, H){ var first = mod(base - simT, H); return [first, first + H]; }
+function fmtWait(sec){
+  if (sec < 30) return 'due';
+  if (speed <= 1){ var m = Math.floor(sec / 60), s = Math.floor(sec % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
+  return Math.ceil(sec / 60) + ' min';
+}
+
+/* ======================= SPOTLIGHT / VISIBILITY ======================= */
+var spotLine = -1, route = null;
+function applyDim(){
+  LINES.forEach(function(L, li){
+    var dimmed = spotLine >= 0 ? li !== spotLine : !!route;
+    var trainDim = spotLine >= 0 ? li !== spotLine : (route ? route.lines.indexOf(li) < 0 : false);
+    lineEls[li].path.classList.toggle('dim', dimmed);
+    lineEls[li].trains.classList.toggle('dim', trainDim);
+  });
+  STLIST.forEach(function(s){
+    var d = false;
+    if (spotLine >= 0) d = s.lines.indexOf(spotLine) < 0;
+    else if (route) d = !route.stops[s.id];
+    s.markG.classList.toggle('dim', d); s.labelEl.classList.toggle('dim', d);
+  });
+  gRoute.style.opacity = spotLine >= 0 ? '.25' : '1';
+}
+function spot(li){ spotLine = li; applyDim(); }
+function setHidden(li, hide){
+  var L = LINES[li]; L.hidden = hide;
+  [lineEls[li].path, lineEls[li].hit, lineEls[li].trains].forEach(function(el){ el.classList.toggle('hidden-line', hide); });
+  STLIST.forEach(function(s){
+    var vis = s.lines.some(function(i){ return !LINES[i].hidden; });
+    s.markG.classList.toggle('hidden-line', !vis); s.labelEl.classList.toggle('hidden-line', !vis);
+  });
+}
+// legend
+var legend = $('#legend');
+LINES.forEach(function(L, li){
+  var item = document.createElement('li');
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'lg'; b.setAttribute('aria-pressed', 'true'); b.style.setProperty('--c', L.color);
+  var ends = L.loop ? 'Circle via Meridian Central area' : STN[L.st[0]].name + ' – ' + STN[L.st[L.st.length - 1]].name;
+  b.innerHTML = '<span class="bar" aria-hidden="true"></span><b></b><small></small>';
+  b.querySelector('b').textContent = L.name; b.querySelector('small').textContent = L.loop ? 'Circle · 10 stations' : ends;
+  b.setAttribute('aria-label', L.name + ', ' + (L.loop ? 'circle line' : ends) + '. Toggle visibility.');
+  b.addEventListener('click', function(){ var on = b.getAttribute('aria-pressed') === 'true'; b.setAttribute('aria-pressed', on ? 'false' : 'true'); setHidden(li, on); });
+  b.addEventListener('pointerenter', function(e){ if (e.pointerType === 'mouse' && !L.hidden) spot(li); });
+  b.addEventListener('pointerleave', function(e){ if (e.pointerType === 'mouse') spot(-1); });
+  b.addEventListener('focus', function(){ if (!L.hidden) spot(li); });
+  b.addEventListener('blur', function(){ spot(-1); });
+  item.appendChild(b); legend.appendChild(item);
+});
+// status
+var statusEl = $('#status');
+LINES.forEach(function(L){
+  var li = document.createElement('li');
+  li.innerHTML = '<span class="chip' + (L.dark ? ' dark' : '') + '" style="--c:' + L.color + '"></span><b></b><span class="st' + (L.status === 'minor' ? ' minor' : '') + '"><i aria-hidden="true"></i></span>';
+  li.querySelector('.chip').textContent = L.code; li.querySelector('b').textContent = L.name;
+  li.querySelector('.st').appendChild(document.createTextNode(L.status === 'minor' ? 'Minor delays' : 'Good service'));
+  if (L.note && L.status === 'minor'){ var n = document.createElement('span'); n.className = 'note'; n.textContent = L.note; li.appendChild(n); }
+  statusEl.appendChild(li);
+});
+
+/* ======================= STATION CARD ======================= */
+var card = $('#card'), cardName = $('#cardName'), cardMeta = $('#cardMeta'), cardDeps = $('#cardDeps'), mapwrap = $('#mapwrap');
+var cardSt = null, cardPinned = false, hideTimer = 0;
+function zone(s){ var d = Math.hypot(s.x - 600, s.y - 380); return d < 250 ? 1 : d < 470 ? 2 : 3; }
+function chip(L){ return '<span class="chip' + (L.dark ? ' dark' : '') + '" style="--c:' + L.color + '">' + L.code + '</span>'; }
+function showCard(s, pin){
+  clearTimeout(hideTimer);
+  cardSt = s; cardPinned = pin || cardPinned && cardSt === s;
+  if (pin) cardPinned = true;
+  cardName.textContent = s.name;
+  cardMeta.innerHTML = s.lines.map(function(i){ return chip(LINES[i]); }).join('') + '<em>Zone ' + zone(s) + '</em>';
+  renderDeps();
+  card.classList.add('on'); card.setAttribute('aria-hidden', 'false');
+  positionCard();
+}
+function hideCard(){ card.classList.remove('on'); card.setAttribute('aria-hidden', 'true'); cardSt = null; cardPinned = false; }
+function hideCardSoon(){ clearTimeout(hideTimer); hideTimer = setTimeout(function(){ if (!cardPinned && !card.matches(':hover')) hideCard(); }, 260); }
+card.addEventListener('pointerleave', function(e){ if (e.pointerType === 'mouse' && !cardPinned) hideCardSoon(); });
+card.addEventListener('pointerenter', function(){ clearTimeout(hideTimer); });
+$('#cardX').addEventListener('click', hideCard);
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && cardSt) hideCard(); });
+function renderDeps(){
+  if (!cardSt) return;
+  var html = '';
+  cardSt.lines.forEach(function(li){
+    var L = LINES[li], i = L.st.indexOf(cardSt.id);
+    html += '<div class="dl" style="--c:' + L.color + '"><h4>' + L.name + (L.status === 'minor' ? ' · minor delays' : '') + '</h4>';
+    departures(L, i).forEach(function(d){
+      html += '<div class="dr"><span>&rarr; ' + d.dest + '</span><span class="' + (d.t[0] < 30 ? 'due' : '') + '">' + fmtWait(d.t[0]) + '</span><span>' + fmtWait(d.t[1]) + '</span></div>';
+    });
+    html += '</div>';
+  });
+  cardDeps.innerHTML = html;
+}
+function positionCard(){
+  if (!cardSt) return;
+  var r = mapwrap.getBoundingClientRect(), sx = (cardSt.x - vb.x) * view.s, sy = (cardSt.y - vb.y) * view.s;
+  var cw = card.offsetWidth, ch = card.offsetHeight, x, y;
+  if (r.width < 640){ x = 10; y = r.height - ch - 10; if (sy > r.height - ch - 30) y = 10; }
+  else {
+    x = sx + 26; if (x + cw > r.width - 10) x = sx - cw - 26;
+    y = sy - 40;
+  }
+  card.style.left = clamp(x, 10, Math.max(10, r.width - cw - 10)) + 'px';
+  card.style.top = clamp(y, 10, Math.max(10, r.height - ch - 10)) + 'px';
+}
+$('#cardFrom').addEventListener('click', function(){ if (cardSt){ fromSel.value = cardSt.id; plan(); hideCard(); } });
+$('#cardTo').addEventListener('click', function(){ if (cardSt){ toSel.value = cardSt.id; plan(); hideCard(); } });
+
+/* ======================= ROUTE PLANNER (Dijkstra) ======================= */
+var fromSel = $('#from'), toSel = $('#to');
+(function fillSelects(){
+  var sorted = STLIST.slice().sort(function(a, b){ return a.name.localeCompare(b.name); });
+  [fromSel, toSel].forEach(function(sel, k){
+    var o = document.createElement('option'); o.value = ''; o.textContent = k ? 'Choose destination…' : 'Choose origin…'; sel.appendChild(o);
+    sorted.forEach(function(s){ var op = document.createElement('option'); op.value = s.id; op.textContent = s.name; sel.appendChild(op); });
+  });
+})();
+function rideTime(L, a, b){ // a, b adjacent indices
+  var pa = L.spos[a], pb = L.spos[b], d = Math.abs(pb - pa);
+  if (L.loop && d > L.len / 2) d = L.len - d;
+  return d / V * 1.12 + L.dwell;
+}
+function dijkstra(fromId, toId){
+  var dist = {}, prev = {}, done = {}, key = function(sid, li){ return sid + '|' + li; };
+  STN[fromId].lines.forEach(function(li){ dist[key(fromId, li)] = 0; });
+  while (true){
+    var best = null, bd = Infinity;
+    for (var k in dist) if (!done[k] && dist[k] < bd){ bd = dist[k]; best = k; }
+    if (best === null) break;
+    done[best] = true;
+    var parts = best.split('|'), sid = parts[0], li = +parts[1];
+    if (sid === toId) break;
+    var L = LINES[li], i = L.st.indexOf(sid), n = L.st.length, nb = [];
+    if (i > 0 || L.loop) nb.push((i - 1 + n) % n);
+    if (i < n - 1 || L.loop) nb.push((i + 1) % n);
+    nb.forEach(function(j){
+      var k2 = key(L.st[j], li), nd = bd + rideTime(L, i, j);
+      if (!done[k2] && (dist[k2] === undefined || nd < dist[k2])){ dist[k2] = nd; prev[k2] = best; }
+    });
+    STN[sid].lines.forEach(function(lj){
+      if (lj === li) return;
+      var k3 = key(sid, lj), nd2 = bd + TRANSFER + 1;
+      if (!done[k3] && (dist[k3] === undefined || nd2 < dist[k3])){ dist[k3] = nd2; prev[k3] = best; }
+    });
+  }
+  var end = null, ed = Infinity;
+  STN[toId].lines.forEach(function(li){ var k = key(toId, li); if (dist[k] !== undefined && dist[k] < ed && done[k]){ ed = dist[k]; end = k; } });
+  if (!end) return null;
+  var seq = [], cur = end;
+  while (cur){ var p = cur.split('|'); seq.unshift({ sid:p[0], li:+p[1] }); cur = prev[cur]; }
+  // collapse into legs
+  var legs = [];
+  seq.forEach(function(n){
+    var last = legs[legs.length - 1];
+    if (last && last.li === n.li) last.stops.push(n.sid);
+    else legs.push({ li:n.li, stops:[n.sid] });
+  });
+  legs = legs.filter(function(l){ return l.stops.length > 1; });
+  return { legs:legs, total:ed };
+}
+function drawRoute(r){
+  while (gRoute.firstChild) gRoute.removeChild(gRoute.firstChild);
+  if (!r) return;
+  var casing = '', parts = [];
+  r.legs.forEach(function(leg){
+    var L = LINES[leg.li], d = '';
+    for (var k = 0; k < leg.stops.length - 1; k++){
+      var a = L.st.indexOf(leg.stops[k]), b = L.st.indexOf(leg.stops[k + 1]);
+      var sa = L.spos[a], sb = L.spos[b];
+      if (L.loop){ var fw = mod(sb - sa, L.len); if (fw > L.len / 2) sb = sa - (L.len - fw); else sb = sa + fw; }
+      var steps = Math.max(2, Math.ceil(Math.abs(sb - sa) / 6));
+      for (var q = 0; q <= steps; q++){ at(L, sa + (sb - sa) * q / steps); d += (d ? 'L' : 'M') + G.x.toFixed(1) + ' ' + G.y.toFixed(1); }
+    }
+    casing += d; parts.push({ d:d, c:L.color });
+  });
+  mk('path', { d:casing, class:'route-casing' }, gRoute);
+  parts.forEach(function(p){ mk('path', { d:p.d, class:'route-line', stroke:p.c }, gRoute); });
+  // stop dots
+  r.legs.forEach(function(leg){
+    var L = LINES[leg.li];
+    leg.stops.forEach(function(sid, k){ if (k === 0 || k === leg.stops.length - 1) return; var s = STN[sid]; mk('circle', { cx:s.x, cy:s.y, r:4.2, fill:'#fbfbf9', stroke:L.color, 'stroke-width':'2.4' }, gRoute); });
+  });
+  var A = STN[r.legs[0].stops[0]], lastLeg = r.legs[r.legs.length - 1], B = STN[lastLeg.stops[lastLeg.stops.length - 1]];
+  [[A, 'A', '#1a1a1a'], [B, 'B', '#fbfbf9']].forEach(function(p){
+    var g = mk('g', { class:'pin', transform:'translate(' + p[0].x + ' ' + p[0].y + ')' }, gRoute);
+    mk('circle', { r:15, fill:p[2], stroke:'#1a1a1a', 'stroke-width':'3' }, g);
+    var t = mk('text', { y:4.5, 'text-anchor':'middle' }, g); t.textContent = p[1];
+    if (p[1] === 'B') t.setAttribute('style', 'fill:#1a1a1a');
+    if (!reduced){ var ring = mk('circle', { r:15, fill:'none', stroke:'#1a1a1a', 'stroke-width':'2' }, g); ring.innerHTML = '<animate attributeName="r" values="15;30" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values=".6;0" dur="1.8s" repeatCount="indefinite"/>'; }
+  });
+}
+var rTime = $('#rTime'), rMeta = $('#rMeta'), rLegs = $('#rLegs'), rNext = $('#rNext'), result = $('#result'), planHint = $('#planHint');
+function plan(){
+  var a = fromSel.value, b = toSel.value;
+  if (!a || !b || a === b){
+    route = null; drawRoute(null); applyDim(); result.hidden = true; planHint.hidden = false;
+    if (a && a === b){ planHint.textContent = 'Origin and destination are the same station — you are already there.'; }
+    else planHint.textContent = 'Choose two stations, or click any station on the map and pick “Route from here”.';
+    return;
+  }
+  var r = dijkstra(a, b);
+  if (!r){ route = null; drawRoute(null); applyDim(); result.hidden = true; planHint.hidden = false; planHint.textContent = 'No route found.'; return; }
+  var stops = {}, lines = [], nStops = 0;
+  r.legs.forEach(function(l){ l.stops.forEach(function(s){ stops[s] = true; }); if (lines.indexOf(l.li) < 0) lines.push(l.li); nStops += l.stops.length - 1; });
+  route = { r:r, stops:stops, lines:lines };
+  drawRoute(r); applyDim();
+  var changes = r.legs.length - 1, mins = Math.round(r.total / 60);
+  rTime.textContent = mins + ' min';
+  rMeta.textContent = (changes === 0 ? 'direct' : changes + (changes === 1 ? ' change' : ' changes')) + ' · ' + nStops + ' stops';
+  var html = '';
+  r.legs.forEach(function(leg, k){
+    var L = LINES[leg.li], first = STN[leg.stops[0]], last = STN[leg.stops[leg.stops.length - 1]], t = 0;
+    for (var q = 0; q < leg.stops.length - 1; q++) t += rideTime(L, L.st.indexOf(leg.stops[q]), L.st.indexOf(leg.stops[q + 1]));
+    var dirTxt = towards(L, leg);
+    html += '<li class="leg" style="--c:' + L.color + '"><b>' + first.name + '</b><small>' + chip(L) + ' ' + L.name + ' ' + dirTxt + ' · ' + (leg.stops.length - 1) + (leg.stops.length === 2 ? ' stop' : ' stops') + ' · ' + Math.round(t / 60) + ' min</small></li>';
+    if (k < r.legs.length - 1) html += '<li class="leg change">Change at ' + last.name + ' · allow 4 min</li>';
+    else html += '<li class="leg end" style="--c:' + L.color + '"><b>' + last.name + '</b><small>Arrive</small></li>';
+  });
+  rLegs.innerHTML = html;
+  result.hidden = false; planHint.hidden = true;
+  updateNext();
+}
+function towards(L, leg){
+  var a = L.st.indexOf(leg.stops[0]), b = L.st.indexOf(leg.stops[1]), n = L.st.length;
+  if (L.loop) return b === (a + 1) % n ? 'clockwise' : 'anticlockwise';
+  return 'towards ' + STN[L.st[b > a ? n - 1 : 0]].name;
+}
+function updateNext(){
+  if (!route) return;
+  var leg = route.r.legs[0], L = LINES[leg.li], a = L.st.indexOf(leg.stops[0]), b = L.st.indexOf(leg.stops[1]), n = L.st.length, deps = departures(L, a), d;
+  if (L.loop) d = deps[b === (a + 1) % n ? 0 : 1];
+  else d = deps.length === 1 ? deps[0] : deps[b > a ? 0 : 1];
+  var w = d.t[0];
+  rNext.innerHTML = 'Next ' + L.name + ' train from ' + STN[leg.stops[0]].name + ': <strong>' + (w < 30 ? 'due now' : 'in ' + fmtWait(w)) + '</strong>';
+}
+fromSel.addEventListener('change', plan); toSel.addEventListener('change', plan);
+$('#swap').addEventListener('click', function(){ var t = fromSel.value; fromSel.value = toSel.value; toSel.value = t; plan(); });
+$('#clear').addEventListener('click', function(){ fromSel.value = ''; toSel.value = ''; plan(); });
+
+/* ======================= PAN / ZOOM ======================= */
+var view = { cx:600, cy:440, s:1 }, vb = { x:0, y:0, w:1200, h:880 }, MW = 0, MH = 0, minS = 0.2, maxS = 4;
+function measure(){ var r = mapwrap.getBoundingClientRect(); MW = r.width; MH = r.height; }
+function fit(){
+  measure();
+  var s = Math.min(MW / 1200, MH / 880) * 0.98;
+  if (MW < 640) s = MW / 780;
+  minS = Math.min(MW / 1200, MH / 880) * 0.9; maxS = 4.5;
+  view.s = s; view.cx = 600; view.cy = 440; applyView();
+}
+function applyView(){
+  view.s = clamp(view.s, minS, maxS);
+  var w = MW / view.s, h = MH / view.s;
+  view.cx = w >= 1200 ? 600 : clamp(view.cx, w / 2 - 20, 1220 - w / 2);
+  view.cy = h >= 880 ? 440 : clamp(view.cy, h / 2 - 20, 900 - h / 2);
+  vb.x = view.cx - w / 2; vb.y = view.cy - h / 2; vb.w = w; vb.h = h;
+  svg.setAttribute('viewBox', vb.x.toFixed(2) + ' ' + vb.y.toFixed(2) + ' ' + w.toFixed(2) + ' ' + h.toFixed(2));
+  var ls = clamp(11.5 / (13 * view.s), 1, 1.35);
+  gLabels.style.fontSize = '';
+  gLabels.setAttribute('transform', '');
+  STLIST.forEach(function(s){ s.labelEl.style.fontSize = ls === 1 ? '' : ((s.id === 'central' ? 15.5 : 13) * ls).toFixed(1) + 'px'; });
+  positionCard();
+}
+function zoomAt(px, py, k){
+  var wx = vb.x + px / view.s, wy = vb.y + py / view.s;
+  view.s = clamp(view.s * k, minS, maxS);
+  view.cx = wx + MW / (2 * view.s) - px / view.s; view.cy = wy + MH / (2 * view.s) - py / view.s;
+  applyView();
+}
+mapwrap.addEventListener('wheel', function(e){
+  e.preventDefault();
+  var r = mapwrap.getBoundingClientRect();
+  zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.0016)));
+}, { passive:false });
+var pointers = {}, pan = null, pinch = null, dragMoved = false;
+mapwrap.addEventListener('pointerdown', function(e){
+  if (e.target.closest('.card') || e.target.closest('.zoom')) return;
+  pointers[e.pointerId] = { x:e.clientX, y:e.clientY };
+  var ids = Object.keys(pointers);
+  dragMoved = false;
+  if (ids.length === 1) pan = { x:e.clientX, y:e.clientY, cx:view.cx, cy:view.cy, captured:false, id:e.pointerId };
+  else if (ids.length === 2){
+    var a = pointers[ids[0]], b = pointers[ids[1]], r = mapwrap.getBoundingClientRect();
+    pinch = { d:Math.hypot(a.x - b.x, a.y - b.y), s:view.s, mx:(a.x + b.x) / 2 - r.left, my:(a.y + b.y) / 2 - r.top };
+    pinch.wx = vb.x + pinch.mx / view.s; pinch.wy = vb.y + pinch.my / view.s; pan = null;
+  }
+});
+mapwrap.addEventListener('pointermove', function(e){
+  if (!pointers[e.pointerId]) return;
+  pointers[e.pointerId] = { x:e.clientX, y:e.clientY };
+  var ids = Object.keys(pointers);
+  if (pinch && ids.length >= 2){
+    var a = pointers[ids[0]], b = pointers[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y);
+    view.s = clamp(pinch.s * d / pinch.d, minS, maxS);
+    view.cx = pinch.wx + MW / (2 * view.s) - pinch.mx / view.s; view.cy = pinch.wy + MH / (2 * view.s) - pinch.my / view.s;
+    dragMoved = true; applyView(); return;
+  }
+  if (pan && e.pointerId === pan.id){
+    var dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+    if (!pan.captured && Math.hypot(dx, dy) > 5){ pan.captured = true; dragMoved = true; try { mapwrap.setPointerCapture(e.pointerId); } catch (err) {} mapwrap.classList.add('panning'); }
+    if (pan.captured){ view.cx = pan.cx - dx / view.s; view.cy = pan.cy - dy / view.s; applyView(); }
+  }
+});
+function endPtr(e){
+  delete pointers[e.pointerId];
+  if (Object.keys(pointers).length < 2) pinch = null;
+  if (pan && pan.id === e.pointerId){ pan = null; mapwrap.classList.remove('panning'); }
+  setTimeout(function(){ dragMoved = false; }, 0);
+}
+mapwrap.addEventListener('pointerup', endPtr); mapwrap.addEventListener('pointercancel', endPtr);
+mapwrap.addEventListener('click', function(e){ if (!dragMoved && e.target === svg && cardPinned) hideCard(); });
+mapwrap.addEventListener('keydown', function(e){
+  if (e.target !== mapwrap) return;
+  var step = 60 / view.s;
+  if (e.key === 'ArrowLeft') view.cx -= step; else if (e.key === 'ArrowRight') view.cx += step;
+  else if (e.key === 'ArrowUp') view.cy -= step; else if (e.key === 'ArrowDown') view.cy += step;
+  else if (e.key === '+' || e.key === '=') view.s *= 1.25; else if (e.key === '-') view.s /= 1.25;
+  else if (e.key === '0') { fit(); return; } else return;
+  e.preventDefault(); applyView();
+});
+$('#zin').addEventListener('click', function(){ zoomAt(MW / 2, MH / 2, 1.35); });
+$('#zout').addEventListener('click', function(){ zoomAt(MW / 2, MH / 2, 1 / 1.35); });
+$('#zfit').addEventListener('click', fit);
+
+/* ======================= SPEED ======================= */
+var clockEl = $('#clock'), clockNote = $('#clockNote'), statTime = $('#statTime');
+Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function(b){
+  if (+b.getAttribute('data-speed') === speed) b.setAttribute('aria-pressed', 'true'); else b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', function(){
+    speed = +b.getAttribute('data-speed');
+    Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function(o){ o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+    clockNote.textContent = speed === 1 ? 'Simulated service · real time' : 'Simulated service · ' + speed + '× speed';
+    renderDeps(); updateNext();
+  });
+});
+clockNote.textContent = speed === 1 ? 'Simulated service · real time' : 'Simulated service · ' + speed + '× speed';
+
+/* ======================= LOOP ======================= */
+var last = performance.now(), uiAcc = 0;
+function frame(t){
+  var dt = Math.min(0.1, (t - last) / 1000); last = t;
+  if (!document.hidden){
+    simT += dt * speed;
+    updateTrains();
+    uiAcc += dt;
+    if (uiAcc > 0.25){
+      uiAcc = 0;
+      clockEl.textContent = hhmmss(simT, true);
+      statTime.textContent = 'as of ' + hhmmss(simT, false);
+      if (cardSt) renderDeps();
+      updateNext();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+window.addEventListener('resize', function(){ fit(); });
+fit();
+updateTrains();
+clockEl.textContent = hhmmss(simT, true); statTime.textContent = 'as of ' + hhmmss(simT, false);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

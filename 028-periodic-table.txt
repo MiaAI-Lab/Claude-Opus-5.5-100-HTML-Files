@@ -1,0 +1,36 @@
+TITLE: Elementa
+FILE: 028-periodic-table.html
+
+=== PROMPT (exact prompt used) ===
+Design "Elementa", an interactive periodic table of all 118 elements with a premium dark look (#0d1117). Each tile shows atomic number, symbol and name, coloured by category with a harmonious palette (alkali metals #ff6b6b, alkaline earth #ffa94d, transition metals #ffd43b, post-transition #69db7c, metalloids #38d9a9, nonmetals #4dabf7, halogens #748ffc, noble gases #da77f2, lanthanides #f783ac, actinides #e599f7) at soft opacity with glowing borders. Use standard atomic weights, rounded sensibly. The layout follows the standard 18-column table with the f-block below; on narrow phones the table pans horizontally inside its own scroll container (the page itself must not overflow). Interaction: hovering or focusing a tile fills a large detail panel with an animated Bohr-model shell diagram (electrons orbiting on shells with correct per-shell counts), category, atomic mass and state at room temperature; the category legend buttons filter and highlight; a search box jumps to an element. Keyboard navigable with arrow keys.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Elementa is a premium dark (#0d1117) periodic table of all 118 elements. It follows the standard 18-column layout with the lanthanide and actinide rows set below, dashed "57–71" and "89–103" placeholders in group 3, group numbers across the top and period numbers down the side. Each tile is a softly tinted glass square in its category colour (the ten brief hexes at low opacity with glowing borders). It shows the atomic number in mono, the symbol in a geometric sans with a colour glow, and the name. On desktop the large detail panel sits inside the table's natural gap above the transition metals. The panel pairs an animated Bohr diagram with the element's identity, standard atomic weight, state at about 20 °C, period and group, block, full electron configuration and a K–Q shell ladder. The page's ambient glow, the panel wash and the group/period highlights all take on the colour of the element you are looking at. On phones and small tablets the panel moves above the table, which pans horizontally inside its own scroller.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- All 118 elements come from a compact data string (symbol, name, IUPAC standard atomic weight rounded, category, room-temperature state). Grid positions, period, group and block are derived from the atomic number.
+- Electron shells are computed at runtime: Madelung (aufbau) filling plus a hard-coded table of the 20 known exceptions (Cr, Cu, Nb, Mo, Ru, Rh, Pd, Ag, La, Ce, Gd, Pt, Au, Ac, Th, Pa, U, Np, Cm, Lr). This gives correct per-shell counts (for example Au 2·8·18·32·18·1, Lr 2·8·18·32·32·8·3) and noble-gas-core configurations with superscripts. The results were checked against reference values for all 118 elements.
+- The Bohr diagram is SVG: faint dashed ghost orbits for all seven shells, real orbits in the category colour, electrons with soft halos spaced evenly per shell, and a golden-angle nucleon cluster. Shells spring in one after another, then counter-rotate at speeds that slow with distance via requestAnimationFrame. Rotation pauses when the tab is hidden or reduced motion is on.
+- Tiles use CSS custom properties (--rgb per category) for gradient fills, borders, symbol glow and hover. They cascade in diagonally on load. Hover lifts a tile with a bloom and reveals its atomic mass. The pinned tile carries a glowing dot, and search jumps trigger a flash ring.
+- The detail panel is placed in the table gap as a size-contained grid item (contain: strict) so it never distorts the rows. It has a category-tinted radial wash, a hairline top highlight, state icons (solid, liquid, gas, unknown) and animated shell-occupancy bars.
+- Category filtering dims and desaturates every non-member while members pick up a glowing outline. Legend chips preview a category on mouse hover.
+- A faint blueprint grid and a colour-reactive top glow sit behind the page. On narrow screens the horizontal scroller fades at its edge until you reach the end.
+
+=== INTERACTION MODEL ===
+- Hover (mouse) previews an element in the detail panel. Leaving the table returns to the pinned element. Click, tap or keyboard focus pins an element.
+- Keyboard: the table uses a roving tabindex. The arrow keys move to the nearest element in that direction, jumping gaps and moving into and out of the f-block. Home and End go to the ends of a row, and Enter or Space pins. Pinning announces the element's key facts through a polite live region.
+- Legend chips are toggle buttons (aria-pressed) that filter by category. "All elements" resets, and Esc clears the filter. The group-3 placeholders toggle the lanthanide or actinide filter.
+- Search is an accessible combobox. It matches atomic number, symbol or name (exact first, then prefix, then substring) and lists up to seven results with the arrow keys. Enter or a click jumps to the element: the page scrolls it into view in the pan container, focuses and pins it, and flashes it. The "/" key focuses search from anywhere.
+- Group and period labels light up in the category colour for the element on show.

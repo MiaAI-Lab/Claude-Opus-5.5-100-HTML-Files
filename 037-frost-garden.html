@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frost Garden — Diffusion-Limited Aggregation</title>
+<meta name="description" content="Frost Garden: a live diffusion-limited aggregation simulation. Random walkers wander and freeze onto a growing crystal, painting radial frost, window-pane ice and six-fold snowflakes that glow from within.">
+<meta name="theme-color" content="#020617">
+<style>
+:root{
+  --ink:#e0f7ff;
+  --ice:#e0f7ff;
+  --cyan:#67e8f9;
+  --violet:#a78bfa;
+  --dim:#7fa9c2;
+  --mute:#4d6a86;
+  --deep:#020617;
+  --navy:#0b1d3a;
+  --hair:rgba(224,247,255,.12);
+  --hair2:rgba(224,247,255,.24);
+  --sans:"Helvetica Neue","Avenir Next","Segoe UI","Cantarell","Nimbus Sans","DejaVu Sans",Arial,sans-serif;
+  --mono:"SF Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono","DejaVu Sans Mono",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--deep);color:var(--ink)}
+body{font-family:var(--sans);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.app{position:relative;min-height:100vh}
+
+/* ---------- the pane ---------- */
+.pane{position:relative;height:100vh;height:100dvh;min-height:560px;overflow:hidden;background:var(--deep)}
+.pane canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#glow{mix-blend-mode:screen}
+#live{cursor:crosshair;touch-action:manipulation}
+
+.title{position:absolute;left:clamp(18px,3.6vw,54px);top:clamp(20px,4.4vh,46px);z-index:3;pointer-events:none}
+.title::before{content:"";position:absolute;left:-60px;top:-60px;right:-80px;bottom:-50px;z-index:-1;
+  background:radial-gradient(closest-side,rgba(2,6,23,.62),rgba(2,6,23,0))}
+.title h1{font-weight:200;font-size:clamp(22px,2.7vw,38px);letter-spacing:.62em;margin-right:-.62em;line-height:1.1;color:var(--ink);text-shadow:0 0 22px rgba(103,232,249,.35),0 1px 2px rgba(2,6,23,.9)}
+.title p{margin-top:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--dim)}
+.title p span{color:var(--mute)}
+.title svg{display:block;width:26px;height:26px;margin-bottom:16px;opacity:.85}
+
+.toast{position:absolute;left:50%;bottom:clamp(20px,5vh,48px);z-index:4;transform:translate(-50%,10px);opacity:0;pointer-events:none;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);padding:9px 16px;border:1px solid var(--hair2);background:rgba(2,6,23,.78);transition:opacity .5s ease,transform .5s ease;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- panel ---------- */
+.panel{position:absolute;right:clamp(18px,3vw,44px);top:50%;transform:translateY(-50%);z-index:5;width:300px;padding:22px 22px 20px;
+  background:linear-gradient(180deg,rgba(6,16,38,.76),rgba(2,6,23,.82));border:1px solid var(--hair);border-radius:2px;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.panel::before,.panel::after{content:"";position:absolute;width:14px;height:14px;border:1px solid rgba(224,247,255,.55);pointer-events:none}
+.panel::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.panel::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.panel h2{font-family:var(--mono);font-weight:400;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between;align-items:center}
+.panel h2 span{color:var(--mute);display:inline-flex;align-items:center;gap:7px}
+.panel h2 span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.panel h2 span.idle::before{background:var(--mute);box-shadow:none}
+
+.stats{margin-top:18px;padding:14px 0 14px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);font-family:var(--mono)}
+.stats dl{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px}
+.stats dt{font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--mute)}
+.stats dd{font-size:18px;font-weight:300;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.04em;white-space:nowrap}
+.stats dt:nth-of-type(1),.stats dt:nth-of-type(2){grid-row:1}
+.stats dd:nth-of-type(1),.stats dd:nth-of-type(2){grid-row:2}
+.stats dt:nth-of-type(3),.stats dt:nth-of-type(4){grid-row:3;margin-top:10px}
+.stats dd:nth-of-type(3),.stats dd:nth-of-type(4){grid-row:4}
+.stats .key{display:flex;align-items:center;gap:9px;margin-top:13px;font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.stats .key i{display:block;flex:1;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--c0,#e0f7ff),var(--c1,#67e8f9),var(--c2,#a78bfa))}
+
+.group{margin-top:18px}
+.group>.lab{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin-bottom:9px}
+.group>.lab output{color:var(--ink);letter-spacing:.08em;font-size:11px;font-variant-numeric:tabular-nums}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.modes button{appearance:none;-webkit-appearance:none;background:rgba(224,247,255,.02);border:1px solid var(--hair);color:var(--dim);border-radius:2px;padding:10px 4px 8px;cursor:pointer;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:7px;transition:border-color .2s,color .2s,background .2s}
+.modes button svg{width:22px;height:22px}
+.modes button:hover{border-color:var(--hair2);color:var(--ink)}
+.modes button[aria-pressed="true"]{border-color:rgba(103,232,249,.7);color:var(--ink);background:rgba(103,232,249,.08);box-shadow:inset 0 0 18px rgba(103,232,249,.1)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:20px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,rgba(224,247,255,.25),var(--cyan),var(--violet))}
+input[type=range]::-moz-range-track{height:1px;background:linear-gradient(90deg,rgba(224,247,255,.25),var(--cyan),var(--violet))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;margin-top:-5px;background:var(--ice);transform:rotate(45deg);border-radius:1px;box-shadow:0 0 12px rgba(103,232,249,.8)}
+input[type=range]::-moz-range-thumb{width:9px;height:9px;background:var(--ice);border:0;transform:rotate(45deg);border-radius:1px;box-shadow:0 0 12px rgba(103,232,249,.8)}
+.hintline{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;color:var(--mute);margin-top:1px;text-transform:uppercase}
+.pals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pals button{appearance:none;-webkit-appearance:none;background:transparent;border:1px solid var(--hair);border-radius:2px;padding:8px 6px 7px;cursor:pointer;color:var(--dim);
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;display:flex;flex-direction:column;gap:7px;align-items:stretch;transition:border-color .2s,color .2s}
+.pals button i{display:block;height:5px;border-radius:1px}
+.pals button:hover{border-color:var(--hair2);color:var(--ink)}
+.pals button[aria-pressed="true"]{border-color:rgba(224,247,255,.65);color:var(--ink)}
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:20px}
+.act{appearance:none;-webkit-appearance:none;height:38px;border:1px solid var(--hair2);background:transparent;color:var(--ink);border-radius:2px;cursor:pointer;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:background .2s,border-color .2s}
+.act:hover{background:rgba(224,247,255,.06);border-color:rgba(224,247,255,.45)}
+.act svg{width:11px;height:11px;flex:none}
+.act.save{border-color:rgba(103,232,249,.55);color:var(--cyan)}
+.tipline{margin-top:15px;font-size:12px;line-height:1.55;color:var(--dim);font-weight:300}
+.tipline b{font-weight:400;color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+
+@media (max-height:760px) and (min-width:901px){
+  .panel{padding:16px 18px 14px}
+  .group{margin-top:12px}
+  .stats{margin-top:12px;padding:10px 0}
+  .tipline{display:none}
+  .actions{margin-top:14px}
+}
+@media (max-width:900px){
+  .pane{height:66vh;height:66svh;min-height:430px;max-height:720px}
+  .panel{position:relative;right:auto;top:auto;transform:none;width:auto;margin:0;border-left:0;border-right:0;border-bottom:0;padding:20px 18px 30px;
+    -webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(180deg,#040c20,#020617);box-shadow:none}
+  .panel::before,.panel::after{display:none}
+  .panel-inner{max-width:560px;margin:0 auto}
+  .title p{letter-spacing:.18em;font-size:9.5px}
+  .title svg{width:20px;height:20px;margin-bottom:12px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="pane" id="pane">
+    <canvas id="bg" aria-hidden="true"></canvas>
+    <canvas id="glow" aria-hidden="true"></canvas>
+    <canvas id="frost" aria-hidden="true"></canvas>
+    <canvas id="live" role="img" aria-label="Frost crystal growing by diffusion-limited aggregation. Click or tap to plant a new seed."></canvas>
+
+    <header class="title" id="title">
+      <svg viewBox="0 0 26 26" aria-hidden="true"><g stroke="#e0f7ff" stroke-width="1" fill="none" stroke-linecap="round">
+        <path d="M13 1v24M2.6 7l20.8 12M2.6 19L23.4 7"/>
+        <path d="M13 5l-2.4-2.2M13 5l2.4-2.2M13 21l-2.4 2.2M13 21l2.4 2.2M6.1 9l-.8-3.1M6.1 9l-3.1.9M19.9 17l.8 3.1M19.9 17l3.1-.9M6.1 17l-3.1-.9M6.1 17l-.8 3.1M19.9 9l3.1.9M19.9 9l.8-3.1"/></g></svg>
+      <h1>FROST GARDEN</h1>
+      <p>Diffusion-limited aggregation <span>·</span> <span id="modeName">point seed</span></p>
+    </header>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <aside class="panel" aria-label="Growth controls">
+    <div class="panel-inner">
+      <h2>Growth chamber <span id="stateTxt">growing</span></h2>
+
+      <div class="stats">
+        <dl>
+          <dt>Particles</dt><dd id="sCount">0</dd>
+          <dt>Elapsed</dt><dd id="sTime">00:00.0</dd>
+          <dt>Walkers</dt><dd id="sWalk">0</dd>
+          <dt>Grown</dt><dd id="sGrown">0%</dd>
+        </dl>
+        <div class="key" id="keyBar"><span>first</span><i></i><span>latest arrival</span></div>
+      </div>
+
+      <div class="group">
+        <div class="lab"><span id="modesLab">Seed</span></div>
+        <div class="modes" role="group" aria-labelledby="modesLab">
+          <button type="button" id="mPoint" aria-pressed="true" data-mode="point">
+            <svg viewBox="0 0 22 22" aria-hidden="true"><g stroke="currentColor" fill="none" stroke-linecap="round"><circle cx="11" cy="11" r="1.6" fill="currentColor"/><path d="M11 2.5v4M11 15.5v4M2.5 11h4M15.5 11h4M5 5l2.6 2.6M14.4 14.4L17 17M17 5l-2.6 2.6M7.6 14.4L5 17"/></g></svg>
+            Point</button>
+          <button type="button" id="mLine" aria-pressed="false" data-mode="line">
+            <svg viewBox="0 0 22 22" aria-hidden="true"><g stroke="currentColor" fill="none" stroke-linecap="round"><path d="M2 19h18M6 19v-7l-2-3M6 14l3-3M13 19V7l-2-3M13 11l3-3M13 14l-3-2M18 19v-5l2-2"/></g></svg>
+            Line</button>
+          <button type="button" id="mSnow" aria-pressed="false" data-mode="snow">
+            <svg viewBox="0 0 22 22" aria-hidden="true"><g stroke="currentColor" fill="none" stroke-linecap="round"><path d="M11 2v18M3.2 6.5l15.6 9M3.2 15.5l15.6-9M11 5.5l-2-2M11 5.5l2-2M11 16.5l-2 2M11 16.5l2 2"/></g></svg>
+            Snow</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="lab"><label for="stick">Stickiness</label><output id="stickOut" for="stick">0.90</output></div>
+        <input type="range" id="stick" min="5" max="100" step="1" value="90">
+        <div class="hintline"><span>dense coral</span><span>lacy ice</span></div>
+      </div>
+
+      <div class="group">
+        <div class="lab"><label for="speed">Speed</label><output id="speedOut" for="speed">5</output></div>
+        <input type="range" id="speed" min="1" max="10" step="1" value="5">
+      </div>
+
+      <div class="group">
+        <div class="lab"><span id="palLab">Palette</span></div>
+        <div class="pals" role="group" aria-labelledby="palLab">
+          <button type="button" id="pIce" aria-pressed="true" data-pal="ice"><i style="background:linear-gradient(90deg,#e0f7ff,#67e8f9,#a78bfa)"></i>Ice</button>
+          <button type="button" id="pCoral" aria-pressed="false" data-pal="coral"><i style="background:linear-gradient(90deg,#fff0e8,#ff8a7a,#d9467e)"></i>Coral</button>
+          <button type="button" id="pGold" aria-pressed="false" data-pal="gold"><i style="background:linear-gradient(90deg,#fff6d8,#f2c55c,#b07f2a)"></i>Gold</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="act" id="bPause" aria-label="Pause growth">
+          <svg viewBox="0 0 12 12" aria-hidden="true" id="icoPause"><rect x="2" y="1.5" width="2.4" height="9" fill="currentColor"/><rect x="7.6" y="1.5" width="2.4" height="9" fill="currentColor"/></svg>
+          <svg viewBox="0 0 12 12" aria-hidden="true" id="icoPlay" style="display:none"><path d="M3 1.5 10.5 6 3 10.5z" fill="currentColor"/></svg>
+          <span id="lPause">Pause</span></button>
+        <button type="button" class="act" id="bClear">Clear</button>
+        <button type="button" class="act save" id="bSave">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v7M3 5.5 6 8.5 9 5.5M1.5 11h9" stroke="currentColor" fill="none" stroke-width="1.2"/></svg>
+          PNG</button>
+      </div>
+      <p class="tipline"><b>Click the glass</b> to plant another seed. Keys: <b>space</b> pause, <b>1 2 3</b> seed, <b>P</b> palette, <b>C</b> clear, <b>S</b> save.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  const pane = $('pane'), titleEl = $('title');
+  const bgC = $('bg'), glowC = $('glow'), frostC = $('frost'), liveC = $('live');
+  const bctx = bgC.getContext('2d'), gctx = glowC.getContext('2d'), fctx = frostC.getContext('2d'), lctx = liveC.getContext('2d');
+
+  /* ================= palettes ================= */
+  const PALS = {
+    ice:   { name: 'Ice',           stops: [[224, 247, 255], [103, 232, 249], [167, 139, 250]] },
+    coral: { name: 'Coral',         stops: [[255, 240, 232], [255, 138, 122], [217, 70, 126]] },
+    gold:  { name: 'Gold filigree', stops: [[255, 246, 216], [242, 197, 92], [176, 127, 42]] }
+  };
+  let palKey = 'ice';
+  let DOT = [], GLW = [];
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function buildSprites() {
+    const st = PALS[palKey].stops;
+    DOT = []; GLW = [];
+    for (let k = 0; k < 64; k++) {
+      const u = k / 63;
+      const s = u < 0.5 ? [st[0], st[1], u / 0.5] : [st[1], st[2], (u - 0.5) / 0.5];
+      const c = [0, 1, 2].map(j => Math.round(lerp(s[0][j], s[1][j], s[2])));
+      const col = c.join(',');
+      const hi = c.map(v => Math.round(v + (255 - v) * 0.35)).join(',');
+      const d = document.createElement('canvas'); d.width = d.height = 16;
+      const g = d.getContext('2d');
+      const rg = g.createRadialGradient(8, 8, 0, 8, 8, 8);
+      rg.addColorStop(0, 'rgba(' + hi + ',1)');
+      rg.addColorStop(0.3, 'rgba(' + col + ',0.95)');
+      rg.addColorStop(0.62, 'rgba(' + col + ',0.35)');
+      rg.addColorStop(1, 'rgba(' + col + ',0)');
+      g.fillStyle = rg; g.fillRect(0, 0, 16, 16);
+      DOT.push(d);
+      const q = document.createElement('canvas'); q.width = q.height = 16;
+      const h = q.getContext('2d');
+      const rq = h.createRadialGradient(8, 8, 0, 8, 8, 8);
+      rq.addColorStop(0, 'rgba(' + col + ',0.55)');
+      rq.addColorStop(0.45, 'rgba(' + col + ',0.18)');
+      rq.addColorStop(1, 'rgba(' + col + ',0)');
+      h.fillStyle = rq; h.fillRect(0, 0, 16, 16);
+      GLW.push(q);
+    }
+    const kb = $('keyBar');
+    kb.style.setProperty('--c0', 'rgb(' + st[0].join(',') + ')');
+    kb.style.setProperty('--c1', 'rgb(' + st[1].join(',') + ')');
+    kb.style.setProperty('--c2', 'rgb(' + st[2].join(',') + ')');
+  }
+
+  /* ================= RNG + tables ================= */
+  let rs = ((Date.now() ^ 0x9e3779b9) >>> 0) || 1;
+  function xs() { let x = rs; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; rs = x >>> 0; return rs; }
+  function rnd() { return xs() / 4294967296; }
+  const COS = new Float32Array(1024), SIN = new Float32Array(1024);
+  for (let i = 0; i < 1024; i++) { COS[i] = Math.cos(i / 1024 * Math.PI * 2); SIN[i] = Math.sin(i / 1024 * Math.PI * 2); }
+
+  /* ================= grid state ================= */
+  const CELL = 2;          // css px per lattice cell
+  const GS = 0.25;         // glow layer scale
+  let W = 0, H = 0, DPR = 1;
+  let gw = 0, gh = 0, occ, near, owner, n1, n2, g1w = 0, g1h = 0, g2w = 0, g2h = 0;
+  let listPX, listPY, listU, count = 0, events = 0, topY = 0;
+  let seeds = [], active = [];
+  let mode = 'point', stick = 0.9, speedLvl = 5;
+  let paused = false, complete = false, elapsed = 0, baseLine = false;
+  let reserveTop = 0, lineStop = 0;
+
+  function alloc(w, h) {
+    gw = w; gh = h;
+    const n = w * h;
+    occ = new Uint8Array(n); near = new Uint8Array(n); owner = new Uint8Array(n);
+    g1w = (w >> 3) + 1; g1h = (h >> 3) + 1; g2w = (w >> 5) + 1; g2h = (h >> 5) + 1;
+    n1 = new Uint8Array(g1w * g1h); n2 = new Uint8Array(g2w * g2h);
+    const cap = Math.min(n, 400000);
+    listPX = new Float32Array(cap); listPY = new Float32Array(cap); listU = new Uint8Array(cap);
+    count = 0; topY = h - 1;
+  }
+
+  function markCell(x, y, s) {
+    occ[y * gw + x] = 1; owner[y * gw + x] = s;
+    for (let dy = -1; dy <= 1; dy++) {
+      const yy = y + dy; if (yy < 0 || yy >= gh) continue;
+      for (let dx = -1; dx <= 1; dx++) { const xx = x + dx; if (xx >= 0 && xx < gw) near[yy * gw + xx] = 1; }
+    }
+    const b1x = x >> 3, b1y = y >> 3;
+    for (let dy = -1; dy <= 1; dy++) { const yy = b1y + dy; if (yy < 0 || yy >= g1h) continue; for (let dx = -1; dx <= 1; dx++) { const xx = b1x + dx; if (xx >= 0 && xx < g1w) n1[yy * g1w + xx] = 1; } }
+    const b2x = x >> 5, b2y = y >> 5;
+    for (let dy = -1; dy <= 1; dy++) { const yy = b2y + dy; if (yy < 0 || yy >= g2h) continue; for (let dx = -1; dx <= 1; dx++) { const xx = b2x + dx; if (xx >= 0 && xx < g2w) n2[yy * g2w + xx] = 1; } }
+  }
+
+  // colour = the seed's own growth clock at the moment of arrival
+  function uFor(S) {
+    if (S.kind === 'line') return Math.min(255, Math.max(0, Math.round((gh - 1 - topY) / Math.max(8, gh - 1 - lineStop) * 255)));
+    return Math.min(255, Math.round(S.r / Math.max(8, S.limit) * 255));
+  }
+
+  const SPARK_N = 72;
+  const spX = new Float32Array(SPARK_N), spY = new Float32Array(SPARK_N), spT = new Float32Array(SPARK_N).fill(-9), spU = new Uint8Array(SPARK_N);
+  let spHead = 0, nowT = 0;
+
+  // every frozen particle, from either engine, lands in one ordered list (so palettes can re-colour it)
+  function pushParticle(px, py, u, draw) {
+    if (count >= listU.length) return false;
+    listPX[count] = px; listPY[count] = py; listU[count] = u; count++;
+    if (draw !== false) {
+      drawParticle(px, py, u);
+      spX[spHead] = px; spY[spHead] = py; spT[spHead] = nowT; spU[spHead] = u; spHead = (spHead + 1) % SPARK_N;
+    }
+    return true;
+  }
+
+  function stickCell(cx, cy, s, u, px, py, draw) {
+    if (cx < 0 || cy < 0 || cx >= gw || cy >= gh) return false;
+    if (occ[cy * gw + cx] || count >= listU.length) return false;
+    markCell(cx, cy, s);
+    const S = seeds[s];
+    if (S.kind === 'line') { if (cy < topY) topY = cy; }
+    else { const dx = px - S.fx, dy = py - S.fy, d = Math.sqrt(dx * dx + dy * dy); if (d > S.r) S.r = d; }
+    return pushParticle(px, py, u, draw);
+  }
+
+  function edgeLimit(S) { return Math.min(S.x, S.y - reserveTop, gw - 1 - S.x, gh - 1 - S.y); }
+  function refreshActive() {
+    active = []; activeF = [];
+    if (mode === 'snow') {
+      for (let k = 0; k < flakes.length; k++) {
+        const F = flakes[k];
+        if (!F.done && F.r >= F.Rmax - 2) F.done = true;
+        if (!F.done) activeF.push(k);
+      }
+    } else {
+      for (let k = 0; k < seeds.length; k++) {
+        const S = seeds[k];
+        if (S.done) continue;
+        if (S.kind === 'line') { if (topY <= lineStop) { S.done = true; continue; } }
+        else if (S.r >= S.limit - 2) { S.done = true; continue; }
+        active.push(k);
+      }
+    }
+    const was = complete;
+    complete = mode === 'snow' ? activeF.length === 0 : active.length === 0;
+    if (complete && !was && sized) { toast('Frost complete · click to plant a seed'); }
+    setState();
+  }
+
+  function addPointSeed(x, y, kind) {
+    x = Math.max(2, Math.min(gw - 3, Math.round(x))); y = Math.max(2, Math.min(gh - 3, Math.round(y)));
+    if (occ[y * gw + x] || seeds.length >= 250) return -1;
+    const S = { x, y, fx: x + 0.5, fy: y + 0.5, kind, r: 0, limit: 0, done: false };
+    seeds.push(S); S.limit = Math.max(6, edgeLimit(S));
+    const id = seeds.length - 1;
+    stickCell(x, y, id, 0, S.fx, S.fy);
+    complete = false; refreshActive();
+    return id;
+  }
+  function addLineSeed() {
+    const S = { x: 0, y: gh - 1, fx: 0, fy: gh - 1, kind: 'line', r: 0, limit: gh, done: false };
+    seeds.push(S);
+    const id = seeds.length - 1;
+    for (let x = 0; x < gw; x++) markCell(x, gh - 1, id);
+    topY = gh - 1; baseLine = true;
+    return id;
+  }
+
+  /* ================= walkers (off-lattice, so no square-grid bias) ================= */
+  let NW = 0, wx, wy, wcx, wcy, wk, wkind, wa;
+  function allocWalkers(n) {
+    NW = n; wi = 0; wx = new Float32Array(n); wy = new Float32Array(n); wcx = new Float32Array(n); wcy = new Float32Array(n);
+    wk = new Float64Array(n); wkind = new Uint8Array(n); wa = new Uint8Array(n);
+  }
+  function respawn(i) {
+    wa[i] = 0;
+    if (!active.length) return;
+    const S = seeds[active[xs() % active.length]];
+    if (S.kind === 'line') {
+      const y = topY - 5 - rnd() * 8;
+      if (y < 1) return;
+      const x = rnd() * gw;
+      if (near[(y | 0) * gw + (x | 0)]) return;
+      wx[i] = x; wy[i] = y; wkind[i] = 1; wk[i] = Math.max(-1, topY - 60); wa[i] = 1;
+      return;
+    }
+    const r = S.r + 4;
+    for (let tr = 0; tr < 6; tr++) {
+      const a = xs() & 1023;
+      const x = S.fx + r * COS[a], y = S.fy + r * SIN[a];
+      if (x < 0 || y < 0 || x >= gw || y >= gh) continue;
+      if (near[(y | 0) * gw + (x | 0)]) continue;
+      wx[i] = x; wy[i] = y; wkind[i] = 0; wcx[i] = S.fx; wcy[i] = S.fy;
+      const kr = S.r * 2 + 30; wk[i] = kr * kr; wa[i] = 1;
+      return;
+    }
+  }
+
+  function place(i, nx, ny) {
+    if (wkind[i] === 1) {
+      if (nx < 0) nx += gw; else if (nx >= gw) nx -= gw;
+      if (nx < 0 || nx >= gw || ny < 0 || ny < wk[i]) { respawn(i); return; }
+      if (ny >= gh) ny = gh - 0.01;
+    } else {
+      if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) { respawn(i); return; }
+      const dx = nx - wcx[i], dy = ny - wcy[i];
+      if (dx * dx + dy * dy > wk[i]) { respawn(i); return; }
+    }
+    if (occ[(ny | 0) * gw + (nx | 0)]) return;
+    wx[i] = nx; wy[i] = ny;
+  }
+
+  /* ================= snow: hexagonal-lattice DLA with noise reduction ================= */
+  // Each flake lives on its own hexagonal lattice (axial coordinates q, r). A walker that touches the
+  // crystal registers one "hit" on that perimeter site; the site freezes only after several hits.
+  // That noise reduction lets the lattice's six-fold anisotropy win, giving dendritic arms with
+  // 60° side branches. Every frozen site is copied through the 12 symmetries of the hexagon (D6).
+  const HQ = [1, -1, 0, 0, 1, -1], HR = [0, 0, 1, -1, -1, 1];
+  const R3 = Math.sqrt(3) / 2, FW = 110;
+  let flakes = [], activeF = [], fcur = 0, fwi = 0;
+  function hitsNeeded() { return 5 + Math.round((1 - stick) * 18); }
+  function makeFlake(cxPx, cyPx) {
+    const a = CELL * 1.05;
+    const limitPx = Math.min(cxPx, cyPx - reserveTop * CELL, W - cxPx, H - cyPx) - 4;
+    const Rmax = Math.max(5, Math.floor(limitPx / a));
+    const RA = Math.ceil((Rmax * 2 + 24) * 1.16), N = RA * 2 + 1;
+    const F = { cx: cxPx, cy: cyPx, a, Rmax, RA, N, occ: new Uint8Array(N * N), hits: new Uint8Array(N * N), r: 0, done: false,
+      wq: new Int32Array(FW), wr: new Int32Array(FW), wa: new Uint8Array(FW) };
+    // a tiny hexagonal plate: like a real ice prism, its six corners become the six arms
+    for (let q = -2; q <= 2; q++) for (let r = -2; r <= 2; r++) if (Math.abs(q + r) <= 2) occupy(F, q, r, 0);
+    return F;
+  }
+  function inF(F, q, r) { return q >= -F.RA && q <= F.RA && r >= -F.RA && r <= F.RA; }
+  function fIdx(F, q, r) { return (r + F.RA) * F.N + (q + F.RA); }
+  function occupy(F, q, r, u) {
+    if (!inF(F, q, r)) return;
+    const k = fIdx(F, q, r);
+    if (F.occ[k]) return;
+    F.occ[k] = 1;
+    const ex = q + r * 0.5, ey = r * R3, d = Math.sqrt(ex * ex + ey * ey);
+    if (d > F.r) F.r = d;
+    pushParticle((F.cx + ex * F.a) / CELL, (F.cy + ey * F.a) / CELL, u);
+  }
+  function occupySym(F, q, r, u) {
+    const x0 = q, z0 = r, y0 = -q - r;      // cube coordinates
+    for (let m = 0; m < 2; m++) {
+      let x = x0, y = m ? z0 : y0, z = m ? y0 : z0;   // m = 1: mirror (swap y, z)
+      for (let k = 0; k < 6; k++) {
+        occupy(F, x, z, u);
+        const nx = -z, ny = -x, nz = -y; x = nx; y = ny; z = nz;   // rotate by 60°
+      }
+    }
+  }
+  function spawnFW(F, i) {
+    F.wa[i] = 0;
+    const R = F.r + 3, ang = xs() & 1023;
+    const ex = R * COS[ang], ey = R * SIN[ang];
+    const r = Math.round(ey / R3), q = Math.round(ex - r * 0.5);
+    if (!inF(F, q, r) || F.occ[fIdx(F, q, r)]) return;
+    F.wq[i] = q; F.wr[i] = r; F.wa[i] = 1;
+  }
+  function stepFW(F, i) {
+    if (!F.wa[i]) { spawnFW(F, i); return; }
+    const q = F.wq[i], r = F.wr[i];
+    for (let d = 0; d < 6; d++) {
+      const qq = q + HQ[d], rr = r + HR[d];
+      if (inF(F, qq, rr) && F.occ[fIdx(F, qq, rr)]) {
+        const k = fIdx(F, q, r);
+        if (++F.hits[k] >= hitsNeeded()) {
+          events++;
+          occupySym(F, q, r, Math.min(255, Math.round(F.r / F.Rmax * 255)));
+          if (F.r >= F.Rmax - 2) refreshActive();
+        }
+        spawnFW(F, i);
+        return;
+      }
+    }
+    const ex = q + r * 0.5, ey = r * R3, dist = Math.sqrt(ex * ex + ey * ey);
+    if (dist > F.r * 2 + 20) { spawnFW(F, i); return; }
+    if (dist > F.r + 6) {                       // safe radial jump: nothing frozen lies beyond F.r
+      const L = dist - F.r - 3, a = xs() & 1023;
+      const nx = ex + L * COS[a], ny = ey + L * SIN[a];
+      const nr = Math.round(ny / R3), nq = Math.round(nx - nr * 0.5);
+      if (inF(F, nq, nr) && !F.occ[fIdx(F, nq, nr)]) { F.wq[i] = nq; F.wr[i] = nr; } else spawnFW(F, i);
+      return;
+    }
+    const d = xs() % 6, nq = q + HQ[d], nr = r + HR[d];
+    if (!inF(F, nq, nr)) { spawnFW(F, i); return; }
+    if (F.occ[fIdx(F, nq, nr)]) return;
+    F.wq[i] = nq; F.wr[i] = nr;
+  }
+  function growSnow(cap, budgetMs) {
+    const t0 = performance.now(), e0 = events;
+    let steps = 0;
+    while (events - e0 < cap && !complete && activeF.length) {
+      const F = flakes[activeF[fcur % activeF.length]];
+      stepFW(F, fwi);
+      if (++fwi >= FW) { fwi = 0; fcur++; }
+      if ((++steps & 4095) === 0 && performance.now() - t0 > budgetMs) break;
+    }
+  }
+  function addFlake(pxX, pxY) {
+    if (flakes.length >= 10) return false;
+    const F = makeFlake(pxX, pxY);
+    if (F.Rmax < 8) return false;
+    flakes.push(F); complete = false; refreshActive();
+    return true;
+  }
+
+  function stickProb() { return stick; }
+
+  function attach(x, y, cx, cy) {
+    let s = -1;
+    for (let dy = -1; dy <= 1 && s < 0; dy++) {
+      const yy = cy + dy; if (yy < 0 || yy >= gh) continue;
+      for (let dx = -1; dx <= 1; dx++) {
+        const xx = cx + dx; if (xx < 0 || xx >= gw) continue;
+        const k = yy * gw + xx; if (occ[k]) { s = owner[k]; break; }
+      }
+    }
+    if (s < 0) return;
+    const S = seeds[s];
+    events++;
+    stickCell(cx, cy, s, uFor(S), x, y);
+    if (S.kind === 'line' ? topY <= lineStop : S.r >= S.limit - 2) refreshActive();
+  }
+
+  function stepWalker(i) {
+    if (!wa[i]) { respawn(i); return; }
+    const x = wx[i], y = wy[i];
+    const cx = x | 0, cy = y | 0;
+    const idx = cy * gw + cx;
+    if (near[idx]) {
+      if (occ[idx]) { respawn(i); return; }
+      if (rnd() < stickProb()) { attach(x, y, cx, cy); respawn(i); return; }
+    } else {
+      // hierarchical safe jumps: a Brownian walker leaves a clear disc at a uniform point on its rim
+      const bx2 = cx >> 5, by2 = cy >> 5;
+      if (!n2[by2 * g2w + bx2]) {
+        const m = Math.min(cx - (bx2 - 1) * 32, (bx2 + 2) * 32 - 1 - cx, cy - (by2 - 1) * 32, (by2 + 2) * 32 - 1 - cy) - 3;
+        if (m >= 2) { const a = xs() & 1023; place(i, x + m * COS[a], y + m * SIN[a]); return; }
+      } else {
+        const bx1 = cx >> 3, by1 = cy >> 3;
+        if (!n1[by1 * g1w + bx1]) {
+          const m = Math.min(cx - (bx1 - 1) * 8, (bx1 + 2) * 8 - 1 - cx, cy - (by1 - 1) * 8, (by1 + 2) * 8 - 1 - cy) - 3;
+          if (m >= 2) { const a = xs() & 1023; place(i, x + m * COS[a], y + m * SIN[a]); return; }
+        }
+      }
+    }
+    const a = xs() & 1023;
+    place(i, x + COS[a], y + SIN[a]);
+  }
+
+  const CAPS = [2, 4, 7, 11, 17, 26, 40, 60, 90, 140];
+  let wi = 0;   // round-robin cursor, so the event cap is honoured walker by walker
+  function grow(cap, budgetMs) {
+    const t0 = performance.now(), e0 = events;
+    let steps = 0;
+    while (events - e0 < cap && !complete) {
+      stepWalker(wi); if (++wi >= NW) wi = 0;
+      if ((++steps & 4095) === 0 && performance.now() - t0 > budgetMs) break;
+    }
+  }
+
+  /* ================= drawing ================= */
+  const DS = 2.4, GR = 2.8;
+  function drawParticle(px, py, u) {
+    const b = u >> 2, sx = px * CELL, sy = py * CELL;
+    fctx.drawImage(DOT[b], sx - DS / 2, sy - DS / 2, DS, DS);
+    gctx.drawImage(GLW[b], sx * GS - GR, sy * GS - GR, GR * 2, GR * 2);
+  }
+  function drawBaseline() {
+    if (!baseLine) return;
+    const y = (gh - 0.5) * CELL;
+    const st = PALS[palKey].stops;
+    const lg = fctx.createLinearGradient(0, 0, W, 0);
+    lg.addColorStop(0, 'rgba(' + st[0].join(',') + ',0.15)');
+    lg.addColorStop(0.5, 'rgba(' + st[0].join(',') + ',0.85)');
+    lg.addColorStop(1, 'rgba(' + st[0].join(',') + ',0.15)');
+    fctx.fillStyle = lg; fctx.fillRect(0, y - 1, W, 2);
+    gctx.save(); gctx.globalAlpha = 1;
+    gctx.fillStyle = 'rgba(' + st[1].join(',') + ',0.4)';
+    gctx.fillRect(0, y * GS - 2, W * GS, 4);
+    gctx.restore();
+  }
+  function clearLayers() {
+    fctx.save(); fctx.setTransform(1, 0, 0, 1, 0, 0); fctx.clearRect(0, 0, frostC.width, frostC.height); fctx.restore();
+    gctx.save(); gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.clearRect(0, 0, glowC.width, glowC.height); gctx.restore();
+  }
+  function redrawAll() {
+    clearLayers(); drawBaseline();
+    for (let k = 0; k < count; k++) drawParticle(listPX[k], listPY[k], listU[k]);
+  }
+
+  function paintBackground() {
+    bctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const c = seedCentre();
+    const cx = (c.x + 0.5) * CELL, cy = mode === 'line' ? H * 1.05 : (c.y + 0.5) * CELL;
+    const R = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy));
+    const rg = bctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+    rg.addColorStop(0, '#0b1d3a'); rg.addColorStop(0.45, '#061330'); rg.addColorStop(1, '#020617');
+    bctx.fillStyle = rg; bctx.fillRect(0, 0, W, H);
+    const lg = bctx.createLinearGradient(0, 0, 0, H);
+    lg.addColorStop(0, 'rgba(2,6,23,0.5)'); lg.addColorStop(0.45, 'rgba(2,6,23,0)'); lg.addColorStop(1, 'rgba(11,29,58,0.3)');
+    bctx.fillStyle = lg; bctx.fillRect(0, 0, W, H);
+    // faint frosted-glass grain
+    const n = document.createElement('canvas'); n.width = 180; n.height = 180;
+    const ng = n.getContext('2d'); const im = ng.createImageData(180, 180);
+    for (let k = 0; k < im.data.length; k += 4) { const v = xs() & 255; im.data[k] = 190; im.data[k + 1] = 225; im.data[k + 2] = 255; im.data[k + 3] = v < 18 ? 14 : v < 56 ? 6 : 0; }
+    ng.putImageData(im, 0, 0);
+    bctx.fillStyle = bctx.createPattern(n, 'repeat'); bctx.fillRect(0, 0, W, H);
+  }
+
+  const ripples = [];
+  const GL_N = 10;
+  const glX = new Float32Array(GL_N), glY = new Float32Array(GL_N), glT = new Float32Array(GL_N).fill(-9);
+  let glHead = 0, glAcc = 0;
+  function drawLive(dt) {
+    lctx.setTransform(1, 0, 0, 1, 0, 0);
+    lctx.clearRect(0, 0, liveC.width, liveC.height);
+    lctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (!reduce && !paused && !complete) {
+      lctx.fillStyle = 'rgba(224,247,255,0.3)';
+      lctx.beginPath();
+      if (mode === 'snow') {
+        for (const F of flakes) {
+          if (F.done) continue;
+          for (let i = 0; i < FW; i++) {
+            if (!F.wa[i]) continue;
+            const q = F.wq[i], r = F.wr[i];
+            lctx.rect(F.cx + (q + r * 0.5) * F.a - 0.6, F.cy + r * R3 * F.a - 0.6, 1.2, 1.2);
+          }
+        }
+      } else {
+        for (let i = 0; i < NW; i++) { if (!wa[i]) continue; lctx.rect(wx[i] * CELL - 0.6, wy[i] * CELL - 0.6, 1.2, 1.2); }
+      }
+      lctx.fill();
+    }
+    lctx.globalCompositeOperation = 'lighter';
+    // the growth front flashes as each walker freezes
+    for (let k = 0; k < SPARK_N; k++) {
+      const age = nowT - spT[k];
+      if (age < 0 || age > 0.9) continue;
+      const a = 1 - age / 0.9, px = spX[k] * CELL, py = spY[k] * CELL, r = 2 + 8 * a;
+      lctx.globalAlpha = a * 0.85;
+      lctx.drawImage(GLW[spU[k] >> 2], px - r, py - r, r * 2, r * 2);
+      lctx.drawImage(DOT[0], px - 1.7, py - 1.7, 3.4, 3.4);
+    }
+    // occasional glints across the finished ice
+    if (!reduce && count > 40) {
+      glAcc += dt * (complete ? 5 : 2.5);
+      while (glAcc > 1) { glAcc -= 1; const k = xs() % count; glX[glHead] = listPX[k]; glY[glHead] = listPY[k]; glT[glHead] = nowT; glHead = (glHead + 1) % GL_N; }
+      lctx.strokeStyle = '#ffffff'; lctx.lineWidth = 0.8;
+      for (let k = 0; k < GL_N; k++) {
+        const age = nowT - glT[k]; if (age < 0 || age > 1.1) continue;
+        const a = Math.sin(age / 1.1 * Math.PI), px = glX[k] * CELL, py = glY[k] * CELL, L = 2 + 7 * a;
+        lctx.globalAlpha = a * 0.8;
+        lctx.beginPath(); lctx.moveTo(px - L, py); lctx.lineTo(px + L, py); lctx.moveTo(px, py - L); lctx.lineTo(px, py + L); lctx.stroke();
+        lctx.globalAlpha = a * 0.5; lctx.drawImage(GLW[0], px - 6, py - 6, 12, 12);
+      }
+    }
+    for (const rp of ripples) {
+      const a = 1 - rp.t / 1.2; if (a <= 0) continue;
+      lctx.globalAlpha = a * 0.7; lctx.strokeStyle = '#e0f7ff'; lctx.lineWidth = 1;
+      lctx.beginPath(); lctx.arc(rp.x, rp.y, 4 + rp.t * 46, 0, Math.PI * 2); lctx.stroke();
+    }
+    lctx.globalAlpha = 1; lctx.globalCompositeOperation = 'source-over';
+  }
+
+  /* ================= layout ================= */
+  function seedCentre() {
+    const wide = window.innerWidth > 900;
+    if (wide) {
+      const usable = Math.max(W - 360, W * 0.55);
+      return { x: Math.floor(usable / 2 / CELL), y: Math.floor((H / 2 + 18) / CELL) };
+    }
+    const top = reserveTop * CELL;
+    return { x: Math.floor(W / 2 / CELL), y: Math.floor((top + H) / 2 / CELL) };
+  }
+  function measureReserve() {
+    const wide = window.innerWidth > 900;
+    const tb = titleEl.offsetTop + titleEl.offsetHeight;
+    reserveTop = wide ? 0 : Math.ceil((tb + 10) / CELL);
+    lineStop = Math.ceil((tb + 24) / CELL);
+  }
+
+  function sizeCanvases() {
+    const r = pane.getBoundingClientRect();
+    W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    for (const c of [bgC, frostC, liveC]) { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); }
+    glowC.width = Math.max(1, Math.round(W * GS)); glowC.height = Math.max(1, Math.round(H * GS));
+    fctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.globalCompositeOperation = 'lighter'; gctx.globalAlpha = 0.12;
+    const n = W < 700 ? 260 : 400;
+    if (n !== NW) allocWalkers(n);
+    measureReserve();
+  }
+
+  function start(newMode) {
+    mode = newMode;
+    seeds = []; active = []; flakes = []; activeF = []; events = 0; elapsed = 0; complete = false; baseLine = false;
+    alloc(Math.ceil(W / CELL), Math.ceil(H / CELL));
+    paintBackground();
+    clearLayers();
+    const c = seedCentre();
+    if (mode === 'line') addLineSeed();
+    else if (mode === 'snow') flakes.push(makeFlake((c.x + 0.5) * CELL, (c.y + 0.5) * CELL));
+    else addPointSeed(c.x, c.y, 'point');
+    refreshActive();
+    wa.fill(0);
+    redrawAll();
+    // a head start, scaled to the pane, so the very first frame already shows delicate frost
+    if (mode === 'snow') growSnow(Math.round(flakes[0].Rmax * 1.5), 220);
+    else if (mode === 'line') grow(Math.round(3200 * gw / 720), 240);
+    else grow(Math.round(0.3 * Math.pow(seeds[0].limit, 1.7)), 220);
+    for (let k = 0; k < SPARK_N; k++) spT[k] = -9;
+    for (const b of document.querySelectorAll('.modes button')) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+    for (const b of document.querySelectorAll('.pals button')) b.setAttribute('aria-pressed', String(b.dataset.pal === palKey));
+    setState(); updateStats(true);
+    $('modeName').textContent = mode === 'point' ? 'point seed' : mode === 'line' ? 'line seed' : 'six-fold snow';
+  }
+
+  // small resizes keep the grown ice and re-centre it; big ones (rotating a phone) start fresh
+  function remap(ogw, ogh) {
+    if (mode === 'snow') {
+      // flakes keep their own lattices; just slide everything to the new centre
+      const c = seedCentre(), F0 = flakes[0];
+      const dxp = F0 ? (c.x + 0.5) * CELL - F0.cx : 0, dyp = F0 ? (c.y + 0.5) * CELL - F0.cy : 0;
+      for (const F of flakes) { F.cx += dxp; F.cy += dyp; }
+      for (let k = 0; k < count; k++) { listPX[k] += dxp / CELL; listPY[k] += dyp / CELL; }
+      gw = Math.ceil(W / CELL); gh = Math.ceil(H / CELL);
+      paintBackground(); redrawAll();
+      return;
+    }
+    const oPX = listPX, oPY = listPY, oU = listU, oCount = count, oSeeds = seeds;
+    const oldOwnerOf = [];
+    for (let k = 0; k < oCount; k++) { const cx = Math.floor(oPX[k]), cy = Math.floor(oPY[k]); oldOwnerOf.push(owner[cy * ogw + cx]); }
+    const nw = Math.ceil(W / CELL), nh = Math.ceil(H / CELL);
+    const hadCentre = oSeeds.length && oSeeds[0].kind !== 'line';
+    const oc = hadCentre ? { x: oSeeds[0].x, y: oSeeds[0].y } : null;
+    alloc(nw, nh);
+    const nc = seedCentre();
+    const dx = hadCentre ? nc.x - oc.x : Math.round((nw - ogw) / 2);
+    const dy = hadCentre ? nc.y - oc.y : nh - ogh;
+    seeds = oSeeds.map(S => S.kind === 'line'
+      ? { x: 0, y: nh - 1, fx: 0, fy: nh - 1, kind: 'line', r: 0, limit: nh, done: false }
+      : { x: S.x + dx, y: S.y + dy, fx: S.fx + dx, fy: S.fy + dy, kind: S.kind, r: 0, limit: 0, done: false });
+    baseLine = false;
+    seeds.forEach((S, k) => {
+      if (S.kind === 'line') { for (let x = 0; x < gw; x++) markCell(x, gh - 1, k); baseLine = true; topY = gh - 1; }
+      else S.limit = Math.max(6, edgeLimit(S));
+    });
+    for (let k = 0; k < oCount; k++) {
+      const px = oPX[k] + dx, py = oPY[k] + dy;
+      stickCell(Math.floor(px), Math.floor(py), oldOwnerOf[k], oU[k], px, py, false);
+    }
+    seeds.forEach(S => { if (S.kind !== 'line' && (S.x < 0 || S.y < 0 || S.x >= gw || S.y >= gh)) S.done = true; });
+    wa.fill(0);
+    paintBackground(); redrawAll();
+    complete = false; refreshActive();
+  }
+
+  let resizeT = 0, sized = false;
+  function onResize() {
+    const r = pane.getBoundingClientRect();
+    if (sized && Math.round(r.width) === W && Math.round(r.height) === H) return;
+    const ogw = gw, ogh = gh;
+    sizeCanvases();
+    if (!sized) { sized = true; start(mode); return; }
+    const nw = Math.ceil(W / CELL), nh = Math.ceil(H / CELL);
+    if (Math.abs(nw - ogw) > ogw * 0.25 || Math.abs(nh - ogh) > ogh * 0.25) start(mode);
+    else remap(ogw, ogh);
+  }
+
+  /* ================= UI ================= */
+  const sCount = $('sCount'), sTime = $('sTime'), sWalk = $('sWalk'), sGrown = $('sGrown');
+  let statT = -1;
+  function fmtN(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+  function updateStats(force) {
+    if (!force && nowT - statT < 0.1) return; statT = nowT;
+    sCount.textContent = fmtN(count);
+    const m = Math.floor(elapsed / 60), s = elapsed - m * 60;
+    sTime.textContent = String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0');
+    let w = 0;
+    if (!complete && !paused) {
+      if (mode === 'snow') { for (const F of flakes) if (!F.done) for (let i = 0; i < FW; i++) w += F.wa[i]; }
+      else for (let i = 0; i < NW; i++) w += wa[i];
+    }
+    sWalk.textContent = String(w);
+    let g = 0;
+    for (const F of flakes) { const v = F.r / Math.max(1, F.Rmax - 2); if (v > g) g = v; }
+    for (const S of seeds) {
+      const v = S.kind === 'line' ? (gh - 1 - topY) / Math.max(1, gh - 1 - lineStop) : S.r / Math.max(1, S.limit - 2);
+      if (v > g) g = v;
+    }
+    sGrown.textContent = Math.min(100, Math.round(g * 100)) + '%';
+  }
+  function setState() {
+    const el = $('stateTxt');
+    el.textContent = complete ? 'complete' : paused ? 'paused' : 'growing';
+    el.classList.toggle('idle', complete || paused);
+  }
+  let toastT = 0;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3000);
+  }
+
+  function setMode(m) {
+    for (const b of document.querySelectorAll('.modes button')) b.setAttribute('aria-pressed', String(b.dataset.mode === m));
+    start(m);
+  }
+  function setPal(k) {
+    palKey = k;
+    for (const b of document.querySelectorAll('.pals button')) b.setAttribute('aria-pressed', String(b.dataset.pal === k));
+    buildSprites(); redrawAll();
+  }
+  function setPaused(v) {
+    paused = v;
+    $('icoPause').style.display = v ? 'none' : '';
+    $('icoPlay').style.display = v ? '' : 'none';
+    $('lPause').textContent = v ? 'Grow' : 'Pause';
+    $('bPause').setAttribute('aria-label', v ? 'Resume growth' : 'Pause growth');
+    setState();
+  }
+  function save() {
+    try {
+      const ex = document.createElement('canvas'); ex.width = frostC.width; ex.height = frostC.height;
+      const e = ex.getContext('2d');
+      e.drawImage(bgC, 0, 0);
+      e.globalCompositeOperation = 'screen'; e.imageSmoothingEnabled = true;
+      e.drawImage(glowC, 0, 0, ex.width, ex.height);
+      e.globalCompositeOperation = 'source-over';
+      e.drawImage(frostC, 0, 0);
+      e.setTransform(DPR, 0, 0, DPR, 0, 0);
+      e.font = '300 11px ' + getComputedStyle(document.body).fontFamily;
+      e.fillStyle = 'rgba(224,247,255,0.6)';
+      e.fillText('F R O S T   G A R D E N   ·   ' + fmtN(count) + ' particles   ·   ' + PALS[palKey].name.toLowerCase(), 22, H - 22);
+      const fname = 'frost-garden-' + mode + '-' + count + '.png';
+      ex.toBlob(b => {
+        if (!b) { toast('Could not export this frame'); return; }
+        const makeObj = window.URL.createObjectURL.bind(window.URL);
+        const u = makeObj(b);
+        const a = document.createElement('a'); a.href = u; a.download = fname;
+        document.body.appendChild(a); a.click(); a.remove();
+        const dropObj = window.URL.revokeObjectURL.bind(window.URL);
+        setTimeout(() => dropObj(u), 2000);
+        toast('Saved ' + fname);
+      }, 'image/png');
+    } catch (err) { toast('Could not export this frame'); }
+  }
+
+  const stickIn = $('stick'), speedIn = $('speed');
+  function readStick() { stick = (+stickIn.value) / 100; $('stickOut').textContent = stick.toFixed(2); }
+  function readSpeed() { speedLvl = +speedIn.value; $('speedOut').textContent = String(speedLvl); }
+  stickIn.addEventListener('input', readStick);
+  speedIn.addEventListener('input', readSpeed);
+  for (const b of document.querySelectorAll('.modes button')) b.addEventListener('click', () => setMode(b.dataset.mode));
+  for (const b of document.querySelectorAll('.pals button')) b.addEventListener('click', () => setPal(b.dataset.pal));
+  $('bPause').addEventListener('click', () => setPaused(!paused));
+  $('bClear').addEventListener('click', () => start(mode));
+  $('bSave').addEventListener('click', save);
+
+  liveC.addEventListener('pointerdown', e => {
+    const r = liveC.getBoundingClientRect();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    const ok = mode === 'snow' ? addFlake(px, py) : addPointSeed(Math.floor(px / CELL), Math.floor(py / CELL), 'point') >= 0;
+    if (ok) { ripples.push({ x: px, y: py, t: 0 }); if (paused) setPaused(false); }
+    else if (mode === 'snow') toast('Too close to the frame, or the pane holds ten flakes already');
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT') return;
+    switch (e.key) {
+      case ' ': if (tag === 'BUTTON') return; e.preventDefault(); setPaused(!paused); break;
+      case '1': setMode('point'); break;
+      case '2': setMode('line'); break;
+      case '3': setMode('snow'); break;
+      case 'p': case 'P': { const ks = Object.keys(PALS); setPal(ks[(ks.indexOf(palKey) + 1) % ks.length]); break; }
+      case 'c': case 'C': start(mode); break;
+      case 's': case 'S': save(); break;
+      default: return;
+    }
+  });
+
+  /* ================= loop ================= */
+  let last = performance.now(), raf = 0;
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    let dt = (now - last) / 1000; last = now;
+    if (!(dt > 0)) dt = 0; if (dt > 0.1) dt = 0.1;
+    nowT += dt;
+    if (!paused && !complete) {
+      const cap = Math.max(1, Math.round(CAPS[speedLvl - 1] * (mode === 'snow' ? 0.12 : mode === 'line' ? 1.5 : 1) * (reduce ? 0.5 : 1)));
+      if (mode === 'snow') growSnow(cap, 9); else grow(cap, 9);
+      elapsed += dt;
+    }
+    for (let k = ripples.length - 1; k >= 0; k--) { ripples[k].t += dt; if (ripples[k].t > 1.2) ripples.splice(k, 1); }
+    drawLive(dt);
+    updateStats(false);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+    else if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  });
+
+  const queueResize = () => { clearTimeout(resizeT); resizeT = setTimeout(onResize, 60); };
+  window.addEventListener('resize', queueResize);
+  if (window.ResizeObserver) new ResizeObserver(queueResize).observe(pane);
+
+  if (reduce) speedIn.value = '3';
+  readStick(); readSpeed(); buildSprites();
+  onResize();
+  raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

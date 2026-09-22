@@ -1,0 +1,41 @@
+TITLE: Harmonia — Pendulum Wave
+FILE: 017-pendulum-wave.html
+
+=== PROMPT (exact prompt used) ===
+Create "Harmonia — Pendulum Wave", a physically accurate pendulum-wave simulation as minimalist kinetic art. Charcoal background (#16171b); 18 pendulums whose lengths are chosen so they complete 51, 52, 53… oscillations in 60 seconds (the classic pendulum-wave set-up), rendered from a slightly elevated 3D perspective with fine white strings and glowing spheres in a gradient spectrum from #ffd6a5 to #9bf6ff, plus optional light trails that paint Lissajous-like ribbons. A thin brushed-metal mounting bar at the top. Beneath, an elegant monospace readout: elapsed time, cycle phase, and a timeline scrubber showing where you are in the 60-second pattern (snake, split, chaos, realignment). Controls: play/pause, speed (0.25×–4×), trails toggle, view toggle (side / top-down), and "Release", which pulls every pendulum back and lets them drop. Optional soft chime whenever a pendulum crosses centre (Web Audio pentatonic, after a gesture, muted by default). Typography: thin sans plus mono.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Harmonia presents the classic pendulum-wave apparatus as a quiet piece of kinetic art on a charcoal (#16171b) stage. Eighteen bifilar pendulums (each bob hangs from two fine white strings in a V, so it swings in a single plane) hang from a brushed-metal bar seen in a slightly elevated three-quarter perspective. Their lengths come from L = g(T/2π)² so that they complete exactly 51, 52 … 68 oscillations in 60 seconds (34.4 cm down to 19.3 cm). Every bob starts from the same 5.5 cm throw and follows the exact small-angle solution, so the snake, the two-, three- and four-row splits, the chaos and the realignment at 60 s all come out of the physics rather than from choreography. The glowing spheres run through a spectrum from peach #ffd6a5 to ice #9bf6ff, and optional light trails sweep out translucent silk ribbons as the wave line moves through space. Beneath the stage, a monospace instrument console shows elapsed time, cycle phase, the named pattern, the neighbour phase offset, an orrery-like phase dial, and a scrubbable 60-second timeline marked with the pattern regions and the ¼ ⅓ ½ ⅔ ¾ split points.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Hand-rolled 3D camera (yaw/pitch/perspective) projecting world-space metres onto a DPR-aware canvas, with an auto-fit step that frames the apparatus for any viewport and moves the masthead clear of it
+- Closed-form small-angle solution θ(t) = θ₀·cos(ωt) with lengths from L = g(T/2π)², so the 60 s realignment is exact and every past instant can be evaluated directly
+- Light-trail ribbons: the wave curve through all 18 bobs is re-evaluated at 58 past instants and stroked additively with a single peach→mint→ice gradient, fading quadratically with age, so the trails appear instantly even after scrubbing
+- Brushed-metal bar built from back-face-culled box faces; the long faces use an offscreen streak texture mapped onto each projected face with an affine pattern transform, plus shading gradients, a machined edge highlight and an anisotropic sheen that slides as the camera orbits
+- Pre-rendered sphere and glow sprites per pendulum (additive glow whose intensity follows each bob's speed |sin ωt|), depth-sorted every frame
+- Soft light pools projected onto an implied floor plane beneath each bob, and ceiling cables that fade away with height and with camera pitch
+- Phase dial: 18 concentric orbits with one dot per pendulum at phase ωt, joined by a hairline so the fan, spiral and split patterns are legible at a glance
+- Timeline built from CSS bands (gradient snake, solid split, hatched chaos, white realignment) with a masked tick ruler and a glowing playhead
+- Smooth camera easing between the elevated side view and a true top-down view; in portrait the top view turns the bar vertical to fit the phone
+
+=== INTERACTION MODEL ===
+- Play/Pause, speed selector (0.25×–4× in eight steps), Trails toggle, View toggle (Side / Top) and Chime toggle, all as labelled buttons with pressed states and visible focus rings
+- Release: a translucent release board sweeps in and gathers every bob to the same 5.5 cm throw with a slight stagger, holds, then drops them all together at t = 0
+- Timeline scrubber (pointer drag or keyboard: arrows ±0.5 s, Page Up/Down ±5 s, Home/End) jumps anywhere in the 60 s pattern, trails included
+- Drag the stage to orbit the camera (horizontal drag only on touch, so the page still scrolls); double-click resets the angle
+- Hover (or tap) a sphere to highlight it and read its swing count, period, length and live angle in a tooltip
+- Optional chime: after a user gesture, each pendulum plays its own major-pentatonic bell tone (sine plus an inharmonic partial, panned by position, through a soft delay) when it crosses centre; muted by default and rate-limited
+- Keyboard shortcuts: Space play/pause, R release, T trails, V view, C chime, ←/→ scrub, [ ] speed
+- prefers-reduced-motion starts at half speed with trails off and camera moves become instant; animation stops while the tab is hidden

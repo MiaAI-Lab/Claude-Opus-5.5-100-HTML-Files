@@ -1,0 +1,36 @@
+TITLE: Four Seasons — A Fractal Tree
+FILE: 078-fractal-tree-seasons.html
+
+=== PROMPT (exact prompt used) ===
+Create "Four Seasons — A Fractal Tree", a generative tree swaying in the wind whose appearance follows a seasons slider. Trunk and branches are grown recursively (randomised angles, tapering widths, gentle curvature) and drawn on canvas with bark colouring; noise-driven wind bends branches in proportion to their depth. Seasons: Spring (pale blossoms #ffc8dd and fresh green buds), Summer (a lush green canopy #52b788 with dappled light), Autumn (leaves turning #e76f51, #f4a261, #e9c46a and falling with tumbling physics to pile on the ground) and Winter (bare branches, snow accumulating on limbs, snowfall). Sky and ground transition smoothly with the season. Interaction: drag the slider (or press "Play the year" for a 60-second cycle); click the tree to shake it (leaves or snow fall); "New seed" grows a new tree with a growth animation. Typography: a gentle serif title with month names around a small circular season dial.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Four Seasons is a quiet, painterly landscape with one generative tree standing on a gentle rise, rolling hills dotted with small trees behind it, and a sky, a sun and drifting clouds that all follow the time of year. The tree is grown recursively from a seed and sways in a gusty, noise-driven wind, with the thinnest twigs bending the most. Scrub through the year and it changes: fresh green buds and pale pink blossom in spring, a dense summer canopy with dappled light on the grass, leaves turning red, orange and gold in autumn before tumbling down into a pile around the trunk, and bare winter limbs gathering snow while flakes fall across a white meadow. A gentle italic serif title sits top-left; top-right, a small circular dial with the twelve months set around its rim, coloured season arcs, a leaf-tipped hand, a dot for today's date and a season glyph at its centre. The page opens on today's date in the northern hemisphere.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Breadth-first recursive branch generation (seeded PRNG) with random 2- or 3-way forks, tapering widths, per-branch curvature, phototropism for the young limbs and outward droop for the outer ones; the crown is measured and scaled to fit landscape or portrait screens
+- Per-frame hierarchical layout, so wind sway accumulates down the tree in proportion to depth, plus a fast damped oscillation when the tree is shaken; grows in on load and on "New seed" with a depth-staggered growth animation
+- Trunk and major limbs drawn as filled, tapered quadratic ribbons with a flared root base and a sun-side bark highlight; finer branches batched into one stroked path per depth
+- Thousands of leaves drawn as rotated ellipses, batched by quantised colour (spring tint, summer greens, autumn blend) so each colour is a single fill; a soft foliage mass gives the crown volume, and sun-lit leaves flicker to suggest dappled light
+- Deterministic calendar model: each leaf has its own bud, turn and fall dates and each blossom its own petal-drop date, so scrubbing backwards or forwards is always consistent; forward motion releases real falling particles
+- Tumbling leaf, petal and snow-clump physics (drag, terminal velocity, wind drift and flip), a seeded leaf pile that grows through autumn and browns under snow, snow drawn along the upper side of limbs in proportion to how horizontal they are, and snowfall
+- Seasonal palettes interpolated cyclically for sky, sun, clouds, hills, meadow and bark; distant trees change with the season; grass strokes, a canopy shadow and sunflecks; feTurbulence paper grain and a vignette overlay
+
+=== INTERACTION MODEL ===
+- Drag the gradient "Time of year" slider (keyboard accessible, with a readable value such as "Late September · Autumn") or drag around the season dial to scrub the calendar
+- "Play the year" runs a full 60-second cycle and becomes Pause (P key); the dial hand, month highlight, season glyph and label all follow along
+- Click or tap the tree (or focus it and press Enter or Space) to shake it: petals drift in spring, a few leaves fall in summer, leaves shower down in autumn, and snow tumbles off the branches in winter before slowly building up again
+- "New seed" (N key) grows a completely new tree with a growth animation and a new leaf pile
+- A live region announces season changes and actions; prefers-reduced-motion calms the wind, growth and particle speeds; the loop pauses while the tab is hidden and everything re-lays out on resize

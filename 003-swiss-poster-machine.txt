@@ -1,0 +1,39 @@
+TITLE: Raster — Swiss Poster Machine
+FILE: 003-swiss-poster-machine.html
+
+=== PROMPT (exact prompt used) ===
+Build "RASTER — Swiss Poster Machine", an homage to the International Typographic Style. The page is a single poster on an off-white (#f2efe8) sheet set on a strict 12-column modular grid (revealable with the G key or a toggle that shows hairline cyan grid lines). Palette strictly signal red #e30613, black #111 and white. A heavy grotesque sans stack ("Helvetica Neue", Helvetica, Arial, "Nimbus Sans", sans-serif) used with extreme scale contrast: a giant numeral or word, small flush-left body text, rotated captions. Geometric elements (circles, bars, quarter-arcs) occupy grid cells. Every click (or Space) recomposes the poster from a new seed — elements slide and rotate to new cells with crisp eased FLIP-style transitions, never overlapping text illegibly. Show the seed as an edition mark ("No. 0417"). A small control strip: previous/next composition, grid toggle, invert (black ground). It must look like a museum-quality, Müller-Brockmann-inspired print at any viewport, reflowing the grid for portrait phones.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+RASTER is a poster machine that sets one Weltformat-style sheet on off-white paper (#f2efe8) using only signal red #e30613, black #111 and white. The sheet is built on a live modular grid: 12 columns in landscape and 6 columns on portrait phones, with rows derived so that modules stay nearly square. Every composition comes from a four-digit edition number that doubles as the seed. It picks a zone split, where the display type sits beside or above a column of small type, and one of seven motifs: Zahl (a numeral as tall as the zone with an overprinted red sun), Drei Sprachen (one word stacked in German, French and Italian), Bogen (concentric quarter arcs in the manner of the Beethoven posters), Kreis (disc, moon and a word across the base), Takt (a time signature above bars), Senkrecht (a word climbing a strip beside a halftone field of dots) and Diagonale (a band of rotated bars). Small type is set flush left with its cap height hung from the grid line. It includes a bilingual headline, a red date (sometimes knocked out of a red panel), ragged body columns, an edition mark ("No. 0417") and a rotated imprint caption that says the programme is fictional.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Grid geometry is computed at runtime (margin, gutter, column and row modules), and every element is placed in module units. The layout reflows from 12 to 6 columns for portrait phones.
+- Giant type is fitted and aligned by its real ink bounds, measured with canvas actualBoundingBox and fontBoundingBox metrics. A numeral sits exactly on the grid line even when it is rotated −90°.
+- Shapes and display type use mix-blend-mode: multiply, like overprinting. Red under black stays black, and red over red deepens into a darker red ring. Invert mode switches to screen blending on a black ground.
+- The geometry is pure CSS. Discs and rings use border-radius. Quarter discs and quarter rings use a single rounded corner with only the top and left borders. Bars are plain divs rotated about their centre.
+- A hand-written tween engine (requestAnimationFrame and transform-only writes) animates a pool of about 95 persistent elements. Shapes slide, rescale and turn by the shortest angle to their new cells. Text whose content changes leaves a fading ghost behind and wipes in with an animated clip-path polygon. Interrupted animations resume from their current visual state.
+- The seeded PRNG is mulberry-style. Dates are real calendar dates in 2027, with the weekday computed, so every sheet is internally consistent.
+- The construction grid overlay uses cyan hairline column bands and row bands that draw in with staggered scale transitions. It also shows column numbers and row letters, crop marks, a spec line (modules, gutter, margin) and a live crosshair that reads out "COL 7 · ROW C".
+- A paper tooth is a noise tile generated once and repeated across a DPR-aware canvas with a multiply blend.
+- The edition counter in the control strip is a four-digit mechanical odometer with rolling digit columns.
+
+=== INTERACTION MODEL ===
+- Clicking or tapping the sheet, or pressing Space, Enter or →, moves to the next edition. ← or Shift+Space goes back, and R jumps to a random edition. Each change recomposes with eased slide, turn and wipe transitions.
+- The G key or the Grid button toggles the cyan construction grid. While it is shown, the pointer drives a crosshair with a column and row readout.
+- The I key or the Invert button switches to a black ground. Colours cross-fade and the blend modes flip.
+- The control strip holds previous and next buttons, the odometer edition number and the toggle buttons, with aria-pressed state. Focus-visible rings are red.
+- The edition is written to the URL hash (#0417) so a sheet can be revisited. The last edition and the grid and invert preferences are kept in guarded localStorage.
+- Resizing re-lays the grid instantly, including phone portrait reflow. Reduced-motion users get instant recomposition. A polite live region announces each new edition, its motif and its word. The print stylesheet prints the bare poster.

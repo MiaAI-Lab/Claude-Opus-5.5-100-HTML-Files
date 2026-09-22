@@ -1,0 +1,36 @@
+TITLE: Grandmaster's Study
+FILE: 070-chess-study.html
+
+=== PROMPT (exact prompt used) ===
+Create "Grandmaster's Study", an elegant, playable two-player chess board (local hot-seat). A luxurious board of maple (#e8d0aa) and walnut (#8a5a3b) squares with subtle wood-grain gradients, a lacquered frame with brass corner fittings, and file/rank coordinates engraved in serif. Pieces drawn in SVG as original Staunton-inspired silhouettes — ivory (#f7f0e1, warm shading) and ebony (#1e1b18, soft highlights). Full legal chess rules: legal move generation with check detection, castling, en passant, promotion (with a chooser), and checkmate/stalemate detection. UX: click or drag pieces; legal moves shown as subtle dots/rings; last move highlighted; check shown as a red glow on the king; a move list in algebraic notation in a side panel styled like a score sheet; a captured-pieces tray; undo; flip board; new game. Smooth gliding piece animations and a soft synthesized "clack" on each move (toggle). Responsive: the board fits the width on phones with the panel below. Typography: a classic serif.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Grandmaster's Study is a complete two-player (hot-seat) chess game staged like a fine board on a green leather desk under a warm lamp. The board alternates maple (#e8d0aa) and walnut (#8a5a3b) squares with real-looking grain: maple runs horizontally and walnut vertically, as on a hand-made board. It sits in a deep red-brown lacquered frame with a gloss highlight, a thin brass inlay, gold-filled engraved serif coordinates on all four sides and four screwed brass corner fittings. The pieces are original Staunton-inspired SVG silhouettes in warm ivory (#f7f0e1) and ebony (#1e1b18), lit from the upper left with highlights, detail lines and soft cast shadows. Beside the board, a classic serif panel carries the title, a status plate, brass control buttons, a green-baize tray of captured pieces with the material balance, and a cream score sheet with a red margin, blue ruled lines, editable player names and moves in algebraic notation. On phones the board fills the width and the panel stacks below.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Wood grain from two inline-SVG feTurbulence filters (horizontal and vertical fractal noise) blended with multiply and split between light and dark squares by a conic-gradient checkerboard mask; per-square tonal variation from seeded gradient angles; an overall board sheen.
+- A lacquer frame built from layered gradients and inset shadows, with an inner brass fillet (stacked box-shadows), gold-filled engraved coordinates (text-shadow bevel) and reusable brass corner symbols with bevel gradients and slotted screws.
+- Piece symbols (<symbol> + <use>) filled by per-side linear gradients; highlight and detail strokes read CSS custom properties through the use shadow tree, so one drawing serves both ivory and ebony.
+- Pieces glide on transform transitions; the selected piece lifts; dragged pieces scale up with a deeper shadow; captured pieces shrink and fade; pieces drop in with a staggered entrance at the start of each game.
+- Legal targets shown as soft dots, and capture targets as rings; the last move is tinted amber; check is a red radial glow under the king.
+- Brass buttons with bevels and a pressed state; a paper score sheet built from gradients (margin rule, ruled lines, vignette) with a highlighter mark on the current move; a baize tray with an inset shadow; a fixed double gold tooling line around the viewport and a feTurbulence leather texture.
+
+=== INTERACTION MODEL ===
+- Full legal chess: move generation with check detection, castling (with through-check rules), en passant, promotion with an on-board chooser (queen, rook, bishop, knight; Esc cancels), checkmate and stalemate, plus draws by the fifty-move rule, insufficient material and threefold repetition. Move generation was verified with perft against standard test positions.
+- Click a piece then a target, or drag and drop it; an illegal drop glides back. Clicking a selected piece deselects it.
+- Keyboard: every square is a focusable button with a descriptive label; arrow keys move between squares, Enter or Space selects and moves, U undoes and F flips. Moves are announced in a live region in spoken form ("knight takes e5, check").
+- Undo takes back one move at a time (pieces glide back and captured pieces reappear); Flip turns the board with a quick crossfade and re-engraves the coordinates; New game asks for a second click to confirm mid-game, then pieces drop back in.
+- Synthesized wooden "clack" for each move (filtered noise plus a body thump), a heavier double knock for captures, two knocks for castling, a soft bell on check and a lower bell at checkmate or a draw. It starts on the first interaction and has a Sound toggle.
+- Player names typed on the score sheet are used in the status line; with prefers-reduced-motion, glides and entrance animations are turned off.

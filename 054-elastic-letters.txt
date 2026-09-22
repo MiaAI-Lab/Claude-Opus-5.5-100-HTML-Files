@@ -1,0 +1,40 @@
+TITLE: ELASTIC — Letterforms on Springs
+FILE: 054-elastic-letters.html
+
+=== PROMPT (exact prompt used) ===
+Build "ELASTIC — Letterforms on Springs", an experimental typography playground. A giant word (default "BOUNCE", editable via an input) is converted into points sampled from its glyphs (draw the text on an offscreen canvas and sample filled pixels); each point is tied to its home position by a spring. Render the points as connected dots/filaments forming the letters. The pointer repels (or attracts — toggle) points with a force field; releasing lets them spring back with overshoot and jiggle. Click to explode the word into particles that reassemble. Palette: hot magenta #ff2e88 on deep ink #111018, with cyan #29e7cd on fast-moving points (velocity-coloured). Modes: dots; lines (connecting nearby neighbours); threads (points tied to home with visible springs). Sliders: stiffness, damping, force radius. UI typography in small monospace; the display lettering is generated from the heavy system sans. Responsive: sampling density adapts to screen size for performance.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+ELASTIC is a dark typographic playground in deep ink (#111018), hot magenta (#ff2e88) and cyan (#29e7cd). A giant word, BOUNCE by default and editable in the dock, is drawn in the heaviest system sans on an offscreen canvas and sampled into a hexagonal lattice of roughly 2,500 points, each tied to its home by a damped spring. At rest the letters are magenta dot-matrix glyphs sitting between dashed cap-height and baseline guides, with sidebearing ticks and a per-glyph point count ("B · 477") underneath like a type specimen. As soon as anything moves, velocity turns points cyan, short comet tails form, and a soft CSS-blurred bloom makes the whole word glow. On load the points fly in from a scattered ring, then a ghost pointer combs once through the word to show the spring jiggle before handing control to you. The UI is a restrained monospace dock: word field, render mode, repel/attract, three physics sliders and a magenta Explode button.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Glyph sampling: each character is drawn separately with custom tracking on an offscreen canvas, its alpha is read with getImageData, and a hexagonal grid is sampled; the pitch is solved from the filled area so the point budget adapts to screen size (about 700 to 3,400 points)
+- Portrait screens split the word into two rows so the letters stay large on phones
+- Spring physics in typed arrays (position, velocity and home as Float32Array), two semi-implicit substeps per frame, with stiffness, damping, a quadratic-falloff pointer field and a drag term from the pointer's own velocity
+- A slow travelling "breathing" wave on the home positions keeps the word alive while idle
+- Velocity colouring by counting-sorting points into seven magenta-to-cyan bins, one batched path per bin
+- Lines mode: precomputed hex-lattice neighbour links, binned by stretch and speed, that tear (disappear) past 3.2× their rest length
+- Threads mode: faint home anchors plus zig-zag coil springs drawn from home to point, which turn cyan when strongly stretched
+- Explosion: radial impulses with angular jitter while spring strength drops to zero and then ramps back, so the word reassembles with overshoot
+- A translucent clear gives motion trails; a quarter-resolution copy under CSS blur plus a screen blend gives the bloom; a separate HUD canvas draws the animated force-field ring, direction arrows and label
+- Typographic guides (cap height, baseline, sidebearings, glyph point counts) drawn from real text metrics
+
+=== INTERACTION MODEL ===
+- Hover (mouse) or drag (touch) to push the points; switch the pointer to Attract to pull them instead (key A)
+- Click or tap without dragging to explode the word from that spot; the Explode button (or E / Space) bursts it from the centre
+- Type a new word (up to 10 characters): the points morph from the old word into the new one
+- Render modes Dots, Lines and Threads (keys 1–3); sliders for stiffness, damping and force radius, with live readouts
+- Synthesized Web Audio "boing" on explode and a soft pluck on mode or word changes, created only after a gesture, with a visible Sound/Muted toggle
+- Word, mode, sliders and sound preference are remembered with guarded localStorage; the loop pauses while the tab is hidden; reduced motion skips the intro scatter, ghost pass, trails and breathing

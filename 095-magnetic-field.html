@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lines of Force — Magnetic Field Explorer</title>
+<meta name="description" content="Lines of Force: place, drag, rotate and flip bar and horseshoe magnets on a sheet of paper and see their field as iron filings, traced field lines with arrows, or a heat map of field strength. A compass follows your pointer.">
+<meta name="theme-color" content="#4c5359">
+<style>
+:root{
+  --steel:#6c757d;
+  --steel-2:#565e65;
+  --steel-3:#3f454b;
+  --steel-4:#2c3035;
+  --paper:#f8f6f1;
+  --paper-2:#efece4;
+  --ink:#23262b;
+  --ink-2:#4a4f57;
+  --ink-3:#7b8189;
+  --north:#d62828;
+  --south:#1d4e89;
+  --rule:rgba(35,38,43,.12);
+  --sans:"IBM Plex Sans","Helvetica Neue","Segoe UI",Roboto,"Nimbus Sans",Arial,sans-serif;
+  --mono:"IBM Plex Mono","SF Mono",Menlo,Consolas,"Nimbus Mono PS","DejaVu Sans Mono",monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+html{overflow-x:hidden}
+body{
+  font-family:var(--sans);color:var(--ink);font-size:15px;line-height:1.5;overflow-x:hidden;min-height:100svh;
+  background:
+    radial-gradient(ellipse 70% 60% at 40% 35%,rgba(255,255,255,.14),transparent 70%),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(0deg,rgba(0,0,0,.02) 0 1px,transparent 1px 4px),
+    linear-gradient(160deg,#737c84,#5d656c 55%,#4c5359);
+  background-attachment:fixed;
+}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #f2c14e;outline-offset:2px}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:auto minmax(0,1fr);gap:0 22px;height:100svh;min-height:600px;padding:0 22px 20px}
+
+/* ---------- header ---------- */
+.top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 2px 14px;color:#f3f1ec}
+.brand{display:flex;align-items:center;gap:14px}
+.brand svg{width:40px;height:40px;flex:none}
+.brand h1{margin:0;font-size:1.28rem;font-weight:600;letter-spacing:.02em;line-height:1.1}
+.brand p{margin:2px 0 0;font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(243,241,236,.7)}
+.plate{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;color:rgba(243,241,236,.72);text-transform:uppercase;display:flex;gap:18px}
+.plate b{color:#fff;font-weight:600}
+
+/* ---------- bench + paper ---------- */
+.bench{position:relative;min-height:0;min-width:0;display:flex;flex-direction:column;gap:10px}
+.paper{
+  position:relative;flex:1;min-height:0;border-radius:3px;overflow:hidden;
+  background:
+    repeating-linear-gradient(0deg,rgba(108,117,125,.08) 0 1px,transparent 1px 20px),
+    repeating-linear-gradient(90deg,rgba(108,117,125,.08) 0 1px,transparent 1px 20px),
+    repeating-linear-gradient(0deg,rgba(108,117,125,.035) 0 1px,transparent 1px 4px),
+    repeating-linear-gradient(90deg,rgba(108,117,125,.035) 0 1px,transparent 1px 4px),
+    var(--paper);
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 30px 50px -24px rgba(0,0,0,.6),0 2px 6px rgba(0,0,0,.25);
+}
+.paper::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 90% 80% at 50% 45%,transparent 60%,rgba(120,110,90,.12));}
+.paper canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.layer{opacity:0;transition:opacity .5s ease}
+.layer.on{opacity:1}
+#cvMag{touch-action:none;cursor:crosshair;outline:none}
+#cvMag.grab{cursor:grab}
+#cvMag.grabbing{cursor:grabbing}
+#cvMag:focus-visible{box-shadow:inset 0 0 0 3px rgba(242,193,78,.8)}
+.pin{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#c9ced3,#6c757d 60%,#3f454b);box-shadow:0 2px 3px rgba(0,0,0,.35);z-index:4;pointer-events:none}
+.pin.tl{left:10px;top:10px}.pin.tr{right:10px;top:10px}.pin.bl{left:10px;bottom:10px}.pin.br{right:10px;bottom:10px}
+.compass{position:absolute;left:0;top:0;width:78px;height:78px;margin:-39px 0 0 -39px;pointer-events:none;z-index:5;will-change:transform;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
+.compass svg{width:100%;height:100%;display:block}
+#needle{transform-origin:39px 39px}
+.hud{position:absolute;left:32px;bottom:12px;z-index:4;font-family:var(--mono);font-size:.72rem;color:var(--ink-2);background:rgba(248,246,241,.86);border:1px solid var(--rule);border-radius:3px;padding:5px 9px;pointer-events:none;display:flex;gap:12px}
+.hud b{color:var(--ink);font-weight:600}
+.empty{position:absolute;inset:0;display:grid;place-items:center;z-index:3;pointer-events:none;color:var(--ink-3);font-size:.95rem;opacity:0;transition:opacity .3s}
+.empty.on{opacity:1}
+.fig{margin:0;color:#eef0f1;font-size:.86rem;display:flex;gap:10px;align-items:baseline;min-height:1.4em}
+.fig b{font-family:var(--mono);font-weight:600;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:#fff;white-space:nowrap}
+.fig span{color:rgba(238,240,241,.82)}
+
+/* ---------- sidebar ---------- */
+.side{min-height:0;overflow-y:auto;background:var(--paper);border-radius:3px;box-shadow:0 30px 50px -24px rgba(0,0,0,.6);padding:18px 18px 20px;scrollbar-width:thin}
+.sec + .sec{margin-top:18px;padding-top:16px;border-top:1px solid var(--rule)}
+.sec h2{margin:0 0 10px;font-size:.68rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-3);display:flex;justify-content:space-between}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--ink);border-radius:3px;overflow:hidden}
+.seg button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px 8px;border:0;background:transparent;cursor:pointer;font-size:.78rem;font-weight:500;color:var(--ink-2);transition:background-color .2s,color .2s}
+.seg button + button{border-left:1px solid var(--ink)}
+.seg button svg{width:30px;height:20px}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pre{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px 7px;border:1px solid var(--rule);border-radius:3px;background:#fff;cursor:pointer;font-size:.72rem;color:var(--ink-2);transition:border-color .2s,transform .15s,box-shadow .2s}
+.pre svg{width:56px;height:34px}
+.pre:hover{border-color:var(--ink-3);transform:translateY(-1px);box-shadow:0 4px 10px -6px rgba(0,0,0,.4)}
+.pre[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.acts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 10px;border:1px solid var(--ink);border-radius:3px;background:transparent;cursor:pointer;font-size:.82rem;font-weight:500;transition:background-color .2s,color .2s}
+.btn svg{width:15px;height:15px}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.35;cursor:default;background:transparent;color:var(--ink)}
+.sel{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.86rem;margin-bottom:10px}
+.sel b{font-weight:600}
+.sel span{font-family:var(--mono);font-size:.74rem;color:var(--ink-3)}
+.strength{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:.8rem;color:var(--ink-2);margin-top:10px}
+.strength output{font-family:var(--mono);font-size:.74rem;min-width:3.2em;text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--ink) var(--fill,40%),rgba(35,38,43,.2) var(--fill,40%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:var(--paper);border:2px solid var(--ink)}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--ink)}
+.caption{font-size:.86rem;color:var(--ink-2);margin:0}
+.caption + .caption{margin-top:8px}
+.caption strong{color:var(--ink);font-weight:600}
+.keys{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:.78rem;color:var(--ink-2)}
+.keys kbd{font-family:var(--mono);font-size:.7rem;padding:1px 5px;border:1px solid var(--rule);border-bottom-width:2px;border-radius:3px;background:#fff;color:var(--ink);white-space:nowrap}
+.legend-bar{height:8px;border-radius:2px;margin-top:8px;background:linear-gradient(90deg,#f8f6f1,#ece6d5 18%,#cfdcd6 35%,#9cc3c4 50%,#5f9fb0 65%,#35708f 80%,#27466b 92%,#1b2540)}
+.legend-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.66rem;color:var(--ink-3);margin-top:3px}
+.note{font-size:.74rem;color:var(--ink-3);margin:10px 0 0;font-style:italic}
+
+@media (max-width:980px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;height:auto;padding:0 12px 20px}
+  .bench{height:auto}
+  .paper{flex:none;aspect-ratio:1/1.12;max-height:78svh}
+  .side{overflow:visible;margin-top:14px}
+  .plate{display:none}
+}
+@media (max-width:420px){
+  .brand h1{font-size:1.1rem}
+  .brand p{letter-spacing:.16em}
+  .hud{font-size:.64rem;gap:8px}
+  .compass{width:64px;height:64px;margin:-32px 0 0 -32px}
+}
+@media (prefers-reduced-motion:reduce){
+  .layer{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="3" y="14" width="17" height="12" rx="2" fill="#d62828"/><rect x="20" y="14" width="17" height="12" rx="2" fill="#1d4e89"/>
+        <path d="M20 14 C 20 4, 36 2, 37 14 M20 26 C 20 36, 36 38, 37 26 M20 14 C 20 6, 4 2, 3 14 M20 26 C 20 34, 4 38, 3 26" fill="none" stroke="#f8f6f1" stroke-width="1.1" opacity=".85"/>
+        <text x="11.5" y="23.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="8" fill="#fff">N</text>
+        <text x="28.5" y="23.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="8" fill="#fff">S</text>
+      </svg>
+      <div><h1>Lines of Force</h1><p>Magnetic field explorer</p></div>
+    </div>
+    <div class="plate" aria-hidden="true"><span>Plate <b>III</b></span><span>Magnets <b id="plateN">1</b></span><span>View <b id="plateV">Filings</b></span></div>
+  </header>
+
+  <section class="bench" aria-label="Paper with magnets">
+    <div class="paper" id="paper">
+      <canvas id="cvHeat" class="layer" aria-hidden="true"></canvas>
+      <canvas id="cvLines" class="layer" aria-hidden="true"></canvas>
+      <canvas id="cvFil" class="layer on" aria-hidden="true"></canvas>
+      <canvas id="cvMag" tabindex="0" role="application" aria-roledescription="magnet field sheet" aria-label="Sheet of paper with magnets. Drag magnets to move them; wheel or R to rotate; double-click or F to flip polarity; arrow keys move the selected magnet; brackets select another magnet."></canvas>
+      <span class="pin tl" aria-hidden="true"></span><span class="pin tr" aria-hidden="true"></span><span class="pin bl" aria-hidden="true"></span><span class="pin br" aria-hidden="true"></span>
+      <div class="compass" id="compass" aria-hidden="true">
+        <svg viewBox="0 0 78 78">
+          <defs>
+            <radialGradient id="face" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#fffdf8"/><stop offset="1" stop-color="#e9e4d8"/></radialGradient>
+            <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3e6e8"/><stop offset=".5" stop-color="#8a939a"/><stop offset="1" stop-color="#4b5258"/></linearGradient>
+          </defs>
+          <circle cx="39" cy="39" r="37" fill="url(#rim)"/>
+          <circle cx="39" cy="39" r="32" fill="url(#face)"/>
+          <g id="ticks" stroke="#4a4f57"></g>
+          <text x="39" y="16" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="6.5" font-weight="700" fill="#4a4f57">N</text>
+          <g id="needle">
+            <path d="M39 12 L43.2 39 L34.8 39 Z" fill="#d62828"/>
+            <path d="M39 66 L43.2 39 L34.8 39 Z" fill="#1d4e89"/>
+            <path d="M39 12 L39 39" stroke="#fff" stroke-opacity=".35" stroke-width=".8"/>
+          </g>
+          <circle cx="39" cy="39" r="3.2" fill="#c9ced3" stroke="#4b5258" stroke-width="1"/>
+          <circle cx="39" cy="39" r="32" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1"/>
+          <ellipse cx="30" cy="22" rx="14" ry="6" fill="#fff" opacity=".35" transform="rotate(-30 30 22)"/>
+        </svg>
+      </div>
+      <div class="hud" id="hud" aria-hidden="true"><span>|B| <b id="hB">—</b> a.u.</span><span>θ <b id="hT">—</b></span></div>
+      <div class="empty" id="empty">The sheet is empty. Add a magnet to see its field.</div>
+    </div>
+    <p class="fig" id="fig"><b>Fig. 1</b><span>A single bar magnet, shown with iron filings.</span></p>
+  </section>
+
+  <aside class="side" aria-label="Controls and notes">
+    <div class="sec">
+      <h2 id="viewHead">View</h2>
+      <div class="seg" role="radiogroup" aria-labelledby="viewHead">
+        <button type="button" role="radio" aria-checked="true" data-mode="filings"><svg viewBox="0 0 30 20" aria-hidden="true"><g stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M3 5 L7 3.5 M10 3 L14 2.6 M17 2.6 L21 3 M24 3.5 L28 5 M4 10 L8 10 M22 10 L26 10 M3 15 L7 16.5 M10 17 L14 17.4 M17 17.4 L21 17 M24 16.5 L28 15"/></g><rect x="11" y="8" width="8" height="4" fill="currentColor"/></svg>Filings</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="lines" tabindex="-1"><svg viewBox="0 0 30 20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.2"><path d="M19 9 C 24 0, 6 0, 11 9"/><path d="M19 11 C 24 20, 6 20, 11 11"/><path d="M19 10 C 30 10, 30 -6, 15 1" opacity=".6"/></g><rect x="11" y="8" width="8" height="4" fill="currentColor"/></svg>Field lines</button>
+        <button type="button" role="radio" aria-checked="false" data-mode="heat" tabindex="-1"><svg viewBox="0 0 30 20" aria-hidden="true"><ellipse cx="15" cy="10" rx="13" ry="8" fill="currentColor" opacity=".18"/><ellipse cx="15" cy="10" rx="9" ry="5.5" fill="currentColor" opacity=".35"/><rect x="11" y="8" width="8" height="4" fill="currentColor"/></svg>Heat map</button>
+      </div>
+      <div id="heatLegend" hidden>
+        <div class="legend-bar" aria-hidden="true"></div>
+        <div class="legend-lbl" aria-hidden="true"><span>weak</span><span>log |B|</span><span>strong</span></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Presets</h2>
+      <div class="presets">
+        <button type="button" class="pre" data-preset="single" aria-pressed="true"><svg viewBox="0 0 56 34" aria-hidden="true"><rect x="14" y="13" width="14" height="8" fill="#d62828"/><rect x="28" y="13" width="14" height="8" fill="#1d4e89"/></svg>Single bar</button>
+        <button type="button" class="pre" data-preset="attract" aria-pressed="false"><svg viewBox="0 0 56 34" aria-hidden="true"><rect x="3" y="13" width="10" height="8" fill="#1d4e89"/><rect x="13" y="13" width="10" height="8" fill="#d62828"/><rect x="33" y="13" width="10" height="8" fill="#1d4e89"/><rect x="43" y="13" width="10" height="8" fill="#d62828"/><path d="M24 17 H32" stroke="#23262b" stroke-width="1"/></svg>Attracting</button>
+        <button type="button" class="pre" data-preset="repel" aria-pressed="false"><svg viewBox="0 0 56 34" aria-hidden="true"><rect x="3" y="13" width="10" height="8" fill="#1d4e89"/><rect x="13" y="13" width="10" height="8" fill="#d62828"/><rect x="33" y="13" width="10" height="8" fill="#d62828"/><rect x="43" y="13" width="10" height="8" fill="#1d4e89"/><path d="M26 11 C 28 15, 28 19, 26 23 M30 11 C 28 15, 28 19, 30 23" fill="none" stroke="#23262b" stroke-width="1"/></svg>Repelling</button>
+        <button type="button" class="pre" data-preset="quad" aria-pressed="false"><svg viewBox="0 0 56 34" aria-hidden="true"><rect x="24" y="1" width="8" height="5" fill="#1d4e89"/><rect x="24" y="6" width="8" height="5" fill="#d62828"/><rect x="24" y="23" width="8" height="5" fill="#d62828"/><rect x="24" y="28" width="8" height="5" fill="#1d4e89"/><rect x="10" y="13" width="5" height="8" fill="#d62828"/><rect x="15" y="13" width="5" height="8" fill="#1d4e89"/><rect x="36" y="13" width="5" height="8" fill="#1d4e89"/><rect x="41" y="13" width="5" height="8" fill="#d62828"/></svg>Quadrupole</button>
+        <button type="button" class="pre" data-preset="horse" aria-pressed="false"><svg viewBox="0 0 56 34" aria-hidden="true"><path d="M18 4 V20 A10 10 0 0 0 38 20 V4" fill="none" stroke="#6c757d" stroke-width="7"/><rect x="14.5" y="3" width="7" height="7" fill="#d62828"/><rect x="34.5" y="3" width="7" height="7" fill="#1d4e89"/></svg>Horseshoe</button>
+        <button type="button" class="pre" data-preset="ring" aria-pressed="false"><svg viewBox="0 0 56 34" aria-hidden="true"><g transform="translate(28 17)"><rect x="-4" y="-15" width="8" height="6" fill="#d62828"/><rect x="-4" y="9" width="8" height="6" fill="#1d4e89" /><rect x="9" y="-4" width="6" height="8" fill="#d62828"/><rect x="-15" y="-4" width="6" height="8" fill="#1d4e89"/><rect x="-4" y="-9" width="8" height="5" fill="#1d4e89"/><rect x="-4" y="4" width="8" height="5" fill="#d62828"/><rect x="4" y="-4" width="5" height="8" fill="#1d4e89"/><rect x="-9" y="-4" width="5" height="8" fill="#d62828"/></g></svg>Circuit</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Magnets <span id="count">1 on sheet</span></h2>
+      <div class="acts">
+        <button type="button" class="btn" id="bAdd"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3 V13 M3 8 H13" stroke="currentColor" stroke-width="1.6"/></svg>Add bar</button>
+        <button type="button" class="btn" id="bRemove"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 H13" stroke="currentColor" stroke-width="1.6"/></svg>Remove</button>
+        <button type="button" class="btn" id="bRot"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 5.5 A5 5 0 1 0 13 9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 2.5 V6 H10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Rotate 15°</button>
+        <button type="button" class="btn" id="bFlip"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5 H12 L9.5 2.5 M14 11 H4 L6.5 13.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Flip poles</button>
+      </div>
+      <div style="margin-top:12px">
+        <div class="sel"><b id="selName">Bar magnet 1</b><span id="selAng">0°</span></div>
+        <div class="strength"><label for="strength">Strength</label><input type="range" id="strength" min="30" max="200" value="100"><output id="strOut" for="strength">1.00×</output></div>
+      </div>
+    </div>
+
+    <div class="sec" aria-live="polite">
+      <h2>Notes</h2>
+      <p class="caption" id="capMode"></p>
+      <p class="caption" id="capPreset"></p>
+      <p class="note">Model: each pole is a small cluster of magnetic “charges” with an inverse-square field (the Gilbert model). Faithful outside the magnets; field strengths are in arbitrary units.</p>
+    </div>
+
+    <div class="sec">
+      <h2>Handling</h2>
+      <ul class="keys">
+        <li><kbd>drag</kbd></li><li>move a magnet, or the ring handle to rotate it</li>
+        <li><kbd>wheel</kbd> <kbd>R</kbd></li><li>rotate (Shift+R turns the other way)</li>
+        <li><kbd>double-click</kbd> <kbd>F</kbd></li><li>flip north and south</li>
+        <li><kbd>←↑↓→</kbd></li><li>nudge the selected magnet</li>
+        <li><kbd>[</kbd> <kbd>]</kbd></li><li>select another magnet</li>
+        <li><kbd>Del</kbd> <kbd>A</kbd></li><li>remove / add a magnet</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+<p class="sr-only" id="announce" aria-live="polite"></p>
+
+<script>
+(function(){
+  "use strict";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var TAU = Math.PI * 2;
+  function $(id){ return document.getElementById(id); }
+  var paper = $("paper");
+  var cv = {heat: $("cvHeat"), lines: $("cvLines"), fil: $("cvFil"), mag: $("cvMag")};
+  var cx = {heat: cv.heat.getContext("2d"), lines: cv.lines.getContext("2d"), fil: cv.fil.getContext("2d"), mag: cv.mag.getContext("2d")};
+  var W = 800, H = 600, U = 0.6, dpr = 1;
+
+  /* ================= magnets ================= */
+  var magnets = [], sel = 0, nextId = 1;
+  function mk(kind, ux, uy, ang, opt){
+    opt = opt || {};
+    return {id: nextId++, kind: kind, x: 0.5 + ux * U / W, y: 0.5 + uy * U / H, a: ang, pol: opt.pol || 1, L: opt.L || (kind === "horse" ? 250 : 250), T: opt.T || 58, s: opt.s || 1, flip: 0};
+  }
+  var charges = [], poles = [], Q = 1;
+  function geom(m){
+    var X = m.x * W, Y = m.y * H, c = Math.cos(m.a), s = Math.sin(m.a);
+    var hl = m.L * U / 2, hw = m.T * U / 2;
+    return {X: X, Y: Y, c: c, s: s, hl: hl, hw: hw, g: hw * 2.3};
+  }
+  function toWorld(G, lx, ly){ return [G.X + lx * G.c - ly * G.s, G.Y + lx * G.s + ly * G.c]; }
+  function rebuild(){
+    charges = []; poles = [];
+    magnets.forEach(function(m, mi){
+      var G = geom(m), inset = G.hw * 0.4, q = Q * m.s * m.pol / 3;
+      m.G = G;
+      var ends;
+      if (m.kind === "bar"){
+        ends = [{lx: G.hl - inset, ly: 0, ux: 1, uy: 0, sign: 1}, {lx: -G.hl + inset, ly: 0, ux: -1, uy: 0, sign: -1}];
+      } else {
+        ends = [{lx: -G.g, ly: -G.hl + inset, ux: 0, uy: -1, sign: 1}, {lx: G.g, ly: -G.hl + inset, ux: 0, uy: -1, sign: -1}];
+      }
+      ends.forEach(function(e){
+        var sgn = e.sign;
+        var vx = -e.uy, vy = e.ux;
+        for (var k = -1; k <= 1; k++){
+          var p = toWorld(G, e.lx + vx * k * G.hw * 0.55, e.ly + vy * k * G.hw * 0.55);
+          charges.push({x: p[0], y: p[1], q: q * sgn});
+        }
+        var pc = toWorld(G, e.lx, e.ly);
+        var ux = e.ux * G.c - e.uy * G.s, uy = e.ux * G.s + e.uy * G.c;
+        poles.push({x: pc[0], y: pc[1], ux: ux, uy: uy, north: sgn * m.pol > 0, inset: inset, hw: G.hw, mi: mi});
+      });
+    });
+    Q = 1;
+  }
+  var EPS2 = 64;
+  function field(x, y, out){
+    var bx = 0, by = 0;
+    for (var i = 0; i < charges.length; i++){
+      var c = charges[i], dx = x - c.x, dy = y - c.y;
+      var r2 = dx * dx + dy * dy + EPS2, inv = c.q / (r2 * Math.sqrt(r2));
+      bx += dx * inv; by += dy * inv;
+    }
+    out[0] = bx; out[1] = by;
+    return out;
+  }
+  function hit(m, x, y, pad){
+    var G = m.G || geom(m), dx = x - G.X, dy = y - G.Y;
+    var lx = dx * G.c + dy * G.s, ly = -dx * G.s + dy * G.c;
+    pad = pad || 0;
+    if (m.kind === "bar") return Math.abs(lx) <= G.hl + pad && Math.abs(ly) <= G.hw + pad;
+    if (ly <= 0 && ly >= -G.hl - pad){ if (Math.abs(lx + G.g) <= G.hw + pad || Math.abs(lx - G.g) <= G.hw + pad) return true; }
+    if (ly > 0){ var r = Math.sqrt(lx * lx + ly * ly); if (r >= G.g - G.hw - pad && r <= G.g + G.hw + pad) return true; }
+    return false;
+  }
+  function insideAny(x, y){ for (var i = 0; i < magnets.length; i++) if (hit(magnets[i], x, y, 0)) return true; return false; }
+  function fieldScale(){ var hw = 29 * U; return Q / Math.pow(125 * U, 2) * (hw > 0 ? 1 : 1); }
+
+  /* ================= sizing ================= */
+  function size(){
+    var r = paper.getBoundingClientRect();
+    var oldW = W, oldH = H;
+    W = Math.max(200, r.width); H = Math.max(200, r.height);
+    U = Math.min(W, H) / 1000;
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    for (var k in cv){ cv[k].width = Math.round(W * dpr); cv[k].height = Math.round(H * dpr); cx[k].setTransform(dpr, 0, 0, dpr, 0, 0); }
+    EPS2 = Math.pow(10 * U, 2);
+    void oldW; void oldH;
+    genFilings();
+    rebuild();
+    dirtyAll();
+  }
+
+  /* ================= iron filings ================= */
+  var fil = null, FN = 0, settling = 0;
+  function genFilings(){
+    var sp = Math.max(4.6, Math.min(6.2, Math.sqrt(W * H / 26000)));
+    var cols = Math.ceil(W / sp), rows = Math.ceil(H / sp);
+    FN = cols * rows;
+    fil = {x: new Float32Array(FN), y: new Float32Array(FN), a0: new Float32Array(FN), a: new Float32Array(FN), len: new Float32Array(FN), th: new Float32Array(FN), tau: new Float32Array(FN), al: new Float32Array(FN)};
+    var i = 0;
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++){
+      fil.x[i] = (c + 0.5 + (Math.random() - 0.5) * 0.9) * sp;
+      fil.y[i] = (r + 0.5 + (Math.random() - 0.5) * 0.9) * sp;
+      fil.a0[i] = Math.random() * Math.PI;
+      fil.a[i] = fil.a0[i];
+      fil.len[i] = 2.6 + Math.pow(Math.random(), 1.6) * 5.4;
+      fil.tau[i] = Math.random();
+      fil.al[i] = 0;
+      i++;
+    }
+  }
+  var B = [0, 0];
+  function wrapHalf(d){ while (d > Math.PI / 2) d -= Math.PI; while (d < -Math.PI / 2) d += Math.PI; return d; }
+  function drawFilings(animate){
+    var c = cx.fil, ref = fieldScale();
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, W, H);
+    var paths = [new Path2D(), new Path2D(), new Path2D(), new Path2D()];
+    var moving = 0;
+    for (var i = 0; i < FN; i++){
+      var x = fil.x[i], y = fil.y[i];
+      if (magnets.length && insideAny(x, y)) continue;
+      field(x, y, B);
+      var m = Math.sqrt(B[0] * B[0] + B[1] * B[1]) / ref;
+      var al = m <= 0 ? 0 : Math.min(1, Math.max(0, (Math.log(m) / Math.LN10 + 2.1) / 1.7));
+      al = al * al * (3 - 2 * al);
+      var vis = 0.5 + 0.5 * al;
+      if (fil.tau[i] > vis) continue;
+      var target = al > 0.02 ? Math.atan2(B[1], B[0]) : fil.a0[i];
+      var t2 = fil.a0[i] + wrapHalf(target - fil.a0[i]) * Math.min(1, al * 1.25);
+      if (animate && !reduced){
+        var d = wrapHalf(t2 - fil.a[i]);
+        if (Math.abs(d) > 0.01){ fil.a[i] += d * 0.28; moving++; } else fil.a[i] = t2;
+        if (fil.al[i] < 1){ fil.al[i] = Math.min(1, fil.al[i] + 0.08); moving++; }
+      } else { fil.a[i] = t2; fil.al[i] = 1; }
+      var ln = fil.len[i] * (0.75 + 0.75 * al) * (0.6 + 0.4 * fil.al[i]);
+      var ca = Math.cos(fil.a[i]) * ln / 2, sa = Math.sin(fil.a[i]) * ln / 2;
+      var bucket = al > 0.72 ? 3 : al > 0.45 ? 2 : al > 0.2 ? 1 : 0;
+      if (fil.al[i] < 0.5) bucket = Math.min(bucket, 1);
+      var p = paths[bucket];
+      p.moveTo(x - ca, y - sa); p.lineTo(x + ca, y + sa);
+    }
+    c.lineCap = "round";
+    var styles = [["rgba(58,60,64,.34)", 0.85], ["rgba(46,48,52,.52)", 1.0], ["rgba(34,36,40,.72)", 1.15], ["rgba(22,23,26,.88)", 1.3]];
+    for (var b = 0; b < 4; b++){ c.strokeStyle = styles[b][0]; c.lineWidth = styles[b][1]; c.stroke(paths[b]); }
+    return moving;
+  }
+
+  /* ================= field lines ================= */
+  var occ = null, OC = 7, ogw = 0;
+  function nearSouth(x, y){
+    for (var i = 0; i < poles.length; i++){ var p = poles[i]; if (p.north) continue; var dx = x - p.x, dy = y - p.y; if (dx * dx + dy * dy < p.hw * p.hw * 9) return true; }
+    return false;
+  }
+  function trace(x, y, h, maxSteps, id, back){
+    var pts = [x, y], P = [0, 0], len = 0, escaped = false;
+    if (back) h = -h;
+    var W2 = W + 60, H2 = H + 60;
+    for (var s = 0; s < maxSteps; s++){
+      field(x, y, P);
+      var m = Math.sqrt(P[0] * P[0] + P[1] * P[1]); if (m < 1e-12) break;
+      var mx = x + P[0] / m * h * 0.5, my = y + P[1] / m * h * 0.5;
+      field(mx, my, P);
+      m = Math.sqrt(P[0] * P[0] + P[1] * P[1]); if (m < 1e-12) break;
+      var nx = x + P[0] / m * h, ny = y + P[1] / m * h;
+      if (nx < -60 || ny < -60 || nx > W2 || ny > H2){ pts.push(nx, ny); len += Math.abs(h); escaped = true; break; }
+      if (insideAny(nx, ny)){ pts.push(nx, ny); len += Math.abs(h); break; }
+      if (!back && nx >= 0 && ny >= 0 && nx < W && ny < H){
+        var cell = ((ny / OC) | 0) * ogw + ((nx / OC) | 0), o = occ[cell];
+        if (s > 12 && o !== -1 && o !== id && !nearSouth(nx, ny)){ pts.push(nx, ny); len += h; break; }
+        occ[cell] = id;
+      }
+      x = nx; y = ny; pts.push(x, y); len += Math.abs(h);
+    }
+    return {pts: pts, len: len, escaped: escaped, back: !!back};
+  }
+  function drawLines(fast){
+    var c = cx.lines;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, W, H);
+    if (!magnets.length) return;
+    var h = fast ? 4.2 : 2.2, maxSteps = fast ? 700 : 1600;
+    var lines = [], lid = 0;
+    ogw = Math.ceil(W / OC); occ = new Int32Array(ogw * Math.ceil(H / OC)); occ.fill(-1);
+    var nSeeds = fast ? 14 : 18;
+    [false, true].forEach(function(southPass){
+    poles.forEach(function(p){
+      if (p.north === southPass) return;
+      var m = magnets[p.mi];
+      var n = Math.max(6, Math.round(nSeeds * Math.sqrt(m.s)));
+      for (var k = 0; k < n; k++){
+        var phi = -1.95 + (k + 0.5) / n * 3.9;
+        var cphi = Math.cos(phi), sphi = Math.sin(phi);
+        var t1 = cphi > 0.001 ? p.inset / cphi : 1e9, t2 = Math.abs(sphi) > 0.001 ? p.hw / Math.abs(sphi) : 1e9;
+        var t = Math.min(t1, t2) + 2.5;
+        var vx = -p.uy, vy = p.ux;
+        var sx = p.x + (p.ux * cphi + vx * sphi) * t, sy = p.y + (p.uy * cphi + vy * sphi) * t;
+        if (insideAny(sx, sy)) continue;
+        var tr = trace(sx, sy, h, maxSteps, lid++, southPass);
+        if (!southPass || tr.escaped) lines.push(tr);
+      }
+    });
+    });
+    c.strokeStyle = "#2a2d33"; c.lineWidth = 1.15; c.lineJoin = "round"; c.lineCap = "round";
+    c.fillStyle = "#2a2d33";
+    lines.forEach(function(L){
+      var p = L.pts;
+      if (p.length < 4) return;
+      c.beginPath(); c.moveTo(p[0], p[1]);
+      for (var i = 2; i < p.length; i += 2) c.lineTo(p[i], p[i + 1]);
+      c.stroke();
+      if (L.len < 40) return;
+      var nA = Math.max(1, Math.round(L.len / 240));
+      for (var a = 0; a < nA; a++){
+        var target = L.len * (a + 0.5) / nA, acc = 0;
+        for (var j = 2; j < p.length; j += 2){
+          var sl = Math.hypot(p[j] - p[j - 2], p[j + 1] - p[j - 1]);
+          if (acc + sl >= target){
+            var ang = Math.atan2(p[j + 1] - p[j - 1], p[j] - p[j - 2]) + (L.back ? Math.PI : 0);
+            var ax = p[j - 2] + (p[j] - p[j - 2]) * ((target - acc) / (sl || 1)), ay = p[j - 1] + (p[j + 1] - p[j - 1]) * ((target - acc) / (sl || 1));
+            if (ax > 0 && ay > 0 && ax < W && ay < H){
+              c.save(); c.translate(ax, ay); c.rotate(ang);
+              c.beginPath(); c.moveTo(5.5, 0); c.lineTo(-3.5, -3.6); c.lineTo(-1.6, 0); c.lineTo(-3.5, 3.6); c.closePath(); c.fill();
+              c.restore();
+            }
+            break;
+          }
+          acc += sl;
+        }
+      }
+    });
+  }
+
+  /* ================= heat map ================= */
+  var hmCv = document.createElement("canvas"), hmCx = hmCv.getContext("2d");
+  var PAL = ["#f8f6f1", "#ece6d5", "#cfdcd6", "#9cc3c4", "#5f9fb0", "#35708f", "#27466b", "#1b2540"];
+  var PALP = [0, 0.18, 0.35, 0.5, 0.65, 0.8, 0.92, 1];
+  var LUT = new Uint8Array(256 * 3);
+  (function(){
+    function hx(h){ var n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+    for (var i = 0; i < 256; i++){
+      var t = i / 255, k = 0;
+      while (k < PALP.length - 2 && t > PALP[k + 1]) k++;
+      var u = (t - PALP[k]) / (PALP[k + 1] - PALP[k]), a = hx(PAL[k]), b = hx(PAL[k + 1]);
+      LUT[i * 3] = Math.round(a[0] + (b[0] - a[0]) * u); LUT[i * 3 + 1] = Math.round(a[1] + (b[1] - a[1]) * u); LUT[i * 3 + 2] = Math.round(a[2] + (b[2] - a[2]) * u);
+    }
+  })();
+  function drawHeat(fast){
+    var step = fast ? 4 : 2, gw = Math.ceil(W / step), gh = Math.ceil(H / step);
+    hmCv.width = gw; hmCv.height = gh;
+    var img = hmCx.createImageData(gw, gh), d = img.data, ref = fieldScale();
+    var vals = new Float32Array(gw * gh);
+    for (var y = 0; y < gh; y++) for (var x = 0; x < gw; x++){
+      field((x + 0.5) * step, (y + 0.5) * step, B);
+      var m = Math.sqrt(B[0] * B[0] + B[1] * B[1]) / ref;
+      var t = m > 0 ? (Math.log(m) / Math.LN10 + 2.6) / 3.2 : 0;
+      vals[y * gw + x] = Math.max(0, Math.min(1, t));
+    }
+    for (var y2 = 0; y2 < gh; y2++) for (var x2 = 0; x2 < gw; x2++){
+      var i = y2 * gw + x2, v = vals[i], li = Math.round(v * 255) * 3, o = i * 4;
+      var band = Math.floor(v * 12), edge = false;
+      if (x2 < gw - 1 && Math.floor(vals[i + 1] * 12) !== band) edge = true;
+      if (y2 < gh - 1 && Math.floor(vals[i + gw] * 12) !== band) edge = true;
+      var k = edge ? 0.78 : 1;
+      d[o] = LUT[li] * k; d[o + 1] = LUT[li + 1] * k; d[o + 2] = LUT[li + 2] * k; d[o + 3] = 255;
+    }
+    hmCx.putImageData(img, 0, 0);
+    var c = cx.heat;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.imageSmoothingEnabled = true; c.imageSmoothingQuality = "high";
+    c.clearRect(0, 0, W, H);
+    c.drawImage(hmCv, 0, 0, gw * step, gh * step);
+  }
+
+  /* ================= magnets on top ================= */
+  function roundRect(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); }
+  function shade(c, x0, y0, x1, y1, base, dark){ var g = c.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, base); g.addColorStop(0.55, base); g.addColorStop(1, dark); return g; }
+  function label(c, t, x, y, size){ c.save(); c.translate(x, y); c.rotate(-magRot); c.fillStyle = "#fff"; c.font = "700 " + size + "px " + getComputedStyle(document.body).fontFamily; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(t, 0, 0.5); c.restore(); }
+  var magRot = 0, handleR = 10;
+  function handlePos(m){ var G = geom(m); var d = (m.kind === "bar" ? G.hl : G.hl) + 30 * U + 14; var lx = m.kind === "bar" ? d : 0, ly = m.kind === "bar" ? 0 : -d; if (m.kind === "bar" && m.pol < 0) lx = -d; return toWorld(G, lx, ly); }
+  function drawMagnets(){
+    var c = cx.mag;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, W, H);
+    magnets.forEach(function(m, mi){
+      var G = geom(m), hl = G.hl, hw = G.hw;
+      var red = "#d62828", blue = "#1d4e89", nCol = m.pol > 0 ? red : blue, sCol = m.pol > 0 ? blue : red;
+      c.save();
+      c.translate(G.X, G.Y); c.rotate(m.a);
+      magRot = m.a;
+      var fs = m.flip > 0 ? Math.abs(Math.cos(m.flip * Math.PI)) : 1;
+      c.scale(Math.max(0.06, fs), 1);
+      c.shadowColor = "rgba(0,0,0,.32)"; c.shadowBlur = 10; c.shadowOffsetY = 5;
+      if (m.kind === "bar"){
+        roundRect(c, -hl - 1.5, -hw - 1.5, hl * 2 + 3, hw * 2 + 3, 4); c.fillStyle = "rgba(248,246,241,.9)"; c.fill();
+        roundRect(c, -hl, -hw, hl * 2, hw * 2, 3); c.fillStyle = "#333"; c.fill();
+        c.shadowColor = "transparent";
+        c.fillStyle = shade(c, 0, -hw, 0, hw, sCol, "rgba(0,0,0,.35)");
+        roundRect(c, -hl, -hw, hl, hw * 2, 3); c.fill();
+        c.fillStyle = shade(c, 0, -hw, 0, hw, nCol, "rgba(0,0,0,.35)");
+        roundRect(c, 0, -hw, hl, hw * 2, 3); c.fill();
+        c.fillStyle = sCol; c.fillRect(-hl + 3, -hw, hl - 3, hw * 1.2); c.fillStyle = nCol; c.fillRect(0, -hw, hl - 3, hw * 1.2);
+        c.fillStyle = "rgba(255,255,255,.22)"; c.fillRect(-hl + 4, -hw + 3, hl * 2 - 8, 2);
+        c.fillStyle = "rgba(0,0,0,.18)"; c.fillRect(-0.5, -hw, 1, hw * 2);
+        var ls = Math.max(11, hw * 0.9);
+        label(c, "N", hl * 0.55, 0, ls); label(c, "S", -hl * 0.55, 0, ls);
+      } else {
+        var g = G.g, outer = g + hw, inner = g - hw;
+        c.beginPath();
+        c.moveTo(-outer, -hl); c.lineTo(-outer, 0); c.arc(0, 0, outer, Math.PI, 0, true); c.lineTo(outer, -hl); c.lineTo(inner, -hl); c.lineTo(inner, 0); c.arc(0, 0, inner, 0, Math.PI, false); c.lineTo(-inner, -hl); c.closePath();
+        var mg = c.createLinearGradient(-outer, 0, outer, 0); mg.addColorStop(0, "#9aa2a9"); mg.addColorStop(.3, "#d5d9dc"); mg.addColorStop(.55, "#8b949b"); mg.addColorStop(1, "#5c646b");
+        c.fillStyle = mg; c.fill();
+        c.shadowColor = "transparent";
+        c.strokeStyle = "rgba(248,246,241,.9)"; c.lineWidth = 1.6; c.stroke();
+        var tipL = hl * 0.42;
+        c.fillStyle = shade(c, -outer, 0, -inner, 0, nCol, "rgba(0,0,0,.3)"); c.fillRect(-outer, -hl, hw * 2, tipL);
+        c.fillStyle = shade(c, inner, 0, outer, 0, sCol, "rgba(0,0,0,.3)"); c.fillRect(inner, -hl, hw * 2, tipL);
+        c.fillStyle = nCol; c.fillRect(-outer, -hl, hw * 1.2, tipL); c.fillStyle = sCol; c.fillRect(inner, -hl, hw * 1.2, tipL);
+        c.fillStyle = "rgba(255,255,255,.25)"; c.fillRect(-outer + 3, -hl + 3, 2, hl + 0); c.fillRect(inner + 3, -hl + 3, 2, hl);
+        var ls2 = Math.max(11, hw * 0.9);
+        label(c, "N", -g, -hl + tipL * 0.5, ls2); label(c, "S", g, -hl + tipL * 0.5, ls2);
+      }
+      c.restore();
+      if (mi === sel){
+        c.save();
+        c.translate(G.X, G.Y); c.rotate(m.a);
+        c.setLineDash([4, 4]); c.strokeStyle = "rgba(35,38,43,.75)"; c.lineWidth = 1.2;
+        if (m.kind === "bar") c.strokeRect(-hl - 6, -hw - 6, hl * 2 + 12, hw * 2 + 12);
+        else c.strokeRect(-G.g - hw - 6, -hl - 6, (G.g + hw) * 2 + 12, hl + G.g + hw + 12);
+        c.restore();
+        var hp = handlePos(m);
+        var base = toWorld(G, m.kind === "bar" ? (m.pol < 0 ? -hl - 6 : hl + 6) : 0, m.kind === "bar" ? 0 : -hl - 6);
+        c.setLineDash([2, 3]); c.strokeStyle = "rgba(35,38,43,.6)"; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(base[0], base[1]); c.lineTo(hp[0], hp[1]); c.stroke(); c.setLineDash([]);
+        c.beginPath(); c.arc(hp[0], hp[1], handleR, 0, TAU); c.fillStyle = hoverHandle || rotating ? "#23262b" : "#f8f6f1"; c.fill();
+        c.strokeStyle = "#23262b"; c.lineWidth = 1.4; c.stroke();
+        c.beginPath(); c.arc(hp[0], hp[1], 4.8, -2.4, 1.6); c.strokeStyle = hoverHandle || rotating ? "#f8f6f1" : "#23262b"; c.lineWidth = 1.3; c.stroke();
+        if (rotating){
+          c.font = "600 11px " + getComputedStyle(document.body).fontFamily; c.fillStyle = "#23262b"; c.textAlign = "left";
+          c.fillText(degOf(m) + "°", hp[0] + 14, hp[1] - 10);
+        }
+      }
+    });
+  }
+  function degOf(m){ var d = Math.round(m.a * 180 / Math.PI) % 360; if (d < 0) d += 360; return d; }
+
+  /* ================= modes, render scheduling ================= */
+  var mode = "filings", dirty = {filings: true, lines: true, heat: true}, fastLines = false;
+  function dirtyAll(){ dirty.filings = dirty.lines = dirty.heat = true; kick(); }
+  var raf = 0;
+  function kick(){ if (!raf) raf = requestAnimationFrame(frame); }
+  function frame(){
+    raf = 0;
+    if (document.hidden) return;
+    var again = false;
+    for (var i = 0; i < magnets.length; i++){
+      var m = magnets[i];
+      if (m.flip > 0){ m.flip = reduced ? 0 : Math.max(0, m.flip - 0.07); if (m.flip < 0.5 && m.pendingFlip){ m.pol = -m.pol; m.pendingFlip = false; rebuild(); dirtyAll(); } again = true; }
+    }
+    if (mode === "filings" && (dirty.filings || settling > 0)){
+      var moving = drawFilings(true);
+      dirty.filings = false;
+      settling = moving > 30 ? 1 : 0;
+      if (settling) again = true;
+    } else if (mode === "lines" && dirty.lines){ drawLines(fastLines); dirty.lines = false; }
+    else if (mode === "heat" && dirty.heat){ drawHeat(fastLines); dirty.heat = false; }
+    drawMagnets();
+    again = stepCompass() || again;
+    if (again) kick();
+  }
+  var modeBtns = Array.prototype.slice.call(document.querySelectorAll(".seg button"));
+  var MODE_CAP = {
+    filings: "<strong>Iron filings.</strong> Each sliver of iron becomes a tiny magnet and turns to lie along the field. Near the poles, where the field is strong, they line up crisply; far away they stay jumbled.",
+    lines: "<strong>Field lines.</strong> Outside a magnet, lines leave north poles and enter south poles, and they never cross. Where they crowd together the field is stronger. Arrows show the direction a compass needle's north end would point.",
+    heat: "<strong>Heat map.</strong> Colour shows the strength of the field, |B|, on a logarithmic scale, with contour lines between bands. Far from a single magnet it falls off roughly as the cube of distance."
+  };
+  var MODE_NAME = {filings: "Filings", lines: "Field lines", heat: "Heat map"};
+  function setMode(md, focus){
+    mode = md;
+    modeBtns.forEach(function(b){ var on = b.getAttribute("data-mode") === md; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+    cv.fil.classList.toggle("on", md === "filings"); cv.lines.classList.toggle("on", md === "lines"); cv.heat.classList.toggle("on", md === "heat");
+    $("heatLegend").hidden = md !== "heat";
+    $("capMode").innerHTML = MODE_CAP[md];
+    $("plateV").textContent = MODE_NAME[md];
+    if (md === "filings"){ dirty.filings = true; }
+    updateFig();
+    kick();
+  }
+  modeBtns.forEach(function(b, i){
+    b.addEventListener("click", function(){ setMode(b.getAttribute("data-mode")); });
+    b.addEventListener("keydown", function(e){
+      var d = (e.key === "ArrowRight" || e.key === "ArrowDown") ? 1 : (e.key === "ArrowLeft" || e.key === "ArrowUp") ? -1 : 0;
+      if (d){ e.preventDefault(); setMode(modeBtns[(i + d + modeBtns.length) % modeBtns.length].getAttribute("data-mode"), true); }
+    });
+  });
+
+  /* ================= presets ================= */
+  var preset = "single";
+  var PRESET_CAP = {
+    single: ["A single bar magnet", "<strong>A lone bar magnet</strong> is a dipole: the field bows out of the north pole and curls back into the south, strongest at the ends."],
+    attract: ["An attracting pair", "<strong>Opposite poles facing.</strong> Lines run almost straight across the gap from N to S; the two magnets would pull together."],
+    repel: ["A repelling pair", "<strong>Like poles facing.</strong> The lines swerve away from each other and a null point, where the field vanishes, opens between the magnets. They would push apart."],
+    quad: ["A quadrupole", "<strong>Four poles alternating</strong> around a square. The field is zero at the centre and grows steadily away from it, the arrangement accelerators use to focus particle beams."],
+    horse: ["A horseshoe magnet", "<strong>A bar bent into a U</strong> brings both poles side by side, packing a strong, fairly even field into the gap between the tips."],
+    ring: ["A closed circuit of magnets", "<strong>Four bars nose to tail</strong>, each north pole facing the next south pole. Most of the field stays in the loop, so very little leaks out around it."],
+    custom: ["Your own arrangement", "<strong>Your arrangement.</strong> Drag, rotate and flip the magnets; the field is recomputed as you go."]
+  };
+  var preBtns = Array.prototype.slice.call(document.querySelectorAll(".pre"));
+  function loadPreset(name){
+    preset = name; magnets = []; nextId = 1;
+    if (name === "single") magnets.push(mk("bar", 0, 0, 0));
+    if (name === "attract"){ magnets.push(mk("bar", -215, 0, 0, {L: 230})); magnets.push(mk("bar", 215, 0, 0, {L: 230})); }
+    if (name === "repel"){ magnets.push(mk("bar", -215, 0, 0, {L: 230})); magnets.push(mk("bar", 215, 0, Math.PI, {L: 230})); }
+    if (name === "quad"){
+      var r = 225;
+      magnets.push(mk("bar", 0, -r, Math.PI / 2, {L: 200}));
+      magnets.push(mk("bar", r, 0, 0, {L: 200}));
+      magnets.push(mk("bar", 0, r, -Math.PI / 2, {L: 200}));
+      magnets.push(mk("bar", -r, 0, Math.PI, {L: 200}));
+    }
+    if (name === "horse") magnets.push(mk("horse", 0, 60, 0, {L: 300, T: 64}));
+    if (name === "ring"){
+      var r2 = 190;
+      magnets.push(mk("bar", 0, -r2, 0, {L: 230}));
+      magnets.push(mk("bar", r2, 0, Math.PI / 2, {L: 230}));
+      magnets.push(mk("bar", 0, r2, Math.PI, {L: 230}));
+      magnets.push(mk("bar", -r2, 0, -Math.PI / 2, {L: 230}));
+    }
+    sel = 0;
+    preBtns.forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-preset") === name)); });
+    for (var i = 0; i < FN; i++){ fil.a[i] = fil.a0[i]; fil.al[i] = 0.25; }
+    changed(true);
+    updateFig();
+  }
+  preBtns.forEach(function(b){ b.addEventListener("click", function(){ loadPreset(b.getAttribute("data-preset")); }); });
+  var figN = 1;
+  function updateFig(){
+    var p = PRESET_CAP[preset] || PRESET_CAP.custom;
+    var how = {filings: "shown with iron filings", lines: "traced as field lines", heat: "as a heat map of field strength"}[mode];
+    $("fig").innerHTML = "<b>Fig. " + figN + "</b><span>" + p[0] + ", " + how + ".</span>";
+    $("capPreset").innerHTML = p[1];
+  }
+  function toCustom(){ if (preset !== "custom"){ preset = "custom"; figN++; preBtns.forEach(function(b){ b.setAttribute("aria-pressed", "false"); }); updateFig(); } }
+
+  /* ================= selection panel ================= */
+  var strength = $("strength");
+  function fillVar(el){ el.style.setProperty("--fill", ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1) + "%"); }
+  function syncPanel(){
+    var m = magnets[sel];
+    $("count").textContent = magnets.length + (magnets.length === 1 ? " on sheet" : " on sheet");
+    $("plateN").textContent = magnets.length;
+    $("empty").classList.toggle("on", magnets.length === 0);
+    ["bRemove", "bRot", "bFlip"].forEach(function(id){ $(id).disabled = !m; });
+    strength.disabled = !m;
+    if (!m){ $("selName").textContent = "No magnet selected"; $("selAng").textContent = ""; return; }
+    var idx = magnets.filter(function(x, i){ return i <= sel && x.kind === m.kind; }).length;
+    $("selName").textContent = (m.kind === "bar" ? "Bar magnet " : "Horseshoe ") + idx;
+    $("selAng").textContent = degOf(m) + "°";
+    strength.value = Math.round(m.s * 100); $("strOut").textContent = m.s.toFixed(2) + "×"; fillVar(strength);
+  }
+  function changed(full){
+    rebuild();
+    dirty.filings = true; dirty.heat = true; dirty.lines = true;
+    fastLines = !full;
+    syncPanel();
+    hudDirty = true;
+    kick();
+  }
+  strength.addEventListener("input", function(){ var m = magnets[sel]; if (!m) return; m.s = +strength.value / 100; $("strOut").textContent = m.s.toFixed(2) + "×"; fillVar(strength); toCustom(); changed(true); });
+  function say(t){ $("announce").textContent = t; }
+  function addBar(){
+    var best = null, bestD = -1;
+    for (var t = 0; t < 40; t++){
+      var x = 0.18 + Math.random() * 0.64, y = 0.2 + Math.random() * 0.6, dmin = 1e9;
+      magnets.forEach(function(m){ var d = Math.hypot((m.x - x) * W, (m.y - y) * H); if (d < dmin) dmin = d; });
+      if (dmin > bestD){ bestD = dmin; best = [x, y]; }
+    }
+    var m = mk("bar", 0, 0, Math.round(Math.random() * 24) * Math.PI / 12, {L: 220});
+    m.x = best[0]; m.y = best[1];
+    magnets.push(m); sel = magnets.length - 1;
+    toCustom(); changed(true); say("Added a bar magnet. " + magnets.length + " on the sheet.");
+  }
+  function removeSel(){
+    if (!magnets.length) return;
+    magnets.splice(sel, 1); sel = Math.max(0, Math.min(sel, magnets.length - 1));
+    toCustom(); changed(true); say("Magnet removed. " + magnets.length + " left.");
+  }
+  function rotSel(deg){ var m = magnets[sel]; if (!m) return; m.a += deg * Math.PI / 180; toCustom(); changed(true); say("Rotated to " + degOf(m) + " degrees."); }
+  function flipSel(i){
+    var m = magnets[i === undefined ? sel : i]; if (!m) return;
+    if (reduced){ m.pol = -m.pol; changed(true); }
+    else { m.flip = 1; m.pendingFlip = true; kick(); }
+    toCustom(); say("Poles flipped.");
+  }
+  $("bAdd").addEventListener("click", addBar);
+  $("bRemove").addEventListener("click", removeSel);
+  $("bRot").addEventListener("click", function(){ rotSel(15); });
+  $("bFlip").addEventListener("click", function(){ flipSel(); });
+
+  /* ================= pointer interaction ================= */
+  var drag = null, rotating = false, hoverHandle = false, ptr = {x: -1, y: -1, inside: false};
+  function pos(e){ var r = cv.mag.getBoundingClientRect(); return [(e.clientX - r.left) * (W / r.width), (e.clientY - r.top) * (H / r.height)]; }
+  function magnetAt(x, y){ for (var i = magnets.length - 1; i >= 0; i--) if (hit(magnets[i], x, y, 4)) return i; return -1; }
+  function onHandle(x, y){ var m = magnets[sel]; if (!m) return false; var hp = handlePos(m); return Math.hypot(x - hp[0], y - hp[1]) <= handleR + 5; }
+  cv.mag.addEventListener("pointerdown", function(e){
+    var p = pos(e);
+    ptr.x = p[0]; ptr.y = p[1]; ptr.inside = true;
+    if (onHandle(p[0], p[1])){
+      var m = magnets[sel], G = geom(m);
+      var base = m.kind === "bar" ? (m.pol < 0 ? Math.PI : 0) : -Math.PI / 2;
+      drag = {kind: "rot", off: base};
+      rotating = true;
+    } else {
+      var i = magnetAt(p[0], p[1]);
+      if (i >= 0){
+        sel = i;
+        var mm = magnets[i];
+        drag = {kind: "move", dx: mm.x * W - p[0], dy: mm.y * H - p[1]};
+        cv.mag.classList.add("grabbing");
+        syncPanel();
+      } else {
+        drag = {kind: "compass"};
+      }
+    }
+    try { cv.mag.setPointerCapture(e.pointerId); } catch (err){}
+    e.preventDefault();
+    kick();
+  });
+  cv.mag.addEventListener("pointermove", function(e){
+    var p = pos(e);
+    ptr.x = p[0]; ptr.y = p[1]; ptr.inside = true;
+    if (drag && drag.kind === "move"){
+      var m = magnets[sel];
+      m.x = Math.max(0.02, Math.min(0.98, (p[0] + drag.dx) / W));
+      m.y = Math.max(0.02, Math.min(0.98, (p[1] + drag.dy) / H));
+      toCustom(); changed(false);
+    } else if (drag && drag.kind === "rot"){
+      var m2 = magnets[sel], G2 = geom(m2);
+      var ang = Math.atan2(p[1] - G2.Y, p[0] - G2.X) - drag.off;
+      if (e.shiftKey) ang = Math.round(ang / (Math.PI / 12)) * (Math.PI / 12);
+      m2.a = ang; toCustom(); changed(false);
+    } else {
+      var hh = onHandle(p[0], p[1]);
+      if (hh !== hoverHandle){ hoverHandle = hh; kick(); }
+      cv.mag.classList.toggle("grab", hh || magnetAt(p[0], p[1]) >= 0);
+    }
+    hudDirty = true;
+    kick();
+  });
+  function endDrag(){
+    if (drag && (drag.kind === "move" || drag.kind === "rot")){ changed(true); }
+    drag = null; rotating = false;
+    cv.mag.classList.remove("grabbing");
+    kick();
+  }
+  cv.mag.addEventListener("pointerup", endDrag);
+  cv.mag.addEventListener("pointercancel", endDrag);
+  cv.mag.addEventListener("pointerleave", function(e){ if (!drag && e.pointerType === "mouse"){ ptr.inside = false; hoverHandle = false; kick(); } });
+  cv.mag.addEventListener("dblclick", function(e){ var p = pos(e); var i = magnetAt(p[0], p[1]); if (i >= 0){ sel = i; flipSel(i); } });
+  cv.mag.addEventListener("wheel", function(e){
+    var p = pos(e), i = magnetAt(p[0], p[1]);
+    if (i < 0) return;
+    e.preventDefault();
+    sel = i;
+    var m = magnets[i];
+    m.a += (e.deltaY > 0 ? 1 : -1) * (e.shiftKey ? 1 : 5) * Math.PI / 180;
+    toCustom(); changed(false);
+    clearTimeout(wheelT); wheelT = setTimeout(function(){ changed(true); }, 160);
+  }, {passive: false});
+  var wheelT = 0;
+  cv.mag.addEventListener("keydown", function(e){
+    var m = magnets[sel], step = e.shiftKey ? 0.04 : 0.01, used = true;
+    if (e.key === "ArrowLeft" && m){ m.x = Math.max(0.02, m.x - step); }
+    else if (e.key === "ArrowRight" && m){ m.x = Math.min(0.98, m.x + step); }
+    else if (e.key === "ArrowUp" && m){ m.y = Math.max(0.02, m.y - step); }
+    else if (e.key === "ArrowDown" && m){ m.y = Math.min(0.98, m.y + step); }
+    else if (e.key === "r" || e.key === "R"){ rotSel(e.shiftKey ? -15 : 15); return e.preventDefault(); }
+    else if (e.key === "f" || e.key === "F"){ flipSel(); return e.preventDefault(); }
+    else if (e.key === "Delete" || e.key === "Backspace"){ removeSel(); return e.preventDefault(); }
+    else if (e.key === "a" || e.key === "A"){ addBar(); return e.preventDefault(); }
+    else if (e.key === "]" && magnets.length){ sel = (sel + 1) % magnets.length; syncPanel(); say("Selected " + $("selName").textContent); kick(); return e.preventDefault(); }
+    else if (e.key === "[" && magnets.length){ sel = (sel - 1 + magnets.length) % magnets.length; syncPanel(); say("Selected " + $("selName").textContent); kick(); return e.preventDefault(); }
+    else used = false;
+    if (used){ e.preventDefault(); toCustom(); changed(true); }
+  });
+
+  /* ================= compass + readout ================= */
+  var compass = $("compass"), needle = $("needle");
+  (function(){ var g = $("ticks"); for (var i = 0; i < 36; i++){ var a = i * 10 * Math.PI / 180, r0 = i % 9 === 0 ? 25 : 28.5; var l = document.createElementNS("http://www.w3.org/2000/svg", "line"); l.setAttribute("x1", (39 + Math.sin(a) * r0).toFixed(2)); l.setAttribute("y1", (39 - Math.cos(a) * r0).toFixed(2)); l.setAttribute("x2", (39 + Math.sin(a) * 31).toFixed(2)); l.setAttribute("y2", (39 - Math.cos(a) * 31).toFixed(2)); l.setAttribute("stroke-width", i % 9 === 0 ? "1.2" : ".6"); g.appendChild(l); } })();
+  var comp = {x: 0, y: 0, ang: -90, vel: 0, init: false};
+  function compassTarget(){
+    if (ptr.inside && !(drag && drag.kind !== "compass")) return [ptr.x, ptr.y];
+    if (drag && drag.kind !== "compass") return [comp.x, comp.y];
+    return [W - 58, H - 58];
+  }
+  function stepCompass(){
+    var t = compassTarget();
+    if (!comp.init){ comp.x = t[0]; comp.y = t[1]; comp.init = true; }
+    var k = reduced ? 1 : 0.35;
+    comp.x += (t[0] - comp.x) * k; comp.y += (t[1] - comp.y) * k;
+    field(comp.x, comp.y, B);
+    var m = Math.hypot(B[0], B[1]);
+    var moving = Math.abs(t[0] - comp.x) > 0.3 || Math.abs(t[1] - comp.y) > 0.3;
+    if (m > 1e-9){
+      var target = Math.atan2(B[1], B[0]) * 180 / Math.PI;
+      var d = target - comp.ang; d = ((d + 540) % 360) - 180;
+      if (reduced){ comp.ang = target; comp.vel = 0; }
+      else { comp.vel += d * 0.06; comp.vel *= 0.8; comp.ang += comp.vel; }
+      if (Math.abs(d) > 0.2 || Math.abs(comp.vel) > 0.05) moving = true;
+    }
+    compass.style.transform = "translate(" + comp.x.toFixed(1) + "px," + comp.y.toFixed(1) + "px)";
+    if (moving || hudDirty){ hudDirty = false; readout(); }
+    needle.style.transform = "rotate(" + (comp.ang + 90).toFixed(2) + "deg)";
+    return moving;
+  }
+  var hudDirty = true;
+  function readout(){
+    field(comp.x, comp.y, B);
+    var m = Math.hypot(B[0], B[1]) / fieldScale();
+    $("hB").textContent = magnets.length ? (m >= 100 ? m.toFixed(0) : m >= 1 ? m.toFixed(2) : m.toFixed(3)) : "0";
+    var th = Math.round(-Math.atan2(B[1], B[0]) * 180 / Math.PI); if (th < 0) th += 360;
+    $("hT").textContent = magnets.length ? th + "°" : "—";
+  }
+
+  /* ================= boot ================= */
+  var rzT = 0;
+  window.addEventListener("resize", function(){ clearTimeout(rzT); rzT = setTimeout(function(){ size(); comp.init = false; kick(); }, 60); });
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) kick(); });
+  size();
+  setMode("filings");
+  loadPreset("single");
+  hudDirty = true; kick();
+})();
+</script>
+</body>
+</html>

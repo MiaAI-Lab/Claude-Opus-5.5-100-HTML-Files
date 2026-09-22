@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIGNAL/NOISE — k.oshiro, glitch works</title>
+<meta name="description" content="SIGNAL/NOISE, the portfolio of k.oshiro, a fictional glitch artist: eight generative works that corrupt on hover, a self-decoding biography, exhibitions and contact, with a stabilize switch that calms every effect.">
+<meta name="theme-color" content="#000000">
+<style>
+:root{
+  --bg:#000;
+  --fg:#fff;
+  --r:#ff0040;
+  --g:#00ff9f;
+  --b:#0070ff;
+  --dim:rgba(255,255,255,.56);
+  --faint:rgba(255,255,255,.16);
+  --mono:"JetBrains Mono","IBM Plex Mono","SFMono-Regular",Menlo,Consolas,"Liberation Mono","Nimbus Mono PS","DejaVu Sans Mono",monospace;
+  --grot:"Helvetica Neue","Neue Haas Grotesk Display Pro","Arial Black",Arial,"Nimbus Sans","Liberation Sans",sans-serif;
+  --side:clamp(190px,15vw,236px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:14px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+::selection{background:var(--r);color:#fff}
+:focus-visible{outline:2px solid var(--g);outline-offset:3px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:fixed;left:12px;top:-50px;z-index:90;background:var(--fg);color:var(--bg);padding:8px 14px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+
+/* CRT overlay */
+.scan{position:fixed;inset:0;z-index:70;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.26) 0 1px,rgba(0,0,0,0) 1px 3px),radial-gradient(ellipse 120% 100% at 50% 50%,rgba(0,0,0,0) 60%,rgba(0,0,0,.5) 100%);animation:flick .14s steps(2) infinite}
+@keyframes flick{50%{opacity:.86}}
+.stable .scan{animation:none;opacity:.7}
+#tear{position:fixed;inset:0;width:100%;height:100%;z-index:65;pointer-events:none}
+.tearing{filter:url(#tearFx)}
+
+/* hex dump sidebar */
+.hexdump{position:fixed;left:0;top:0;bottom:0;width:var(--side);z-index:20;border-right:1px solid var(--faint);background:#000;overflow:hidden;font-size:10.5px;line-height:16px;color:rgba(255,255,255,.34);user-select:none}
+.hex-head{position:relative;z-index:2;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--faint);background:#000;color:var(--dim);letter-spacing:.08em}
+.hex-head i{font-style:normal;color:var(--g)}
+.hex-roll{position:absolute;left:0;right:0;top:52px;padding:0 12px;will-change:transform;white-space:pre}
+.hl{height:16px;overflow:hidden}
+.hl .o{color:rgba(255,255,255,.2)}
+.hl .x{color:rgba(255,255,255,.5)}
+.hl .cr{color:var(--r)}.hl .cg{color:var(--g)}.hl .cb{color:var(--b)}
+.hl.inv{background:var(--fg);color:#000}
+.hl.inv span{color:#000}
+.hexdump::after{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(transparent,#000);pointer-events:none}
+
+/* frame */
+.frame{margin-left:var(--side);min-height:100vh;position:relative}
+.top{position:sticky;top:0;z-index:30;height:52px;display:flex;align-items:center;gap:22px;padding:0 clamp(16px,2.4vw,32px);background:rgba(0,0,0,.86);border-bottom:1px solid var(--faint);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.logo{display:flex;align-items:baseline;gap:10px;text-decoration:none;font-family:var(--grot);font-weight:900;font-size:18px;letter-spacing:-.02em}
+.logo span{font-family:var(--mono);font-weight:400;font-size:12px;letter-spacing:.04em;color:var(--dim)}
+.top nav{display:flex;gap:4px}
+.top nav a{font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;color:var(--dim);padding:6px 10px;transition:color .15s,background .15s}
+.top nav a:hover{color:#000;background:var(--fg)}
+.sig{margin:0 0 0 auto;font-size:11px;letter-spacing:.06em;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sig b{font-weight:400;color:var(--g)}
+.stab{display:inline-flex;align-items:center;gap:10px;height:32px;padding:0 12px 0 6px;border:1px solid var(--faint);background:#000;color:var(--fg);font:inherit;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:border-color .2s}
+.stab:hover{border-color:var(--fg)}
+.stab .track{position:relative;width:34px;height:18px;border:1px solid var(--dim)}
+.stab .knob{position:absolute;top:2px;left:2px;width:12px;height:12px;background:var(--r);box-shadow:-2px 0 0 var(--b),2px 0 0 var(--g);transition:transform .2s steps(3),background .2s,box-shadow .2s}
+.stab[aria-checked="true"] .knob{transform:translateX(16px);background:var(--fg);box-shadow:none}
+
+/* hero */
+.hero{position:relative;padding:clamp(22px,4vw,54px) clamp(16px,2.4vw,32px) 0}
+.hero-tag{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 clamp(14px,2vw,26px);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.hero-tag b{font-weight:400;color:var(--fg)}
+.hero-tag .rec::before{content:"";display:inline-block;width:8px;height:8px;margin-right:8px;background:var(--r);vertical-align:1px;animation:rec 1.2s steps(2) infinite}
+@keyframes rec{50%{opacity:0}}
+.stable .hero-tag .rec::before{animation:none}
+.head-wrap{position:relative}
+#headline{display:block;width:100%;cursor:crosshair}
+.hero-note{position:absolute;left:0;bottom:6%;margin:0;max-width:30%;font-size:clamp(11px,.95vw,13px);line-height:1.7;color:var(--dim)}
+.hero-note b{display:block;font-weight:400;color:var(--fg)}
+.hero-note .cr{color:var(--r)}.hero-note .cg{color:var(--g)}.hero-note .cb{color:var(--b)}
+.hero-foot{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin-top:clamp(18px,2.4vw,30px);border-top:1px solid var(--faint);border-bottom:1px solid var(--faint)}
+.hero-foot p{margin:0;padding:12px 0;font-size:11.5px;letter-spacing:.06em;color:var(--dim)}
+.hero-foot p b{display:block;font-family:var(--grot);font-weight:900;font-size:22px;letter-spacing:-.02em;color:var(--fg)}
+
+/* sections */
+.sec{padding:clamp(48px,7vw,96px) clamp(16px,2.4vw,32px) 0}
+.sec-h{display:flex;align-items:baseline;gap:16px;margin:0 0 26px;padding-bottom:12px;border-bottom:1px solid var(--faint)}
+.sec-h .idx{font-size:12px;color:var(--g);letter-spacing:.1em}
+.sec-h h2{margin:0;font-family:var(--grot);font-weight:900;font-size:clamp(34px,5vw,72px);line-height:.9;letter-spacing:-.045em;text-transform:uppercase}
+.sec-h .count{margin-left:auto;font-size:11.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+
+/* works */
+.grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,1.6vw,22px)}
+.card{position:relative;display:block;width:100%;padding:0;border:1px solid var(--faint);background:#000;color:var(--fg);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,transform .15s steps(2)}
+.card canvas{display:block;width:100%;aspect-ratio:4/3;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;background:#050505}
+.card .meta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;padding:10px 12px 12px;border-top:1px solid var(--faint)}
+.card .n{grid-row:span 2;font-size:11px;color:var(--g);padding-top:4px}
+.card .t{font-family:var(--grot);font-weight:900;font-size:clamp(15px,1.3vw,19px);line-height:1.1;letter-spacing:-.02em;text-transform:uppercase}
+.card .m{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card:hover,.card:focus-visible{border-color:var(--fg)}
+.card:hover .t,.card:focus-visible .t{animation:rgbjit .18s steps(2) infinite}
+.card:hover .n,.card:focus-visible .n{color:var(--r)}
+.card .open{position:absolute;right:8px;top:8px;padding:2px 6px;font-size:10px;letter-spacing:.1em;background:#000;color:var(--fg);border:1px solid var(--fg);opacity:0;transition:opacity .1s}
+.card:hover .open,.card:focus-visible .open{opacity:1}
+@keyframes rgbjit{0%{text-shadow:-2px 0 var(--r),2px 0 var(--g);transform:translateX(0)}50%{text-shadow:2px 0 var(--r),-3px 0 var(--b);transform:translateX(1px)}100%{text-shadow:-1px 0 var(--r),1px 0 var(--g)}}
+.stable .card:hover .t,.stable .card:focus-visible .t{animation:none;text-shadow:-1px 0 var(--r),1px 0 var(--g)}
+
+/* about */
+.about{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:clamp(20px,4vw,60px);align-items:start}
+.type{margin:0;min-height:12em;font-size:clamp(14px,1.2vw,16.5px);line-height:1.75;white-space:pre-wrap;word-break:break-word}
+.type .cur{display:inline-block;width:.6em;height:1.1em;margin-left:1px;vertical-align:-.15em;background:var(--g);animation:rec .8s steps(2) infinite}
+.facts{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:0;border-top:1px solid var(--faint)}
+.facts dt,.facts dd{margin:0;padding:10px 0;border-bottom:1px solid var(--faint);font-size:12.5px}
+.facts dt{color:var(--dim);padding-right:18px;text-transform:uppercase;letter-spacing:.08em;font-size:11px;padding-top:12px}
+.facts dd{text-align:right}
+
+/* exhibitions */
+.shows{list-style:none;margin:0;padding:0;border-top:1px solid var(--faint)}
+.shows li{display:grid;grid-template-columns:70px minmax(0,1.3fr) minmax(0,1.2fr) 110px;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--faint);transition:background .1s}
+.shows li:hover{background:#fff;color:#000}
+.shows li:hover .y,.shows li:hover .k{color:#000}
+.shows .y{font-size:12px;color:var(--g)}
+.shows .ti{font-family:var(--grot);font-weight:900;font-size:clamp(18px,2vw,28px);letter-spacing:-.03em;line-height:1.05;text-transform:uppercase}
+.shows .v{font-size:12.5px;color:inherit;opacity:.8}
+.shows .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);text-align:right}
+.shows li:hover .ti{text-shadow:-2px 0 var(--r),2px 0 var(--b)}
+.note{margin:14px 0 0;font-size:11.5px;color:var(--dim)}
+
+/* contact */
+.contact{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:clamp(20px,4vw,60px);align-items:end}
+.big-mail{margin:0;font-family:var(--grot);font-weight:900;font-size:clamp(30px,5.4vw,84px);line-height:.92;letter-spacing:-.045em;text-transform:lowercase;word-break:break-word}
+.big-mail .at{color:var(--r)}
+.big-mail .dot{color:var(--g)}
+.contact-side p{margin:0 0 14px;color:var(--dim);font-size:13px}
+.btn{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 18px;border:1px solid var(--fg);background:var(--fg);color:#000;font:inherit;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .12s,color .12s,box-shadow .12s}
+.btn:hover{background:#000;color:var(--fg);box-shadow:-3px 0 0 var(--r),3px 0 0 var(--b)}
+.btn.ghost{background:#000;color:var(--fg)}
+.btn.ghost:hover{background:var(--fg);color:#000}
+.copy-out{display:block;margin-top:10px;min-height:1.4em;font-size:11.5px;color:var(--g)}
+#copyField{position:absolute;left:-9999px}
+.handles{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.handles span{padding:4px 8px;border:1px solid var(--faint);font-size:11.5px;color:var(--dim)}
+
+footer{margin-top:clamp(60px,8vw,110px);padding:18px clamp(16px,2.4vw,32px) 26px;border-top:1px solid var(--faint);display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 30px;font-size:11.5px;color:var(--dim)}
+
+/* viewer */
+.viewer{position:fixed;inset:0;z-index:80;display:grid;grid-template-columns:minmax(0,1fr) 340px;background:#000}
+.viewer[hidden]{display:none}
+.v-stage{position:relative;display:grid;place-items:center;padding:clamp(14px,3vw,40px);min-height:0;min-width:0}
+.v-stage canvas{max-width:100%;max-height:100%;width:auto;height:auto;aspect-ratio:4/3;image-rendering:pixelated;image-rendering:crisp-edges;border:1px solid var(--faint)}
+.v-side{display:flex;flex-direction:column;gap:18px;padding:24px 24px 22px;border-left:1px solid var(--faint);overflow:auto}
+.v-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.v-top span{font-size:11.5px;color:var(--g);letter-spacing:.1em}
+.v-side h2{margin:0;font-family:var(--grot);font-weight:900;font-size:clamp(30px,3vw,44px);line-height:.92;letter-spacing:-.04em;text-transform:uppercase}
+.v-meta{margin:0;font-size:12px;color:var(--dim)}
+.v-desc{margin:0;font-size:13.5px;line-height:1.7}
+.v-ctl{margin-top:auto;padding-top:16px;border-top:1px solid var(--faint)}
+.v-ctl label{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.v-ctl output{color:var(--r);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;background:linear-gradient(90deg,var(--b),var(--g) 50%,var(--r));border:1px solid rgba(255,255,255,.3)}
+input[type=range]::-moz-range-track{height:6px;background:linear-gradient(90deg,var(--b),var(--g) 50%,var(--r))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:22px;margin-top:-9px;background:#fff;border:2px solid #000;box-shadow:0 0 0 1px #fff}
+input[type=range]::-moz-range-thumb{width:12px;height:20px;border:2px solid #000;border-radius:0;background:#fff}
+.v-nav{display:flex;gap:8px;margin-top:14px}
+.v-nav .btn{flex:1;justify-content:center;padding:0 10px}
+.x-btn{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--fg);background:#000;color:var(--fg);cursor:pointer;font:inherit;font-size:18px;line-height:1}
+.x-btn:hover{background:var(--fg);color:#000}
+.toast{position:fixed;left:50%;bottom:20px;z-index:85;transform:translate(-50%,calc(100% + 30px));visibility:hidden;background:var(--fg);color:#000;padding:10px 16px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;transition:transform .2s steps(3),visibility 0s .2s;box-shadow:-3px 0 0 var(--r),3px 0 0 var(--b)}
+.toast.show{transform:translate(-50%,0);visibility:visible;transition:transform .2s steps(3),visibility 0s}
+
+@media (max-width:1180px){
+  .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .sig{display:none}
+  .stab{margin-left:auto}
+}
+@media (max-width:900px){
+  :root{--side:0px}
+  .hexdump{position:relative;width:auto;height:66px;border-right:0;border-bottom:1px solid var(--faint)}
+  .hex-head{height:22px;font-size:10px;padding:0 12px}
+  .hex-roll{top:22px}
+  .hexdump::after{height:24px}
+  .frame{margin-left:0}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .about,.contact{grid-template-columns:minmax(0,1fr)}
+  .shows li{grid-template-columns:52px minmax(0,1fr);gap:4px 12px}
+  .shows .v{grid-column:2}
+  .shows .k{grid-column:2;text-align:left}
+  .viewer{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+  .v-side{border-left:0;border-top:1px solid var(--faint);padding:16px;gap:10px;max-height:52vh}
+  .hero-foot{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .top{gap:10px;padding:0 12px}
+  .top nav{display:none}
+  .logo span{display:none}
+  .hero-note{position:static;max-width:none;margin-top:14px}
+  .card .meta{padding:8px 9px 10px;gap:2px 8px}
+  .card .m{font-size:10px}
+  .sec-h .count{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .scan{animation:none}
+}</style>
+</head>
+<body>
+<a class="skip" href="#works">Skip to works</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="tearFx" x="-10%" y="0%" width="120%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence id="tearNoise" type="fractalNoise" baseFrequency="0 0.035" numOctaves="1" seed="4" result="n"/>
+    <feComponentTransfer in="n" result="bands">
+      <feFuncR type="discrete" tableValues="0.5 0.5 0.18 0.5 0.86 0.5 0.5 0.3 0.5"/>
+      <feFuncG type="discrete" tableValues="0.5"/>
+    </feComponentTransfer>
+    <feDisplacementMap id="tearMap" in="SourceGraphic" in2="bands" scale="120" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feColorMatrix in="d" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red"/>
+    <feOffset in="red" dx="6" result="redo"/>
+    <feColorMatrix in="d" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="gb"/>
+    <feBlend in="redo" in2="gb" mode="screen"/>
+  </filter>
+</svg>
+<div class="scan" aria-hidden="true"></div>
+<canvas id="tear" aria-hidden="true"></canvas>
+
+<aside class="hexdump" aria-hidden="true">
+  <div class="hex-head"><span>/dev/sig0</span><i id="hexRate">48 kB/s</i></div>
+  <div class="hex-roll" id="hexRoll"></div>
+</aside>
+
+<div class="frame" id="frame">
+  <header class="top">
+    <a class="logo" href="#top">S/N <span>k.oshiro</span></a>
+    <nav aria-label="Sections">
+      <a href="#works">Works</a><a href="#about">About</a><a href="#shows">Exhibitions</a><a href="#contact">Contact</a>
+    </nav>
+    <p class="sig" aria-hidden="true">SIG <b id="sigVal">97.2</b>% · FRM <b id="frmVal">000000</b></p>
+    <button type="button" class="stab" id="stab" role="switch" aria-checked="false"><span class="track"><span class="knob"></span></span>Stabilize</button>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="h1">
+      <p class="hero-tag"><span class="rec">live feed</span><span><b>k.oshiro</b> / glitch artist</span><span>osaka &harr; rotterdam</span><span>works 2016&mdash;2026</span></p>
+      <h1 id="h1" class="sr-only">SIGNAL/NOISE: the works of k.oshiro</h1>
+      <div class="head-wrap">
+        <canvas id="headline" aria-hidden="true"></canvas>
+        <p class="hero-note"><b>images made by breaking them.</b>codecs, hex editors, a modified VCR.<br><span class="cr">R</span> <span class="cg">G</span> <span class="cb">B</span> &mdash; hover the title to lose the signal.</p>
+      </div>
+      <div class="hero-foot">
+        <p><b>08</b>works on file</p>
+        <p><b>07</b>exhibitions</p>
+        <p><b>1.2M</b>lost coordinates</p>
+        <p><b>900&times;</b>re-saved jpeg</p>
+      </div>
+    </section>
+
+    <section class="sec" id="works" aria-labelledby="worksTitle">
+      <header class="sec-h"><span class="idx">01</span><h2 id="worksTitle">Works</h2><span class="count">08 files · click to open</span></header>
+      <ol class="grid" id="grid"></ol>
+    </section>
+
+    <section class="sec" id="about" aria-labelledby="aboutTitle">
+      <header class="sec-h"><span class="idx">02</span><h2 id="aboutTitle">About</h2><span class="count" id="decodeState">decoding&hellip;</span></header>
+      <div class="about">
+        <div>
+          <p class="sr-only" id="aboutText">k.oshiro is a fictional glitch artist, born in 1993, who makes images by breaking them. Working between a rented room in Osaka and a borrowed studio in Rotterdam, they feed photographs, radio captures and old camcorder tapes through broken codecs, hex editors and a modified VCR, then keep whatever survives. The work treats corruption as a second author: every artefact is the record of a transmission that almost failed. This page is part of the practice. It glitches on purpose, and it stays legible on purpose.</p>
+          <p class="type" id="typed" aria-hidden="true"></p>
+        </div>
+        <dl class="facts">
+          <dt>Based</dt><dd>Osaka / Rotterdam</dd>
+          <dt>Tools</dt><dd>hex editor, ffmpeg, a VCR with no heads cleaned</dd>
+          <dt>Formats</dt><dd>prints, loops, broadcast</dd>
+          <dt>Status</dt><dd>commissions open for 2027</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="sec" id="shows" aria-labelledby="showsTitle">
+      <header class="sec-h"><span class="idx">03</span><h2 id="showsTitle">Exhibitions</h2><span class="count">2019&mdash;2026</span></header>
+      <ol class="shows">
+        <li><span class="y">2026</span><span class="ti">Lossy Gods</span><span class="v">Room 404 &middot; Rotterdam</span><span class="k">solo</span></li>
+        <li><span class="y">2025</span><span class="ti">Checksum</span><span class="v">Kagami Annex &middot; Osaka</span><span class="k">group</span></li>
+        <li><span class="y">2024</span><span class="ti">Null Island</span><span class="v">Pixelbrand Kunstverein &middot; Leipzig</span><span class="k">solo</span></li>
+        <li><span class="y">2023</span><span class="ti">Artefact Weather</span><span class="v">Harbour Signal House &middot; Busan</span><span class="k">group</span></li>
+        <li><span class="y">2022</span><span class="ti">Bit Rot Season</span><span class="v">Ground Loop Gallery &middot; Glasgow</span><span class="k">group</span></li>
+        <li><span class="y">2021</span><span class="ti">Macroblock</span><span class="v">The Static Room &middot; Lisbon</span><span class="k">solo</span></li>
+        <li><span class="y">2019</span><span class="ti">Dead Channel</span><span class="v">Tape Hiss Screenings &middot; Tokyo</span><span class="k">screening</span></li>
+      </ol>
+      <p class="note">All venues and exhibitions are invented; k.oshiro is a fictional artist.</p>
+    </section>
+
+    <section class="sec" id="contact" aria-labelledby="contactTitle">
+      <header class="sec-h"><span class="idx">04</span><h2 id="contactTitle">Contact</h2><span class="count">signal open</span></header>
+      <div class="contact">
+        <p class="big-mail">studio <span class="at">at</span> koshiro <span class="dot">dot</span> example</p>
+        <div class="contact-side">
+          <p>For commissions, loans and broken tapes you would like to donate. Replies arrive slowly and slightly corrupted.</p>
+          <button type="button" class="btn" id="copyBtn">Copy address</button>
+          <input type="text" id="copyField" value="studio at koshiro dot example" readonly tabindex="-1" aria-hidden="true">
+          <span class="copy-out" id="copyOut" role="status"></span>
+          <div class="handles"><span>handle: k.oshiro</span><span>pgp 4B2E 4F53 4849 524F</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 k.oshiro (fictional). Built from noise, kept legible on purpose.</span>
+    <span>No cookies, no trackers, only interference.</span>
+  </footer>
+</div>
+
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="vTitle" hidden>
+  <div class="v-stage"><canvas id="vCanvas" aria-label="Enlarged work"></canvas></div>
+  <div class="v-side">
+    <div class="v-top"><span id="vIdx">01 / 08</span><button type="button" class="x-btn" id="vClose" aria-label="Close viewer">&times;</button></div>
+    <h2 id="vTitle">Title</h2>
+    <p class="v-meta" id="vMeta"></p>
+    <p class="v-desc" id="vDesc"></p>
+    <div class="v-ctl">
+      <label for="corrupt">Corruption <output id="corruptOut" for="corrupt">35</output></label>
+      <input type="range" id="corrupt" min="0" max="100" value="35">
+      <div class="v-nav">
+        <button type="button" class="btn ghost" id="vPrev" aria-label="Previous work">&larr; prev</button>
+        <button type="button" class="btn ghost" id="vNext" aria-label="Next work">next &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const root = document.documentElement;
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  const GROT = '"Helvetica Neue", "Arial Black", Arial, "Nimbus Sans", "Liberation Sans", sans-serif';
+  const MONO = '"JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace';
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+
+  /* ── stabilize state (reduced motion defaults to stable) ── */
+  let stable = mq.matches;
+  try { const s = localStorage.getItem('sn-stable'); if (s !== null) stable = s === '1'; } catch (e) { /* storage unavailable */ }
+  const stabBtn = $('#stab');
+  function applyStable() {
+    root.classList.toggle('stable', stable);
+    stabBtn.setAttribute('aria-checked', String(stable));
+    HL.dirty = true;
+    if (stable) finishTyping();
+    const now = performance.now() / 1000;
+    thumbs.forEach(p => p.step(0, now, true));
+  }
+  stabBtn.addEventListener('click', () => {
+    stable = !stable;
+    try { localStorage.setItem('sn-stable', stable ? '1' : '0'); } catch (e) { /* ignore */ }
+    applyStable();
+    toast(stable ? 'signal stabilized' : 'interference restored');
+  });
+
+  /* ── tiny seeded rng ── */
+  function rng32(seed) {
+    let s = seed >>> 0 || 1;
+    return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; };
+  }
+
+  /* ── headline: tinted layers composited additively, sliced and displaced ── */
+  const HL = { cv: $('#headline'), tint: [], bands: [{ y: 0, h: 1, off: 0 }], ch: [-1.5, 0, 1.5], W: 0, H: 0, dpr: 1, dirty: true, burstEnd: 0, nextBurst: 1.4, nextShuffle: 0, hover: false };
+  HL.ctx = HL.cv.getContext('2d');
+  const TINTS = ['#ff0040', '#00ff9f', '#0070ff'];
+  function layoutHeadline() {
+    const wrap = HL.cv.parentElement;
+    const W = wrap.clientWidth;
+    if (W < 20) { HL.tint = []; HL.W = 0; return; }
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const m = mk(10, 10).getContext('2d');
+    m.font = '900 100px ' + GROT;
+    const w1 = m.measureText('SIGNAL/').width, w2 = m.measureText('NOISE').width;
+    const size = Math.floor(W * .995 / w1 * 100);
+    m.font = '900 ' + size + 'px ' + GROT;
+    const mt = m.measureText('SIGNAL/');
+    const asc = mt.actualBoundingBoxAscent || size * .72;
+    const desc = mt.actualBoundingBoxDescent || size * .04;
+    const lead = size * .86;
+    const pad = Math.round(size * .05);
+    const H = Math.ceil(pad + asc + lead + desc + pad);
+    HL.W = W; HL.H = H; HL.dpr = dpr;
+    HL.cv.width = Math.round(W * dpr); HL.cv.height = Math.round(H * dpr);
+    HL.cv.style.height = H + 'px';
+    const x2 = W - w2 * size / 100 - size * .01;
+    HL.tint = TINTS.map(col => {
+      const c = mk(HL.cv.width, HL.cv.height), x = c.getContext('2d');
+      x.scale(dpr, dpr);
+      x.font = '900 ' + size + 'px ' + GROT;
+      x.textBaseline = 'alphabetic';
+      x.fillStyle = col;
+      x.fillText('SIGNAL/', -size * .03, pad + asc);
+      x.fillText('NOISE', x2, pad + asc + lead);
+      return c;
+    });
+    const note = $('.hero-note');
+    note.style.maxWidth = Math.max(160, x2 - 24) + 'px';
+    HL.dirty = true;
+  }
+  function calmHeadline() {
+    HL.bands = [{ y: 0, h: HL.H, off: 0 }];
+    HL.ch = stable ? [-1, 0, 1] : [-1.5, 0, 1.5];
+  }
+  function shuffleHeadline(power) {
+    const r = Math.random;
+    const H = HL.H, W = HL.W;
+    const n = 3 + Math.floor(r() * 7 * power);
+    const cuts = [0, H];
+    for (let i = 0; i < n; i++) cuts.push(Math.floor(r() * H));
+    cuts.sort((a, b) => a - b);
+    HL.bands = [];
+    for (let i = 0; i < cuts.length - 1; i++) {
+      const h = cuts[i + 1] - cuts[i];
+      if (h < 1) continue;
+      const hit = r() < .45 * power + .15;
+      HL.bands.push({ y: cuts[i], h, off: hit ? (r() - .5) * W * (.03 + .16 * power * r()) : 0, solo: hit && r() < .2 ? Math.floor(r() * 3) : -1 });
+    }
+    const s = 3 + 14 * power * r();
+    HL.ch = [-s, (r() - .5) * s * .4, s * (.6 + r() * .6)];
+  }
+  function drawHeadline() {
+    const { ctx, dpr } = HL;
+    const Wp = HL.cv.width, Hp = HL.cv.height;
+    if (HL.tint.length < 3 || !Wp || !Hp) return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.clearRect(0, 0, Wp, Hp);
+    ctx.globalCompositeOperation = 'lighter';
+    for (const b of HL.bands) {
+      const sy = Math.round(b.y * dpr), sh = Math.max(1, Math.round(b.h * dpr));
+      for (let c = 0; c < 3; c++) {
+        if (b.solo >= 0 && b.solo !== c) continue;
+        const dx = Math.round((b.off + HL.ch[c]) * dpr);
+        ctx.drawImage(HL.tint[c], 0, sy, Wp, sh, dx, sy, Wp, sh);
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  function stepHeadline(t) {
+    if (stable) {
+      if (HL.dirty) { calmHeadline(); drawHeadline(); HL.dirty = false; }
+      return;
+    }
+    const bursting = HL.hover || t < HL.burstEnd;
+    if (bursting) {
+      if (t >= HL.nextShuffle) {
+        shuffleHeadline(HL.hover ? .9 : .55);
+        HL.nextShuffle = t + .045 + Math.random() * .07;
+        drawHeadline();
+      }
+    } else {
+      if (HL.bands.length !== 1 || HL.dirty) { calmHeadline(); drawHeadline(); HL.dirty = false; }
+      if (t >= HL.nextBurst) {
+        HL.burstEnd = t + .18 + Math.random() * .38;
+        HL.nextBurst = HL.burstEnd + 1.2 + Math.random() * 2.6;
+      }
+    }
+  }
+  HL.cv.addEventListener('pointerenter', () => { HL.hover = true; });
+  HL.cv.addEventListener('pointerleave', () => { HL.hover = false; HL.dirty = true; });
+
+  /* ── generative works ── */
+  const clamp = v => v < 0 ? 0 : v > 255 ? 255 : v;
+  function canvasBase(w, h, draw) {
+    const c = mk(w, h), x = c.getContext('2d', { willReadFrequently: true });
+    draw(x, w, h);
+    return x.getImageData(0, 0, w, h).data;
+  }
+  const lum = (d, i) => (d[i] * .299 + d[i + 1] * .587 + d[i + 2] * .114) / 255;
+
+  function genDawn(w, h, seed) {
+    const r = rng32(seed);
+    const d = canvasBase(w, h, (x) => {
+      let g = x.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, '#000'); g.addColorStop(.32, '#00143d'); g.addColorStop(.58, '#0070ff'); g.addColorStop(.78, '#ff0040'); g.addColorStop(1, '#16000a');
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+      g = x.createRadialGradient(w * .62, h * .46, 0, w * .62, h * .46, h * .3);
+      g.addColorStop(0, '#fff'); g.addColorStop(.45, '#ffe0ea'); g.addColorStop(1, 'rgba(255,0,64,0)');
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+      for (let i = 0; i < 18; i++) {
+        x.fillStyle = 'rgba(0,0,0,' + (.3 + r() * .5) + ')';
+        x.fillRect(r() * w * .8, h * (.25 + r() * .6), w * (.1 + r() * .5), 1 + r() * h * .02);
+      }
+    });
+    for (let x = 0; x < w; x++) {
+      let y = 0;
+      while (y < h) {
+        while (y < h && lum(d, (y * w + x) * 4) < .2) y++;
+        const s = y;
+        while (y < h && lum(d, (y * w + x) * 4) >= .2) y++;
+        if (y - s > 2) {
+          const px = [];
+          for (let k = s; k < y; k++) { const i = (k * w + x) * 4; px.push([lum(d, i), d[i], d[i + 1], d[i + 2]]); }
+          px.sort((a, b) => b[0] - a[0]);
+          for (let k = s; k < y; k++) { const i = (k * w + x) * 4, p = px[k - s]; d[i] = p[1]; d[i + 1] = p[2]; d[i + 2] = p[3]; }
+        }
+      }
+    }
+    return d;
+  }
+  function animVertical(buf, base, w, h, t) {
+    const sp = Math.sin(t * .4) * .03;
+    for (let y = 0; y < h; y++) {
+      const yy = y * 96 / h;
+      for (let x = 0; x < w; x++) {
+        const xx = x * 128 / w;
+        const bend = Math.sin(xx * .05 + t) * 1.6;
+        const vr = .5 + .5 * Math.sin(yy * .92 + xx * sp + t * 2 + bend);
+        const vg = .5 + .5 * Math.sin(yy * .87 + xx * sp * 1.3 + t * 2.1 + bend);
+        const vb = .5 + .5 * Math.sin(yy * .82 - xx * sp + t * 1.9 + bend);
+        const s = q => q < .35 ? 0 : q > .65 ? 1 : (q - .35) / .3;
+        const R = s(vr), G = s(vg), B = s(vb);
+        const i = (y * w + x) * 4;
+        const fade = Math.min(1, Math.min(x, w - x) / (w * .12)) * .9 + .1;
+        buf[i] = clamp((255 * R) * fade);
+        buf[i + 1] = clamp((255 * G + 112 * B) * fade);
+        buf[i + 2] = clamp((64 * R + 159 * G + 255 * B) * fade * .9);
+        buf[i + 3] = 255;
+      }
+    }
+  }
+  function genChroma(w, h) {
+    const m = canvasBase(w, h, (x) => {
+      x.fillStyle = '#000'; x.fillRect(0, 0, w, h);
+      x.strokeStyle = '#fff'; x.fillStyle = '#fff';
+      x.lineWidth = h * .08;
+      x.beginPath(); x.arc(w * .33, h * .52, h * .28, 0, Math.PI * 2); x.stroke();
+      x.fillRect(w * .56, h * .2, w * .34, h * .12);
+      x.fillRect(w * .56, h * .44, w * .2, h * .12);
+      x.fillRect(w * .56, h * .68, w * .3, h * .12);
+      x.beginPath(); x.moveTo(w * .33, h * .38); x.lineTo(w * .41, h * .62); x.lineTo(w * .25, h * .62); x.closePath(); x.fill();
+    });
+    const d = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y++) {
+      let rs = 0, bs = 0;
+      const rsA = new Float32Array(w), bsA = new Float32Array(w);
+      for (let x = 0; x < w; x++) { const v = m[(y * w + x) * 4] / 255; rs = Math.max(v, rs * .94); rsA[x] = rs; }
+      for (let x = w - 1; x >= 0; x--) { const v = m[(y * w + x) * 4] / 255; bs = Math.max(v, bs * .9); bsA[x] = bs; }
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4, v = m[i] / 255;
+        const xs = Math.min(w - 1, x + Math.round(w * .02)), xb = Math.max(0, x - Math.round(w * .02));
+        const r = rsA[xb] * (1 - v), b = bsA[xs] * (1 - v);
+        d[i] = clamp(255 * v + 255 * r);
+        d[i + 1] = clamp(255 * v + 112 * b);
+        d[i + 2] = clamp(255 * v + 64 * r + 255 * b);
+        d[i + 3] = 255;
+      }
+    }
+    return d;
+  }
+  let ghostMask = null, ghostW = 0;
+  function animStatic(buf, base, w, h, t) {
+    if (!ghostMask || ghostW !== w) {
+      ghostW = w;
+      ghostMask = canvasBase(w, h, (x) => {
+        x.fillStyle = '#000'; x.fillRect(0, 0, w, h);
+        x.fillStyle = '#fff';
+        x.font = '900 ' + Math.round(h * .2) + 'px ' + GROT;
+        x.textAlign = 'center'; x.textBaseline = 'middle';
+        x.fillText('NO SIGNAL', w / 2, h * .46);
+        x.font = Math.round(h * .08) + 'px ' + MONO;
+        x.fillText('CH 03 · 00:17:04', w / 2, h * .66);
+      });
+    }
+    const roll = (t * 34) % h;
+    for (let y = 0; y < h; y++) {
+      const dy = Math.abs(y - roll), bar = dy < h * .08 ? 50 : 0;
+      const line = Math.random() < .015 ? 90 : 0;
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        const n = Math.random() * 190 + bar + line + ghostMask[i] * .32;
+        buf[i] = clamp(n * .92); buf[i + 1] = clamp(n * .96); buf[i + 2] = clamp(n * 1.08); buf[i + 3] = 255;
+      }
+    }
+  }
+  function genMacro(w, h, seed) {
+    const r = rng32(seed);
+    const d = canvasBase(w, h, (x) => {
+      x.fillStyle = '#000'; x.fillRect(0, 0, w, h);
+      let g = x.createRadialGradient(w * .5, h * .38, 0, w * .5, h * .38, h * .3);
+      g.addColorStop(0, '#f2f2f2'); g.addColorStop(1, '#5a5a5a');
+      x.fillStyle = g;
+      x.beginPath(); x.ellipse(w * .5, h * .38, h * .2, h * .25, 0, 0, Math.PI * 2); x.fill();
+      g = x.createLinearGradient(0, h * .6, 0, h);
+      g.addColorStop(0, '#9a9a9a'); g.addColorStop(1, '#222');
+      x.fillStyle = g;
+      x.beginPath(); x.ellipse(w * .5, h * 1.02, w * .34, h * .4, 0, Math.PI, 0); x.fill();
+      x.fillStyle = '#000';
+      x.fillRect(w * .43, h * .34, w * .04, h * .025); x.fillRect(w * .53, h * .34, w * .04, h * .025);
+      x.strokeStyle = '#ff0040'; x.lineWidth = Math.max(1, h * .012);
+      x.beginPath(); x.ellipse(w * .5, h * .38, h * .23, h * .28, 0, 0, Math.PI * 2); x.stroke();
+      x.strokeStyle = '#0070ff';
+      x.beginPath(); x.ellipse(w * .51, h * .39, h * .26, h * .31, 0, 0, Math.PI * 2); x.stroke();
+    });
+    const bs = Math.max(4, Math.round(w / 24));
+    for (let it = 0; it < 22; it++) {
+      for (let by = 0; by < h - bs; by += bs) for (let bx = 0; bx < w - bs; bx += bs) {
+        if (r() > .3) continue;
+        const mvx = Math.round((Math.cos(by * .07 + it * .2) * 1.4 + .6) * bs * .3);
+        const mvy = Math.round((Math.sin(bx * .05) * .5 + 1) * bs * .35);
+        const tx = bx + mvx, ty = by + mvy;
+        if (tx < 0 || ty < 0 || tx + bs > w || ty + bs > h) continue;
+        for (let yy = bs - 1; yy >= 0; yy--) for (let xx = bs - 1; xx >= 0; xx--) {
+          const si = ((by + yy) * w + bx + xx) * 4, di = ((ty + yy) * w + tx + xx) * 4;
+          d[di] = d[si]; d[di + 1] = d[si + 1]; d[di + 2] = d[si + 2];
+        }
+      }
+    }
+    return d;
+  }
+  const PAL = [[0, 0, 0], [255, 255, 255], [255, 0, 64], [0, 255, 159], [0, 112, 255]];
+  function animBits(buf, base, w, h, t) {
+    const k = Math.floor(t * 5);
+    const sx = 128 / w, sy = 96 / h;
+    for (let y = 0; y < h; y++) {
+      const yy = Math.floor(y * sy);
+      for (let x = 0; x < w; x++) {
+        const xx = Math.floor(x * sx);
+        const a = (xx ^ (yy + (k >> 1))) & 31;
+        const b = ((xx * yy + k * 7) >> 5) & 3;
+        let idx = a < 5 ? 2 + b % 3 : (a & 8 ? 1 : 0);
+        if (((xx + k) & 63) === ((yy * 3) & 63)) idx = 3;
+        const c = PAL[idx], i = (y * w + x) * 4;
+        buf[i] = c[0]; buf[i + 1] = c[1]; buf[i + 2] = c[2]; buf[i + 3] = 255;
+      }
+    }
+  }
+  function genQTable(w, h, seed) {
+    const r = rng32(seed);
+    const d = new Uint8ClampedArray(w * h * 4);
+    const bs = Math.max(4, Math.round(w / 24));
+    for (let by = 0; by < h; by += bs) for (let bx = 0; bx < w; bx += bs) {
+      const cx = (bx + bs / 2) / w, cy = (by + bs / 2) / h;
+      const L = 40 + 180 * Math.max(0, 1 - Math.hypot(cx - .45, cy - .5) * 1.9) + 40 * cx;
+      const u = Math.floor(r() * 4), v = Math.floor(r() * 4), amp = 40 + r() * 70;
+      const tint = r() < .14 ? PAL[2 + Math.floor(r() * 3)] : null;
+      for (let j = 0; j < bs && by + j < h; j++) for (let i = 0; i < bs && bx + i < w; i++) {
+        let val = L + amp * Math.cos((2 * i + 1) * u * Math.PI / (2 * bs)) * Math.cos((2 * j + 1) * v * Math.PI / (2 * bs));
+        val = Math.round(val / 36) * 36;
+        const p = ((by + j) * w + bx + i) * 4;
+        if (tint) { d[p] = clamp(val * tint[0] / 255 + 20); d[p + 1] = clamp(val * tint[1] / 255 + 20); d[p + 2] = clamp(val * tint[2] / 255 + 20); }
+        else { d[p] = d[p + 1] = d[p + 2] = clamp(val); }
+        d[p + 3] = 255;
+      }
+    }
+    return d;
+  }
+  function genNull(w, h, seed) {
+    const r = rng32(seed);
+    return canvasBase(w, h, (x) => {
+      x.fillStyle = '#000'; x.fillRect(0, 0, w, h);
+      const cx = w / 2, cy = h / 2, R = h * .43;
+      x.strokeStyle = 'rgba(255,255,255,.32)'; x.lineWidth = Math.max(.6, h / 240);
+      x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.stroke();
+      for (let lat = -60; lat <= 60; lat += 30) {
+        const yy = cy - Math.sin(lat * Math.PI / 180) * R, rr = Math.cos(lat * Math.PI / 180) * R;
+        x.beginPath(); x.moveTo(cx - rr, yy); x.lineTo(cx + rr, yy); x.stroke();
+      }
+      for (let lon = -60; lon <= 60; lon += 30) {
+        x.beginPath(); x.ellipse(cx, cy, Math.abs(Math.sin(lon * Math.PI / 180)) * R, R, 0, 0, Math.PI * 2); x.stroke();
+      }
+      x.strokeStyle = 'rgba(255,255,255,.7)';
+      x.beginPath(); x.moveTo(cx, cy - R); x.lineTo(cx, cy + R); x.moveTo(cx - R, cy); x.lineTo(cx + R, cy); x.stroke();
+      for (let i = 0; i < 900; i++) {
+        const a = r() * Math.PI * 2, dd = Math.pow(r(), 3) * R * .9;
+        x.fillStyle = r() < .82 ? '#00ff9f' : (r() < .5 ? '#0070ff' : '#fff');
+        const s = Math.max(1, Math.round(h / 150));
+        x.fillRect(Math.round(cx + Math.cos(a) * dd), Math.round(cy + Math.sin(a) * dd * .8), s, s);
+      }
+      x.fillStyle = '#ff0040';
+      const q = Math.max(3, h * .045);
+      x.fillRect(cx - q / 2, cy - q / 2, q, q);
+      x.fillStyle = '#fff';
+      x.font = Math.max(7, Math.round(h * .065)) + 'px ' + MONO;
+      x.fillText('0°N 0°E', cx + q, cy - q);
+    });
+  }
+
+  const WORKS = [
+    { t: 'Dawn Buffer', y: 2016, m: 'pixel-sorted photograph, 4096 × 3072', d: 'A sunrise photographed from a night bus, then re-sorted column by column until the light runs down the frame like wet paint.', base: genDawn },
+    { t: 'Vertical Hold', y: 2017, m: 'interference loop, 11 min', d: 'Three scanline fields at slightly different pitches drift against one another. Wherever they disagree, colour appears.', anim: animVertical },
+    { t: 'Chroma Bleed', y: 2018, m: 'channel-shifted print, edition of 5', d: 'Red leaks to the right, blue leaks to the left, and the white shapes stay exactly where they were drawn.', base: genChroma },
+    { t: 'Dead Channel', y: 2019, m: 'captured static, VHS transfer', d: 'Seventeen minutes of an untuned channel, recorded, rewound and recorded over until something like a message surfaced.', anim: animStatic },
+    { t: 'Macroblock Elegy', y: 2021, m: 'datamosh, keyframes removed', d: 'A portrait with its keyframes deleted. Every later frame is forced to borrow motion from a face that is no longer there.', base: genMacro },
+    { t: 'Bit Rot Season', y: 2022, m: 'generative, bitwise, realtime', d: 'Patterns made from nothing but XOR, a multiply and a counter. Each season flips one more bit.', anim: animBits },
+    { t: 'Q-Table Ghost', y: 2023, m: 'JPEG re-saved 900 times', d: 'The same image re-compressed until only the 8 × 8 block grid of the codec remembers what it used to be.', base: genQTable },
+    { t: 'Null Island', y: 2024, m: 'plotted geodata, 1.2 million points', d: 'Every coordinate that failed to parse, plotted where mapping software quietly sends it: 0° N, 0° E, in the Gulf of Guinea.', base: genNull }
+  ];
+
+  /* per-frame corruption shared by every work */
+  let rowOff = new Int16Array(512);
+  function corrupt(src, img, w, h, amt, seed, t) {
+    const d = img.data;
+    if (rowOff.length < h) rowOff = new Int16Array(h);
+    rowOff.fill(0, 0, h);
+    const r = rng32(seed);
+    const nb = Math.floor(amt * 8 * r()) + (amt > .55 ? 2 : 0);
+    for (let k = 0; k < nb; k++) {
+      const y0 = Math.floor(r() * h), bh = 1 + Math.floor(r() * h * .16 * amt), off = Math.round((r() - .5) * w * .55 * amt);
+      for (let y = y0; y < Math.min(h, y0 + bh); y++) rowOff[y] += off;
+    }
+    const cs = Math.round(amt * (1 + r() * 6));
+    const wob = amt > .08 ? amt * 1.6 : 0;
+    for (let y = 0; y < h; y++) {
+      let o = rowOff[y] + (wob ? Math.round(Math.sin(y * .31 + t * 9) * wob) : 0);
+      o = ((o % w) + w) % w;
+      const dark = (y & 1) ? .8 : 1;
+      const row = y * w;
+      for (let x = 0; x < w; x++) {
+        let xs = x - o; if (xs < 0) xs += w;
+        let xr = xs - cs; if (xr < 0) xr += w; else if (xr >= w) xr -= w;
+        let xb = xs + cs; if (xb >= w) xb -= w; else if (xb < 0) xb += w;
+        const i = (row + x) * 4;
+        d[i] = src[(row + xr) * 4] * dark;
+        d[i + 1] = src[(row + xs) * 4 + 1] * dark;
+        d[i + 2] = src[(row + xb) * 4 + 2] * dark;
+        d[i + 3] = 255;
+      }
+    }
+    const nblk = Math.floor(amt * amt * 30 * r());
+    for (let k = 0; k < nblk; k++) {
+      const bw = 3 + Math.floor(r() * w * .2), bh = 1 + Math.floor(r() * h * .08);
+      const sx = Math.floor(r() * (w - bw)), sy = Math.floor(r() * (h - bh));
+      const dx = Math.floor(r() * (w - bw)), dy = Math.floor(r() * (h - bh));
+      const mode = r();
+      for (let yy = 0; yy < bh; yy++) for (let xx = 0; xx < bw; xx++) {
+        const si = ((sy + yy) * w + sx + xx) * 4, di = ((dy + yy) * w + dx + xx) * 4;
+        if (mode < .5) { d[di] = src[si]; d[di + 1] = src[si + 1]; d[di + 2] = src[si + 2]; }
+        else if (mode < .75) { d[di] = 255 - src[si]; d[di + 1] = 255 - src[si + 1]; d[di + 2] = 255 - src[si + 2]; }
+        else { d[di] = src[si + 2]; d[di + 1] = src[si]; d[di + 2] = src[si + 1]; }
+      }
+    }
+    if (amt > .3 && r() < amt * .5) {
+      const y = Math.floor(r() * h), c = PAL[1 + Math.floor(r() * 4)];
+      for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; }
+    }
+  }
+
+  class Piece {
+    constructor(canvas, idx, w, h) {
+      this.cv = canvas; this.idx = idx; this.w = w; this.h = h;
+      canvas.width = w; canvas.height = h;
+      this.ctx = canvas.getContext('2d');
+      this.img = this.ctx.createImageData(w, h);
+      const W = WORKS[idx];
+      this.base = W.base ? W.base(w, h, 1000 + idx * 77) : new Uint8ClampedArray(w * h * 4);
+      this.buf = W.anim ? new Uint8ClampedArray(w * h * 4) : null;
+      this.amt = .2; this.target = .2; this.acc = 1; this.visible = true; this.hot = false;
+    }
+    setIndex(idx) {
+      if (idx === this.idx) return;
+      this.idx = idx;
+      const W = WORKS[idx];
+      this.base = W.base ? W.base(this.w, this.h, 1000 + idx * 77) : new Uint8ClampedArray(this.w * this.h * 4);
+      this.buf = W.anim ? new Uint8ClampedArray(this.w * this.h * 4) : null;
+      this.acc = 1;
+    }
+    step(dt, t, force) {
+      this.amt += (this.target - this.amt) * Math.min(1, dt * 8);
+      const fps = stable ? (this.hot ? 8 : 0) : (this.hot ? 30 : 10);
+      this.acc += dt;
+      if (!force && (fps === 0 || this.acc < 1 / fps)) return;
+      this.acc = 0;
+      const W = WORKS[this.idx];
+      let src = this.base;
+      if (W.anim) { W.anim(this.buf, this.base, this.w, this.h, stable ? 3 : t); src = this.buf; }
+      const level = stable ? Math.min(this.amt, .12) : this.amt;
+      const seed = (Math.floor(t * (this.hot ? 14 : 5)) + this.idx * 131) | 0;
+      corrupt(src, this.img, this.w, this.h, level, seed, t);
+      this.ctx.putImageData(this.img, 0, 0);
+    }
+  }
+
+  const grid = $('#grid');
+  const thumbs = [];
+  WORKS.forEach((W, i) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'card';
+    b.setAttribute('aria-label', 'Open ' + W.t + ', ' + W.y);
+    b.innerHTML = '<canvas aria-hidden="true"></canvas><span class="open" aria-hidden="true">OPEN ↗</span><span class="meta"><span class="n">' + String(i + 1).padStart(2, '0') + '</span><span class="t">' + W.t + '</span><span class="m">' + W.y + ' · ' + W.m + '</span></span>';
+    li.appendChild(b);
+    grid.appendChild(li);
+    const p = new Piece($('canvas', b), i, 192, 144);
+    thumbs.push(p);
+    const hot = on => { p.hot = on; p.target = on ? .85 : .2; };
+    b.addEventListener('pointerenter', () => hot(true));
+    b.addEventListener('pointerleave', () => hot(false));
+    b.addEventListener('focus', () => hot(true));
+    b.addEventListener('blur', () => hot(false));
+    b.addEventListener('click', () => openViewer(i, b));
+  });
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      const p = thumbs.find(q => q.cv === e.target);
+      if (p) p.visible = e.isIntersecting;
+    }), { rootMargin: '100px' });
+    thumbs.forEach(p => io.observe(p.cv));
+  }
+
+  /* ── viewer ── */
+  const viewer = $('#viewer'), vCanvas = $('#vCanvas'), corruptIn = $('#corrupt'), corruptOut = $('#corruptOut');
+  let vPiece = null, vIdx = 0, lastFocus = null;
+  function fitViewerCanvas() {
+    const st = vCanvas.parentElement;
+    const cw = st.clientWidth - 2 * parseFloat(getComputedStyle(st).paddingLeft || 0);
+    const ch = st.clientHeight - 2 * parseFloat(getComputedStyle(st).paddingTop || 0);
+    const w = Math.max(120, Math.min(cw, ch * 4 / 3));
+    vCanvas.style.width = Math.floor(w) + 'px';
+    vCanvas.style.height = Math.floor(w * 3 / 4) + 'px';
+  }
+  function fillViewer(i) {
+    vIdx = (i + WORKS.length) % WORKS.length;
+    const W = WORKS[vIdx];
+    $('#vIdx').textContent = String(vIdx + 1).padStart(2, '0') + ' / ' + String(WORKS.length).padStart(2, '0');
+    $('#vTitle').textContent = W.t;
+    $('#vMeta').textContent = W.y + ' · ' + W.m;
+    $('#vDesc').textContent = W.d;
+    vCanvas.setAttribute('aria-label', W.t + ', ' + W.y + ', enlarged');
+    if (!vPiece) vPiece = new Piece(vCanvas, vIdx, 384, 288);
+    else vPiece.setIndex(vIdx);
+    vPiece.hot = true;
+    vPiece.target = vPiece.amt = corruptIn.value / 100;
+    vPiece.step(0, performance.now() / 1000, true);
+  }
+  function openViewer(i, from) {
+    lastFocus = from || document.activeElement;
+    viewer.hidden = false;
+    document.body.style.overflow = 'hidden';
+    fillViewer(i);
+    fitViewerCanvas();
+    $('#vClose').focus();
+  }
+  function closeViewer() {
+    viewer.hidden = true;
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  $('#vClose').addEventListener('click', closeViewer);
+  $('#vPrev').addEventListener('click', () => fillViewer(vIdx - 1));
+  $('#vNext').addEventListener('click', () => fillViewer(vIdx + 1));
+  corruptIn.addEventListener('input', () => {
+    corruptOut.textContent = corruptIn.value;
+    if (vPiece) { vPiece.target = corruptIn.value / 100; if (stable) { vPiece.amt = vPiece.target; vPiece.step(0, performance.now() / 1000, true); } }
+  });
+  viewer.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); closeViewer(); }
+    else if (e.key === 'ArrowLeft' && e.target !== corruptIn) fillViewer(vIdx - 1);
+    else if (e.key === 'ArrowRight' && e.target !== corruptIn) fillViewer(vIdx + 1);
+    else if (e.key === 'Tab') {
+      const f = $$('button, input', viewer).filter(el => !el.disabled);
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* ── hex dump sidebar ── */
+  const hexRoll = $('#hexRoll');
+  const MSG = 'SIGNAL/NOISE::k.oshiro::every image is a transmission; every transmission degrades. keep what survives. ';
+  let msgPos = 0, addr = 0x0004a3f0, hexY = 0;
+  const LH = 16;
+  const h2 = n => (n < 16 ? '0' : '') + n.toString(16).toUpperCase();
+  function hexLine(el) {
+    let hex = '', asc = '';
+    const corr = stable ? .01 : .06;
+    for (let i = 0; i < 8; i++) {
+      let c = MSG.charCodeAt(msgPos++ % MSG.length);
+      if (Math.random() < corr) {
+        c = Math.floor(Math.random() * 256);
+        const cls = ['cr', 'cg', 'cb'][Math.floor(Math.random() * 3)];
+        hex += '<span class="' + cls + '">' + h2(c) + '</span> ';
+      } else hex += '<span class="x">' + h2(c) + '</span> ';
+      asc += c >= 32 && c < 127 ? String.fromCharCode(c).replace('&', '&amp;').replace('<', '&lt;') : '.';
+    }
+    el.innerHTML = '<span class="o">' + addr.toString(16).padStart(8, '0') + '</span> ' + hex + asc;
+    el.className = 'hl' + (!stable && Math.random() < .015 ? ' inv' : '');
+    addr += 8;
+  }
+  const hexLines = [];
+  function fillHex() {
+    const need = Math.ceil(Math.max(innerHeight, 400) / LH) + 3;
+    while (hexLines.length < need) { const el = document.createElement('div'); hexLine(el); hexRoll.appendChild(el); hexLines.push(el); }
+  }
+  function stepHex(dt) {
+    const speed = stable ? 4 : 34;
+    hexY += speed * dt;
+    while (hexY >= LH) {
+      hexY -= LH;
+      const el = hexLines.shift();
+      hexLine(el);
+      hexRoll.appendChild(el);
+      hexLines.push(el);
+    }
+    hexRoll.style.transform = 'translateY(' + (-hexY).toFixed(1) + 'px)';
+  }
+
+  /* ── self-decoding about text ── */
+  const typed = $('#typed');
+  const ABOUT = $('#aboutText').textContent.trim();
+  const GLYPHS = '█▓▒░#%&@$*+=/\\<>01ABCDEF{}[]';
+  let typeStart = -1, typeDone = false;
+  function finishTyping() {
+    typeDone = true;
+    typed.textContent = ABOUT;
+    $('#decodeState').textContent = 'decoded · ' + ABOUT.length + ' bytes';
+  }
+  function stepTyping(t) {
+    if (typeDone || typeStart < 0) return;
+    const rate = 95;
+    const p = (t - typeStart) * rate;
+    const n = Math.min(ABOUT.length, Math.floor(p));
+    let out = ABOUT.slice(0, Math.max(0, n - 10));
+    for (let i = Math.max(0, n - 10); i < n; i++) {
+      const ch = ABOUT[i];
+      out += ch === ' ' ? ' ' : (Math.random() < (n - i) / 12 ? ch : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]);
+    }
+    if (n > 20 && Math.random() < .25) {
+      const k = Math.floor(Math.random() * (n - 20));
+      if (out[k] !== ' ') out = out.slice(0, k) + GLYPHS[Math.floor(Math.random() * GLYPHS.length)] + out.slice(k + 1);
+    }
+    typed.innerHTML = out.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '<span class="cur"></span>';
+    if (n >= ABOUT.length && p > ABOUT.length + 30) { finishTyping(); }
+  }
+  if ('IntersectionObserver' in window) {
+    const io2 = new IntersectionObserver(es => {
+      if (es.some(e => e.isIntersecting)) { if (stable) finishTyping(); else if (typeStart < 0) typeStart = performance.now() / 1000; io2.disconnect(); }
+    }, { threshold: .2 });
+    io2.observe(typed.parentElement);
+  } else finishTyping();
+
+  /* ── tear events ── */
+  const tearCv = $('#tear'), tctx = tearCv.getContext('2d');
+  const frameEl = $('#frame'), tearMap = $('#tearMap'), tearNoise = $('#tearNoise');
+  let tearUntil = 0, nextTear = 5 + Math.random() * 6, tearDirty = false;
+  function sizeTear() { tearCv.width = Math.ceil(innerWidth / 2); tearCv.height = Math.ceil(innerHeight / 2); }
+  function startTear(t) {
+    tearUntil = t + .14 + Math.random() * .16;
+    tearNoise.setAttribute('seed', String(Math.floor(Math.random() * 999)));
+    tearMap.setAttribute('scale', String(60 + Math.random() * 140));
+    frameEl.classList.add('tearing');
+    tearDirty = true;
+  }
+  function stepTear(t) {
+    if (t < tearUntil) {
+      const w = tearCv.width, h = tearCv.height;
+      tctx.clearRect(0, 0, w, h);
+      const n = 3 + Math.floor(Math.random() * 5);
+      for (let i = 0; i < n; i++) {
+        const y = Math.random() * h, bh = 1 + Math.random() * h * .05;
+        tctx.fillStyle = ['rgba(255,0,64,.5)', 'rgba(0,255,159,.45)', 'rgba(0,112,255,.5)', 'rgba(255,255,255,.7)', 'rgba(0,0,0,.85)'][Math.floor(Math.random() * 5)];
+        tctx.fillRect(Math.random() * w * .3 - w * .1, y, w * (.5 + Math.random() * .7), bh);
+      }
+      tearDirty = true;
+    } else if (tearDirty) {
+      tctx.clearRect(0, 0, tearCv.width, tearCv.height);
+      frameEl.classList.remove('tearing');
+      tearDirty = false;
+    }
+    if (!stable && viewer.hidden && t >= nextTear) {
+      startTear(t);
+      nextTear = t + 7 + Math.random() * 9;
+    }
+  }
+
+  /* ── header telemetry ── */
+  const sigVal = $('#sigVal'), frmVal = $('#frmVal'), hexRate = $('#hexRate');
+  let frameCount = 0, teleT = 0;
+
+  /* ── contact copy ── */
+  const copyOut = $('#copyOut');
+  $('#copyBtn').addEventListener('click', async () => {
+    const text = 'studio at koshiro dot example';
+    let ok = false;
+    try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); ok = true; } } catch (e) { ok = false; }
+    if (!ok) {
+      const f = $('#copyField');
+      try { f.select(); ok = document.execCommand && document.execCommand('copy'); } catch (e) { ok = false; }
+    }
+    copyOut.textContent = ok ? '> address copied to clipboard' : '> copy blocked here; select the address above instead';
+  });
+
+  /* ── toast ── */
+  const toastEl = $('#toast');
+  let toastT = 0;
+  function toast(m) { toastEl.textContent = m; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 1600); }
+
+  /* ── loop ── */
+  let raf = 0, last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    const t = now / 1000;
+    frameCount++;
+    stepHeadline(t);
+    if (viewer.hidden) { for (const p of thumbs) if (p.visible) p.step(dt, t, false); }
+    else if (vPiece) vPiece.step(dt, t, false);
+    stepHex(dt);
+    stepTyping(t);
+    stepTear(t);
+    teleT -= dt;
+    if (teleT <= 0) {
+      teleT = stable ? 1 : .18;
+      sigVal.textContent = (stable ? 99.9 : 88 + Math.random() * 11.8).toFixed(1);
+      frmVal.textContent = String(frameCount).padStart(6, '0');
+      hexRate.textContent = (stable ? 6 : 40 + Math.floor(Math.random() * 18)) + ' kB/s';
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+    else if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  });
+  let rsT = 0;
+  addEventListener('resize', () => {
+    clearTimeout(rsT);
+    rsT = setTimeout(() => { layoutHeadline(); sizeTear(); fillHex(); if (!viewer.hidden) fitViewerCanvas(); }, 60);
+  });
+
+  layoutHeadline();
+  sizeTear();
+  fillHex();
+  applyStable();
+  const t0 = performance.now() / 1000;
+  thumbs.forEach(p => p.step(0, t0, true));
+  raf = requestAnimationFrame(frame);})();
+</script>
+</body>
+</html>

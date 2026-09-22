@@ -1,0 +1,34 @@
+TITLE: Connected — A Dot-Matrix Globe
+FILE: 083-dot-globe.html
+
+=== PROMPT (exact prompt used) ===
+Build "Connected — A Dot-Matrix Globe". A rotating 3D globe rendered on canvas as a sphere of evenly spaced dots (Fibonacci sphere), with bright land dots and faint ocean dots — land determined from an embedded low-resolution land mask (a compact hand-encoded bitmap, e.g. a 72×36 character grid of the continents). Palette: midnight background #050a18, ocean dots #1b2a4a, land dots #5ad1e6 → #a6fff2, arcs in coral #ff6f61 and gold #ffd166. Animated great-circle arcs travel between about fifteen major world cities placed at their real latitude/longitude (London, New York, Tokyo, São Paulo, Lagos, Sydney, Mumbai, Cairo…), each with a glowing head, a fading tail and a pulsing ring on arrival. An atmospheric glow halos the globe. Interaction: drag to rotate with inertia; hover a city dot for its name; click a city to fly the globe round to face it; auto-rotation resumes after idle. A side panel with clearly simulated stats ("connections per second"). Typography: a clean geometric sans.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Connected is a rotating dot-matrix Earth floating in a midnight #050a18 starfield. 12,000 points (7,000 on phones) sit evenly on a Fibonacci sphere. Each one is classified as land or ocean by a hand-encoded 72 × 36 bitmap of the continents (5° cells, stored as compact run lengths) that is sampled bilinearly, so the 5° steps soften into rounded coastlines. Land dots glow from #5ad1e6 to #a6fff2 under a light from the upper left, ocean dots are a quiet #1b2a4a, and the continents on the far side show faintly through, like glass. A cyan atmosphere haloes the sphere and a rim light catches its edge. Great-circle arcs fly between fifteen real cities: London, New York, Tokyo, São Paulo, Lagos, Sydney, Mumbai, Cairo, Los Angeles, Singapore, Moscow, Johannesburg, Mexico City, Dubai and Beijing. Arcs are coral when eastbound and gold when westbound, and each has a white-hot head, a tapering tail and a pulsing ring when it lands. A glass side panel shows clearly simulated traffic statistics in a clean geometric sans (Futura, Century Gothic, URW Gothic).
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Fibonacci-sphere point distribution (golden-angle spiral). Land and ocean are classified once from the run-length-decoded 72 × 36 mask using bilinear smoothing at a 0.47 threshold.
+- Rotation uses yaw and pitch with precomputed trig per frame, then orthographic projection. Dot size and alpha scale with depth, and land dots are bucketed into 8 brightness levels by Lambert lighting. All dots are drawn as batched arc paths, one fill per colour bucket, for speed.
+- Back-hemisphere land is drawn at 7% opacity for a see-through glass globe, over a radial-gradient sphere body, atmosphere halo, rim light and a pre-rendered DPR-aware starfield.
+- Arcs are slerped great circles lifted by a sine altitude profile proportional to their angular distance. They have per-point limb occlusion (hidden only when behind the sphere and inside its disc), a faint full-route trace, an 18-segment tail whose width and alpha grow toward the head, and a radial-gradient head. Arrival rings are ellipses foreshortened by their depth.
+- City markers have glow sprites, a pulsing selection ring and uppercase canvas labels near the centre of view.
+- The panel shows connections per second with a live 60-sample sparkline (a gradient-filled canvas), routes in flight, latency random walk, handshakes, data moved and busiest route. City activity bars grow and flash on each arrival. Everything is marked "Simulated".
+
+=== INTERACTION MODEL ===
+- Drag the globe with mouse or touch (pointer capture). Release with speed and it keeps spinning on inertia. Auto-rotation eases back in after 3.5 s of idleness, and the "Auto-rotate" toggle turns it off.
+- Hovering a city shows a tooltip with its name and real coordinates. Clicking it, or choosing it in the side list or the phone chips, flies the globe round to face that city with an eased shortest-path rotation and launches new arcs from it.
+- With the canvas focused, the arrow keys rotate the globe (Shift for bigger steps). The "Traffic" toggle pauses new arcs.
+- The layout is responsive. Desktop has the globe beside a 360 px glass panel. Phones get the globe above a compact stats card with horizontally scrolling city chips and a lighter 7,000-dot sphere. Canvases match their container at DPR up to 2, animation stops while the tab is hidden, and reduced motion disables auto-spin and makes fly-tos instant.

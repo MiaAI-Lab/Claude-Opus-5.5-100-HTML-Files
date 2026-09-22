@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GROOVY — Lava Lamp</title>
+<meta name="description" content="A 1970s lava lamp with real metaball physics: heated wax rises, cools, sinks, merges and splits inside a brass-capped glass on retro wallpaper. Flip the switch, turn the heat knob, change the colours, and warm the glass with your pointer.">
+<meta name="theme-color" content="#f4e1c1">
+<style>
+:root{
+  --cream:#f4e1c1;
+  --paper:#fbeedb;
+  --orange:#f4a259;
+  --rust:#bc4b51;
+  --sage:#5b8e7d;
+  --brown:#4a2518;
+  --choc:#2c140c;
+  --glow:255,150,60;
+  --lf:1;
+  --round:"Arial Rounded MT Bold","Avenir Next Rounded","Nunito","Century Gothic","URW Gothic","Futura","Trebuchet MS",sans-serif;
+  --geo:"Century Gothic","Avenir Next","Futura","URW Gothic","Trebuchet MS",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--cream);color:var(--brown)}
+body{font-family:var(--geo);min-height:100vh;overflow-x:hidden}
+button{font:inherit;color:inherit}
+
+/* ---------- the room ---------- */
+.wall{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.glow{position:fixed;inset:0;z-index:1;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 34vmax 42vmax at var(--gx,50%) var(--gy,45%),rgba(var(--glow),.62),rgba(var(--glow),.22) 45%,rgba(var(--glow),0) 75%);
+  opacity:calc(var(--lf) * .95);transition:opacity .2s linear}
+.shade{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 70vmax 60vmax at var(--gx,50%) var(--gy,45%),rgba(40,16,6,0),rgba(40,16,6,.55) 80%),rgba(22,9,4,calc(.12 + (1 - var(--lf)) * .5));
+  transition:background-color .2s linear}
+
+.stage{position:relative;z-index:2;min-height:100vh;height:100vh}
+.scene{--h:min(80vh,860px);--tb:13vh;position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;pointer-events:none}
+.table{position:absolute;left:0;right:0;bottom:0;height:var(--tb);
+  background:linear-gradient(180deg,#8a5634 0,#6b3e24 5px,#5a321d 30%,#3b1f12 100%);
+  box-shadow:0 -1px 0 #b27a4c,0 -14px 30px rgba(30,10,4,.25)}
+.table::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 2px,rgba(255,255,255,.02) 2px 7px,rgba(0,0,0,.04) 7px 11px);opacity:.8}
+.table::after{content:"";position:absolute;left:50%;top:0;width:min(70vw,720px);height:70%;transform:translateX(-50%);
+  background:radial-gradient(ellipse 50% 60% at 50% 0,rgba(var(--glow),.55),rgba(var(--glow),0) 70%);opacity:var(--lf);mix-blend-mode:screen}
+
+/* ---------- lamp ---------- */
+.lamp{position:absolute;left:50%;bottom:calc(var(--tb) - 1px);width:calc(var(--h) / 3);height:var(--h);margin:0;transform:translateX(-50%);pointer-events:auto}
+.lamp svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#wax{position:absolute;left:21.6667%;top:12.2222%;width:56.6667%;height:50%;display:block;clip-path:polygon(23.53% 0,76.47% 0,100% 100%,0 100%);cursor:crosshair;touch-action:none}
+.vents circle{fill:#2a1405}
+.vents .lit{fill:rgb(var(--glow));opacity:calc(var(--lf) * .9)}
+.bulbglow{opacity:var(--lf)}
+
+.switch{position:absolute;left:50%;top:86.4%;width:13%;aspect-ratio:1/1.35;transform:translate(-50%,-50%);border:0;padding:0;border-radius:30%/24%;cursor:pointer;
+  background:linear-gradient(180deg,#3a2012,#1c0d06);box-shadow:inset 0 0 0 2px #0e0603,0 2px 0 rgba(255,236,190,.35),0 4px 10px rgba(0,0,0,.45)}
+.switch i{position:absolute;left:18%;right:18%;top:12%;height:52%;border-radius:40%/30%;background:linear-gradient(180deg,#fff3d0,#d9a441 55%,#8e5e1c);box-shadow:0 3px 0 #5a3610;transition:transform .18s cubic-bezier(.3,1.6,.5,1),top .18s}
+.switch[aria-pressed="false"] i{top:36%;background:linear-gradient(180deg,#8e5e1c,#d9a441 45%,#fff3d0);box-shadow:0 -3px 0 #5a3610}
+.switch b{position:absolute;left:50%;bottom:-.9em;transform:translate(-50%,100%);font:700 10px/1 var(--round);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;color:var(--paper);text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.switch:focus-visible{outline:3px solid var(--orange);outline-offset:4px}
+.flip{position:absolute;left:calc(50% + var(--h) * .12);top:calc(100% - var(--tb) - var(--h) * .136 - 10px);margin:0;font:700 13px/1.1 var(--round);color:var(--paper);white-space:nowrap;transform:rotate(-6deg);text-shadow:0 1px 3px rgba(0,0,0,.6);pointer-events:none;transition:opacity .6s}
+.flip::before{content:"";position:absolute;right:calc(100% + 6px);top:50%;width:26px;height:2px;background:currentColor;border-radius:2px}
+.flip.gone{opacity:0}
+
+/* ---------- title & copy ---------- */
+.intro{position:absolute;left:clamp(20px,5vw,90px);top:50%;transform:translateY(-58%);width:min(34vw,470px)}
+.title{margin:0;display:block;width:100%}
+.title svg{display:block;width:100%;height:auto;overflow:visible}
+.lt{animation:wobble 5.5s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 60%}
+.lt:nth-child(2){animation-delay:-.9s}.lt:nth-child(3){animation-delay:-1.8s}.lt:nth-child(4){animation-delay:-2.7s}.lt:nth-child(5){animation-delay:-3.6s}.lt:nth-child(6){animation-delay:-4.5s}
+@keyframes wobble{0%,100%{transform:translateY(0) rotate(-2deg) scale(1,1)}50%{transform:translateY(-5px) rotate(2deg) scale(1.03,.97)}}
+.card{background:var(--paper);border:3px solid var(--brown);border-radius:26px;box-shadow:7px 8px 0 var(--rust),7px 8px 0 3px var(--brown)}
+.kicker{margin:14px 0 0 4px;font:700 14px/1 var(--round);letter-spacing:.34em;text-transform:uppercase;color:var(--paper);text-shadow:0 2px 0 var(--brown),0 0 1px var(--brown)}
+.blurb{margin:22px 0 0;padding:20px 22px;font:500 16px/1.6 var(--geo);color:var(--brown)}
+.blurb b{color:var(--rust)}
+.blurb small{display:block;margin-top:10px;font:600 11px/1.4 var(--geo);letter-spacing:.14em;text-transform:uppercase;color:var(--sage)}
+
+/* ---------- control panel ---------- */
+.panel{position:absolute;right:clamp(20px,5vw,90px);top:50%;transform:translateY(-54%);width:min(27vw,330px);padding:22px 22px 20px}
+.panel h2{margin:0;font:700 12px/1 var(--round);letter-spacing:.32em;text-transform:uppercase;color:var(--rust)}
+.knobbox{display:flex;align-items:center;gap:18px;margin-top:16px}
+.knobWrap{position:relative;width:112px;height:112px;flex:none}
+.knobWrap::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(from -135deg,var(--brown) 0 1.6deg,transparent 1.6deg 13.5deg);
+  -webkit-mask:radial-gradient(circle,transparent 46px,#000 47px,#000 55px,transparent 56px);mask:radial-gradient(circle,transparent 46px,#000 47px,#000 55px,transparent 56px)}
+.knobWrap::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -135deg,var(--sage),var(--orange) 50%,var(--rust) 75%,transparent 75%);
+  -webkit-mask:radial-gradient(circle,transparent 44px,#000 45px,#000 46px,transparent 47px);mask:radial-gradient(circle,transparent 44px,#000 45px,#000 46px,transparent 47px);opacity:.8}
+.knob{position:absolute;left:14px;top:14px;width:84px;height:84px;border-radius:50%;cursor:grab;touch-action:none;z-index:1;
+  background:radial-gradient(circle at 36% 30%,#8a4a2c,#5a2a16 45%,#2c140c 80%);box-shadow:0 6px 0 #1c0c06,0 9px 16px rgba(0,0,0,.35),inset 0 2px 2px rgba(255,210,170,.35)}
+.knob:active{cursor:grabbing}
+.knob:focus-visible{outline:3px solid var(--orange);outline-offset:6px}
+.knobCap{position:absolute;inset:12px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff0c8,#e0a84c 55%,#9a6522);box-shadow:inset 0 -3px 5px rgba(90,40,10,.5),0 1px 0 rgba(255,255,255,.3);transform:rotate(var(--ka,54deg));transition:transform .08s linear}
+.knobCap::before{content:"";position:absolute;left:50%;top:6px;width:5px;height:20px;margin-left:-2.5px;border-radius:3px;background:var(--choc)}
+.kread{flex:1;min-width:0}
+.kread p{margin:0;font:700 30px/1 var(--round);color:var(--brown)}
+.kread p small{font-size:14px;margin-left:2px}
+.kread span{display:block;margin-top:6px;font:600 11px/1.3 var(--geo);letter-spacing:.2em;text-transform:uppercase;color:var(--sage)}
+.kl{position:absolute;font:700 9px/1 var(--round);letter-spacing:.14em;text-transform:uppercase;color:var(--brown);opacity:.75}
+.kl0{left:-6px;bottom:0}.kl2{right:-2px;bottom:0}.kl1{left:50%;top:-14px;transform:translateX(-50%)}
+.combos{margin:22px 0 0;padding:0;border:0}
+.combos legend{padding:0;font:700 12px/1 var(--round);letter-spacing:.32em;text-transform:uppercase;color:var(--rust)}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.combo{display:flex;align-items:center;gap:10px;padding:9px 12px 9px 9px;border:2px solid var(--brown);border-radius:40px;background:#fff7ea;cursor:pointer;font:700 12.5px/1.1 var(--round);text-align:left;transition:transform .15s,box-shadow .15s,background .2s}
+.combo .dot{position:relative;width:26px;height:26px;border-radius:50%;flex:none;background:var(--l);box-shadow:inset 0 0 0 2px rgba(0,0,0,.15)}
+.combo .dot::after{content:"";position:absolute;left:5px;top:6px;width:13px;height:11px;border-radius:50% 55% 45% 50%;background:var(--w);box-shadow:inset -2px -2px 0 rgba(0,0,0,.18)}
+.combo:hover{transform:translateY(-2px);box-shadow:0 3px 0 var(--brown)}
+.combo[aria-checked="true"]{background:var(--orange);box-shadow:inset 0 0 0 2px var(--brown)}
+.combo:focus-visible{outline:3px solid var(--rust);outline-offset:3px}
+.meters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:20px;padding-top:16px;border-top:2px dashed rgba(74,37,24,.3)}
+.meters div{text-align:center}
+.meters b{display:block;font:700 22px/1 var(--round);color:var(--brown)}
+.meters span{display:block;margin-top:5px;font:600 9.5px/1.2 var(--geo);letter-spacing:.16em;text-transform:uppercase;color:var(--sage)}
+.hintline{margin:16px 0 0;font:500 12px/1.5 var(--geo);color:rgba(74,37,24,.8)}
+.hintline kbd{font:700 10px/1 var(--round);padding:2px 6px;border:1.5px solid var(--brown);border-radius:6px;background:#fff7ea}
+
+@media (max-width:1080px){
+  .intro{width:min(30vw,380px)}
+  .panel{width:min(30vw,300px);padding:18px}
+  .knobbox{flex-direction:column;align-items:flex-start}
+}
+@media (max-width:860px){
+  .stage{height:auto;min-height:0;display:flex;flex-direction:column;align-items:center;padding:22px 16px 30px}
+  .intro,.panel{position:relative;left:auto;right:auto;top:auto;transform:none;width:min(100%,460px)}
+  .intro{order:1}
+  .scene{--h:min(66vh,560px);--tb:11vh;position:relative;order:2;width:calc(100% + 32px);height:78vh;min-height:520px;margin:10px -16px 0;flex:none}
+  .panel{order:3;margin-top:26px}
+  .blurb{font-size:15px;padding:16px 18px}
+  .knobbox{flex-direction:row;align-items:center}
+  .flip{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  .lt{animation:none}
+  .switch i,.knobCap,.glow,.shade{transition:none}
+}
+</style>
+</head>
+<body>
+<svg class="wall" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="paper" width="112" height="112" patternUnits="userSpaceOnUse">
+      <rect width="112" height="112" fill="#f4e1c1"/>
+      <circle cx="56" cy="56" r="40" fill="#f4a259"/>
+      <circle cx="56" cy="56" r="31" fill="#f4e1c1"/>
+      <circle cx="56" cy="56" r="25" fill="#bc4b51"/>
+      <circle cx="56" cy="56" r="15" fill="#f4e1c1"/>
+      <circle cx="56" cy="56" r="8" fill="#5b8e7d"/>
+      <g fill="#5b8e7d"><circle cx="0" cy="0" r="16"/><circle cx="112" cy="0" r="16"/><circle cx="0" cy="112" r="16"/><circle cx="112" cy="112" r="16"/></g>
+      <g fill="#f4e1c1"><circle cx="0" cy="0" r="9"/><circle cx="112" cy="0" r="9"/><circle cx="0" cy="112" r="9"/><circle cx="112" cy="112" r="9"/></g>
+      <g fill="#f4a259"><circle cx="0" cy="0" r="4"/><circle cx="112" cy="0" r="4"/><circle cx="0" cy="112" r="4"/><circle cx="112" cy="112" r="4"/></g>
+      <g fill="#bc4b51" opacity=".8"><circle cx="56" cy="0" r="3"/><circle cx="56" cy="112" r="3"/><circle cx="0" cy="56" r="3"/><circle cx="112" cy="56" r="3"/></g>
+    </pattern>
+    <radialGradient id="paperFade" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#fff4dc" stop-opacity=".0"/><stop offset="1" stop-color="#6b3a20" stop-opacity=".22"/></radialGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#paper)"/>
+  <rect width="100%" height="100%" fill="url(#paperFade)"/>
+</svg>
+<div class="glow" aria-hidden="true"></div>
+<div class="shade" aria-hidden="true"></div>
+
+<main class="stage">
+  <header class="intro">
+    <h1 class="title">
+      <svg viewBox="-12 -14 734 168" role="img" aria-labelledby="ttl">
+        <title id="ttl">Groovy</title>
+        <defs>
+          <linearGradient id="letterFill" x1="0" y1="0" x2="0" y2="130" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffd27a"/><stop offset=".38" stop-color="#f4a259"/><stop offset=".75" stop-color="#e2683c"/><stop offset="1" stop-color="#bc4b51"/></linearGradient>
+          <path id="gG" d="M88,34 A42,42 0 1 0 93,78 L93,64 L68,64"/>
+          <path id="gR" d="M132,110 L132,14 L170,14 A24,24 0 0 1 170,62 L132,62 M160,62 L198,110"/>
+          <path id="gO1" d="M242,60 A44,44 0 1 0 330,60 A44,44 0 1 0 242,60"/>
+          <path id="gO2" d="M362,60 A44,44 0 1 0 450,60 A44,44 0 1 0 362,60"/>
+          <path id="gV" d="M478,14 L521,108 L564,14"/>
+          <path id="gY" d="M592,14 L635,62 L678,14 M635,62 L635,110"/>
+        </defs>
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <g class="lt"><use href="#gG" stroke="#7a2e1e" stroke-width="46" transform="translate(7,9)"/><use href="#gG" stroke="#3b1a10" stroke-width="46"/><use href="#gG" stroke="url(#letterFill)" stroke-width="32"/><use href="#gG" stroke="#fff4d8" stroke-width="5" opacity=".7" transform="translate(-3,-4)"/></g>
+          <g class="lt"><use href="#gR" stroke="#7a2e1e" stroke-width="46" transform="translate(7,9)"/><use href="#gR" stroke="#3b1a10" stroke-width="46"/><use href="#gR" stroke="url(#letterFill)" stroke-width="32"/><use href="#gR" stroke="#fff4d8" stroke-width="5" opacity=".7" transform="translate(-3,-4)"/></g>
+          <g class="lt"><use href="#gO1" stroke="#7a2e1e" stroke-width="46" transform="translate(7,9)"/><use href="#gO1" stroke="#3b1a10" stroke-width="46"/><use href="#gO1" stroke="url(#letterFill)" stroke-width="32"/><use href="#gO1" stroke="#fff4d8" stroke-width="5" opacity=".7" transform="translate(-3,-4)"/></g>
+          <g class="lt"><use href="#gO2" stroke="#7a2e1e" stroke-width="46" transform="translate(7,9)"/><use href="#gO2" stroke="#3b1a10" stroke-width="46"/><use href="#gO2" stroke="url(#letterFill)" stroke-width="32"/><use href="#gO2" stroke="#fff4d8" stroke-width="5" opacity=".7" transform="translate(-3,-4)"/></g>
+          <g class="lt"><use href="#gV" stroke="#7a2e1e" stroke-width="46" transform="translate(7,9)"/><use href="#gV" stroke="#3b1a10" stroke-width="46"/><use href="#gV" stroke="url(#letterFill)" stroke-width="32"/><use href="#gV" stroke="#fff4d8" stroke-width="5" opacity=".7" transform="translate(-3,-4)"/></g>
+          <g class="lt"><use href="#gY" stroke="#7a2e1e" stroke-width="46" transform="translate(7,9)"/><use href="#gY" stroke="#3b1a10" stroke-width="46"/><use href="#gY" stroke="url(#letterFill)" stroke-width="32"/><use href="#gY" stroke="#fff4d8" stroke-width="5" opacity=".7" transform="translate(-3,-4)"/></g>
+        </g>
+      </svg>
+    </h1>
+    <p class="kicker">Lava Lamp · Model 71</p>
+    <p class="blurb card">Wax, water, a warm bulb and a lot of patience. The bulb heats the wax until it rises, the cooler top sends it drifting back down, and around it goes all night. <b>Flip the switch</b>, turn up the heat, and <b>warm the glass</b> with your pointer.<small>Model 71 is fictional · no wax was harmed</small></p>
+  </header>
+
+  <div class="scene">
+    <div class="table" aria-hidden="true"></div>
+    <figure class="lamp" id="lamp">
+      <svg viewBox="0 0 300 900" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="brass" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#4a2f0e"/><stop offset=".1" stop-color="#b98a3c"/><stop offset=".22" stop-color="#fff1bf"/><stop offset=".33" stop-color="#d9aa52"/><stop offset=".5" stop-color="#7a531e"/><stop offset=".66" stop-color="#e6c274"/><stop offset=".76" stop-color="#fff6d6"/><stop offset=".88" stop-color="#9c6e2b"/><stop offset="1" stop-color="#3f280c"/>
+          </linearGradient>
+          <linearGradient id="brassDark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#2a1604" stop-opacity=".55"/></linearGradient>
+          <radialGradient id="cordShadow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+        </defs>
+        <ellipse cx="150" cy="874" rx="160" ry="16" fill="url(#cordShadow)"/>
+        <path d="M232,846 C270,856 292,880 340,884 C400,888 430,872 520,880" fill="none" stroke="#1c0d06" stroke-width="5" stroke-linecap="round"/>
+        <!-- base -->
+        <path d="M62,560 L238,560 L280,866 C280,876 20,876 20,866 Z" fill="url(#brass)"/>
+        <path d="M62,560 L238,560 L280,866 C280,876 20,876 20,866 Z" fill="url(#brassDark)"/>
+        <ellipse cx="150" cy="866" rx="130" ry="9" fill="#5c3b12"/>
+        <path d="M22,866 C60,874 240,874 278,866" fill="none" stroke="#fff1c4" stroke-width="1.4" opacity=".5"/>
+        <path d="M44,720 C100,730 200,730 256,720" fill="none" stroke="#3f280c" stroke-width="2" opacity=".55"/>
+        <path d="M45,723 C100,733 200,733 255,723" fill="none" stroke="#fff1c4" stroke-width="1" opacity=".35"/>
+        <path d="M34,796 C100,808 200,808 266,796" fill="none" stroke="#3f280c" stroke-width="2" opacity=".5"/>
+        <g class="vents">
+          <circle cx="86" cy="640" r="7"/><circle cx="111" cy="644" r="7"/><circle cx="136" cy="646" r="7"/><circle cx="164" cy="646" r="7"/><circle cx="189" cy="644" r="7"/><circle cx="214" cy="640" r="7"/>
+          <circle class="lit" cx="86" cy="640" r="5"/><circle class="lit" cx="111" cy="644" r="5"/><circle class="lit" cx="136" cy="646" r="5"/><circle class="lit" cx="164" cy="646" r="5"/><circle class="lit" cx="189" cy="644" r="5"/><circle class="lit" cx="214" cy="640" r="5"/>
+        </g>
+        <!-- collar -->
+        <path d="M56,548 L244,548 L244,566 C244,572 56,572 56,566 Z" fill="url(#brass)"/>
+        <path d="M56,548 C100,556 200,556 244,548" fill="none" stroke="#3f280c" stroke-width="1.6" opacity=".6"/>
+        <!-- cap -->
+        <path d="M121,40 L179,40 L200,118 C200,124 100,124 100,118 Z" fill="url(#brass)"/>
+        <path d="M121,40 L179,40 L200,118 C200,124 100,124 100,118 Z" fill="url(#brassDark)" opacity=".6"/>
+        <ellipse cx="150" cy="40" rx="29" ry="5" fill="#ffe9b0"/>
+        <path d="M136,40 C136,26 164,26 164,40 Z" fill="url(#brass)"/>
+        <circle cx="150" cy="24" r="6" fill="url(#brass)"/>
+        <path d="M104,110 C130,117 170,117 196,110" fill="none" stroke="#3f280c" stroke-width="1.6" opacity=".5"/>
+      </svg>
+      <canvas id="wax" aria-label="Glass vessel with moving wax. Move the pointer over it to warm the wax."></canvas>
+      <svg viewBox="0 0 300 900" aria-hidden="true" focusable="false" style="pointer-events:none">
+        <defs>
+          <linearGradient id="gHi" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <linearGradient id="gEdge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".16" stop-color="#000" stop-opacity="0"/><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient>
+          <radialGradient id="gBulb" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="#fff6d8" stop-opacity=".75"/><stop offset=".5" stop-color="#fff0c0" stop-opacity=".2"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+        </defs>
+        <path d="M105,110 L195,110 L235,560 L65,560 Z" fill="url(#gEdge)"/>
+        <path class="bulbglow" d="M85,420 L215,420 L235,560 L65,560 Z" fill="url(#gBulb)"/>
+        <path d="M112,122 L124,122 L90,548 L76,548 Z" fill="url(#gHi)" opacity=".75"/>
+        <path d="M130,122 L134,122 L106,548 L100,548 Z" fill="url(#gHi)" opacity=".45"/>
+        <path d="M184,130 L188,130 L218,540 L213,540 Z" fill="url(#gHi)" opacity=".28"/>
+        <path d="M105,110 L65,560 M195,110 L235,560" stroke="rgba(255,255,255,.45)" stroke-width="1.4"/>
+      </svg>
+      <button type="button" class="switch" id="switch" aria-pressed="true" aria-label="Lamp power switch"><i></i><b>Power</b></button>
+      <figcaption class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">A brass lava lamp on a wooden sideboard.</figcaption>
+    </figure>
+    <p class="flip" id="flip" aria-hidden="true">flip me</p>
+  </div>
+
+  <aside class="panel card" aria-label="Lamp controls">
+    <h2 id="heatLbl">Heat</h2>
+    <div class="knobbox">
+      <div class="knobWrap">
+        <div class="knob" id="knob" role="slider" tabindex="0" aria-labelledby="heatLbl" aria-valuemin="0" aria-valuemax="100" aria-valuenow="72" aria-valuetext="Hot, 72 percent"><div class="knobCap" id="knobCap"></div></div>
+        <span class="kl kl0" aria-hidden="true">Cool</span><span class="kl kl1" aria-hidden="true">Warm</span><span class="kl kl2" aria-hidden="true">Hot</span>
+      </div>
+      <div class="kread"><p id="heatNum">72<small>%</small></p><span id="heatWord">Hot &amp; lively</span></div>
+    </div>
+    <fieldset class="combos">
+      <legend>Colours</legend>
+      <div class="cgrid" role="radiogroup" aria-label="Colour combination">
+        <button type="button" class="combo" role="radio" aria-checked="true" data-c="classic" style="--l:#f7c948;--w:#e0293b"><span class="dot"></span>Classic</button>
+        <button type="button" class="combo" role="radio" aria-checked="false" data-c="haze" style="--l:#2856c8;--w:#e3238f"><span class="dot"></span>Purple Haze</button>
+        <button type="button" class="combo" role="radio" aria-checked="false" data-c="lime" style="--l:#5b2f95;--w:#62d63e"><span class="dot"></span>Lime</button>
+        <button type="button" class="combo" role="radio" aria-checked="false" data-c="ocean" style="--l:#0f3f6e;--w:#3fe0c8"><span class="dot"></span>Ocean</button>
+      </div>
+    </fieldset>
+    <div class="meters" aria-live="off">
+      <div><b id="mTemp">52°</b><span>Wax °C</span></div>
+      <div><b id="mBlobs">6</b><span>Afloat</span></div>
+      <div><b id="mBulb">40W</b><span>Bulb</span></div>
+    </div>
+    <p class="hintline"><kbd>Space</kbd> switch · <kbd>←</kbd><kbd>→</kbd> heat · <kbd>C</kbd> colours</p>
+  </aside>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var root = document.documentElement;
+  var mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var reduced = !!(mq && mq.matches);
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function sm(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+
+  /* ------------------------------------------------------------ colour combinations */
+  function rgb(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+  var COMBOS = {
+    classic: { liqTop: rgb('#c9861c'), liqBot: rgb('#ffe487'), bulb: rgb('#fff4c0'), wEdge: rgb('#7e0a1c'), wBody: rgb('#d9222f'), wCore: rgb('#ff8a3d'), glow: '255,150,60' },
+    haze:    { liqTop: rgb('#0e1f6b'), liqBot: rgb('#4f8dff'), bulb: rgb('#cfe0ff'), wEdge: rgb('#6e0645'), wBody: rgb('#d81f86'), wCore: rgb('#ff8fd8'), glow: '170,80,255' },
+    lime:    { liqTop: rgb('#28104f'), liqBot: rgb('#9a6ae0'), bulb: rgb('#efe0ff'), wEdge: rgb('#1d5e14'), wBody: rgb('#4fcb2e'), wCore: rgb('#d4ff78'), glow: '150,230,90' },
+    ocean:   { liqTop: rgb('#06223f'), liqBot: rgb('#2e8fc8'), bulb: rgb('#d8f6ff'), wEdge: rgb('#0b6b62'), wBody: rgb('#2fcfb8'), wCore: rgb('#c8fff2'), glow: '60,200,230' }
+  };
+  var C = COMBOS.classic, Ct = null, cMix = 1;
+  var cur = { liqTop: C.liqTop.slice(), liqBot: C.liqBot.slice(), bulb: C.bulb.slice(), wEdge: C.wEdge.slice(), wBody: C.wBody.slice(), wCore: C.wCore.slice() };
+
+  /* ------------------------------------------------------------ glass geometry (glass units: height 1) */
+  var TOPW = .2, BOTW = .3778;
+  function halfW(y) { return (TOPW + (BOTW - TOPW) * y) / 2; }
+
+  /* ------------------------------------------------------------ wax blobs */
+  var blobs = [], POOL = [];
+  function mkBlob(x, y, r, T) { return { x: x, y: y, vx: 0, vy: 0, r: r, T: T, ph: Math.random() * 6.28 }; }
+  function initBlobs() {
+    blobs = [
+      mkBlob(-.03, .93, .058, .45), mkBlob(.05, .8, .052, .92), mkBlob(-.02, .58, .056, .8),
+      mkBlob(.02, .34, .047, .66), mkBlob(-.015, .16, .054, .45), mkBlob(.03, .5, .042, .22),
+      mkBlob(-.04, .72, .049, .3), mkBlob(.0, .9, .045, .6)
+    ];
+    POOL = [{ x: -.07, y: .985, r: .07, ph: 0 }, { x: .02, y: .99, r: .075, ph: 2 }, { x: .1, y: .985, r: .06, ph: 4 }];
+  }
+  var on = true, light = 1, power = .72, heatPtr = null;
+  var MAXB = 11, MINB = 6;
+  function stepPhysics(dt) {
+    var P = on ? .35 + power * .9 : 0;
+    var i, j, b;
+    for (i = 0; i < blobs.length; i++) {
+      b = blobs[i];
+      var heatZone = sm(.76, .97, b.y), coolZone = sm(.6, .05, b.y);
+      var dT = heatZone * P * .62 - coolZone * .36 - (b.T - (on ? .3 : .18)) * .1;
+      if (heatPtr) {
+        var hx = b.x - heatPtr.x, hy = b.y - heatPtr.y, hd = hx * hx + hy * hy;
+        if (hd < .02) { var hk = 1 - hd / .02; dT += hk * 1.4; b.vy -= hk * .06 * dt; }
+      }
+      b.T = clamp(b.T + dT * dt, 0, 1);
+      var buoy = (b.T - .5) * (on ? .6 : .38);
+      b.vy -= buoy * dt;
+      b.vx += Math.sin(b.ph + b.y * 7 + T * .3) * .006 * dt;
+      var damp = Math.exp(-dt * 1.9);
+      b.vx *= damp; b.vy *= damp;
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      /* walls */
+      var hw = halfW(b.y) - b.r * .72;
+      if (b.x > hw) { b.x = hw; b.vx = -Math.abs(b.vx) * .3; }
+      if (b.x < -hw) { b.x = -hw; b.vx = Math.abs(b.vx) * .3; }
+      var top = b.r * .9 + .012, bot = 1 - b.r * .55;
+      if (b.y < top) { b.y = top; b.vy = Math.abs(b.vy) * .1; b.T -= .3 * dt; }
+      if (b.y > bot) { b.y = bot; b.vy = -Math.abs(b.vy) * .1; }
+    }
+    /* soft separation, merging and splitting */
+    for (i = 0; i < blobs.length; i++) {
+      for (j = i + 1; j < blobs.length; j++) {
+        var a = blobs[i], c = blobs[j];
+        var dx = c.x - a.x, dy = c.y - a.y, d = Math.sqrt(dx * dx + dy * dy) + 1e-6, rs = a.r + c.r;
+        if (d < rs * .45 && blobs.length > MINB && Math.abs(a.vy - c.vy) < .05 && Math.random() < dt * .3) {
+          var area = a.r * a.r + c.r * c.r, nr = Math.sqrt(area);
+          if (nr < .08) {
+            var wa = a.r * a.r / area, wc = 1 - wa;
+            a.x = a.x * wa + c.x * wc; a.y = a.y * wa + c.y * wc; a.vx = a.vx * wa + c.vx * wc; a.vy = a.vy * wa + c.vy * wc;
+            a.T = a.T * wa + c.T * wc; a.r = nr;
+            blobs.splice(j, 1); j--; continue;
+          }
+        }
+        if (d < rs * .9) {
+          var push = (rs * .9 - d) * .6 * dt * 10;
+          a.x -= dx / d * push * .5; a.y -= dy / d * push * .5; c.x += dx / d * push * .5; c.y += dy / d * push * .5;
+        }
+      }
+    }
+    for (i = blobs.length - 1; i >= 0; i--) {
+      b = blobs[i];
+      if (blobs.length < MAXB && b.r > .064 && b.vy < -.035 && Math.random() < dt * .5) {
+        var nr2 = b.r / Math.SQRT2;
+        var twin = mkBlob(b.x + (Math.random() - .5) * .01, b.y + nr2 * .9, nr2, b.T - .08);
+        twin.vy = b.vy * .4; twin.vx = b.vx;
+        b.r = nr2; b.y -= nr2 * .4; b.vy *= 1.15;
+        blobs.push(twin);
+      } else if (blobs.length < MAXB && b.r > .055 && b.y > .9 && b.T > .62 && on && Math.random() < dt * .12) {
+        var nr3 = b.r * .72, rest = Math.sqrt(Math.max(0, b.r * b.r - nr3 * nr3));
+        if (rest > .02) { var bud = mkBlob(b.x, b.y - b.r * .5, rest, b.T + .1); bud.vy = -.03; b.r = nr3; blobs.push(bud); }
+      }
+    }
+  }
+
+  /* ------------------------------------------------------------ canvas + field */
+  var cv = $('wax'), ctx = cv.getContext('2d');
+  var Wc = 0, Hc = 0, DPR = 1, Wd = 0, Hd = 0, img = null, u32 = null;
+  var CELL = 3, gw = 0, gh = 0, F = null, GX = null, GY = null, rowL = null, rowR = null, colGlow = null;
+  function size() {
+    var r = cv.getBoundingClientRect();
+    Wc = Math.max(20, r.width); Hc = Math.max(40, r.height);
+    DPR = Math.min(1.5, window.devicePixelRatio || 1);
+    Wd = Math.round(Wc * DPR); Hd = Math.round(Hc * DPR);
+    cv.width = Wd; cv.height = Hd;
+    img = ctx.createImageData(Wd, Hd); u32 = new Uint32Array(img.data.buffer);
+    gw = Math.ceil(Wc / CELL) + 3; gh = Math.ceil(Hc / CELL) + 3;
+    F = new Float32Array(gw * gh); GX = new Float32Array(gw * gh); GY = new Float32Array(gw * gh);
+    rowL = new Int32Array(Hd); rowR = new Int32Array(Hd);
+    for (var y = 0; y < Hd; y++) {
+      var Y = (y + .5) / Hd, half = halfW(Y) / BOTW * Wd;
+      rowL[y] = Math.max(0, Math.floor(Wd / 2 - half) - 1); rowR[y] = Math.min(Wd - 1, Math.ceil(Wd / 2 + half) + 1);
+    }
+    colGlow = new Float32Array(Wd);
+    for (var x = 0; x < Wd; x++) { var u = (x / Wd - .5) / .28; colGlow[x] = Math.exp(-u * u); }
+    var lr = $('lamp').getBoundingClientRect();
+    root.style.setProperty('--gx', (lr.left + lr.width / 2) + 'px');
+    root.style.setProperty('--gy', (lr.top + lr.height * .42) + 'px');
+  }
+  function unitsToCss(x, y) { return [(x / BOTW + .5) * Wc, y * Hc]; }
+
+  function computeField() {
+    F.fill(0);
+    var sc = Hc, cellU = CELL / sc, i, b, list = [];
+    for (i = 0; i < blobs.length; i++) {
+      b = blobs[i];
+      var s = 1 + Math.min(.55, Math.abs(b.vy) * 3.2);
+      var wob = 1 + Math.sin(T * 1.3 + b.ph) * .035;
+      list.push([b.x, b.y, b.r * wob, s, 1 / s]);
+    }
+    for (i = 0; i < POOL.length; i++) {
+      var p = POOL[i], pw = 1 + Math.sin(T * .7 + p.ph) * .06;
+      list.push([p.x + Math.sin(T * .4 + p.ph) * .01, p.y, p.r * pw, .5, 2.4]);
+    }
+    for (var k = 0; k < list.length; k++) {
+      var L = list[k], bx = L[0], by = L[1], R = L[2] * 2, R2 = R * R, ax = L[3], ay = L[4];
+      var ex = R / Math.sqrt(ax), ey = R / Math.sqrt(ay);
+      var gx0 = Math.max(0, Math.floor(((bx - ex) / BOTW + .5) * Wc / CELL)), gx1 = Math.min(gw - 1, Math.ceil(((bx + ex) / BOTW + .5) * Wc / CELL));
+      var gy0 = Math.max(0, Math.floor((by - ey) * Hc / CELL)), gy1 = Math.min(gh - 1, Math.ceil((by + ey) * Hc / CELL));
+      for (var gy = gy0; gy <= gy1; gy++) {
+        var Y = gy * cellU, dy = Y - by, dy2 = dy * dy * ay, o = gy * gw;
+        for (var gx = gx0; gx <= gx1; gx++) {
+          var X = gx * cellU - BOTW / 2, dx = X - bx;
+          var d2 = dx * dx * ax + dy2;
+          if (d2 < R2) { var t = 1 - d2 / R2; F[o + gx] += t * t; }
+        }
+      }
+    }
+    for (var yy = 1; yy < gh - 1; yy++) {
+      var oo = yy * gw;
+      for (var xx = 1; xx < gw - 1; xx++) {
+        GX[oo + xx] = (F[oo + xx + 1] - F[oo + xx - 1]) * .5;
+        GY[oo + xx] = (F[oo + xx + gw] - F[oo + xx - gw]) * .5;
+      }
+    }
+  }
+
+  var TH = .56;
+  var LX = -.42, LY = -.5, LZ = .76, HX = -.225, HY = -.268, HZ = .937;
+  function render() {
+    computeField();
+    var lf = light, liqK = .22 + .78 * lf;
+    var lt = cur.liqTop, lb = cur.liqBot, bu = cur.bulb, we = cur.wEdge, wb = cur.wBody, wc = cur.wCore;
+    var ptr = heatPtr ? unitsToCss(heatPtr.x, heatPtr.y) : null;
+    var pxp = ptr ? ptr[0] * DPR : 0, pyp = ptr ? ptr[1] * DPR : 0, pr2 = Math.pow(46 * DPR, 2);
+    var inv = 1 / (CELL * DPR);
+    for (var y = 0; y < Hd; y++) {
+      var Y = y / Hd;
+      var tY = Math.pow(Y, 1.25);
+      var lr0 = (lt[0] + (lb[0] - lt[0]) * tY) * liqK, lg0 = (lt[1] + (lb[1] - lt[1]) * tY) * liqK, lb0 = (lt[2] + (lb[2] - lt[2]) * tY) * liqK;
+      var bulbRow = Math.exp(-Math.pow((1 - Y) / .2, 2)) * .85 * lf;
+      var vLight = .72 + .38 * Y;
+      var fy = y * inv, j0 = fy | 0, ty = fy - j0, o0 = j0 * gw, o1 = o0 + gw;
+      var xL = rowL[y], xR = rowR[y], ro = y * Wd;
+      for (var x = xL; x <= xR; x++) {
+        var fx = x * inv, i0 = fx | 0, tx = fx - i0;
+        var a00 = o0 + i0, a01 = a00 + 1, a10 = o1 + i0, a11 = a10 + 1;
+        var w00 = (1 - tx) * (1 - ty), w01 = tx * (1 - ty), w10 = (1 - tx) * ty, w11 = tx * ty;
+        var f = F[a00] * w00 + F[a01] * w01 + F[a10] * w10 + F[a11] * w11;
+        var g = colGlow[x] * bulbRow;
+        var R = lr0 + bu[0] * g, G = lg0 + bu[1] * g, B = lb0 + bu[2] * g;
+        if (ptr) {
+          var ddx = x - pxp, ddy = y - pyp, pd = ddx * ddx + ddy * ddy;
+          if (pd < pr2) { var pk = 1 - pd / pr2; pk *= pk * .35; R += 255 * pk; G += 170 * pk; B += 90 * pk; }
+        }
+        if (f > .12) {
+          var halo = sm(.12, TH, f) * .3 * (.4 + .6 * lf);
+          R += (wc[0] - R) * halo * .6; G += (wc[1] - G) * halo * .6; B += (wc[2] - B) * halo * .6;
+          if (f > TH - .06) {
+            var inside = clamp((f - (TH - .06)) / .12, 0, 1);
+            var gx = GX[a00] * w00 + GX[a01] * w01 + GX[a10] * w10 + GX[a11] * w11;
+            var gy = GY[a00] * w00 + GY[a01] * w01 + GY[a10] * w10 + GY[a11] * w11;
+            var gl = Math.sqrt(gx * gx + gy * gy) + 1e-6;
+            var nx = -gx / gl, ny = -gy / gl;
+            var d = clamp((f - TH) / 1.1, 0, 1), e = 1 - d;
+            var ex = nx * e, ey = ny * e, ez = .35 + d * .95, nl = 1 / Math.sqrt(ex * ex + ey * ey + ez * ez);
+            ex *= nl; ey *= nl; ez *= nl;
+            var diff = ex * LX + ey * LY + ez * LZ; if (diff < 0) diff = 0;
+            var sp = ex * HX + ey * HY + ez * HZ; if (sp < 0) sp = 0;
+            sp = sp * sp; sp = sp * sp; sp = sp * sp; sp = sp * sp; sp *= .9;
+            var rim = (ny > 0 ? ny : 0) * e * .75 * lf;
+            var k1 = sm(0, .38, d), k2 = sm(.3, 1, d) * (.35 + .65 * lf);
+            var wr = we[0] + (wb[0] - we[0]) * k1, wg = we[1] + (wb[1] - we[1]) * k1, wbb = we[2] + (wb[2] - we[2]) * k1;
+            wr += (wc[0] - wr) * k2 * .8; wg += (wc[1] - wg) * k2 * .8; wbb += (wc[2] - wbb) * k2 * .8;
+            var sh = (.5 + .62 * diff) * vLight * (.3 + .7 * lf);
+            var cr = wr * sh + wc[0] * rim * .6 + 255 * sp * (.35 + .65 * lf);
+            var cg = wg * sh + wc[1] * rim * .6 + 250 * sp * (.35 + .65 * lf);
+            var cb = wbb * sh + wc[2] * rim * .6 + 235 * sp * (.35 + .65 * lf);
+            R += (cr - R) * inside; G += (cg - G) * inside; B += (cb - B) * inside;
+          }
+        }
+        R = R > 255 ? 255 : R; G = G > 255 ? 255 : G; B = B > 255 ? 255 : B;
+        u32[ro + x] = (255 << 24) | ((B | 0) << 16) | ((G | 0) << 8) | (R | 0);
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  /* ------------------------------------------------------------ controls */
+  var sw = $('switch'), flip = $('flip');
+  function setOn(v) {
+    on = v;
+    sw.setAttribute('aria-pressed', on ? 'true' : 'false');
+    sw.setAttribute('aria-label', on ? 'Lamp power switch, on' : 'Lamp power switch, off');
+    flip.classList.add('gone');
+  }
+  sw.addEventListener('click', function () { setOn(!on); });
+
+  var knob = $('knob'), knobCap = $('knobCap'), heatNum = $('heatNum'), heatWord = $('heatWord');
+  function heatName(v) { return v < .2 ? 'Barely warm' : v < .45 ? 'Mellow' : v < .7 ? 'Warm & wavy' : v < .88 ? 'Hot & lively' : 'Full boogie'; }
+  function setPower(v) {
+    power = clamp(v, 0, 1);
+    var pct = Math.round(power * 100);
+    knobCap.style.setProperty('--ka', (-135 + 270 * power).toFixed(1) + 'deg');
+    knob.setAttribute('aria-valuenow', String(pct));
+    knob.setAttribute('aria-valuetext', heatName(power) + ', ' + pct + ' percent');
+    heatNum.firstChild.nodeValue = String(pct);
+    heatWord.textContent = heatName(power);
+  }
+  var kDrag = null;
+  function knobAngle(e) {
+    var r = knob.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    return Math.atan2(e.clientX - cx, cy - e.clientY) * 180 / Math.PI;
+  }
+  knob.addEventListener('pointerdown', function (e) { e.preventDefault(); knob.focus(); try { knob.setPointerCapture(e.pointerId); } catch (x) {} kDrag = { id: e.pointerId }; setFromAngle(knobAngle(e)); });
+  function setFromAngle(a) {
+    if (a > 135 || a < -135) a = power > .5 ? 135 : -135;
+    setPower((a + 135) / 270);
+  }
+  knob.addEventListener('pointermove', function (e) { if (kDrag && kDrag.id === e.pointerId) setFromAngle(knobAngle(e)); });
+  knob.addEventListener('pointerup', function () { kDrag = null; });
+  knob.addEventListener('pointercancel', function () { kDrag = null; });
+  knob.addEventListener('wheel', function (e) { e.preventDefault(); setPower(power - Math.sign(e.deltaY) * .04); }, { passive: false });
+  knob.addEventListener('keydown', function (e) {
+    var k = e.key, d = 0;
+    if (k === 'ArrowRight' || k === 'ArrowUp') d = .05; else if (k === 'ArrowLeft' || k === 'ArrowDown') d = -.05;
+    else if (k === 'PageUp') d = .2; else if (k === 'PageDown') d = -.2;
+    else if (k === 'Home') { e.preventDefault(); setPower(0); return; } else if (k === 'End') { e.preventDefault(); setPower(1); return; }
+    if (d) { e.preventDefault(); e.stopPropagation(); setPower(power + d); }
+  });
+
+  var combos = [].slice.call(document.querySelectorAll('.combo'));
+  var fromC = null, cT = 1;
+  function setCombo(key, focus) {
+    var n = COMBOS[key]; if (!n) return;
+    fromC = { liqTop: cur.liqTop.slice(), liqBot: cur.liqBot.slice(), bulb: cur.bulb.slice(), wEdge: cur.wEdge.slice(), wBody: cur.wBody.slice(), wCore: cur.wCore.slice() };
+    C = n; cT = reduced ? 1 : 0;
+    root.style.setProperty('--glow', n.glow);
+    combos.forEach(function (b) {
+      var sel = b.getAttribute('data-c') === key;
+      b.setAttribute('aria-checked', sel ? 'true' : 'false'); b.tabIndex = sel ? 0 : -1;
+      if (sel && focus) b.focus();
+    });
+    if (reduced) applyColours(1);
+  }
+  function applyColours(t) {
+    var keys = ['liqTop', 'liqBot', 'bulb', 'wEdge', 'wBody', 'wCore'];
+    for (var k = 0; k < keys.length; k++) {
+      var a = fromC ? fromC[keys[k]] : C[keys[k]], b = C[keys[k]], c = cur[keys[k]];
+      for (var i = 0; i < 3; i++) c[i] = a[i] + (b[i] - a[i]) * t;
+    }
+  }
+  combos.forEach(function (b, i) {
+    b.tabIndex = b.getAttribute('aria-checked') === 'true' ? 0 : -1;
+    b.addEventListener('click', function () { setCombo(b.getAttribute('data-c')); });
+    b.addEventListener('keydown', function (e) {
+      var d = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 0;
+      if (!d) return;
+      e.preventDefault(); e.stopPropagation();
+      setCombo(combos[(i + d + combos.length) % combos.length].getAttribute('data-c'), true);
+    });
+  });
+
+  /* pointer warms the glass */
+  function ptrToUnits(e) {
+    var r = cv.getBoundingClientRect();
+    var x = ((e.clientX - r.left) / r.width - .5) * BOTW, y = (e.clientY - r.top) / r.height;
+    return { x: x, y: clamp(y, 0, 1) };
+  }
+  cv.addEventListener('pointermove', function (e) { heatPtr = ptrToUnits(e); });
+  cv.addEventListener('pointerdown', function (e) { heatPtr = ptrToUnits(e); });
+  cv.addEventListener('pointerleave', function () { heatPtr = null; });
+  cv.addEventListener('pointercancel', function () { heatPtr = null; });
+
+  window.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target, isBtn = t && (t.tagName === 'BUTTON' || t.getAttribute && t.getAttribute('role') === 'slider');
+    if ((e.key === ' ' || e.key === 'Enter') && isBtn) return;
+    if (e.key === ' ') { e.preventDefault(); setOn(!on); }
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { if (!isBtn) { e.preventDefault(); setPower(power + .05); } }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { if (!isBtn) { e.preventDefault(); setPower(power - .05); } }
+    else if (e.key === 'c' || e.key === 'C') {
+      var idx = 0; combos.forEach(function (b, i) { if (b.getAttribute('aria-checked') === 'true') idx = i; });
+      setCombo(combos[(idx + 1) % combos.length].getAttribute('data-c'));
+    }
+  });
+
+  /* ------------------------------------------------------------ readouts */
+  var mTemp = $('mTemp'), mBlobs = $('mBlobs'), mBulb = $('mBulb'), readT = 0;
+  function readouts() {
+    var s = 0, afloat = 0;
+    for (var i = 0; i < blobs.length; i++) { s += blobs[i].T; if (blobs[i].y < .86) afloat++; }
+    var tC = 20 + (s / Math.max(1, blobs.length)) * 50;
+    mTemp.textContent = Math.round(tC) + '°';
+    mBlobs.textContent = String(afloat);
+    mBulb.textContent = on ? Math.round(25 + power * 15) + 'W' : 'Off';
+  }
+
+  /* ------------------------------------------------------------ loop */
+  var T = 0, last = 0, raf = 0, running = false, acc = 0, slowFrames = 0, skip = false, frameN = 0;
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    var dt = (now - last) / 1000; last = now;
+    if (!(dt > 0) || dt > .1) dt = .016;
+    T += dt;
+    var target = on ? 1 : .08;
+    light += (target - light) * Math.min(1, dt * (on ? 5 : 1.6));
+    root.style.setProperty('--lf', light.toFixed(3));
+    if (cT < 1) { cT = Math.min(1, cT + dt * 1.2); applyColours(cT * cT * (3 - 2 * cT)); }
+    var sp = reduced ? .45 : 1;
+    acc += dt * sp;
+    var steps = 0;
+    while (acc > 1 / 60 && steps < 4) { stepPhysics(1 / 60); acc -= 1 / 60; steps++; }
+    if (steps >= 4) acc = 0;
+    frameN++;
+    if (!skip || frameN % 2 === 0) {
+      var t0 = performance.now();
+      render();
+      var ms = performance.now() - t0;
+      if (ms > 22) { if (++slowFrames > 20) skip = true; } else if (slowFrames > 0) slowFrames--;
+    }
+    readT -= dt;
+    if (readT <= 0) { readT = .3; readouts(); }
+  }
+  function start() { if (running) return; running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
+  function stop() { running = false; cancelAnimationFrame(raf); }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else start(); });
+  if (mq) { var onMq = function () { reduced = mq.matches; }; if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq); }
+  var rT = 0;
+  window.addEventListener('resize', function () { clearTimeout(rT); rT = setTimeout(size, 60); });
+
+  initBlobs();
+  for (var w = 0; w < 2400; w++) { T += 1 / 60; stepPhysics(1 / 60); }
+  setPower(.72);
+  size();
+  render();
+  readouts();
+  start();
+})();
+</script>
+</body>
+</html>

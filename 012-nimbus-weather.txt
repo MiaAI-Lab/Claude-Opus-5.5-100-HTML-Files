@@ -1,0 +1,41 @@
+TITLE: Nimbus — Weather for Port Aurelia
+FILE: 012-nimbus-weather.html
+
+=== PROMPT (exact prompt used) ===
+Build "Nimbus", an elegant weather dashboard for the fictional coastal city of Port Aurelia (clearly fictional sample data). The hero is an animated sky that changes with the selected condition: clear day (drifting sun glare, soft clouds), rain (parallax raindrops, darker gradient), snow (flakes with sway), thunderstorm (lightning flashes) and clear night (stars, moon). The palette adapts per condition but stays sophisticated (e.g. day #7cc4f5 → #e8f6ff, night #0b1026 → #2b2f63). Foreground glass cards: current temperature as a huge thin numeral, feels-like, humidity and UV; an animated wind compass; a sunrise/sunset arc with the sun's current position; a 24-hour temperature line chart (SVG smooth curve with gradient fill and hover tooltip); and a 7-day forecast strip with custom SVG weather icons that animate on hover. Interaction: clicking a forecast day switches the whole scene and its data with a smooth cross-fade; a °C/°F toggle. Typography: a clean sans with tabular numerals.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Nimbus is a calm, editorial weather dashboard for the fictional harbour city of Port Aurelia during an invented early-December week. A full-viewport canvas sky sits behind everything and is the hero: it renders five distinct weathers (clear day, rain, thunderstorm, snow, clear night) and cross-fades between them, while frosted-glass cards float above it. Text colour, glass tint, accent and glow are scene variables, so the whole interface re-inks itself: navy ink on the bright day and snow skies, pale ink on rain, storm and night. The current temperature is a huge hairline numeral drawn as single-stroke SVG paths that write themselves in, so it stays thin on every platform. Around it sit a conditions card (feels-like from the wind-chill formula, humidity with a Magnus dew point, UV on a WHO-coloured scale, precipitation chance), an animated wind compass, a sun-and-sea card with the sunrise/sunset arc, tide and sea temperature, a 24-hour chart, and a seven-day strip. Every figure is invented sample data and the page says so.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Canvas sky engine with cached offscreen sprites (procedural cumulus in six tints, sun glow, rotating ray fans, snow crystals, a moon with maria, craters and a soft gibbous terminator, a Milky Way band); each scene is drawn with its own weight during a 1.25 s eased cross-fade, and the three-stop sky gradient is interpolated per frame
+- Clear day: breathing sun glare with two counter-rotating ray layers, drifting clouds and faint hexagonal lens-flare ghosts that line up with the pointer
+- Rain and storm: three-depth parallax rain batched into one stroke per layer; storm lightning uses branched midpoint-displacement bolts with glow/core passes, a multi-pulse flicker envelope, sky flash and cloud underlighting
+- Snow: soft bokeh flakes and rotating six-armed crystals swaying on individual sine paths; night: twinkling star field, glinting bright stars, shooting stars
+- Hairline temperature numerals: hand-designed stroke glyphs (0–9, minus, degree) animated with pathLength and stroke-dashoffset
+- Scene-driven design tokens (ink, glass, accent, glow) with colour transitions; backdrop-filter glass cards with an inset highlight
+- SVG chart: Catmull-Rom to Bezier curve, a temperature-coded stroke gradient, accent area fill, precipitation bars, min/max labels and a "now" marker; it morphs between days
+- Wind compass with 72 generated ticks, a spring-damped needle with gust wobble, and flow streaks clipped to the dial that move downwind at a speed tied to the wind
+- Sun arc drawn along the true ellipse up to the sun's position, with a filled progress area; after sunset it shows a moon
+- Hand-built SVG weather icons (sun, rain, storm, snow, moon) that animate with CSS: spinning rays, falling drops, flickering bolt, drifting flakes, twinkling stars
+
+=== INTERACTION MODEL ===
+- Click or tap any of the seven days to switch the whole scene: the sky cross-fades, cards fade and blur through the change, the numeral redraws, the chart morphs and the needle swings to the new wind
+- Arrow keys, Home and End move between days; a URL hash such as #wed opens a given day
+- °C/°F segmented toggle converts every temperature and switches wind and visibility to mph and miles; the choice is saved in localStorage (guarded with try/catch)
+- Hover, drag or touch the hourly chart for a tooltip with temperature and precipitation chance; it is keyboard-focusable and the arrow keys step through the hours
+- Pointer movement adds gentle parallax to clouds, rain, stars and the sun or moon
+- Animation pauses while the tab is hidden; reduced-motion mode slows the particles, softens the lightning, and turns off parallax, the numeral stroke animation and the compass streaks

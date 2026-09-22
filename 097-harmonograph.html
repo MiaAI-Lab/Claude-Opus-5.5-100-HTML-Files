@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harmonograph — A Drawing Machine</title>
+<meta name="description" content="Harmonograph: a Victorian pendulum drawing machine simulated in the browser. Damped pendulums trace decaying Lissajous figures in fine ink on cream paper, with brass controls, musical interval ratios and PNG export.">
+<meta name="theme-color" content="#1d130d">
+<style>
+:root{
+  --paper:#f6f1e3;
+  --sepia:#3e2c1c;
+  --mahog:#1d130d;
+  --wood:#2b1b12;
+  --wood2:#3a2518;
+  --brass:#c8a24a;
+  --brass-lt:#f0d98f;
+  --brass-dk:#7d5f1c;
+  --ivory:#efe3c8;
+  --mute:#b9a58a;
+  --serif:"Baskerville","Hoefler Text","Libre Baskerville","Book Antiqua","Palatino Linotype","P052",Georgia,serif;
+  --didone:"Didot","Bodoni 72","Bodoni MT","C059","Century Schoolbook",Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--mahog);color:var(--ivory)}
+body{font-family:var(--serif);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(90% 70% at 30% 0%,rgba(255,200,130,.12),rgba(255,200,130,0) 60%),
+    repeating-linear-gradient(94deg,rgba(0,0,0,0) 0 3px,rgba(0,0,0,.07) 3px 4px,rgba(255,220,180,.02) 4px 9px),
+    linear-gradient(180deg,#24170f,#1a110b 60%,#140d08)}
+.sc{font-variant:all-small-caps;letter-spacing:.16em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+:focus-visible{outline:2px solid var(--brass-lt);outline-offset:3px}
+button{font:inherit;color:inherit}
+
+.wrap{max-width:1360px;margin:0 auto;padding:22px clamp(14px,3vw,40px) 30px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:20px;
+  border-bottom:3px double rgba(200,162,74,.55)}
+.top h1{font-family:var(--didone);font-weight:400;font-size:clamp(30px,3.6vw,50px);letter-spacing:.3em;margin-right:-.3em;line-height:1;color:var(--ivory);font-variant:small-caps}
+.top .sub{margin-top:8px;font-style:italic;font-size:clamp(14px,1.2vw,16.5px);color:var(--mute)}
+.cartouche{position:relative;padding:10px 22px 10px;text-align:center;border:1px solid rgba(200,162,74,.7);outline:1px solid rgba(200,162,74,.3);outline-offset:3px;border-radius:40px/50%;background:rgba(0,0,0,.18);min-width:250px}
+.cartouche .r{font-family:var(--didone);font-size:24px;color:var(--brass-lt);letter-spacing:.06em}
+.cartouche .n{display:block;font-size:13px;color:var(--ivory);margin-top:1px}
+.cartouche .c{display:block;font-size:11.5px;color:var(--mute);font-style:italic;margin-top:1px}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 480px;gap:clamp(20px,2.6vw,38px);align-items:start}
+
+/* the plate */
+.plate{position:relative;background:var(--paper);color:var(--sepia);padding:clamp(12px,1.6vw,22px) clamp(12px,1.6vw,22px) 14px;border-radius:2px;
+  box-shadow:0 30px 60px rgba(0,0,0,.55),0 4px 10px rgba(0,0,0,.35);max-width:max(340px,calc(100vh - 190px));margin:0 auto;width:100%}
+.plate.dark{background:#15110d;color:#d4af37}
+.sheet{position:relative;width:100%;aspect-ratio:1;outline:1px solid rgba(62,44,28,.45);outline-offset:6px}
+.plate.dark .sheet{outline-color:rgba(212,175,55,.4)}
+.sheet canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.caption{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-top:16px;font-size:clamp(13px,1.1vw,15px);line-height:1.4}
+.caption em{font-style:italic}
+.caption .sc{font-size:13px;white-space:nowrap}
+.status{font-style:italic;opacity:.75;white-space:nowrap}
+
+/* right column */
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.fig{background:var(--paper);color:var(--sepia);padding:12px 14px 10px;border-radius:2px;box-shadow:0 18px 36px rgba(0,0,0,.5)}
+.fig svg{display:block;width:100%;height:auto}
+.fig p{text-align:center;font-size:13px;font-style:italic;margin-top:4px}
+.fig p b{font-style:normal;font-weight:400;font-variant:all-small-caps;letter-spacing:.12em}
+
+.panel{position:relative;border-radius:6px;padding:16px 16px 16px;
+  background:
+    repeating-linear-gradient(92deg,rgba(0,0,0,0) 0 5px,rgba(0,0,0,.08) 5px 6px,rgba(255,210,160,.025) 6px 11px),
+    linear-gradient(180deg,#3b2618,#2a1a11);
+  box-shadow:inset 0 0 0 1px rgba(200,162,74,.55),inset 0 0 0 5px #24170f,inset 0 0 0 6px rgba(200,162,74,.3),0 20px 40px rgba(0,0,0,.5)}
+.panel h2{font-weight:400;font-size:12.5px;font-variant:all-small-caps;letter-spacing:.26em;color:var(--brass-lt);text-align:center;margin:2px 0 10px}
+.ratios{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.ratio{-webkit-appearance:none;appearance:none;border:1px solid rgba(200,162,74,.45);background:linear-gradient(180deg,rgba(255,230,170,.06),rgba(0,0,0,.15));border-radius:3px;cursor:pointer;
+  padding:6px 2px 5px;color:var(--ivory);line-height:1.15;transition:background .2s,border-color .2s,color .2s}
+.ratio b{display:block;font-family:var(--didone);font-weight:400;font-size:15px;letter-spacing:.02em}
+.ratio span{display:block;font-size:10px;font-variant:all-small-caps;letter-spacing:.08em;color:var(--mute)}
+.ratio:hover{border-color:var(--brass-lt)}
+.ratio[aria-pressed="true"]{background:linear-gradient(180deg,#f3dc93,#c8a24a 55%,#8e6c20);border-color:#f3dc93;color:#2a1a08}
+.ratio[aria-pressed="true"] span{color:#3d2a0c}
+
+.knobs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px 4px;margin-top:14px}
+.knob{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.knob .dial{position:relative;width:68px;height:68px;touch-action:none;cursor:grab;border-radius:50%;outline:none}
+.knob .dial:focus-visible{box-shadow:0 0 0 2px #2a1a11,0 0 0 4px var(--brass-lt)}
+.knob svg{width:100%;height:100%;display:block;overflow:visible}
+.knob .lab{font-size:11px;font-variant:all-small-caps;letter-spacing:.12em;color:var(--brass-lt);margin-top:2px;white-space:nowrap}
+.knobs .mn,.knobs .mx{display:none}
+.knob .val{font-style:italic;font-size:12.5px;white-space:nowrap;color:var(--ivory);font-variant-numeric:tabular-nums;min-height:17px}
+.inks{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(200,162,74,.25)}
+.inks .lab{font-size:12px;font-variant:all-small-caps;letter-spacing:.2em;color:var(--brass-lt)}
+.inkset{display:flex;gap:8px}
+.ink{-webkit-appearance:none;appearance:none;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;cursor:pointer;padding:2px 3px;color:var(--mute);font-size:10.5px;font-variant:all-small-caps;letter-spacing:.1em}
+.ink i{display:block;width:26px;height:26px;border-radius:50% 50% 46% 46%;box-shadow:inset 0 -4px 6px rgba(0,0,0,.35),inset 0 3px 3px rgba(255,255,255,.3),0 0 0 1px rgba(200,162,74,.5)}
+.ink[aria-pressed="true"]{color:var(--ivory)}
+.ink[aria-pressed="true"] i{box-shadow:inset 0 -4px 6px rgba(0,0,0,.35),inset 0 3px 3px rgba(255,255,255,.3),0 0 0 2px var(--brass-lt),0 0 10px rgba(240,217,143,.4)}
+.acts{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px;margin-top:14px}
+.act{-webkit-appearance:none;appearance:none;height:42px;border-radius:21px;cursor:pointer;border:1px solid rgba(200,162,74,.6);background:rgba(0,0,0,.2);color:var(--ivory);
+  font-size:13.5px;font-variant:all-small-caps;letter-spacing:.14em;transition:background .2s,transform .12s}
+.act:hover{background:rgba(200,162,74,.14)}
+.act:active{transform:translateY(1px)}
+.act.go{color:#2a1a08;border-color:#f3dc93;background:linear-gradient(180deg,#f6e3a0,#cfa94e 55%,#946f22);box-shadow:0 4px 10px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.6)}
+.act.go:hover{background:linear-gradient(180deg,#fbeab0,#d8b35a 55%,#a07a28)}
+.keys{margin-top:10px;font-size:12px;font-style:italic;color:var(--mute);text-align:center}
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);opacity:0;pointer-events:none;transition:opacity .35s,transform .35s;z-index:9;
+  background:var(--paper);color:var(--sepia);padding:9px 16px;border-radius:2px;box-shadow:0 10px 24px rgba(0,0,0,.5);font-style:italic;font-size:14px;max-width:92vw}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1100px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .plate{max-width:720px}
+  .side{max-width:720px;margin:0 auto;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+  .fig{order:2}
+}
+@media (max-width:560px){
+  .wrap{padding:16px 12px 26px}
+  .top{margin-bottom:14px}
+  .top h1{letter-spacing:.18em;margin-right:-.18em}
+  .cartouche{width:100%;min-width:0}
+  .ratios{grid-template-columns:repeat(4,1fr)}
+  .knobs{grid-template-columns:repeat(3,1fr);gap:10px 6px}
+  .knob .dial{width:82px;height:82px}
+  .knobs .mn,.knobs .mx{display:inline}
+  .inks{flex-direction:column;align-items:flex-start}
+  .inkset{width:100%;justify-content:space-between}
+  .acts{grid-template-columns:1fr 1fr}
+  .acts .go{grid-column:1/-1}
+  .caption{flex-direction:column;gap:4px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="brassK" cx=".38" cy=".32" r=".8">
+      <stop offset="0" stop-color="#fff4c8"/><stop offset=".28" stop-color="#e9c96f"/><stop offset=".7" stop-color="#b58d33"/><stop offset="1" stop-color="#6e5216"/>
+    </radialGradient>
+    <radialGradient id="dialFace" cx=".5" cy=".45" r=".6">
+      <stop offset="0" stop-color="#3d2819"/><stop offset="1" stop-color="#1c120b"/>
+    </radialGradient>
+    <pattern id="hatch" width="3.4" height="3.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V3.4" stroke="#3e2c1c" stroke-width=".7"/></pattern>
+    <pattern id="hatchX" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V3.2M0 0H3.2" stroke="#3e2c1c" stroke-width=".6"/></pattern>
+    <pattern id="hatchV" width="2.6" height="2.6" patternUnits="userSpaceOnUse"><path d="M0 0V2.6" stroke="#3e2c1c" stroke-width=".55"/></pattern>
+  </defs>
+</svg>
+
+<template id="knobTpl">
+  <div class="knob">
+    <div class="dial" role="slider" tabindex="0">
+      <svg viewBox="-60 -60 120 120" aria-hidden="true">
+        <circle r="56" fill="url(#dialFace)" stroke="#c8a24a" stroke-opacity=".6" stroke-width="1.2"/>
+        <circle r="47" fill="none" stroke="#efe3c8" stroke-opacity=".75" stroke-width="5" pathLength="360" stroke-dasharray="0.7 9.3"/>
+        <circle r="45.5" fill="none" stroke="#f0d98f" stroke-width="8" pathLength="360" stroke-dasharray="1.6 43.4"/>
+        <path d="M0 0L39.6 39.6A56 56 0 0 1 -39.6 39.6Z" fill="#241710"/>
+        <text class="mn" x="-30" y="47" text-anchor="middle" font-size="10" fill="#efe3c8" fill-opacity=".8" font-family="Baskerville, Book Antiqua, P052, Georgia, serif" font-style="italic"></text>
+        <text class="mx" x="30" y="47" text-anchor="middle" font-size="10" fill="#efe3c8" fill-opacity=".8" font-family="Baskerville, Book Antiqua, P052, Georgia, serif" font-style="italic"></text>
+        <circle r="33" fill="#000" opacity=".45" transform="translate(2.5 4)"/>
+        <circle r="32" fill="url(#brassK)"/>
+        <circle r="30.5" fill="none" stroke="#6e5216" stroke-width="3" pathLength="240" stroke-dasharray="1 1"/>
+        <circle r="22" fill="none" stroke="#7d5f1c" stroke-opacity=".5" stroke-width=".8"/>
+        <ellipse cx="-9" cy="-12" rx="12" ry="7" fill="#fff" opacity=".35" transform="rotate(-30)"/>
+        <g class="ptr">
+          <path d="M0 -12V-29" stroke="#3a2708" stroke-width="3" stroke-linecap="round"/>
+          <circle cy="-24" r="2.4" fill="#fbf3dd"/>
+        </g>
+      </svg>
+    </div>
+    <span class="lab"></span>
+    <span class="val"></span>
+  </div>
+</template>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Harmonograph</h1>
+      <p class="sub">A drawing machine of pendulums, ink and patience, after the parlour instruments of the Victorian era</p>
+    </div>
+    <div class="cartouche" aria-live="polite">
+      <span class="r" id="rRatio">2 : 3</span>
+      <span class="n sc" id="rName">Perfect fifth</span>
+      <span class="c" id="rCents">702 cents, sharp by 0.30 %</span>
+    </div>
+  </header>
+
+  <main class="stage">
+    <section class="plate" id="plate" aria-label="The drawing">
+      <div class="sheet">
+        <canvas id="paperC" aria-hidden="true"></canvas>
+        <canvas id="inkC" role="img" aria-label="A harmonograph figure drawn in fine ink"></canvas>
+        <canvas id="penC" aria-hidden="true"></canvas>
+      </div>
+      <div class="caption">
+        <p><span class="sc" id="plateNo">Plate I.</span> — <em id="plateText">A perfect fifth, sharp by 0.30 %</em></p>
+        <span class="status" id="status">drawing…</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <figure class="fig">
+        <svg viewBox="0 42 420 254" role="img" aria-label="Engraving of a three-pendulum harmonograph table; its pendulums swing in step with the drawing">
+          <g fill="none" stroke="#3e2c1c" stroke-linecap="round" stroke-linejoin="round">
+            <!-- floor -->
+            <path d="M8 284H412" stroke-width="1.2"/>
+            <rect x="8" y="285" width="404" height="8" fill="url(#hatch)" stroke="none" opacity=".6"/>
+            <!-- back legs -->
+            <path d="M82 132V280M338 132V280" stroke-width="5" opacity=".35"/>
+            <!-- front turned legs -->
+            <g fill="url(#hatchV)" stroke-width="1.1">
+              <path d="M44 132h14v10c4 4 4 10 0 14v8c5 6 5 14 0 20v70c3 3 3 8 0 11v15h-14v-15c-3-3-3-8 0-11v-70c-5-6-5-14 0-20v-8c-4-4-4-10 0-14z"/>
+              <path d="M362 132h14v10c4 4 4 10 0 14v8c5 6 5 14 0 20v70c3 3 3 8 0 11v15h-14v-15c-3-3-3-8 0-11v-70c-5-6-5-14 0-20v-8c-4-4-4-10 0-14z"/>
+            </g>
+            <!-- table top with grain -->
+            <path d="M26 116H394L400 124V132H20V124Z" fill="#efe6cf" stroke-width="1.3"/>
+            <path d="M20 132H400" stroke-width="1"/>
+            <path d="M40 121c60 2 120-2 180 1s110 1 160-1M36 127c80-2 150 2 230 0s90-1 120 0" stroke-width=".5" opacity=".7"/>
+            <rect x="20" y="126" width="380" height="6" fill="url(#hatch)" stroke="none" opacity=".55"/>
+            <!-- pendulum X (left) -->
+            <g id="penX">
+              <path d="M90 74V262" stroke-width="2.2"/>
+              <rect x="77" y="238" width="26" height="30" rx="2" fill="url(#hatchX)" stroke-width="1.2"/>
+              <path d="M77 244H103M77 262H103" stroke-width=".7"/>
+              <circle cx="90" cy="74" r="3" fill="#efe6cf" stroke-width="1.2"/>
+            </g>
+            <!-- pendulum Y (right) -->
+            <g id="penY">
+              <path d="M330 74V262" stroke-width="2.2"/>
+              <rect x="317" y="238" width="26" height="30" rx="2" fill="url(#hatchX)" stroke-width="1.2"/>
+              <path d="M317 244H343M317 262H343" stroke-width=".7"/>
+              <circle cx="330" cy="74" r="3" fill="#efe6cf" stroke-width="1.2"/>
+            </g>
+            <!-- rotary pendulum carrying the paper -->
+            <g id="rot">
+              <path d="M210 100V258" stroke-width="2.4"/>
+              <ellipse cx="210" cy="262" rx="30" ry="9" fill="url(#hatchX)" stroke-width="1.2"/>
+              <path d="M180 262v10a30 9 0 0 0 60 0v-10" fill="url(#hatch)" stroke-width="1.2"/>
+              <path d="M166 100H254L258 106H162Z" fill="#fbf7ea" stroke-width="1.2"/>
+              <path d="M176 102H244" stroke-width=".4" opacity=".6"/>
+            </g>
+            <!-- gimbals on the table -->
+            <g fill="#efe6cf" stroke-width="1.1"><rect x="83" y="112" width="14" height="8" rx="1.5"/><rect x="323" y="112" width="14" height="8" rx="1.5"/><rect x="202" y="112" width="16" height="8" rx="1.5"/></g>
+            <!-- pen arm -->
+            <path id="arm" d="M90 74L214 94" stroke-width="1.6"/>
+            <path id="link" d="M330 74L152 84" stroke-width=".8" stroke-dasharray="3 2"/>
+            <g id="pen"><path d="M211 88l6 0-3 11z" fill="#3e2c1c" stroke-width=".8"/></g>
+            <!-- labels -->
+            <g font-family="Baskerville, Book Antiqua, P052, Georgia, serif" font-size="10.5" fill="#3e2c1c" stroke="none" font-style="italic">
+              <text x="40" y="60">Pendulum X</text>
+              <text x="306" y="60">Pendulum Y</text>
+              <text x="236" y="226">Rotary</text>
+              <text x="226" y="72">Pen</text>
+            </g>
+            <path d="M58 64L86 72M334 64L332 70M234 222L214 244M236 76L217 88" stroke-width=".6"/>
+          </g>
+        </svg>
+        <p><b>Fig. 1.</b> — Two pendulums steer the pen; the third rocks the paper.</p>
+      </figure>
+
+      <section class="panel" aria-label="Instrument controls">
+        <h2>Frequency ratio · X to Y</h2>
+        <div class="ratios" id="ratios" role="group" aria-label="Harmonic ratio presets">
+          <button type="button" class="ratio" data-a="1" data-b="1" aria-pressed="false"><b>1:1</b><span>unison</span></button>
+          <button type="button" class="ratio" data-a="1" data-b="2" aria-pressed="false"><b>1:2</b><span>octave</span></button>
+          <button type="button" class="ratio" data-a="2" data-b="3" aria-pressed="true"><b>2:3</b><span>fifth</span></button>
+          <button type="button" class="ratio" data-a="3" data-b="4" aria-pressed="false"><b>3:4</b><span>fourth</span></button>
+          <button type="button" class="ratio" data-a="3" data-b="5" aria-pressed="false"><b>3:5</b><span>maj. 6th</span></button>
+          <button type="button" class="ratio" data-a="4" data-b="5" aria-pressed="false"><b>4:5</b><span>maj. 3rd</span></button>
+          <button type="button" class="ratio" data-a="5" data-b="6" aria-pressed="false"><b>5:6</b><span>min. 3rd</span></button>
+        </div>
+        <div class="knobs" id="knobs"></div>
+        <div class="inks">
+          <span class="lab" id="inkLab">Ink &amp; paper</span>
+          <div class="inkset" role="group" aria-labelledby="inkLab">
+            <button type="button" class="ink" data-ink="sepia" aria-pressed="true"><i style="background:#3e2c1c"></i>sepia</button>
+            <button type="button" class="ink" data-ink="indigo" aria-pressed="false"><i style="background:#22306b"></i>indigo</button>
+            <button type="button" class="ink" data-ink="oxblood" aria-pressed="false"><i style="background:#6e1a1f"></i>oxblood</button>
+            <button type="button" class="ink" data-ink="gold" aria-pressed="false"><i style="background:radial-gradient(circle at 40% 35%,#f6dc7a,#d4af37 55%,#1a140c 56%)"></i>gold</button>
+          </div>
+        </div>
+        <div class="acts">
+          <button type="button" class="act go" id="bRelease">Release pendulums</button>
+          <button type="button" class="act" id="bRandom">Randomize</button>
+          <button type="button" class="act" id="bSave">Save drawing</button>
+        </div>
+        <p class="keys">R release · Z randomize · S save · space holds the pen · 1–7 ratios · I changes ink</p>
+      </section>
+    </aside>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const TAU = Math.PI * 2;
+
+  /* ================= intervals ================= */
+  const NAMES = { '1:1': 'Unison', '1:2': 'Octave', '2:3': 'Perfect fifth', '3:4': 'Perfect fourth', '3:5': 'Major sixth', '4:5': 'Major third', '5:6': 'Minor third' };
+  const INKS = {
+    sepia:   { ink: [62, 44, 28],   paper: '#f6f1e3', dark: false, name: 'sepia' },
+    indigo:  { ink: [34, 48, 107],  paper: '#f6f1e3', dark: false, name: 'indigo' },
+    oxblood: { ink: [110, 26, 31],  paper: '#f6f1e3', dark: false, name: 'oxblood' },
+    gold:    { ink: [212, 175, 55], paper: '#15110d', dark: true,  name: 'gold' }
+  };
+  const ROMAN = n => { const m = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]; let s = ''; for (const [v, r] of m) while (n >= v) { s += r; n -= v; } return s; };
+
+  /* ================= parameters ================= */
+  const P = { a: 2, b: 3, detune: 0.3, phase: 90, damp: 0.014, rot: 30, pen: 0.6, speed: 12 };
+  let inkKey = 'sepia';
+  const KNOBS = [
+    { key: 'detune', label: 'Detuning', min: -2, max: 2, step: 0.05, fmt: v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2) + ' %', mn: '−2', mx: '+2', redraw: true },
+    { key: 'phase', label: 'Phase', min: 0, max: 360, step: 1, fmt: v => Math.round(v) + '°', mn: '0°', mx: '360°', redraw: true },
+    { key: 'damp', label: 'Damping', min: 0.004, max: 0.04, step: 0.001, fmt: v => v.toFixed(3) + ' /s', mn: 'long', mx: 'brief', redraw: true },
+    { key: 'rot', label: 'Rotary', min: 0, max: 100, step: 1, fmt: v => Math.round(v) + ' %', mn: 'still', mx: 'wide', redraw: true },
+    { key: 'pen', label: 'Pen width', min: 0.3, max: 2.5, step: 0.05, fmt: v => v.toFixed(2) + ' px', mn: 'fine', mx: 'broad', redraw: false },
+    { key: 'speed', label: 'Speed', min: 1, max: 40, step: 1, fmt: v => Math.round(v) + '×', mn: 'slow', mx: 'fast', redraw: false }
+  ];
+
+  // the machine: x(t) = A1·sin(f1·t + p1)·e^(−d1·t) + A2·sin(f2·t + p2)·e^(−d2·t), and the same for y
+  let M = null;
+  function machine() {
+    const w0 = TAU * 0.9 / Math.max(P.a, P.b);
+    const fx = w0 * P.a, fy = w0 * P.b * (1 + P.detune / 100);
+    const Ar = P.rot / 100 * 0.62;
+    const ph = P.phase * Math.PI / 180;
+    return {
+      fx, fy, fr: fx * (1 - 0.0042),
+      px: 0, py: ph, pr: Math.PI / 2 + ph * 0.5,
+      Ax: 1, Ay: 1, Ar,
+      dx: P.damp, dy: P.damp * 1.13, dr: P.damp * 0.86,
+      T: Math.log(60) / (P.damp * 0.86)
+    };
+  }
+  function pos(m, t, out) {
+    const ex = Math.exp(-m.dx * t), ey = Math.exp(-m.dy * t), er = Math.exp(-m.dr * t);
+    const r = m.fr * t + m.pr;
+    out.x = m.Ax * Math.sin(m.fx * t + m.px) * ex + m.Ar * Math.sin(r) * er;
+    out.y = m.Ay * Math.sin(m.fy * t + m.py) * ey + m.Ar * Math.cos(r) * er;
+    out.e = Math.max(ex, ey);
+  }
+
+  /* ================= canvases ================= */
+  const plate = $('plate'), paperC = $('paperC'), inkC = $('inkC'), penC = $('penC');
+  const pctx = paperC.getContext('2d'), ictx = inkC.getContext('2d'), nctx = penC.getContext('2d');
+  let S = 600, DPR = 1;
+  function paintPaper() {
+    const I = INKS[inkKey];
+    pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    pctx.fillStyle = I.paper; pctx.fillRect(0, 0, S, S);
+    let seed = 20240917;
+    const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    // laid fibres
+    const n = Math.round(S * S / 90);
+    pctx.lineWidth = 0.5;
+    for (let k = 0; k < n; k++) {
+      const x = r() * S, y = r() * S, a = (r() - 0.5) * 0.9, L = 3 + r() * 9;
+      pctx.strokeStyle = I.dark ? 'rgba(255,230,180,' + (0.015 + r() * 0.03).toFixed(3) + ')' : 'rgba(120,90,50,' + (0.02 + r() * 0.045).toFixed(3) + ')';
+      pctx.beginPath(); pctx.moveTo(x, y); pctx.lineTo(x + Math.cos(a) * L, y + Math.sin(a) * L); pctx.stroke();
+    }
+    // a little foxing and an age vignette
+    if (!I.dark) for (let k = 0; k < 7; k++) {
+      const x = r() * S, y = r() * S, rr = 3 + r() * 16;
+      const g = pctx.createRadialGradient(x, y, 0, x, y, rr);
+      g.addColorStop(0, 'rgba(150,100,40,0.07)'); g.addColorStop(1, 'rgba(150,100,40,0)');
+      pctx.fillStyle = g; pctx.fillRect(x - rr, y - rr, rr * 2, rr * 2);
+    }
+    const v = pctx.createRadialGradient(S / 2, S / 2, S * 0.35, S / 2, S / 2, S * 0.75);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, I.dark ? 'rgba(0,0,0,0.5)' : 'rgba(120,80,30,0.13)');
+    pctx.fillStyle = v; pctx.fillRect(0, 0, S, S);
+  }
+  function size() {
+    const r = inkC.getBoundingClientRect();
+    const s = Math.max(100, Math.round(r.width));
+    const d = Math.min(2, window.devicePixelRatio || 1);
+    if (s === S && d === DPR && inkC.width) return false;
+    S = s; DPR = d;
+    for (const c of [paperC, inkC, penC]) { c.width = Math.round(S * DPR); c.height = Math.round(S * DPR); }
+    paintPaper();
+    return true;
+  }
+
+  /* ================= drawing ================= */
+  const DT = 0.0008;
+  let t = 0, drawing = false, held = false, plateN = 0, finished = false;
+  const cur = { x: 0, y: 0, e: 1 }, prv = { x: 0, y: 0, e: 1 };
+  function scale() { return S * 0.455 / (1 + M.Ar); }
+  function inkStyle(alpha) { const c = INKS[inkKey].ink; return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + alpha.toFixed(3) + ')'; }
+  // advance the pen from t to tEnd, in short strokes whose ink density follows the pen's speed
+  function drawTo(tEnd) {
+    const sc = scale(), cx = S / 2, cy = S / 2;
+    ictx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ictx.lineWidth = P.pen; ictx.lineCap = 'round'; ictx.lineJoin = 'round';
+    const base = INKS[inkKey].dark ? 0.7 : 0.82;
+    const vmax = (M.fx + M.fy) * 0.5 * sc;
+    pos(M, t, prv);
+    while (t < tEnd) {
+      ictx.beginPath();
+      ictx.moveTo(cx + prv.x * sc, cy + prv.y * sc);
+      let len = 0;
+      for (let k = 0; k < 48 && t < tEnd; k++) {
+        t += DT; pos(M, t, cur);
+        const X = cx + cur.x * sc, Y = cy + cur.y * sc;
+        len += Math.hypot(cur.x - prv.x, cur.y - prv.y) * sc;
+        ictx.lineTo(X, Y);
+        prv.x = cur.x; prv.y = cur.y; prv.e = cur.e;
+      }
+      const v = len / (48 * DT);
+      const a = base * Math.max(0.4, Math.min(1, 1.3 - 0.85 * v / vmax));
+      ictx.strokeStyle = inkStyle(a);
+      ictx.stroke();
+    }
+  }
+  function clearInk() { ictx.setTransform(1, 0, 0, 1, 0, 0); ictx.clearRect(0, 0, inkC.width, inkC.height); }
+  function release(headStart) {
+    M = machine(); t = 0; finished = false; drawing = true; held = false;
+    plateN++;
+    clearInk();
+    if (headStart) drawTo(M.T * headStart);
+    updateCaption(); setStatus();
+  }
+  // redraw what exists so far, e.g. after a change of ink or a resize
+  function redrawSoFar() {
+    const tt = t; clearInk(); t = 0; drawTo(tt);
+  }
+
+  /* ================= pen + machine illustration ================= */
+  const penX = $('penX'), penY = $('penY'), rotG = $('rot'), arm = $('arm'), link = $('link'), penG = $('pen');
+  function drawPen() {
+    nctx.setTransform(1, 0, 0, 1, 0, 0); nctx.clearRect(0, 0, penC.width, penC.height);
+    if (!M || finished) return;
+    nctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const sc = scale(), X = S / 2 + prv.x * sc, Y = S / 2 + prv.y * sc;
+    const c = INKS[inkKey].ink;
+    const g = nctx.createRadialGradient(X, Y, 0, X, Y, 10);
+    g.addColorStop(0, 'rgba(' + c.join(',') + ',0.35)'); g.addColorStop(1, 'rgba(' + c.join(',') + ',0)');
+    nctx.fillStyle = g; nctx.beginPath(); nctx.arc(X, Y, 10, 0, TAU); nctx.fill();
+    nctx.fillStyle = INKS[inkKey].dark ? '#f6dc7a' : '#2a1d12';
+    nctx.beginPath(); nctx.arc(X, Y, held ? 2.2 : 1.6, 0, TAU); nctx.fill();
+    if (held) { nctx.strokeStyle = 'rgba(' + c.join(',') + ',0.6)'; nctx.lineWidth = 1; nctx.beginPath(); nctx.arc(X, Y, 6, 0, TAU); nctx.stroke(); }
+  }
+  function drawMachine() {
+    if (!M) return;
+    const ex = Math.exp(-M.dx * t), ey = Math.exp(-M.dy * t), er = Math.exp(-M.dr * t);
+    const sx = Math.sin(M.fx * t + M.px) * ex, sy = Math.sin(M.fy * t + M.py) * ey;
+    const rr = M.fr * t + M.pr, rx = M.Ar * Math.sin(rr) * er, ry = M.Ar * Math.cos(rr) * er;
+    const ax = sx * 9, ay = sy * 9;                            // degrees of swing in the engraving
+    penX.setAttribute('transform', 'rotate(' + (-ax).toFixed(2) + ' 90 116)');
+    penY.setAttribute('transform', 'rotate(' + (-ay).toFixed(2) + ' 330 116)');
+    rotG.setAttribute('transform', 'translate(' + (rx * 14).toFixed(2) + ' ' + (ry * 2).toFixed(2) + ') rotate(' + (-rx * 3).toFixed(2) + ' 210 116)');
+    // the pen hangs where the two pendulum tops steer it
+    const tlx = 90 + Math.sin(ax * Math.PI / 180) * 42, tly = 74 + (1 - Math.cos(ax * Math.PI / 180)) * 42;
+    const trx = 330 + Math.sin(ay * Math.PI / 180) * 42;
+    const pxp = 214 + sx * 16 + rx * 0, pyp = 94;
+    arm.setAttribute('d', 'M' + tlx.toFixed(1) + ' ' + tly.toFixed(1) + 'L' + pxp.toFixed(1) + ' ' + pyp);
+    const mx = (tlx + pxp) / 2 + 18, my = (tly + pyp) / 2 + 2;
+    link.setAttribute('d', 'M' + trx.toFixed(1) + ' 74L' + mx.toFixed(1) + ' ' + my.toFixed(1));
+    penG.setAttribute('transform', 'translate(' + (pxp - 214).toFixed(1) + ' 0)');
+  }
+
+  /* ================= readouts ================= */
+  function ratioInfo() {
+    const key = P.a + ':' + P.b;
+    const ratio = P.b / P.a * (1 + P.detune / 100);
+    const cents = 1200 * Math.log2(ratio);
+    const d = P.detune;
+    const dt = Math.abs(d) < 0.005 ? 'in tune' : (d > 0 ? 'sharp by ' : 'flat by ') + Math.abs(d).toFixed(2) + ' %';
+    return { key, name: NAMES[key] || 'Ratio', cents, dt };
+  }
+  function updateReadout() {
+    const r = ratioInfo();
+    $('rRatio').textContent = P.a + ' : ' + P.b;
+    $('rName').textContent = r.name;
+    $('rCents').textContent = Math.round(r.cents) + ' cents, ' + r.dt;
+  }
+  function updateCaption() {
+    const r = ratioInfo();
+    $('plateNo').textContent = 'Plate ' + ROMAN(plateN) + '.';
+    const art = r.name === 'Octave' ? 'An ' : 'A ';
+    $('plateText').textContent = art + r.name.toLowerCase() + ' (' + P.a + ' : ' + P.b + '), ' + r.dt + '; phase ' + Math.round(P.phase) + '°, rotary ' + Math.round(P.rot) + ' %, in ' + INKS[inkKey].name + '.';
+    $('inkC').setAttribute('aria-label', 'Plate ' + plateN + ': harmonograph figure of a ' + r.name.toLowerCase() + ' in ' + INKS[inkKey].name + ' ink');
+  }
+  function setStatus() {
+    $('status').textContent = finished ? 'complete' : held ? 'pen lifted' : drawing ? 'drawing…' : '';
+  }
+  let toastT = 0;
+  function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2200); }
+
+  /* ================= knobs ================= */
+  const tpl = $('knobTpl'), knobsEl = $('knobs');
+  const KN = {};
+  let redrawT = 0;
+  function scheduleRelease() { clearTimeout(redrawT); redrawT = setTimeout(() => release(0), 450); }
+  KNOBS.forEach(k => {
+    const node = tpl.content.firstElementChild.cloneNode(true);
+    const dial = node.querySelector('.dial'), ptr = node.querySelector('.ptr');
+    node.querySelector('.lab').textContent = k.label;
+    node.querySelector('.mn').textContent = k.mn; node.querySelector('.mx').textContent = k.mx;
+    dial.setAttribute('aria-label', k.label);
+    dial.setAttribute('aria-valuemin', String(k.min)); dial.setAttribute('aria-valuemax', String(k.max));
+    const val = node.querySelector('.val');
+    const set = (v, commit) => {
+      v = Math.max(k.min, Math.min(k.max, Math.round(v / k.step) * k.step));
+      P[k.key] = +v.toFixed(4);
+      const u = (P[k.key] - k.min) / (k.max - k.min);
+      ptr.setAttribute('transform', 'rotate(' + (-135 + u * 270).toFixed(1) + ')');
+      val.textContent = k.fmt(P[k.key]);
+      dial.setAttribute('aria-valuenow', String(P[k.key]));
+      dial.setAttribute('aria-valuetext', k.fmt(P[k.key]));
+      updateReadout();
+      if (commit && k.redraw) scheduleRelease();
+    };
+    KN[k.key] = set;
+    let drag = null;
+    dial.addEventListener('pointerdown', e => { drag = { y: e.clientY, x: e.clientX, v: P[k.key] }; try { dial.setPointerCapture(e.pointerId); } catch (_) {} dial.style.cursor = 'grabbing'; e.preventDefault(); });
+    dial.addEventListener('pointermove', e => {
+      if (!drag) return;
+      const d = ((drag.y - e.clientY) + (e.clientX - drag.x)) / 170;
+      set(drag.v + d * (k.max - k.min), false);
+      if (k.redraw) ghost();
+    });
+    const end = () => { if (!drag) return; drag = null; dial.style.cursor = ''; if (k.redraw) { clearGhost(); scheduleRelease(); } };
+    dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end);
+    dial.addEventListener('wheel', e => { e.preventDefault(); set(P[k.key] - Math.sign(e.deltaY) * k.step * (k.key === 'phase' ? 5 : 2), true); }, { passive: false });
+    dial.addEventListener('keydown', e => {
+      const big = (k.max - k.min) / 10;
+      const m = { ArrowUp: k.step, ArrowRight: k.step, ArrowDown: -k.step, ArrowLeft: -k.step, PageUp: big, PageDown: -big };
+      if (e.key in m) { set(P[k.key] + m[e.key] * (e.shiftKey ? 5 : 1), true); e.preventDefault(); e.stopPropagation(); }
+      else if (e.key === 'Home') { set(k.min, true); e.preventDefault(); }
+      else if (e.key === 'End') { set(k.max, true); e.preventDefault(); }
+    });
+    knobsEl.appendChild(node);
+    set(P[k.key], false);
+  });
+
+  // a faint preview of the whole figure while a dial is being turned
+  let ghostOn = false;
+  function ghost() {
+    ghostOn = true;
+    const m = machine(), sc = S * 0.455 / (1 + m.Ar);
+    nctx.setTransform(1, 0, 0, 1, 0, 0); nctx.clearRect(0, 0, penC.width, penC.height);
+    nctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    nctx.strokeStyle = INKS[inkKey].dark ? 'rgba(246,220,122,0.35)' : 'rgba(62,44,28,0.28)';
+    nctx.lineWidth = 0.6;
+    nctx.beginPath();
+    const o = { x: 0, y: 0, e: 1 }, step = m.T / 9000;
+    for (let i = 0; i <= 9000; i++) { pos(m, i * step, o); const X = S / 2 + o.x * sc, Y = S / 2 + o.y * sc; if (i) nctx.lineTo(X, Y); else nctx.moveTo(X, Y); }
+    nctx.stroke();
+  }
+  function clearGhost() { ghostOn = false; }
+
+  /* ================= controls ================= */
+  const ratioBtns = [...document.querySelectorAll('.ratio')];
+  function setRatio(a, b, go) {
+    P.a = a; P.b = b;
+    ratioBtns.forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.a === a && +x.dataset.b === b)));
+    updateReadout();
+    if (go) release(0);
+  }
+  ratioBtns.forEach(bt => bt.addEventListener('click', () => setRatio(+bt.dataset.a, +bt.dataset.b, true)));
+  const inkBtns = [...document.querySelectorAll('.ink')];
+  function setInk(k) {
+    inkKey = k;
+    inkBtns.forEach(x => x.setAttribute('aria-pressed', String(x.dataset.ink === k)));
+    plate.classList.toggle('dark', INKS[k].dark);
+    paintPaper();
+    if (M) redrawSoFar();
+    updateCaption();
+  }
+  inkBtns.forEach(bt => bt.addEventListener('click', () => setInk(bt.dataset.ink)));
+
+  function randomize() {
+    const pick = [[2, 3], [3, 4], [1, 2], [1, 1], [3, 5], [4, 5], [5, 6], [2, 3], [3, 4], [1, 1]][Math.floor(Math.random() * 10)];
+    setRatio(pick[0], pick[1], false);
+    const unison = pick[0] === pick[1];
+    KN.detune((unison ? 0.4 + Math.random() * 1.2 : Math.random() * 0.9) * (Math.random() < 0.5 ? -1 : 1), false);
+    KN.phase([0, 30, 45, 60, 90, 120, 135, 180][Math.floor(Math.random() * 8)] + Math.round((Math.random() - 0.5) * 20), false);
+    KN.damp(0.008 + Math.random() * 0.018, false);
+    KN.rot(Math.random() < 0.25 ? 0 : 15 + Math.random() * 45, false);
+    release(0);
+    toast('New settings: ' + ratioInfo().name.toLowerCase() + ', ' + ratioInfo().dt);
+  }
+  function save() {
+    try {
+      const ex = document.createElement('canvas');
+      const pad = Math.round(64 * DPR);
+      ex.width = paperC.width; ex.height = paperC.height + pad;
+      const e = ex.getContext('2d');
+      e.fillStyle = INKS[inkKey].paper; e.fillRect(0, 0, ex.width, ex.height);
+      e.drawImage(paperC, 0, 0); e.drawImage(inkC, 0, 0);
+      e.setTransform(DPR, 0, 0, DPR, 0, 0);
+      e.fillStyle = inkStyle(0.85);
+      e.font = 'italic 15px ' + getComputedStyle(document.body).fontFamily;
+      e.textAlign = 'center';
+      e.fillText('Plate ' + ROMAN(plateN) + '. — ' + $('plateText').textContent, S / 2, S + 38, S - 40);
+      const name = 'harmonograph-plate-' + ROMAN(plateN) + '.png';
+      ex.toBlob(b => {
+        if (!b) { toast('This drawing could not be saved'); return; }
+        const make = window.URL.createObjectURL.bind(window.URL), drop = window.URL.revokeObjectURL.bind(window.URL);
+        const u = make(b), a = document.createElement('a'); a.href = u; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => drop(u), 2000);
+        toast('Saved ' + name);
+      }, 'image/png');
+    } catch (err) { toast('This drawing could not be saved'); }
+  }
+  $('bRelease').addEventListener('click', () => release(0));
+  $('bRandom').addEventListener('click', randomize);
+  $('bSave').addEventListener('click', save);
+
+  document.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (e.target && e.target.getAttribute && e.target.getAttribute('role') === 'slider' && /^Arrow|Page|Home|End/.test(e.key)) return;
+    switch (e.key) {
+      case 'r': case 'R': release(0); break;
+      case 'z': case 'Z': randomize(); break;
+      case 's': case 'S': save(); break;
+      case 'i': case 'I': { const ks = Object.keys(INKS); setInk(ks[(ks.indexOf(inkKey) + 1) % ks.length]); break; }
+      case ' ': if (tag === 'BUTTON') return; e.preventDefault(); held = !held; setStatus(); break;
+      default:
+        if (/^[1-7]$/.test(e.key)) { const b = ratioBtns[+e.key - 1]; setRatio(+b.dataset.a, +b.dataset.b, true); }
+        else return;
+    }
+  });
+
+  /* ================= loop ================= */
+  let last = performance.now(), raf = 0;
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    let dt = (now - last) / 1000; last = now;
+    if (!(dt > 0)) dt = 0; if (dt > 0.1) dt = 0.1;
+    if (M && drawing && !held && !finished) {
+      const target = Math.min(M.T, t + dt * P.speed * (reduce ? 0.5 : 1));
+      drawTo(target);
+      if (t >= M.T - 1e-6) { finished = true; drawing = false; setStatus(); }
+    }
+    if (!ghostOn) drawPen();
+    if (!reduce || (now | 0) % 3 === 0) drawMachine();
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+    else if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  });
+  function onResize() { if (size() && M) redrawSoFar(); }
+  window.addEventListener('resize', onResize);
+  if (window.ResizeObserver) new ResizeObserver(onResize).observe(inkC);
+
+  size();
+  updateReadout();
+  release(0.3);          // the first plate starts part-drawn, so the page opens on ink
+  raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

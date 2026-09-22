@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MONOLITH — Architecture &amp; Landscape</title>
+<meta name="description" content="MONOLITH, a fictional brutalist architecture and landscape studio: raw concrete surfaces, axonometric monoliths with shadows cast by a live sun slider, a scroll-built construction sequence and a procedural material library.">
+<meta name="theme-color" content="#262624">
+<style>
+:root{
+  --g1:#8d8d8a; --g2:#b5b3ad; --g3:#d6d4ce; --ch:#262624; --cu:#4f7f73;
+  --grot:"Helvetica Neue","Neue Haas Grotesk Display Pro","Arial Nova",Arial,"Nimbus Sans","Liberation Sans",sans-serif;
+  --mono:"SF Mono","IBM Plex Mono",Menlo,Consolas,"Nimbus Mono PS","DejaVu Sans Mono",monospace;
+  --heavy:cubic-bezier(.16,1,.3,1);
+  --pad:clamp(18px,4vw,64px);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0}
+body{background:var(--g3);color:var(--ch);font:15px/1.5 var(--grot);-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:"tnum" 1}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cu);outline-offset:3px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* severe grid guides */
+.guides{position:fixed;inset:0 var(--pad);z-index:60;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(38,38,36,.07) 0 1px,transparent 1px calc(100% / 12));border-right:1px solid rgba(38,38,36,.07)}
+.tex{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
+
+/* top bar */
+.bar{position:fixed;top:0;left:0;right:0;z-index:50;display:grid;grid-template-columns:repeat(12,1fr);padding:18px var(--pad) 14px;align-items:baseline;mix-blend-mode:normal;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;background:linear-gradient(180deg,rgba(214,212,206,.92),rgba(214,212,206,.72));border-bottom:1px solid rgba(38,38,36,.18);backdrop-filter:blur(3px)}
+.bar .mark{grid-column:1 / 4;font-weight:800;letter-spacing:.3em;text-decoration:none;font-size:12px}
+.bar nav{grid-column:6 / 11;display:flex;gap:28px}
+.bar nav a{text-decoration:none;position:relative}
+.bar nav a::after{content:"";position:absolute;left:0;right:100%;bottom:-4px;height:1px;background:var(--ch);transition:right .6s var(--heavy)}
+.bar nav a:hover::after,.bar nav a:focus-visible::after{right:0}
+.bar .coord{grid-column:11 / 13;text-align:right;color:#55544f}
+
+/* hero */
+.hero{position:relative;min-height:100vh;overflow:hidden;background:var(--g2)}
+.hero .light{position:absolute;inset:0;z-index:1;pointer-events:none;transition:background .5s linear}
+.hero-in{position:relative;z-index:2;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:auto 1fr auto;min-height:100vh;padding:86px var(--pad) 104px}
+.kicker{grid-column:1 / 5;grid-row:1;margin:28px 0 0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;line-height:1.9}
+.kicker b{display:block;font-weight:700}
+.lede{grid-column:1 / 5;grid-row:2;align-self:start;margin:40px 0 0;font-size:clamp(18px,1.6vw,24px);line-height:1.35;font-weight:500;letter-spacing:-.01em;max-width:22em}
+.lede em{font-style:normal;color:var(--cu)}
+.hero-data{grid-column:1 / 5;grid-row:2;align-self:end;margin:0 0 30px;display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:0 34px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase}
+.hero-data b{display:block;font:700 30px/1 var(--grot);letter-spacing:-.03em;margin-top:6px;text-transform:none}
+.hero-axo{grid-column:5 / 13;grid-row:1 / 3;position:relative;margin:10px 0 -40px}
+.hero-axo svg{width:100%;height:100%;max-height:64vh;display:block}
+.hero-axo .cap{position:absolute;right:0;bottom:38px;margin:0;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;text-align:right}
+.giant{grid-column:1 / 13;grid-row:3;margin:0;font:800 clamp(64px,17.2vw,330px)/.78 var(--grot);letter-spacing:-.065em;text-transform:uppercase;white-space:nowrap;margin-left:-.04em}
+.giant span{display:inline-block}
+.rise{animation:rise 1.25s var(--heavy) both}
+@keyframes rise{from{transform:translateY(60px);opacity:0}}
+
+/* reveal */
+.rv{transform:translateY(90px);opacity:0;transition:transform 1.5s var(--heavy),opacity 1.1s ease}
+.rv.l{transform:translateX(-14vw)}
+.rv.r{transform:translateX(14vw)}
+.rv.in{transform:none;opacity:1}
+
+/* manifesto slab */
+.manifesto{position:relative;background:var(--ch);color:var(--g3);margin:0 0 0 calc(var(--pad) + 8.33vw);overflow:hidden}
+.manifesto .in{position:relative;z-index:2;display:grid;grid-template-columns:repeat(11,1fr);padding:16vh var(--pad) 14vh 5vw;gap:0 20px}
+.manifesto h2{grid-column:1 / 9;margin:0;font:800 clamp(40px,6.6vw,118px)/.86 var(--grot);letter-spacing:-.05em;text-transform:uppercase}
+.manifesto h2 span{display:block}
+.manifesto h2 .cu{color:var(--cu)}
+.manifesto p{grid-column:1 / 6;margin:56px 0 0;font-size:17px;line-height:1.6;color:var(--g2);max-width:34em}
+.stats{grid-column:7 / 12;align-self:end;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;border-top:1px solid rgba(214,212,206,.3);padding-top:18px;margin-top:56px}
+.stats div{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--g1)}
+.stats b{display:block;font:700 clamp(28px,3vw,46px)/1 var(--grot);letter-spacing:-.04em;color:var(--g3);margin-bottom:8px}
+
+/* works */
+.works{padding:20vh var(--pad) 10vh;position:relative;overflow-x:clip}
+.sec-h{display:grid;grid-template-columns:repeat(12,1fr);align-items:end;margin-bottom:14vh}
+.sec-h h2{grid-column:1 / 9;margin:0;font:800 clamp(44px,8.4vw,150px)/.8 var(--grot);letter-spacing:-.06em;text-transform:uppercase}
+.sec-h p{grid-column:10 / 13;margin:0;font-size:11px;letter-spacing:.16em;text-transform:uppercase;line-height:1.8}
+.proj{display:grid;grid-template-columns:repeat(12,1fr);gap:0 20px;align-items:center;min-height:78vh;padding:6vh 0;border-top:1px solid rgba(38,38,36,.25);position:relative}
+.proj .ghost{position:absolute;top:3vh;font:800 clamp(120px,22vw,380px)/.8 var(--grot);letter-spacing:-.07em;color:transparent;-webkit-text-stroke:1px rgba(38,38,36,.16);pointer-events:none;user-select:none}
+.proj .axo-btn{grid-column:1 / 9;grid-row:1;background:none;border:0;padding:0;cursor:pointer;position:relative;display:block}
+.proj .axo-btn svg{width:100%;height:auto;display:block;max-height:74vh}
+.proj .meta{grid-column:9 / 13;grid-row:1}
+.proj.alt .axo-btn{grid-column:5 / 13}
+.proj.alt .meta{grid-column:1 / 5}
+.proj .ghost{right:0}
+.proj.alt .ghost{left:0;right:auto}
+.pno{font:500 11px var(--mono);letter-spacing:.12em;color:var(--cu)}
+.meta h3{margin:8px 0 6px;font:800 clamp(38px,4.4vw,78px)/.86 var(--grot);letter-spacing:-.05em;text-transform:uppercase}
+.ptype{margin:0 0 28px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#55544f}
+.data{margin:0;display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ch)}
+.data div{padding:10px 0 11px;border-bottom:1px solid rgba(38,38,36,.25)}
+.data div:nth-child(odd){padding-right:10px}
+.data dt{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#6a6964}
+.data dd{margin:3px 0 0;font:500 14px var(--grot);letter-spacing:-.005em}
+.sheet-link{margin-top:26px;display:inline-flex;align-items:center;gap:12px;background:none;border:0;border-bottom:1px solid var(--ch);padding:0 0 6px;cursor:pointer;font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.sheet-link i{display:inline-block;width:26px;height:1px;background:var(--ch);position:relative;transition:width .8s var(--heavy)}
+.sheet-link i::after{content:"";position:absolute;right:0;top:-3px;width:7px;height:7px;border-top:1px solid var(--ch);border-right:1px solid var(--ch);transform:rotate(45deg)}
+.proj:hover .sheet-link i,.sheet-link:focus-visible i{width:52px}
+.hint{position:absolute;left:0;bottom:4vh;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6a6964;opacity:0;transition:opacity .8s}
+.proj:hover .hint{opacity:1}
+.proj.alt .hint{left:auto;right:0}
+
+/* process */
+.process{position:relative;height:420vh;background:var(--g2)}
+.process .tex{position:absolute}
+.pin{position:sticky;top:0;height:100vh;display:grid;grid-template-columns:repeat(12,1fr);gap:0 20px;padding:92px var(--pad) 40px;overflow:hidden;z-index:1}
+.pin h2{grid-column:1 / 7;grid-row:1;margin:0;font:800 clamp(40px,5.6vw,98px)/.84 var(--grot);letter-spacing:-.055em;text-transform:uppercase;align-self:start}
+.pin .asm{grid-column:1 / 8;grid-row:2;min-height:0;position:relative}
+.pin .asm svg{width:100%;height:100%;display:block}
+.steps{grid-column:9 / 13;grid-row:1 / 3;align-self:center;list-style:none;margin:0;padding:0;counter-reset:s}
+.steps li{padding:14px 0 15px;border-top:1px solid rgba(38,38,36,.3);opacity:.32;transition:opacity .8s,transform .8s var(--heavy);transform:translateX(0)}
+.steps li:last-child{border-bottom:1px solid rgba(38,38,36,.3)}
+.steps li.on{opacity:1;transform:translateX(-10px)}
+.steps li.done{opacity:.6}
+.steps b{display:flex;justify-content:space-between;font:800 22px/1 var(--grot);letter-spacing:-.03em;text-transform:uppercase}
+.steps b span{font:500 11px var(--mono);letter-spacing:.1em;color:var(--cu)}
+.steps p{margin:7px 0 0;font-size:13.5px;line-height:1.45;color:#3b3a37;max-width:30em}
+.meter{grid-column:1 / 8;grid-row:3;display:flex;align-items:center;gap:14px;font:500 11px var(--mono);letter-spacing:.1em}
+.meter i{flex:1;height:2px;background:rgba(38,38,36,.2);position:relative}
+.meter i b{position:absolute;left:0;top:0;bottom:0;background:var(--ch);width:0}
+.pin{grid-template-rows:auto minmax(0,1fr) auto}
+
+/* materials */
+.materials{position:relative;background:var(--ch);color:var(--g3);padding:18vh 0 16vh;overflow:hidden}
+.materials .sec-h{padding:0 var(--pad);margin-bottom:8vh}
+.materials .sec-h h2{color:var(--g3)}
+.materials .sec-h p{color:var(--g1)}
+.strip{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:var(--pad);padding:0 var(--pad) 26px;scrollbar-width:thin;scrollbar-color:#55544f transparent;cursor:grab;position:relative;z-index:2}
+.strip.drag{cursor:grabbing;scroll-snap-type:none}
+.strip::-webkit-scrollbar{height:6px}
+.strip::-webkit-scrollbar-thumb{background:#55544f}
+.mat{flex:0 0 min(78vw,380px);scroll-snap-align:start;border-top:1px solid rgba(214,212,206,.35);padding-top:14px;user-select:none}
+.mat .sw{position:relative;height:clamp(260px,40vh,380px);overflow:hidden;background:#3a3936}
+.mat canvas{width:100%;height:100%;display:block;transition:transform 1.6s var(--heavy)}
+.mat:hover canvas{transform:scale(1.06)}
+.mat .no{font:500 11px var(--mono);color:var(--cu);letter-spacing:.1em;display:block;margin-top:14px}
+.mat h3{margin:6px 0 10px;font:800 30px/.9 var(--grot);letter-spacing:-.04em;text-transform:uppercase}
+.mat dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px;color:var(--g2)}
+.mat dt{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--g1);padding-top:2px}
+.mat dd{margin:0}
+.stripnav{display:flex;gap:10px;padding:0 var(--pad);margin-top:18px;align-items:center;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--g1)}
+.stripnav button{width:44px;height:44px;border:1px solid rgba(214,212,206,.4);background:none;color:var(--g3);cursor:pointer;display:grid;place-items:center}
+.stripnav button:hover{background:rgba(214,212,206,.08)}
+.stripnav svg{width:16px;height:16px}
+
+/* footer */
+.studio{position:relative;background:var(--ch);color:var(--g2);overflow:hidden;border-top:1px solid #3a3936}
+.studio .in{position:relative;z-index:2;display:grid;grid-template-columns:repeat(12,1fr);gap:24px 20px;padding:14vh var(--pad) 40px}
+.studio h2{grid-column:1 / 13;margin:0 0 5vh;font:800 clamp(60px,17vw,320px)/.76 var(--grot);letter-spacing:-.065em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1px #8d8d8a;white-space:nowrap}
+.studio .col{grid-column:span 3;font-size:13px;line-height:1.7}
+.studio .col b{display:block;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--g1);font-weight:500;margin-bottom:8px}
+.studio .fine{grid-column:1 / 13;border-top:1px solid #3a3936;padding-top:18px;margin-top:6vh;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--g1)}
+
+/* sun control */
+.sunbar{position:fixed;right:var(--pad);bottom:18px;z-index:55;display:grid;grid-template-columns:44px 1fr;grid-template-rows:auto auto;gap:2px 14px;align-items:center;background:var(--ch);color:var(--g3);padding:9px 16px 8px 10px;width:340px;box-shadow:10px 10px 0 rgba(38,38,36,.2)}
+.sunbar .dial{grid-row:1 / 3;width:44px;height:44px}
+.sunbar label{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--g1);display:flex;justify-content:space-between}
+.sunbar output{font:500 11px var(--mono);letter-spacing:.04em;color:var(--g3)}
+.sunbar input{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;cursor:pointer;margin:0}
+.sunbar input::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,#55544f,#b5b3ad 50%,#55544f)}
+.sunbar input::-moz-range-track{height:2px;background:linear-gradient(90deg,#55544f,#b5b3ad 50%,#55544f)}
+.sunbar input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:22px;background:var(--cu);border:0;margin-top:-10px}
+.sunbar input::-moz-range-thumb{width:14px;height:22px;background:var(--cu);border:0;border-radius:0}
+.sunbar .nt{display:none}
+
+/* sheet dialog */
+.sheet{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:3vh 3vw;background:rgba(38,38,36,.55);opacity:0;pointer-events:none;transition:opacity .6s ease}
+.sheet.on{opacity:1;pointer-events:auto}
+.sheet .panel{position:relative;width:min(1240px,100%);max-height:94vh;overflow:auto;background:var(--g3);display:grid;grid-template-columns:repeat(12,1fr);gap:0 20px;padding:38px 40px 34px;transform:translateY(60px);transition:transform .9s var(--heavy)}
+.sheet.on .panel{transform:none}
+.sheet .x{position:absolute;right:18px;top:18px;width:44px;height:44px;border:1px solid var(--ch);background:var(--g3);cursor:pointer;display:grid;place-items:center;z-index:2}
+.sheet .x svg{width:16px;height:16px}
+.sheet .big{grid-column:1 / 8;position:relative;align-self:center}
+.sheet .big svg{width:100%;height:auto;display:block;max-height:70vh}
+.sheet .info{grid-column:8 / 13}
+.sheet h3{margin:6px 0 4px;font:800 clamp(40px,5vw,84px)/.84 var(--grot);letter-spacing:-.055em;text-transform:uppercase}
+.sheet .desc{font-size:15px;line-height:1.6;margin:18px 0 22px;color:#3b3a37}
+.sheet .foot{grid-column:1 / 13;display:flex;justify-content:space-between;border-top:1px solid var(--ch);margin-top:24px;padding-top:12px;font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+.plan{width:100%;height:auto;max-height:190px;display:block;margin-top:22px;border:1px solid rgba(38,38,36,.25);background:rgba(181,179,173,.25)}
+
+@media (max-width:900px){
+  .bar nav{display:none}
+  .bar .mark{grid-column:1 / 7}
+  .bar .coord{grid-column:7 / 13}
+  .hero-in{padding:78px var(--pad) 84px;grid-template-rows:auto auto auto auto auto}
+  .giant{grid-row:1;font-size:19.6vw;margin-top:10px}
+  .kicker{grid-column:1 / 13;grid-row:2;margin-top:18px}
+  .hero-axo{grid-column:1 / 13;grid-row:3;margin:6px -2vw 0}
+  .hero-axo svg{max-height:46vh}
+  .hero-axo .cap{bottom:0}
+  .lede{grid-column:1 / 13;grid-row:4;margin-top:22px;font-size:18px}
+  .hero-data{grid-column:1 / 13;grid-row:5;margin:26px 0 10px}
+  .manifesto{margin-left:var(--pad)}
+  .manifesto h2,.manifesto p,.stats{grid-column:1 / 12}
+  .proj,.proj.alt{min-height:0;padding:8vh 0}
+  .proj .axo-btn,.proj.alt .axo-btn{grid-column:1 / 13;grid-row:1}
+  .proj .meta,.proj.alt .meta{grid-column:1 / 13;grid-row:2;margin-top:18px}
+  .sec-h h2{grid-column:1 / 13}
+  .sec-h p{grid-column:1 / 13;margin-top:20px}
+  .pin{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto auto;padding-top:78px}
+  .pin h2,.pin .asm,.meter{grid-column:1}
+  .steps{grid-column:1;grid-row:4;align-self:end}
+  .steps li{display:none;padding:10px 0}
+  .steps li.on{display:block;transform:none}
+  .studio .col{grid-column:span 6}
+  .sheet .big,.sheet .info{grid-column:1 / 13}
+  .sheet .panel{padding:62px 20px 24px}
+  .sunbar{left:10px;right:10px;width:auto;bottom:10px;padding:6px 12px 5px 8px;grid-template-columns:36px 1fr}
+  .sunbar .dial{width:36px;height:36px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .rv{transform:none;opacity:1;transition:none}
+  .rise{animation:none}
+  .steps li,.sheet,.sheet .panel,.mat canvas{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="guides" aria-hidden="true"></div>
+<header class="bar">
+  <a class="mark" href="#top">Monolith</a>
+  <nav aria-label="Sections"><a href="#works">Works</a><a href="#process">Process</a><a href="#materials">Materials</a><a href="#studio">Studio</a></nav>
+  <span class="coord" id="coord">Sun 13:00 · 50° N</span>
+</header>
+
+<main>
+  <section class="hero" id="top" aria-labelledby="giant">
+    <canvas class="tex" data-tex="concrete" aria-hidden="true"></canvas>
+    <div class="light" id="heroLight" aria-hidden="true"></div>
+    <div class="hero-in">
+      <p class="kicker rise" style="animation-delay:.1s"><b>Architecture &amp; Landscape</b>Studio est. 2009 · five selected works</p>
+      <p class="lede rise" style="animation-delay:.25s">We make buildings that weigh something: walls that <em>store heat</em>, cast shadow and outlast the people who poured them.</p>
+      <div class="hero-data rise" style="animation-delay:.4s"><span>Built<b>9 302 m²</b></span><span>Works<b>05</b></span><span>Years<b id="yrs">17</b></span></div>
+      <div class="hero-axo rise" style="animation-delay:.15s">
+        <svg class="axo" id="heroAxo" role="img" aria-label="Axonometric drawing of Vessel, a concrete chapel, lit by the current sun position"></svg>
+        <p class="cap">01 — Vessel · chapel · Lofoten</p>
+      </div>
+      <h1 class="giant rise" id="giant" style="animation-delay:.05s">Monolith</h1>
+    </div>
+  </section>
+
+  <section class="manifesto rv l" aria-labelledby="manH">
+    <canvas class="tex" data-tex="dark" aria-hidden="true"></canvas>
+    <div class="in">
+      <h2 id="manH"><span>Mass is a material.</span><span>Shadow is a material.</span><span class="cu">Time is a material.</span></h2>
+      <p>MONOLITH designs in concrete, stone and earth for places with weather: northern coasts, high deserts and wet valleys. We use heavy walls to slow heat down, deep openings to control light, and landscape that is given room to take over. Every drawing here responds to the sun. Move it and watch the shadows swing.</p>
+      <div class="stats"><div><b>600</b>mm typical wall</div><div><b>0</b>suspended ceilings</div><div><b>38</b>people in the studio</div></div>
+    </div>
+  </section>
+
+  <section class="works" id="works" aria-labelledby="worksH">
+    <div class="sec-h rv"><h2 id="worksH">Selected works</h2><p>01 — 05 · axonometric, not to scale · shadows follow the sun control</p></div>
+    <div id="projects"></div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="procH">
+    <canvas class="tex" data-tex="concrete" aria-hidden="true"></canvas>
+    <div class="pin">
+      <h2 id="procH">How a monolith<br>is made</h2>
+      <div class="asm"><svg class="axo" id="asmAxo" role="img" aria-label="Construction sequence of the Archive of Rain, assembling as you scroll"></svg></div>
+      <ol class="steps" id="steps">
+        <li><b>Raft <span>01</span></b><p>An 800 mm raft spreads the load across wet glacial clay.</p></li>
+        <li><b>Walls <span>02</span></b><p>Twin 1.2 m walls, cast in 450 mm lifts over nine days.</p></li>
+        <li><b>Floors <span>03</span></b><p>Two post-tensioned plates span the archive without a single column.</p></li>
+        <li><b>Screen <span>04</span></b><p>The south screen is cut with slits that admit daylight but never direct sun onto paper.</p></li>
+        <li><b>Roof <span>05</span></b><p>A 900 mm roof slab, heavy enough to steady the room’s temperature from season to season.</p></li>
+        <li><b>Lantern <span>06</span></b><p>A copper lantern: the only colour on site, and it will turn green as it weathers.</p></li>
+      </ol>
+      <div class="meter" aria-hidden="true"><span id="meterT">00%</span><i><b id="meterB"></b></i><span>Archive of Rain · Galicia</span></div>
+    </div>
+  </section>
+
+  <section class="materials" id="materials" aria-labelledby="matH">
+    <div class="sec-h rv"><h2 id="matH">Material library</h2><p>Five surfaces, generated live · drag or scroll sideways</p></div>
+    <div class="strip" id="strip" tabindex="0" aria-label="Material library, horizontally scrollable"></div>
+    <div class="stripnav"><button type="button" id="prevM" aria-label="Previous material"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2 4 8l6 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button><button type="button" id="nextM" aria-label="Next material"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button><span id="matCount">01 / 05</span></div>
+  </section>
+</main>
+
+<footer class="studio" id="studio" aria-labelledby="studioH">
+  <canvas class="tex" data-tex="dark" aria-hidden="true"></canvas>
+  <div class="in">
+    <h2 id="studioH">Monolith</h2>
+    <div class="col"><b>Studio</b>Quarry Lane 7<br>A fictional address<br>By the sea, 50° N</div>
+    <div class="col"><b>Write</b>studio at monolith dot example<br>New work by appointment</div>
+    <div class="col"><b>Practice</b>Architecture<br>Landscape<br>Conservation of heavy structures</div>
+    <div class="col"><b>Now</b>Two chapels, one bathhouse<br>and a very long wall</div>
+    <div class="fine"><span>MONOLITH is a fictional studio · all projects, people and figures are invented</span><span>Drawings computed in your browser</span></div>
+  </div>
+</footer>
+
+<div class="sunbar" role="group" aria-labelledby="sunLbl">
+  <svg class="dial" id="dial" viewBox="0 0 54 54" aria-hidden="true">
+    <circle cx="27" cy="27" r="24" fill="none" stroke="#55544f"/>
+    <path d="M5 27a22 22 0 0 1 44 0" fill="none" stroke="#8d8d8a" stroke-dasharray="2 3"/>
+    <path d="M3 27h48" stroke="#55544f"/>
+    <text x="27" y="44" text-anchor="middle" font-size="7" fill="#8d8d8a" font-family="Menlo, Consolas, monospace">S</text>
+    <circle id="dialSun" cx="27" cy="7" r="4" fill="#4f7f73"/>
+  </svg>
+  <label for="sun" id="sunLbl" title="Equinox sun path at latitude 50° N"><span>Sun</span><output id="sunOut" for="sun">13:00</output></label>
+  <input type="range" id="sun" min="0" max="1000" value="620" aria-valuetext="13:12">
+</div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sName" aria-hidden="true">
+  <div class="panel">
+    <button type="button" class="x" id="sClose" aria-label="Close project sheet"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2l12 12M14 2 2 14" stroke="#262624" stroke-width="1.6"/></svg></button>
+    <div class="big"><svg class="axo" id="sheetAxo" role="img" aria-label="Project axonometric"></svg></div>
+    <div class="info">
+      <span class="pno" id="sNo">01</span>
+      <h3 id="sName">Vessel</h3>
+      <p class="ptype" id="sType">Chapel</p>
+      <p class="desc" id="sDesc"></p>
+      <dl class="data" id="sData"></dl>
+      <svg class="plan" id="sPlan" viewBox="0 0 100 60" role="img" aria-label="Footprint plan"></svg>
+    </div>
+    <div class="foot"><span id="sFoot">Project sheet</span><span>Fictional project · drawings not to scale</span></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $ = function(s, r){ return (r || document).querySelector(s); };
+var $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+function rng(seed){ var s = seed >>> 0; return function(){ s = (s + 0x6D2B79F5) >>> 0; var t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+/* ===================== PROCEDURAL TEXTURES ===================== */
+function makeNoise(seed){
+  var r = rng(seed), perm = new Uint8Array(512), vals = new Float32Array(256), i;
+  var p = []; for (i = 0; i < 256; i++){ p.push(i); vals[i] = r(); }
+  for (i = 255; i > 0; i--){ var j = Math.floor(r() * (i + 1)), t = p[i]; p[i] = p[j]; p[j] = t; }
+  for (i = 0; i < 512; i++) perm[i] = p[i & 255];
+  return function(x, y, per){
+    var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    var x0 = ((xi % per) + per) % per, y0 = ((yi % per) + per) % per, x1 = (x0 + 1) % per, y1 = (y0 + 1) % per;
+    var a = vals[perm[perm[x0] + y0]], b = vals[perm[perm[x1] + y0]], c = vals[perm[perm[x0] + y1]], d = vals[perm[perm[x1] + y1]];
+    var u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  };
+}
+function fbm(nz, x, y, oct, per){ var s = 0, a = 0.5, f = 1, n = 0; for (var o = 0; o < oct; o++){ s += a * nz(x * f, y * f, per * f); n += a; a *= 0.5; f *= 2; } return s / n; }
+function mix3(c0, c1, t){ return [c0[0] + (c1[0] - c0[0]) * t, c0[1] + (c1[1] - c0[1]) * t, c0[2] + (c1[2] - c0[2]) * t]; }
+function ramp(stops, t){ t = clamp(t, 0, 1); for (var i = 1; i < stops.length; i++){ if (t <= stops[i][0]){ var a = stops[i - 1], b = stops[i]; return mix3(a[1], b[1], (t - a[0]) / (b[0] - a[0])); } } return stops[stops.length - 1][1]; }
+function tile(size, fn){ var c = document.createElement('canvas'); c.width = c.height = size; var x = c.getContext('2d'), img = x.createImageData(size, size); fn(img.data, size); x.putImageData(img, 0, 0); return c; }
+var TEX = {};
+function concreteTile(dark){
+  var T = 256, nz = makeNoise(dark ? 91 : 7), nz2 = makeNoise(dark ? 17 : 23), r = rng(dark ? 5 : 3);
+  var boards = 8, bh = T / boards, boardTone = []; for (var b = 0; b < boards; b++) boardTone.push((r() - 0.5) * (dark ? 0.05 : 0.07));
+  var stops = dark ? [[0, [24, 24, 22]], [0.5, [42, 41, 39]], [1, [70, 69, 65]]] : [[0, [128, 127, 122]], [0.45, [172, 170, 164]], [0.75, [192, 190, 184]], [1, [214, 212, 206]]];
+  var c = tile(T, function(d){
+    for (var y = 0; y < T; y++){
+      var bt = boardTone[Math.floor(y / bh)];
+      for (var x = 0; x < T; x++){
+        var m = fbm(nz, x / T * 4, y / T * 4, 5, 4);
+        var st = nz2(x / T * 3, y / T * 48, 3) - 0.5;
+        var g = (r() - 0.5) * 0.09;
+        var v = 0.52 + (m - 0.5) * (dark ? 0.9 : 0.62) + st * 0.08 + bt + g;
+        var col = ramp(stops, v), i = (y * T + x) * 4;
+        d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = 255;
+      }
+    }
+  });
+  var x = c.getContext('2d');
+  for (var k = 0; k <= boards; k++){ var yy = k * bh; x.fillStyle = dark ? 'rgba(0,0,0,.25)' : 'rgba(40,40,36,.12)'; x.fillRect(0, yy - 0.5, T, 1); x.fillStyle = dark ? 'rgba(255,255,255,.035)' : 'rgba(255,255,255,.12)'; x.fillRect(0, yy + 0.5, T, 1); }
+  x.fillStyle = dark ? 'rgba(0,0,0,.35)' : 'rgba(40,40,36,.16)'; x.fillRect(0, 0, 1, T);
+  [[T / 6, T / 4], [T * 5 / 6, T / 4], [T / 6, T * 3 / 4], [T * 5 / 6, T * 3 / 4]].forEach(function(p, i){
+    var g = x.createRadialGradient(p[0], p[1], 0, p[0], p[1], 4.6);
+    g.addColorStop(0, dark ? 'rgba(0,0,0,.8)' : 'rgba(34,34,32,.7)'); g.addColorStop(0.5, dark ? 'rgba(0,0,0,.45)' : 'rgba(44,44,40,.38)'); g.addColorStop(0.7, dark ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.2)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.beginPath(); x.arc(p[0], p[1], 4.6, 0, 7); x.fill();
+    if (i % 2 === 0){ var s = x.createLinearGradient(0, p[1] + 3, 0, p[1] + 34); s.addColorStop(0, dark ? 'rgba(0,0,0,.14)' : 'rgba(60,58,54,.1)'); s.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = s; x.fillRect(p[0] - 1, p[1] + 3, 2, 31); }
+  });
+  return c;
+}
+function cortenTile(){
+  var T = 256, nz = makeNoise(41), nz2 = makeNoise(42), r = rng(9);
+  var stops = [[0, [52, 31, 22]], [0.35, [92, 52, 32]], [0.6, [118, 66, 38]], [0.82, [140, 84, 50]], [1, [150, 104, 70]]];
+  var c = tile(T, function(d){
+    for (var y = 0; y < T; y++) for (var x = 0; x < T; x++){
+      var m = fbm(nz, x / T * 5, y / T * 5, 5, 5), bl = fbm(nz2, x / T * 2, y / T * 2, 3, 2);
+      var streak = nz2(x / T * 60, y / T * 2, 60) * 0.12;
+      var v = m * 1.1 - (bl > 0.6 ? (bl - 0.6) * 1.3 : 0) + streak - 0.02 + (r() - 0.5) * 0.12;
+      var col = ramp(stops, v), i = (y * T + x) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = 255;
+    }
+  });
+  var x = c.getContext('2d');
+  for (var k = 0; k < 160; k++){ var px = r() * T, py = r() * T, rr = 0.4 + r() * 1.3; x.fillStyle = 'rgba(30,16,10,' + (0.3 + r() * 0.4) + ')'; x.beginPath(); x.arc(px, py, rr, 0, 7); x.fill(); }
+  x.fillStyle = 'rgba(20,12,8,.35)'; x.fillRect(T / 2 - 0.5, 0, 1, T);
+  return c;
+}
+function larchTile(){
+  var T = 256, nz = makeNoise(61), r = rng(12), boards = 4, bw = T / boards, tones = [];
+  for (var b = 0; b < boards; b++) tones.push((r() - 0.5) * 0.14);
+  var stops = [[0, [70, 66, 60]], [0.4, [122, 116, 106]], [0.7, [150, 144, 133]], [1, [178, 172, 160]]];
+  var c = tile(T, function(d){
+    for (var y = 0; y < T; y++) for (var x = 0; x < T; x++){
+      var bi = Math.floor(x / bw), lx = x - bi * bw;
+      var warp = fbm(nz, x / T * 2 + bi * 3.1, y / T * 3, 4, 2) * 18;
+      var grain = Math.sin((lx + warp) * 0.9 + bi * 2) * 0.5 + 0.5;
+      var fine = nz(x / T * 64, y / T * 4, 64);
+      var v = 0.55 + tones[bi] + (grain - 0.5) * 0.18 + (fine - 0.5) * 0.14 + (r() - 0.5) * 0.06;
+      if (lx < 2 || lx > bw - 2) v = 0.08;
+      var col = ramp(stops, v), i = (y * T + x) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = 255;
+    }
+  });
+  var x = c.getContext('2d');
+  [[bw * 0.55, T * 0.3], [bw * 2.4, T * 0.72]].forEach(function(k){
+    for (var q = 5; q > 0; q--){ x.strokeStyle = 'rgba(50,44,38,' + (0.1 + q * 0.04) + ')'; x.lineWidth = 1; x.beginPath(); x.ellipse(k[0], k[1], q * 2.2, q * 3.6, 0, 0, 7); x.stroke(); }
+    x.fillStyle = 'rgba(46,40,34,.75)'; x.beginPath(); x.ellipse(k[0], k[1], 2.4, 3.4, 0, 0, 7); x.fill();
+  });
+  return c;
+}
+function glassTile(){
+  var T = 256, nz = makeNoise(71);
+  var c = tile(T, function(d){
+    for (var y = 0; y < T; y++) for (var x = 0; x < T; x++){
+      var sky = fbm(nz, x / T * 3, y / T * 2, 4, 2);
+      var band = Math.max(0, Math.sin((x + y * 0.9) / T * Math.PI * 2 * 1.5)) ;
+      var v = 0.25 + (1 - y / T) * 0.25 + sky * 0.25 + Math.pow(band, 6) * 0.35;
+      var col = [40 + v * 120, 50 + v * 128, 48 + v * 122], i = (y * T + x) * 4;
+      d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = 255;
+    }
+  });
+  var x = c.getContext('2d');
+  x.fillStyle = 'rgba(38,38,36,.9)'; x.fillRect(0, 0, 4, T); x.fillRect(0, T / 2 - 2, T, 4);
+  x.fillStyle = 'rgba(79,127,115,.5)'; x.fillRect(4, 0, 1.5, T); x.fillRect(0, T / 2 + 2, T, 1.5);
+  x.fillStyle = 'rgba(255,255,255,.08)'; x.fillRect(T * 0.62, 0, 10, T / 2 - 2); x.fillRect(T * 0.66, 0, 3, T / 2 - 2);
+  return c;
+}
+function copperTile(){
+  var T = 256, nz = makeNoise(81), nz2 = makeNoise(82), r = rng(4);
+  var stops = [[0, [40, 66, 58]], [0.4, [70, 112, 100]], [0.65, [92, 140, 126]], [0.85, [126, 170, 156]], [1, [160, 196, 184]]];
+  var c = tile(T, function(d){
+    for (var y = 0; y < T; y++) for (var x = 0; x < T; x++){
+      var m = fbm(nz, x / T * 6, y / T * 6, 5, 6), s = nz2(x / T * 40, y / T * 3, 40);
+      var v = m * 1.15 + (s - 0.5) * 0.25 - 0.06 + (r() - 0.5) * 0.08;
+      var col = ramp(stops, v), br = fbm(nz2, x / T * 3, y / T * 3, 3, 3);
+      if (br > 0.66){ col = mix3(col, [104, 72, 52], (br - 0.66) * 2.6); }
+      var i = (y * T + x) * 4; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = 255;
+    }
+  });
+  var x = c.getContext('2d');
+  for (var k = 0; k < 3; k++){ var sx = k * T / 3; x.fillStyle = 'rgba(20,34,30,.55)'; x.fillRect(sx, 0, 2, T); x.fillStyle = 'rgba(200,230,220,.25)'; x.fillRect(sx + 2, 0, 1.5, T); }
+  return c;
+}
+function paintCanvas(cv, key, scale){
+  var t = TEX[key]; if (!t) return;
+  var d = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  var x = cv.getContext('2d'); x.setTransform(d * (scale || 1), 0, 0, d * (scale || 1), 0, 0);
+  x.fillStyle = x.createPattern(t, 'repeat'); x.fillRect(0, 0, w / (scale || 1), h / (scale || 1));
+}
+function paintAll(){ $$('canvas.tex').forEach(function(cv){ paintCanvas(cv, cv.getAttribute('data-tex'), 1.5); }); $$('.mat canvas').forEach(function(cv){ paintCanvas(cv, cv.getAttribute('data-tex'), 1.5); }); }
+
+/* ===================== SUN (equinox, 50° N) ===================== */
+var LAT = 50 * Math.PI / 180, SUN = { L:[0, -0.5, 0.8], az:180, alt:40, hour:13 };
+function setSun(t){
+  var hour = 7 + 10 * t, H = (hour - 12) * 15 * Math.PI / 180;
+  var sinAlt = Math.cos(LAT) * Math.cos(H), alt = Math.asin(sinAlt);
+  var cosAz = clamp(-Math.tan(alt) * Math.tan(LAT), -1, 1), az = Math.acos(cosAz);
+  if (H > 0) az = 2 * Math.PI - az;
+  SUN.L = [Math.sin(az) * Math.cos(alt), Math.cos(az) * Math.cos(alt), Math.sin(alt)];
+  SUN.az = az * 180 / Math.PI; SUN.alt = alt * 180 / Math.PI; SUN.hour = hour;
+}
+
+/* ===================== AXONOMETRIC ENGINE ===================== */
+var EL = 30 * Math.PI / 180, SE = Math.sin(EL), CE = Math.cos(EL);
+function f3(n){ return (Math.round(n * 1000) / 1000).toString(); }
+var FACES = { T:[0, 0, 1], S:[0, -1, 0], W:[-1, 0, 0], N:[0, 1, 0], E:[1, 0, 0] };
+function fverts(b, k, dz){
+  var x = b.x, y = b.y, z = b.z + (dz || 0), w = b.w, d = b.d, h = b.h;
+  if (k === 'T') return [[x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]];
+  if (k === 'S') return [[x, y, z], [x + w, y, z], [x + w, y, z + h], [x, y, z + h]];
+  if (k === 'N') return [[x + w, y + d, z], [x, y + d, z], [x, y + d, z + h], [x + w, y + d, z + h]];
+  if (k === 'W') return [[x, y + d, z], [x, y, z], [x, y, z + h], [x, y + d, z + h]];
+  return [[x + w, y, z], [x + w, y + d, z], [x + w, y + d, z + h], [x + w, y, z + h]];
+}
+var CONC = [[0, [52, 51, 48]], [0.3, [104, 103, 99]], [0.55, [141, 141, 138]], [0.78, [181, 179, 173]], [1, [224, 222, 216]]];
+var COPP = [[0, [22, 40, 35]], [0.4, [52, 88, 78]], [0.7, [79, 127, 115]], [1, [150, 190, 176]]];
+function rgb(c){ return 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')'; }
+function hull(pts){
+  pts.sort(function(a, b){ return a[0] - b[0] || a[1] - b[1]; });
+  function cr(o, a, b){ return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+  var lo = [], up = [], i;
+  for (i = 0; i < pts.length; i++){ while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], pts[i]) <= 0) lo.pop(); lo.push(pts[i]); }
+  for (i = pts.length - 1; i >= 0; i--){ while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], pts[i]) <= 0) up.pop(); up.push(pts[i]); }
+  up.pop(); lo.pop(); return lo.concat(up);
+}
+var uid = 0;
+function Axo(svg, B, opts){
+  this.svg = svg; this.B = B; this.opts = opts || {}; this.id = 'ax' + (uid++);
+  this.psi = B.psi || 38; this.target = this.psi;
+  this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); svg.appendChild(this.g);
+  this.fit();
+}
+Axo.prototype.cam = function(psi){ var p = psi * Math.PI / 180; return { sp:Math.sin(p), cp:Math.cos(p) }; };
+Axo.prototype.P = function(c, x, y, z){ return [x * c.cp - y * c.sp, -(x * c.sp + y * c.cp) * SE - z * CE]; };
+Axo.prototype.fit = function(){
+  var B = this.B, mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity, self = this;
+  [B.psi || 38, (B.psi || 38) + 10, (B.psi || 38) - 14, (B.psi || 38) + 14].forEach(function(psi){
+    var c = self.cam(psi), pl = B.plate;
+    var pts = [[pl[0], pl[1], 0], [pl[2], pl[1], 0], [pl[2], pl[3], 0], [pl[0], pl[3], 0], [pl[0], pl[1], -1.2], [pl[2], pl[1], -1.2], [pl[0], pl[3], -1.2]];
+    B.boxes.forEach(function(b){ for (var i = 0; i < 8; i++) pts.push([b.x + (i & 1 ? b.w : 0), b.y + (i & 2 ? b.d : 0), b.z + (i & 4 ? b.h : 0) + (self.opts.lift ? (i & 4 ? 3 : 0) : 0)]); });
+    pts.forEach(function(p){ var q = self.P(c, p[0], p[1], p[2]); if (q[0] < mnx) mnx = q[0]; if (q[0] > mxx) mxx = q[0]; if (q[1] < mny) mny = q[1]; if (q[1] > mxy) mxy = q[1]; });
+  });
+  var pw = (mxx - mnx) * 0.04, ph = (mxy - mny) * 0.05;
+  this.svg.setAttribute('viewBox', f3(mnx - pw) + ' ' + f3(mny - ph) + ' ' + f3(mxx - mnx + pw * 2) + ' ' + f3(mxy - mny + ph * 2));
+};
+Axo.prototype.render = function(pieces){
+  var B = this.B, c = this.cam(this.psi), self = this, L = SUN.L, s = '';
+  function pp(x, y, z){ var q = self.P(c, x, y, z); return f3(q[0]) + ' ' + f3(q[1]); }
+  function poly(vs){ var d = ''; for (var i = 0; i < vs.length; i++) d += (i ? 'L' : 'M') + pp(vs[i][0], vs[i][1], vs[i][2]); return d + 'Z'; }
+  var pl = B.plate, T = 1.2;
+  // plinth sides (south & west visible) and top
+  var topPl = [[pl[0], pl[1], 0], [pl[2], pl[1], 0], [pl[2], pl[3], 0], [pl[0], pl[3], 0]];
+  s += '<path d="' + poly([[pl[0], pl[1], 0], [pl[2], pl[1], 0], [pl[2], pl[1], -T], [pl[0], pl[1], -T]]) + '" fill="' + rgb(ramp(CONC, 0.3 + 0.55 * Math.max(0, -L[1]))) + '"/>';
+  s += '<path d="' + poly([[pl[0], pl[3], 0], [pl[0], pl[1], 0], [pl[0], pl[1], -T], [pl[0], pl[3], -T]]) + '" fill="' + rgb(ramp(CONC, 0.3 + 0.55 * Math.max(0, -L[0]))) + '"/>';
+  s += '<path d="' + poly(topPl) + '" fill="' + rgb(ramp(CONC, 0.62 + 0.3 * L[2])) + '"/>';
+  var gd = '';
+  for (var gx = Math.ceil(pl[0] / 2) * 2; gx <= pl[2]; gx += 2) gd += 'M' + pp(gx, pl[1], 0) + 'L' + pp(gx, pl[3], 0);
+  for (var gy = Math.ceil(pl[1] / 2) * 2; gy <= pl[3]; gy += 2) gd += 'M' + pp(pl[0], gy, 0) + 'L' + pp(pl[2], gy, 0);
+  s += '<path d="' + gd + '" stroke="rgba(38,38,36,.08)" stroke-width=".6" vector-effect="non-scaling-stroke" fill="none"/>';
+  s += '<clipPath id="' + this.id + 'c"><path d="' + poly(topPl) + '"/></clipPath>';
+  // boxes (with assembly offsets)
+  var boxes = B.boxes.map(function(b, i){ var o = pieces ? pieces[i] : null; return { b:b, dz:o ? o.dz : 0, a:o ? o.a : 1 }; }).filter(function(o){ return o.a > 0.001; });
+  // shadows
+  var sd = '';
+  boxes.forEach(function(o){
+    var b = o.b, pts = [];
+    for (var i = 0; i < 8; i++){ var x = b.x + (i & 1 ? b.w : 0), y = b.y + (i & 2 ? b.d : 0), z = b.z + o.dz + (i & 4 ? b.h : 0); pts.push([x - z * L[0] / L[2], y - z * L[1] / L[2]]); }
+    var h = hull(pts); sd += poly(h.map(function(p){ return [p[0], p[1], 0]; }));
+  });
+  var shOp = 0.34 * Math.min(1, boxes.reduce(function(m, o){ return Math.min(m, o.a); }, 1) * 0.5 + 0.5);
+  s += '<path d="' + sd + '" fill="rgba(38,38,36,' + shOp.toFixed(3) + ')" clip-path="url(#' + this.id + 'c)"/>';
+  // painter's order
+  var vx = c.sp * CE, vy = c.cp * CE, vz = -SE;
+  boxes.forEach(function(o){ var b = o.b; o.dist = (b.x + b.w / 2) * vx + (b.y + b.d / 2) * vy + (b.z + o.dz + b.h / 2) * vz; });
+  boxes.sort(function(a, b){ return b.dist - a.dist; });
+  boxes.forEach(function(o){
+    var b = o.b, dz = o.dz, cu = b.m === 'cu', ramp0 = cu ? COPP : CONC;
+    s += '<g' + (o.a < 1 ? ' opacity="' + o.a.toFixed(3) + '"' : '') + '>';
+    ['T', 'S', 'W', 'N', 'E'].forEach(function(k){
+      var n = FACES[k];
+      if (n[0] * -vx + n[1] * -vy + n[2] * -vz <= 0.0001) return;
+      var vs = fverts(b, k, dz);
+      var lam = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
+      var br = k === 'T' ? 0.42 + 0.55 * lam : 0.2 + 0.78 * lam;
+      s += '<path d="' + poly(vs) + '" fill="' + rgb(ramp(ramp0, br)) + '" stroke="rgba(38,38,36,.55)" stroke-width=".8" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+      if (k !== 'T' && !cu && b.h > 1.2){
+        var md = '', a = vs[0], e = vs[1], len = Math.hypot(e[0] - a[0], e[1] - a[1]);
+        for (var zz = 0.6; zz < b.h - 0.1; zz += 0.6) md += 'M' + pp(a[0], a[1], a[2] + zz) + 'L' + pp(e[0], e[1], e[2] + zz);
+        s += '<path d="' + md + '" stroke="rgba(38,38,36,' + (0.1 + 0.08 * lam).toFixed(3) + ')" stroke-width=".55" vector-effect="non-scaling-stroke" fill="none"/>';
+        var th = '', ux = (e[0] - a[0]) / len, uy = (e[1] - a[1]) / len;
+        for (var uu = 0.6; uu < len - 0.3; uu += 1.2) for (var z2 = 0.9; z2 < b.h - 0.3; z2 += 1.2){ var q = self.P(c, a[0] + ux * uu, a[1] + uy * uu, a[2] + z2); th += 'M' + f3(q[0] - 0.05) + ' ' + f3(q[1]) + 'a.05 .05 0 1 0 .1 0a.05 .05 0 1 0 -.1 0'; }
+        s += '<path d="' + th + '" fill="rgba(38,38,36,.45)"/>';
+      }
+      if (cu){
+        var sm = '', a2 = vs[0], e2 = vs[1], len2 = Math.hypot(e2[0] - a2[0], e2[1] - a2[1]), u2x = (e2[0] - a2[0]) / len2, u2y = (e2[1] - a2[1]) / len2;
+        if (k !== 'T') for (var us = 0.5; us < len2; us += 0.5) sm += 'M' + pp(a2[0] + u2x * us, a2[1] + u2y * us, a2[2]) + 'L' + pp(a2[0] + u2x * us, a2[1] + u2y * us, a2[2] + b.h);
+        if (sm) s += '<path d="' + sm + '" stroke="rgba(20,34,30,.35)" stroke-width=".6" vector-effect="non-scaling-stroke"/>';
+      }
+      (b.o || []).forEach(function(op){
+        if (op.f !== k) return;
+        var qd;
+        if (k === 'T'){ var zt = b.z + dz + b.h + 0.002; qd = [[op.u0, op.v0, zt], [op.u1, op.v0, zt], [op.u1, op.v1, zt], [op.u0, op.v1, zt]]; }
+        else { var A0 = vs[0], A1 = vs[1], ll = Math.hypot(A1[0] - A0[0], A1[1] - A0[1]), dx = (A1[0] - A0[0]) / ll, dy = (A1[1] - A0[1]) / ll;
+          qd = [[A0[0] + dx * op.u0, A0[1] + dy * op.u0, A0[2] + op.v0], [A0[0] + dx * op.u1, A0[1] + dy * op.u1, A0[2] + op.v0], [A0[0] + dx * op.u1, A0[1] + dy * op.u1, A0[2] + op.v1], [A0[0] + dx * op.u0, A0[1] + dy * op.u0, A0[2] + op.v1]]; }
+        var fill = op.t === 'water' ? rgb(ramp(COPP, 0.45 + 0.25 * L[2])) : op.t === 'cu' ? rgb(ramp(COPP, 0.35 + 0.5 * lam)) : op.t === 'glass' ? 'rgb(58,66,63)' : '#262624';
+        s += '<path d="' + poly(qd) + '" fill="' + fill + '"/>';
+        if (op.t === 'water'){ s += '<path d="M' + pp(op.u0 + 0.4, op.v0 + 0.5, qd[0][2]) + 'L' + pp(op.u1 - 0.8, op.v0 + 0.5, qd[0][2]) + '" stroke="rgba(214,212,206,.35)" stroke-width=".8" vector-effect="non-scaling-stroke"/>'; }
+      });
+    });
+    s += '</g>';
+  });
+  // north arrow on plinth corner
+  var na = [pl[0] + 1.2, pl[3] - 1.2];
+  s += '<path d="M' + pp(na[0], na[1] + 1.1, 0) + 'L' + pp(na[0] + 0.35, na[1], 0) + 'L' + pp(na[0], na[1] + 0.25, 0) + 'L' + pp(na[0] - 0.35, na[1], 0) + 'Z" fill="#262624"/>';
+  this.g.innerHTML = s;
+};
+Axo.prototype.step = function(dt){
+  if (Math.abs(this.target - this.psi) < 0.01) return false;
+  this.psi += (this.target - this.psi) * Math.min(1, dt * 2.4);
+  return true;
+};
+
+/* ===================== PROJECTS ===================== */
+var PROJ = [
+  { no:'01', name:'Vessel', type:'Chapel & crypt', loc:'Lofoten, Norway', lat:'68.1° N', year:2019, area:'640 m²', psi:36,
+    struct:'Load-bearing concrete, 600 mm walls', mats:'Board-formed concrete, copper door', client:'Private foundation',
+    desc:'A long nave dug into the shoreline, with a tower that catches the low Arctic sun for a few minutes each winter day. The crypt stays at one temperature all year round. The only colour is the door, a copper plate that the salt air is slowly turning green.',
+    plate:[-9, -6, 23, 13],
+    boxes:[
+      { x:0, y:0, z:0, w:18, d:8, h:7, o:[{ f:'S', u0:2.5, u1:12.5, v0:5.4, v1:5.9 }, { f:'W', u0:3.2, u1:4.8, v0:0, v1:3.2 }] },
+      { x:13, y:1, z:7, w:5, d:6, h:11, o:[{ f:'W', u0:2.7, u1:3.3, v0:1.2, v1:9.6 }, { f:'S', u0:2.2, u1:2.8, v0:6, v1:10 }] },
+      { x:-4, y:2.5, z:0, w:4, d:3, h:3.4, o:[{ f:'S', u0:1.3, u1:2.7, v0:0, v1:2.6, t:'cu' }] }
+    ] },
+  { no:'02', name:'Threshold', type:'Visitor centre', loc:'Atacama, Chile', lat:'23.9° S', year:2021, area:'1 850 m²', psi:40,
+    struct:'Post-tensioned beam, 6 m cantilever', mats:'Pigmented concrete, local basalt', client:'Regional parks trust',
+    desc:'A single concrete beam laid across a stone plinth. It cantilevers six metres toward the salt flats so that the shade itself becomes the entrance. Inside, one long window frames the horizon at eye height and nothing else.',
+    plate:[-10, -6, 30, 18],
+    boxes:[
+      { x:0, y:0, z:0, w:24, d:10, h:2.6, o:[{ f:'S', u0:9, u1:12, v0:0, v1:2.2 }] },
+      { x:-6, y:2, z:2.6, w:30, d:6, h:4, o:[{ f:'S', u0:2, u1:26, v0:1.5, v1:2.3, t:'glass' }] },
+      { x:20, y:-3, z:0, w:4, d:3, h:1.3 }
+    ] },
+  { no:'03', name:'Cairn House', type:'Private residence', loc:'Isle of Skye, Scotland', lat:'57.3° N', year:2016, area:'312 m²', psi:34,
+    struct:'Stacked concrete boxes, each offset', mats:'Concrete, larch, sheep’s-wool insulation', client:'Private',
+    desc:'Three rooms stacked like stones on a cairn, each turned a little further toward the sea. Every overhang shelters the terrace below. The heaviest room holds the stove and the lightest holds the beds.',
+    plate:[-6, -8, 20, 16],
+    boxes:[
+      { x:0, y:0, z:0, w:12, d:9, h:3.5, o:[{ f:'S', u0:4, u1:9, v0:0.4, v1:2.8, t:'glass' }] },
+      { x:3, y:-2, z:3.5, w:10, d:8, h:3.2, o:[{ f:'W', u0:2, u1:5, v0:0.8, v1:2.4, t:'glass' }, { f:'S', u0:1, u1:3, v0:0.8, v1:2.6 }] },
+      { x:1, y:2, z:6.7, w:7, d:6, h:3, o:[{ f:'S', u0:2.5, u1:6, v0:0.9, v1:2.1, t:'glass' }] }
+    ] },
+  { no:'04', name:'Stillwater Baths', type:'Thermal baths', loc:'Hokkaido, Japan', lat:'43.1° N', year:2023, area:'2 400 m²', psi:42,
+    struct:'Monolithic plinth with sunken pools', mats:'Concrete, cast-glass lenses, cedar', client:'Onsen cooperative',
+    desc:'A plinth of warm concrete with its pools cut into the roof, open to falling snow. Two chimneys carry steam and draw the eye up. Below, the changing rooms get their light through thick cast-glass lenses in the deck.',
+    plate:[-7, -7, 33, 23],
+    boxes:[
+      { x:0, y:0, z:0, w:26, d:16, h:4, o:[{ f:'T', u0:8, u1:17, v0:3, v1:9, t:'water' }, { f:'T', u0:18.5, u1:23, v0:10, v1:14, t:'water' }, { f:'S', u0:3, u1:6, v0:0, v1:3 }] },
+      { x:4, y:3, z:4, w:3, d:3, h:9 },
+      { x:19, y:10.5, z:4, w:3, d:3, h:6 }
+    ] },
+  { no:'05', name:'Archive of Rain', type:'Regional archive', loc:'Galicia, Spain', lat:'42.9° N', year:2025, area:'4 100 m²', psi:38,
+    struct:'Double-wall concrete vault, 900 mm roof', mats:'Concrete, oxidised copper lantern', client:'Provincial government',
+    desc:'A windowless vault for paper in one of Europe’s wettest regions. The heavy envelope keeps humidity and temperature almost constant without machines. Light comes in only through the slit screen to the south and a copper lantern on the roof.',
+    plate:[-6, -9, 22, 22],
+    boxes:[
+      { x:-2, y:-2, z:0, w:20, d:20, h:0.8 },
+      { x:0, y:0, z:0.8, w:1.2, d:16, h:12 },
+      { x:14.8, y:0, z:0.8, w:1.2, d:16, h:12 },
+      { x:1.2, y:14.8, z:0.8, w:13.6, d:1.2, h:12 },
+      { x:1.2, y:0.4, z:4.8, w:13.6, d:14.4, h:0.5 },
+      { x:1.2, y:0.4, z:8.8, w:13.6, d:14.4, h:0.5 },
+      { x:1.2, y:0, z:0.8, w:13.6, d:0.8, h:12, o:[{ f:'S', u0:2, u1:2.35, v0:1.5, v1:10.5 }, { f:'S', u0:4.5, u1:4.85, v0:1.5, v1:10.5 }, { f:'S', u0:7, u1:7.35, v0:1.5, v1:10.5 }, { f:'S', u0:9.5, u1:9.85, v0:1.5, v1:10.5 }, { f:'S', u0:12, u1:12.35, v0:1.5, v1:10.5 }, { f:'S', u0:5.8, u1:7.8, v0:0, v1:3.4 }] },
+      { x:-0.5, y:-0.5, z:12.8, w:17, d:17, h:0.9 },
+      { x:5, y:5, z:13.7, w:6, d:6, h:3, m:'cu' }
+    ] }
+];
+var projWrap = $('#projects'), axos = [];
+PROJ.forEach(function(p, i){
+  var h = 0; p.boxes.forEach(function(b){ h = Math.max(h, b.z + b.h); }); p.height = h;
+  var a = document.createElement('article'); a.className = 'proj' + (i % 2 ? ' alt' : ''); a.setAttribute('aria-labelledby', 'pn' + i);
+  a.innerHTML = '<span class="ghost" aria-hidden="true">' + p.no + '</span>' +
+    '<button type="button" class="axo-btn rv' + (i % 2 ? ' r' : ' l') + '" aria-label="Open project sheet: ' + p.name + '"><svg class="axo" role="img" aria-label="Axonometric of ' + p.name + '"></svg></button>' +
+    '<div class="meta rv"><span class="pno">' + p.no + ' / 05</span><h3 id="pn' + i + '"></h3><p class="ptype"></p><dl class="data">' +
+    '<div><dt>Location</dt><dd></dd></div><div><dt>Year</dt><dd></dd></div><div><dt>Area</dt><dd></dd></div><div><dt>Height</dt><dd></dd></div></dl>' +
+    '<button type="button" class="sheet-link">Project sheet <i aria-hidden="true"></i></button></div><span class="hint" aria-hidden="true">Hover rotates · click opens the sheet</span>';
+  a.querySelector('h3').textContent = p.name; a.querySelector('.ptype').textContent = p.type + ' · ' + p.lat;
+  var dds = a.querySelectorAll('dd'); dds[0].textContent = p.loc; dds[1].textContent = p.year; dds[2].textContent = p.area; dds[3].textContent = h.toFixed(1) + ' m';
+  projWrap.appendChild(a);
+  var ax = new Axo(a.querySelector('svg'), p); ax.i = i; axos.push(ax);
+  var btn = a.querySelector('.axo-btn');
+  a.addEventListener('pointerenter', function(){ ax.target = p.psi + 9; kick(); });
+  a.addEventListener('pointerleave', function(){ ax.target = p.psi; kick(); });
+  btn.addEventListener('focus', function(){ ax.target = p.psi + 9; kick(); });
+  btn.addEventListener('blur', function(){ ax.target = p.psi; kick(); });
+  btn.addEventListener('click', function(){ openSheet(i, btn); });
+  a.querySelector('.sheet-link').addEventListener('click', function(){ openSheet(i, this); });
+});
+var heroAxo = new Axo($('#heroAxo'), PROJ[0]);
+var asm = new Axo($('#asmAxo'), PROJ[4], { lift:true }); asm.psi = asm.target = 44;
+var sheetAxo = null;
+
+/* ===================== ASSEMBLY ===================== */
+var STEPMAP = [0, 1, 1, 1, 2, 2, 3, 4, 5];
+var asmP = 0, process = $('#process'), stepsLi = $$('#steps li');
+function pieceState(p){
+  var n = PROJ[4].boxes.length, out = [];
+  for (var i = 0; i < n; i++){
+    var st = STEPMAP[i], s0 = 0.04 + st * 0.15 + (i % 3) * 0.02, t = clamp((p - s0) / 0.12, 0, 1), e = 1 - Math.pow(1 - t, 3);
+    out.push({ dz:(1 - e) * 9, a:t <= 0 ? 0 : Math.min(1, t * 2.2) });
+  }
+  return out;
+}
+function updateAsm(){
+  var r = process.getBoundingClientRect(), h = r.height - window.innerHeight;
+  asmP = clamp(-r.top / (h || 1), 0, 1);
+  var cur = Math.min(5, Math.floor((asmP - 0.04) / 0.15));
+  stepsLi.forEach(function(li, i){ li.classList.toggle('on', i === cur || (cur < 0 && i === 0)); li.classList.toggle('done', i < cur); });
+  $('#meterT').textContent = (asmP < 0.1 ? '0' : '') + Math.round(asmP * 100) + '%';
+  $('#meterB').style.width = (asmP * 100).toFixed(1) + '%';
+  asm.render(pieceState(asmP));
+}
+
+/* ===================== SUN CONTROL ===================== */
+var sunIn = $('#sun'), sunOut = $('#sunOut'), heroLight = $('#heroLight'), dialSun = $('#dialSun'), coord = $('#coord');
+function fmtH(h){ var hh = Math.floor(h), mm = Math.round((h - hh) * 60); if (mm === 60){ hh++; mm = 0; } return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm; }
+function applySun(){
+  setSun(sunIn.value / 1000);
+  var txt = fmtH(SUN.hour) + ' · az ' + Math.round(SUN.az) + '° · alt ' + Math.round(SUN.alt) + '°';
+  sunOut.textContent = txt; sunIn.setAttribute('aria-valuetext', txt); coord.textContent = 'Sun ' + fmtH(SUN.hour) + ' · 50° N';
+  var t = sunIn.value / 1000, ang = Math.PI * (1 - t);
+  dialSun.setAttribute('cx', (27 + Math.cos(ang) * 22).toFixed(1)); dialSun.setAttribute('cy', (27 - Math.sin(ang) * 22 * (SUN.alt / 40)).toFixed(1));
+  var lx = 50 - Math.sin((SUN.az - 180) * Math.PI / 180) * 45;
+  heroLight.style.background = 'radial-gradient(ellipse 70% 90% at ' + lx.toFixed(1) + '% 0%, rgba(255,252,244,' + (0.08 + SUN.alt / 40 * 0.22).toFixed(3) + '), transparent 70%), linear-gradient(' + (90 + (SUN.az - 180) * 0.6).toFixed(1) + 'deg, rgba(38,38,36,' + (0.28 - SUN.alt / 40 * 0.18).toFixed(3) + '), transparent 60%)';
+  needAll = true; kick();
+}
+sunIn.addEventListener('input', applySun);
+
+/* ===================== VISIBILITY + LOOP ===================== */
+var visible = new Set(), needAll = true, running = false, last = 0;
+var io = new IntersectionObserver(function(ents){
+  ents.forEach(function(e){
+    if (e.target.__ax){ if (e.isIntersecting){ visible.add(e.target.__ax); e.target.__ax.render(); } else visible.delete(e.target.__ax); }
+    if (e.isIntersecting && e.target.classList.contains('rv')) e.target.classList.add('in');
+  });
+}, { rootMargin:'120px 0px' });
+axos.concat([heroAxo]).forEach(function(a){ a.svg.__ax = a; io.observe(a.svg); });
+$$('.rv').forEach(function(el){ io.observe(el); });
+function kick(){ if (!running){ running = true; last = performance.now(); requestAnimationFrame(loop); } }
+function loop(now){
+  var dt = Math.min(0.05, (now - last) / 1000); last = now;
+  var moving = false;
+  axos.concat([heroAxo]).forEach(function(a){
+    var m = a.step(dt);
+    if (m) moving = true;
+    if ((m || needAll) && (visible.has(a) || a === heroAxo)) a.render();
+  });
+  if (needAll){ updateAsm(); if (sheetAxo) sheetAxo.render(); }
+  if (sheetOpen && sheetAxo){ sheetAxo.psi = PROJ[sheetIdx].psi + (reduced ? 0 : Math.sin(now / 1000 * 0.25) * 12); sheetAxo.render(); moving = true; }
+  needAll = false;
+  if (moving) requestAnimationFrame(loop); else running = false;
+}
+var scrollQueued = false;
+window.addEventListener('scroll', function(){
+  if (scrollQueued) return; scrollQueued = true;
+  requestAnimationFrame(function(){ scrollQueued = false; var r = process.getBoundingClientRect(); if (r.bottom > -50 && r.top < window.innerHeight + 50) updateAsm(); });
+}, { passive:true });
+window.addEventListener('resize', function(){ clearTimeout(window.__rt); window.__rt = setTimeout(function(){ paintAll(); needAll = true; kick(); }, 120); });
+
+/* ===================== SHEET DIALOG ===================== */
+var sheet = $('#sheet'), sheetOpen = false, sheetIdx = 0, sheetReturn = null;
+function openSheet(i, from){
+  var p = PROJ[i]; sheetIdx = i; sheetReturn = from || null;
+  $('#sNo').textContent = p.no + ' / 05'; $('#sName').textContent = p.name; $('#sType').textContent = p.type + ' · ' + p.lat;
+  $('#sDesc').textContent = p.desc; $('#sFoot').textContent = 'Project sheet · ' + p.no + ' · ' + p.name;
+  var rows = [['Location', p.loc], ['Latitude', p.lat], ['Completed', p.year], ['Area', p.area], ['Height', p.height.toFixed(1) + ' m'], ['Programme', p.type], ['Structure', p.struct], ['Materials', p.mats], ['Client', p.client + ' (fictional)'], ['Volumes', p.boxes.length + ' monolithic parts']];
+  var dl = $('#sData'); dl.innerHTML = '';
+  rows.forEach(function(r){ var d = document.createElement('div'); d.innerHTML = '<dt></dt><dd></dd>'; d.firstChild.textContent = r[0]; d.lastChild.textContent = r[1]; dl.appendChild(d); });
+  var svg = $('#sheetAxo'); svg.innerHTML = ''; sheetAxo = new Axo(svg, p); sheetAxo.render();
+  // footprint plan
+  var pl = p.plate, W = pl[2] - pl[0], H = pl[3] - pl[1], plan = $('#sPlan'), sc = 100 / W, ph = H * sc;
+  plan.setAttribute('viewBox', '0 0 100 ' + ph.toFixed(2));
+  var s = '<rect x="0" y="0" width="100" height="' + ph.toFixed(2) + '" fill="none"/>';
+  for (var gx = 0; gx <= W; gx += 2) s += '<path d="M' + (gx * sc).toFixed(2) + ' 0V' + ph.toFixed(2) + '" stroke="rgba(38,38,36,.07)" stroke-width=".2"/>';
+  p.boxes.forEach(function(b){ var x = (b.x - pl[0]) * sc, y = (pl[3] - (b.y + b.d)) * sc; s += '<rect x="' + x.toFixed(2) + '" y="' + y.toFixed(2) + '" width="' + (b.w * sc).toFixed(2) + '" height="' + (b.d * sc).toFixed(2) + '" fill="' + (b.m === 'cu' ? 'rgba(79,127,115,.55)' : 'rgba(38,38,36,' + Math.min(0.9, 0.18 + b.h / 30).toFixed(2) + ')') + '" stroke="#262624" stroke-width=".25"/>'; });
+  s += '<text x="2" y="' + (ph - 2).toFixed(2) + '" font-size="2.6" font-family="Menlo, Consolas, monospace" fill="#262624" letter-spacing=".3">FOOTPRINT · N ↑ · GRID 2 M</text>';
+  plan.innerHTML = s;
+  sheet.classList.add('on'); sheet.setAttribute('aria-hidden', 'false'); sheetOpen = true; document.body.style.overflow = 'hidden';
+  setTimeout(function(){ $('#sClose').focus(); }, 60);
+  kick();
+}
+function closeSheet(){
+  if (!sheetOpen) return;
+  sheet.classList.remove('on'); sheet.setAttribute('aria-hidden', 'true'); sheetOpen = false; document.body.style.overflow = '';
+  if (sheetReturn && sheetReturn.focus) sheetReturn.focus();
+}
+$('#sClose').addEventListener('click', closeSheet);
+sheet.addEventListener('click', function(e){ if (e.target === sheet) closeSheet(); });
+document.addEventListener('keydown', function(e){
+  if (!sheetOpen) return;
+  if (e.key === 'Escape') closeSheet();
+  if (e.key === 'Tab'){ e.preventDefault(); $('#sClose').focus(); }
+});
+
+/* ===================== MATERIAL STRIP ===================== */
+var MATS = [
+  { key:'concrete', no:'M—01', name:'Board-formed concrete', rows:[['Density', '≈ 2 400 kg/m³'], ['Boards', '150 mm, sawn fir'], ['Ties', 'Ø 25 mm, 600 mm grid'], ['Class', 'C35/45']] },
+  { key:'corten', no:'M—02', name:'Weathering steel', rows:[['Density', '≈ 7 850 kg/m³'], ['Plate', '3 mm, folded'], ['Patina', 'stabilises over a few years'], ['Use', 'plinths, thresholds']] },
+  { key:'larch', no:'M—03', name:'Weathered larch', rows:[['Density', '≈ 590 kg/m³'], ['Boards', '140 mm, open joints'], ['Finish', 'untreated, silvers'], ['Use', 'screens, decks']] },
+  { key:'glass', no:'M—04', name:'Low-iron glass', rows:[['Density', '≈ 2 500 kg/m³'], ['Light', '≈ 91 % transmission'], ['Frame', 'concealed, bronze'], ['Use', 'deep reveals only']] },
+  { key:'copper', no:'M—05', name:'Oxidised copper', rows:[['Density', '≈ 8 960 kg/m³'], ['Sheet', '0.7 mm, standing seam'], ['Patina', 'natural green can take a decade or more'], ['Use', 'lanterns, doors']] }
+];
+var strip = $('#strip');
+MATS.forEach(function(m){
+  var a = document.createElement('article'); a.className = 'mat';
+  a.innerHTML = '<div class="sw"><canvas data-tex="' + m.key + '" aria-hidden="true"></canvas></div><span class="no"></span><h3></h3><dl></dl>';
+  a.querySelector('.no').textContent = m.no; a.querySelector('h3').textContent = m.name;
+  var dl = a.querySelector('dl'); m.rows.forEach(function(r){ var dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = r[0]; dd.textContent = r[1]; dl.appendChild(dt); dl.appendChild(dd); });
+  strip.appendChild(a);
+});
+function cardW(){ var c = strip.querySelector('.mat'); return c ? c.getBoundingClientRect().width + 22 : 300; }
+$('#prevM').addEventListener('click', function(){ strip.scrollBy({ left:-cardW(), behavior:reduced ? 'auto' : 'smooth' }); });
+$('#nextM').addEventListener('click', function(){ strip.scrollBy({ left:cardW(), behavior:reduced ? 'auto' : 'smooth' }); });
+strip.addEventListener('scroll', function(){ var i = Math.round(strip.scrollLeft / cardW()); $('#matCount').textContent = '0' + Math.min(5, i + 1) + ' / 05'; }, { passive:true });
+strip.addEventListener('keydown', function(e){ if (e.key === 'ArrowRight'){ e.preventDefault(); strip.scrollBy({ left:cardW(), behavior:'smooth' }); } else if (e.key === 'ArrowLeft'){ e.preventDefault(); strip.scrollBy({ left:-cardW(), behavior:'smooth' }); } });
+var drag = null;
+strip.addEventListener('pointerdown', function(e){ if (e.pointerType !== 'mouse') return; drag = { x:e.clientX, s:strip.scrollLeft, moved:false }; });
+window.addEventListener('pointermove', function(e){ if (!drag) return; var dx = e.clientX - drag.x; if (Math.abs(dx) > 4){ drag.moved = true; strip.classList.add('drag'); } if (drag.moved) strip.scrollLeft = drag.s - dx; });
+window.addEventListener('pointerup', function(){ if (drag){ drag = null; strip.classList.remove('drag'); } });
+
+/* ===================== INIT ===================== */
+$('#yrs').textContent = String(new Date().getFullYear() - 2009);
+TEX.concrete = concreteTile(false);
+paintAll();
+setSun(sunIn.value / 1000); applySun();
+heroAxo.render();
+updateAsm();setTimeout(function(){
+  TEX.dark = concreteTile(true); TEX.corten = cortenTile(); TEX.larch = larchTile(); TEX.glass = glassTile(); TEX.copper = copperTile();
+  paintAll();
+}, 60);
+})();
+</script>
+</body>
+</html>

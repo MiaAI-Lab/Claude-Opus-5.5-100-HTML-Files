@@ -1,0 +1,38 @@
+TITLE: SIGNAL/NOISE
+FILE: 081-glitch-portfolio.html
+
+=== PROMPT (exact prompt used) ===
+Design "SIGNAL/NOISE", the portfolio of a fictional glitch artist, "k.oshiro". Stark black #000 and white #fff with RGB channel accents (#ff0040, #00ff9f, #0070ff). The page is intentionally corrupted but controlled: a headline with RGB split and horizontal slice displacement that re-randomises periodically; project thumbnails that are generative canvases (pixel-sorted gradients, datamosh-like block smears, scanline interference) and glitch harder on hover; CRT scanlines and occasional full-screen tear events; a scrolling "corrupted" hex-dump sidebar. Sections: a works grid (eight generative pieces with titles and years), an about text in monospace that types itself with random character corruption resolving into readable text, an exhibitions list and contact. Interaction: hovering intensifies the glitch; clicking a work opens it full-screen with a "corruption" slider; a "stabilize" toggle calms every effect (and prefers-reduced-motion defaults to stable). Typography: monospace and a heavy grotesk. Despite the chaos, it stays navigable and legible.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"SIGNAL/NOISE" is the portfolio of k.oshiro, a clearly fictional glitch artist, designed as a controlled corruption: pure black #000 and white #fff with RGB channel accents (#ff0040, #00ff9f, #0070ff), a heavy grotesk for display and monospace for everything else. A hex-dump sidebar scrolls endlessly down the left edge (it collapses into a three-line strip on phones). A two-line "SIGNAL/ NOISE" headline fills the hero, with its channels split and horizontal slices displaced in periodic bursts, and a short manifesto sits in the space beside "NOISE". Below are a stat strip, a 4×2 grid of eight live generative works, an About section whose monospace text decodes itself out of glyph noise, an exhibitions list and a large lowercase contact line. CRT scanlines sit over everything and occasional full-screen tears rip through the page, but hierarchy, spacing and contrast keep it navigable, and one "Stabilize" switch calms every effect.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Headline on canvas: the text is rendered three times in the red, green and blue accents and composited with "lighter", so aligned layers sum to white and misaligned ones fringe in colour; random horizontal bands get independent offsets and occasional single-channel slices, re-randomised in bursts every few seconds and continuously on hover
+- Eight distinct generative works, each built procedurally at 192×144 and upscaled pixelated: column pixel-sorting of a sunrise gradient (Dawn Buffer), three drifting scanline fields producing moiré colour (Vertical Hold), shapes with exponential red/blue channel bleed (Chroma Bleed), live static with a rolling bar and a ghosted "NO SIGNAL" (Dead Channel), a portrait smeared by repeated macroblock copies along motion vectors (Macroblock Elegy), animated XOR and multiply bit patterns (Bit Rot Season), 8×8 DCT-basis blocks with posterised quantisation and chroma errors (Q-Table Ghost), and an orthographic globe with misparsed points piled on 0°N 0°E (Null Island)
+- A shared per-frame corruption pass on raw ImageData: seeded row-band displacement, sine wobble, per-channel horizontal offsets, alternating scanline darkening, copied, inverted or channel-swapped blocks, and flash lines, with intensity easing between idle and hover
+- Full-screen tear events: an inline SVG filter (turbulence quantised into bands → feDisplacementMap on x only → red-channel offset → screen blend) applied to the page for a split second, plus an overlay canvas of coloured and black noise bars
+- CRT overlay of repeating scanlines, vignette and a stepped flicker; hex dump built from a real message stream with randomly corrupted bytes highlighted in RGB and the occasional inverted line, recycled as lines scroll out
+- Self-decoding biography: a scramble window of random glyphs travels ahead of the resolved text, with sporadic single-character corruptions that heal as it completes
+- Stepped (steps()) transitions, RGB text-shadow jitter on hover, and hard-edged buttons with red and blue shadow offsets
+
+=== INTERACTION MODEL ===
+- Hover or focus the headline to lose the signal (continuous slicing); hover or focus a work to push its corruption from idle to heavy and speed up its frame rate
+- Click (or Enter/Space) a work to open a full-screen viewer at double resolution with a "Corruption" slider (0–100) driving the effect live, prev/next buttons, ←/→ keys, Escape to close, a focus trap, and focus returned to the card
+- "Stabilize" switch (role=switch) calms everything: static headline, near-clean thumbnails, no flicker, no tears, a slow hex dump, and instant readable text. It is remembered in localStorage (guarded) and turns on by default under prefers-reduced-motion
+- Sticky header with section links and live telemetry (signal percentage, frame counter); the About text starts decoding when scrolled into view
+- "Copy address" copies the non-URL contact phrase with the Clipboard API, falling back to a hidden field and execCommand, with a status message either way
+- Thumbnails only animate while on screen (IntersectionObserver); the loop pauses when the tab is hidden

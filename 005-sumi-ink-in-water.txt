@@ -1,0 +1,39 @@
+TITLE: Sumi — Ink in Water
+FILE: 005-sumi-ink-in-water.html
+
+=== PROMPT (exact prompt used) ===
+Make "Sumi — Ink in Water", a meditative fluid simulation. A full-screen canvas showing warm washi paper (#f4efe6 with procedurally generated fibre noise). Clicking or tapping drops ink that blooms, curls and diffuses like sumi ink in water — implement a small grid-based stable-fluids solver (advection, diffusion, pressure projection) at reduced resolution with smooth upscaling, or an equivalent dye-advection approach; dragging the pointer stirs the water. Default ink is deep sumi black-indigo (#1b1f2a); a minimal vertical toolbar on the right, set in a quiet serif, switches to indigo (#2c3e75), vermillion (#d23c26) or pale gold (#b89b5e). A red hanko seal in the corner (SVG, carved-looking characters approximated with geometric strokes) signs the piece; a "Still the water" button slowly fades the ink away. Typography: an elegant vertical title using writing-mode: vertical-rl. Delight: an occasional falling ink droplet when idle; ink leaves faint tidelines at its edges. Must run smoothly on laptops and lower its resolution on mobile.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Sumi — Ink in Water is a quiet, full-screen ink painting that you make by letting drops fall into water over handmade washi. A small stable-fluids solver runs underneath. Each drop blooms as a feathered source whose ink thins as it empties, which leaves dark rims and paler centres. Its advancing front sheds irregular vortex pairs that curl into mushroom caps and smoke-like filaments. Dragging stirs the water, and a very slow divergence-free current keeps everything drifting gently. The ink is rendered as Beer–Lambert absorbance, multiplied over procedurally generated paper that has formation clouds, kozo fibres, bark flecks, grain and a deckle shadow, so overlapping colours mix the way pigments do. Thin tidelines form where a front thins out, and the paper keeps a faint stain of where the ink lingered. The page is framed like a hanging scroll. An upright vertical title "SUMI" sits over a sideways italic subtitle and a whispered verse. A carved red hanko reading 水月 (suigetsu, "moon in water") signs the lower-left corner beside a small colophon. A minimal serif toolbar on the right offers the four inks, "Still the water" and a sound toggle.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Grid-based stable fluids (Stam): semi-Lagrangian self-advection, implicit Gauss–Seidel viscosity, pressure projection with a warm-started Poisson solve, vorticity confinement and a breathing stream-function current; it runs at reduced resolution (about 144×90 on a laptop, about 49×105 on a phone)
+- Dye carried on a 2× finer grid with MacCormack advection plus a min/max limiter, so thin filaments stay sharp; slow explicit diffusion feathers the pigment
+- Ink drops modelled as spreading sources: an irregular angular "finger" profile, a drifting and pulsing core, and an irregular vortex-shedding ring at the front, plus stray eddies from the impact
+- Three-channel absorbance dye (Beer–Lambert, derived from each ink hex against the paper #f4efe6), upsampled in absorbance space before a lookup-table exp, then composited onto the paper with mix-blend-mode: multiply
+- Tidelines drawn as a gradient-weighted iso-line near the thin edge of each stain; a persistent stain buffer records where fronts lingered; static paper-sizing noise modulates how strongly each spot takes the ink
+- Procedural washi on its own canvas: two octaves of soft formation clouds, a fine grain tile, about 1,500 translucent kozo fibres as quadratic curves, bark flecks and a vignette
+- Overlay canvas for water ripples with meniscus highlights, a falling droplet that shrinks with a sharpening shadow, and a brush-tip cursor ring in the current ink colour
+- SVG hanko in haku-bun style: strokes cut from a mask, then roughened and worn by feTurbulence/feDisplacementMap and a noise alpha mask
+- Vertical typography with writing-mode: vertical-rl: an upright title, a sideways italic subtitle and a letter-spaced verse column
+
+=== INTERACTION MODEL ===
+- Click or tap to drop the current ink, with a ripple and a soft synthesized plink; hold still to keep pouring, so the bloom grows; drag to stir the water
+- Toolbar: Sumi, Indigo (ai), Vermillion (shu) and Pale gold (kin), with aria-pressed state; "Still the water" fades the ink, the stains and the currents away over a few seconds
+- When idle, a droplet occasionally falls on its own, with its shadow converging before the splash
+- Keyboard: Space/Enter on the focused water drops ink in a random spot; 1–4 choose the ink; S stills the water; M toggles sound
+- Sound is Web Audio only, created on the first gesture: a rising sine plink with stereo pan and a low exhale, through a filtered feedback echo. It has a visible toggle, and the preference is stored in guarded localStorage
+- Adaptive quality lowers the solver grid if frames run heavy; resizing resamples the painting so it survives; the loop pauses while the tab is hidden; reduced motion slows the flow and turns off idle drops, ripples and the opening overture

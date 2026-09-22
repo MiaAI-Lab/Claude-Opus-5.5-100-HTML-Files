@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planet Forge — Procedural World Generator</title>
+<meta name="description" content="Planet Forge: forge procedural worlds with per-pixel shaded spheres — fractal terrain and biomes, drifting clouds, a day/night terminator with city lights, atmospheric glow, shadow-casting rings and orbiting moons. Tune, randomize and export as PNG.">
+<meta name="theme-color" content="#02030a">
+<style>
+:root{
+  --cy:#4cc9f0;
+  --cy-2:rgba(76,201,240,.55);
+  --cy-3:rgba(76,201,240,.22);
+  --cy-4:rgba(76,201,240,.1);
+  --ink:#e6f4fb;
+  --ink-2:rgba(230,244,251,.66);
+  --ink-3:rgba(230,244,251,.42);
+  --bg:#02030a;
+  --glass:rgba(7,13,24,.66);
+  --sans:"Segoe UI","Helvetica Neue",Helvetica,Arial,"Nimbus Sans",sans-serif;
+  --geo:"Eurostile","Bank Gothic","Futura","Century Gothic","URW Gothic","Avenir Next",sans-serif;
+  --mono:"SF Mono",Menlo,Consolas,"DejaVu Sans Mono","Nimbus Mono PS",monospace;
+  --panel-w:380px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--sans);overflow:hidden}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cy);outline-offset:3px}
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) var(--panel-w);height:100vh}
+.stage{position:relative;overflow:hidden;min-height:0}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#view{cursor:grab;touch-action:pan-y}
+#view.drag{cursor:grabbing}
+.brk{position:absolute;width:26px;height:26px;border:1px solid var(--cy-2);pointer-events:none}
+.brk.tl{left:18px;top:18px;border-right:0;border-bottom:0}
+.brk.tr{right:18px;top:18px;border-left:0;border-bottom:0}
+.brk.bl{left:18px;bottom:18px;border-right:0;border-top:0}
+.brk.br{right:18px;bottom:18px;border-left:0;border-top:0}
+
+/* catalogue record */
+.cat{position:absolute;left:40px;top:38px;width:min(330px,calc(100% - 80px));pointer-events:none}
+.cat h1{margin:0;font:600 11px/1.4 var(--mono);letter-spacing:.28em;text-transform:uppercase;color:var(--cy)}
+.cat h1 span{color:var(--ink-3)}
+.desig{margin:10px 0 2px;font:500 clamp(34px,3.6vw,50px)/1 var(--geo);letter-spacing:.06em;text-transform:uppercase;color:#fff;text-shadow:0 0 30px rgba(76,201,240,.35)}
+.desig small{font-size:.5em;letter-spacing:.04em;color:var(--cy);text-transform:none;margin-left:6px}
+.cls{margin:0;font:500 13px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:18px 0 0;border-top:1px solid var(--cy-3)}
+.stats div{padding:9px 0 8px;border-bottom:1px solid var(--cy-4)}
+.stats div:nth-child(odd){padding-right:14px;border-right:1px solid var(--cy-4)}
+.stats div:nth-child(even){padding-left:14px}
+.stats dt{font:500 9.5px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.stats dd{margin:5px 0 0;font:500 17px/1.1 var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.stats dd small{font-size:11px;color:var(--ink-3);margin-left:3px}
+.note{margin:14px 0 0;font:italic 400 13.5px/1.5 var(--sans);color:var(--ink-2);border-left:2px solid var(--cy);padding-left:12px}
+.readout{position:absolute;left:40px;bottom:36px;font:500 11px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--cy);pointer-events:none;min-height:1.5em;text-shadow:0 0 12px rgba(76,201,240,.5)}
+.readout span{color:var(--ink-2)}
+.hint{position:absolute;right:40px;bottom:36px;font:500 10.5px/1.5 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);pointer-events:none;text-align:right}
+
+/* panel */
+.panel{position:relative;background:linear-gradient(180deg,rgba(9,17,31,.9),rgba(4,8,16,.94));border-left:1px solid var(--cy-3);overflow-y:auto;overflow-x:hidden;padding:22px 20px 26px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:var(--cy-3) transparent}
+.panel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,var(--cy),transparent);opacity:.6}
+.p-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:6px}
+.p-head h2{margin:0;font:600 12px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase}
+.p-head span{font:500 10px/1 var(--mono);letter-spacing:.14em;color:var(--ink-3)}
+.p-head i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#39d98a;box-shadow:0 0 8px #39d98a;margin-right:6px;vertical-align:1px}
+.box{position:relative;border:1px solid var(--cy-3);background:rgba(76,201,240,.03);padding:14px 14px 12px;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.box::before,.box::after{content:"";position:absolute;width:16px;height:1px;background:var(--cy)}
+.box::before{left:-3px;top:5px;transform:rotate(-45deg)}
+.box::after{right:-3px;bottom:5px;transform:rotate(-45deg)}
+.box h3{margin:0 0 12px;font:600 10.5px/1 var(--mono);letter-spacing:.26em;text-transform:uppercase;color:var(--cy);display:flex;gap:10px;align-items:center}
+.box h3 b{color:var(--ink-3);font-weight:500}
+.box h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--cy-3),transparent)}
+.presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.preset{border:1px solid var(--cy-4);background:rgba(255,255,255,.02);padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;font:500 10.5px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);transition:border-color .2s,background-color .2s,color .2s;text-align:center}
+.preset:hover{border-color:var(--cy-2);color:var(--ink)}
+.preset[aria-pressed="true"]{border-color:var(--cy);background:rgba(76,201,240,.1);color:#fff;box-shadow:inset 0 0 18px rgba(76,201,240,.15)}
+.preset .orb{width:30px;height:30px;border-radius:50%;box-shadow:inset -7px -5px 10px rgba(0,0,0,.65),0 0 10px var(--glow,rgba(76,201,240,.3))}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 10px;margin-bottom:10px}
+.row:last-child{margin-bottom:2px}
+.row label{font:500 11.5px/1.2 var(--sans);letter-spacing:.04em;color:var(--ink-2)}
+.row output{font:500 11.5px/1 var(--mono);color:var(--cy);font-variant-numeric:tabular-nums;min-width:6ch;text-align:right}
+.row input[type=range]{grid-column:1/-1}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer;--v:50%}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--cy),var(--cy)) 0 0/var(--v) 100% no-repeat,rgba(230,244,251,.14)}
+input[type=range]::-moz-range-track{height:2px;background:rgba(230,244,251,.14)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--cy)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;margin-top:-4.5px;background:#03111a;border:1.5px solid var(--cy);transform:rotate(45deg);box-shadow:0 0 10px rgba(76,201,240,.7)}
+input[type=range]::-moz-range-thumb{width:9px;height:9px;border-radius:0;background:#03111a;border:1.5px solid var(--cy);transform:rotate(45deg);box-shadow:0 0 10px rgba(76,201,240,.7)}
+input[type=range]:focus-visible{outline:none}
+input[type=range]:focus-visible::-webkit-slider-thumb{background:var(--cy)}
+.ticks{grid-column:1/-1;height:4px;margin-top:-6px;background:repeating-linear-gradient(90deg,rgba(230,244,251,.18) 0 1px,transparent 1px 10%);pointer-events:none}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.switch span{font:500 11.5px/1.2 var(--sans);color:var(--ink-2)}
+.tog{position:relative;width:44px;height:22px;border:1px solid var(--cy-2);background:rgba(0,0,0,.35);cursor:pointer;padding:0;transition:background-color .2s}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;background:var(--ink-3);transition:transform .25s cubic-bezier(.3,1.4,.5,1),background-color .2s}
+.tog[aria-checked="true"]{background:rgba(76,201,240,.18)}
+.tog[aria-checked="true"]::after{transform:translateX(22px);background:var(--cy);box-shadow:0 0 10px var(--cy)}
+.stepper{display:flex;align-items:center;border:1px solid var(--cy-3)}
+.stepper button{width:30px;height:28px;border:0;background:rgba(76,201,240,.06);cursor:pointer;font:500 15px/1 var(--mono);color:var(--cy)}
+.stepper button:hover{background:rgba(76,201,240,.18)}
+.stepper output{width:34px;text-align:center;font:500 13px/1 var(--mono)}
+.seedrow{display:flex;gap:8px;align-items:stretch}
+.seedrow input{flex:1;min-width:0;border:1px solid var(--cy-3);background:rgba(0,0,0,.35);padding:9px 10px;font:500 14px/1 var(--mono);letter-spacing:.1em;color:#fff}
+.seedrow input:focus{outline:none;border-color:var(--cy)}
+.btn{border:1px solid var(--cy-2);background:rgba(76,201,240,.06);color:var(--ink);padding:10px 12px;font:600 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .2s,border-color .2s,box-shadow .2s}
+.btn:hover{background:rgba(76,201,240,.16);border-color:var(--cy);box-shadow:0 0 16px rgba(76,201,240,.25)}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:15px;height:15px}
+.btn-hot{background:var(--cy);color:#02121c;border-color:var(--cy)}
+.btn-hot:hover{background:#7fdcf7}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.foot{font:500 10px/1.6 var(--mono);letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;margin:4px 2px 0}
+.toast{position:fixed;left:50%;top:22px;transform:translate(-50%,-14px);opacity:0;background:rgba(3,17,26,.92);border:1px solid var(--cy-2);color:var(--ink);padding:10px 16px;font:500 11px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;pointer-events:none;transition:opacity .25s,transform .25s;z-index:10;max-width:calc(100vw - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1100px){:root{--panel-w:330px}.cat{width:min(290px,calc(100% - 80px))}}
+@media (max-width:860px){
+  body{overflow:auto}
+  .app{display:block;height:auto}
+  .stage{height:min(78vh,680px);min-height:520px}
+  .panel{border-left:0;border-top:1px solid var(--cy-3);overflow:visible}
+  .cat{left:20px;top:22px;width:calc(100% - 40px)}
+  .stats{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:12px}
+  .stats div,.stats div:nth-child(odd),.stats div:nth-child(even){padding:7px 8px 6px 0;border-right:0}
+  .stats dd{font-size:14px}
+  .note{display:none}
+  .readout{left:20px;bottom:18px;font-size:10px}
+  .hint{display:none}
+  .brk.tl,.brk.tr{display:none}
+  .brk.bl{left:10px;bottom:10px}.brk.br{right:10px;bottom:10px}
+}
+@media (max-width:420px){.desig{font-size:30px}.stats dt{font-size:8.5px;letter-spacing:.14em}}
+@media (prefers-reduced-motion:reduce){.tog::after{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <main class="stage" id="stage">
+    <canvas id="sky" aria-hidden="true"></canvas>
+    <canvas id="view" tabindex="0" role="img" aria-label="Rendered planet. Drag or use arrow keys to rotate and tilt; scroll to zoom."></canvas>
+    <span class="brk tl" aria-hidden="true"></span><span class="brk tr" aria-hidden="true"></span><span class="brk bl" aria-hidden="true"></span><span class="brk br" aria-hidden="true"></span>
+    <section class="cat" aria-live="polite">
+      <h1>Planet Forge <span>· survey record</span></h1>
+      <p class="desig" id="desig">KX-4471 b</p>
+      <p class="cls" id="cls">Terrestrial · temperate</p>
+      <dl class="stats">
+        <div><dt>Radius</dt><dd id="s-rad">—</dd></div>
+        <div><dt>Surface gravity</dt><dd id="s-grav">—</dd></div>
+        <div><dt>Day length</dt><dd id="s-day">—</dd></div>
+        <div><dt>Mean temp</dt><dd id="s-temp">—</dd></div>
+        <div><dt id="s-oce-l">Ocean cover</dt><dd id="s-oce">—</dd></div>
+        <div><dt>Moons · tilt</dt><dd id="s-moon">—</dd></div>
+      </dl>
+      <p class="note" id="note">—</p>
+    </section>
+    <p class="readout" id="readout" aria-live="off">Scanner idle <span>· hover the surface to read terrain</span></p>
+    <p class="hint" aria-hidden="true">Drag to rotate · Shift-drag or ↑↓ to tilt · Scroll to zoom</p>
+  </main>
+
+  <aside class="panel" aria-label="Forge controls">
+    <div class="p-head"><h2>Forge controls</h2><span id="perf"><i></i>Renderer online</span></div>
+
+    <section class="box" aria-labelledby="h-pre">
+      <h3 id="h-pre"><b>01</b>Presets</h3>
+      <div class="presets" id="presets">
+        <button type="button" class="preset" data-p="earth" aria-pressed="true"><span class="orb" style="background:radial-gradient(circle at 35% 35%,#6fb4e8,#1c5da0 45%,#2f6b35 62%,#0b1e3d);--glow:rgba(90,170,255,.45)"></span>Earthlike</button>
+        <button type="button" class="preset" data-p="desert" aria-pressed="false"><span class="orb" style="background:radial-gradient(circle at 35% 35%,#f3cf8c,#d59550 45%,#9c4f2e 70%,#3a1a0e);--glow:rgba(255,170,110,.45)"></span>Desert</button>
+        <button type="button" class="preset" data-p="ocean" aria-pressed="false"><span class="orb" style="background:radial-gradient(circle at 35% 35%,#8fe0f0,#1f7fb8 45%,#0d3f79 70%,#061a38);--glow:rgba(90,200,255,.45)"></span>Ocean</button>
+        <button type="button" class="preset" data-p="lava" aria-pressed="false"><span class="orb" style="background:radial-gradient(circle at 35% 35%,#ffb347,#e2461a 40%,#3b1a14 68%,#140606);--glow:rgba(255,90,40,.55)"></span>Lava</button>
+        <button type="button" class="preset" data-p="ice" aria-pressed="false"><span class="orb" style="background:radial-gradient(circle at 35% 35%,#ffffff,#cfe4f3 40%,#7fa9cf 70%,#1d3552);--glow:rgba(160,210,255,.5)"></span>Ice</button>
+        <button type="button" class="preset" data-p="gas" aria-pressed="false"><span class="orb" style="background:repeating-linear-gradient(170deg,#e8cfa8 0 4px,#b98458 4px 7px,#f1e3cc 7px 10px,#8c5a3c 10px 12px);--glow:rgba(240,200,150,.45)"></span>Gas giant</button>
+      </div>
+    </section>
+
+    <section class="box" aria-labelledby="h-surf">
+      <h3 id="h-surf"><b>02</b>Surface</h3>
+      <div class="row"><label for="sea">Sea level</label><output id="o-sea" for="sea">52%</output><input type="range" id="sea" min="0" max="100" value="52"><span class="ticks" aria-hidden="true"></span></div>
+      <div class="row"><label for="temp">Temperature</label><output id="o-temp" for="temp">14 °C</output><input type="range" id="temp" min="0" max="100" value="55"><span class="ticks" aria-hidden="true"></span></div>
+      <div class="row"><label for="rough">Terrain roughness</label><output id="o-rough" for="rough">50%</output><input type="range" id="rough" min="0" max="100" value="50"><span class="ticks" aria-hidden="true"></span></div>
+    </section>
+
+    <section class="box" aria-labelledby="h-sky">
+      <h3 id="h-sky"><b>03</b>Sky &amp; system</h3>
+      <div class="row"><label for="clouds">Cloud cover</label><output id="o-clouds" for="clouds">45%</output><input type="range" id="clouds" min="0" max="100" value="45"><span class="ticks" aria-hidden="true"></span></div>
+      <div class="row"><label for="speed">Rotation speed</label><output id="o-speed" for="speed">30%</output><input type="range" id="speed" min="0" max="100" value="30"><span class="ticks" aria-hidden="true"></span></div>
+      <div class="switch"><span id="l-rings">Planetary rings</span><button type="button" class="tog" id="rings" role="switch" aria-checked="false" aria-labelledby="l-rings"></button></div>
+      <div class="switch"><span id="l-grid">Survey grid overlay</span><button type="button" class="tog" id="grid" role="switch" aria-checked="false" aria-labelledby="l-grid"></button></div>
+      <div class="switch" style="margin-bottom:2px"><span id="l-moons">Moons</span><div class="stepper" role="group" aria-labelledby="l-moons"><button type="button" id="m-dn" aria-label="Fewer moons">−</button><output id="o-moons" aria-live="polite">1</output><button type="button" id="m-up" aria-label="More moons">+</button></div></div>
+    </section>
+
+    <section class="box" aria-labelledby="h-seed">
+      <h3 id="h-seed"><b>04</b>Seed &amp; export</h3>
+      <div class="seedrow" style="margin-bottom:10px"><label class="sr" for="seed">World seed</label><input type="number" id="seed" min="0" max="999999" value="4471" inputmode="numeric"><button type="button" class="btn" id="apply-seed">Forge</button></div>
+      <div class="acts">
+        <button type="button" class="btn" id="rand"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>Randomize</button>
+        <button type="button" class="btn btn-hot" id="png"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>PNG</button>
+      </div>
+    </section>
+    <p class="foot">All worlds are procedurally generated and entirely fictional. Keys: R randomize · D download · G grid.</p>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+  /* ================= PERLIN NOISE ================= */
+  function perlin(seed) {
+    const r = rng(seed), a = new Uint8Array(256);
+    for (let i = 0; i < 256; i++) a[i] = i;
+    for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+    const p = new Uint8Array(512); for (let i = 0; i < 512; i++) p[i] = a[i & 255];
+    const g = (h, x, y, z) => { h &= 15; const u = h < 8 ? x : y, v = h < 4 ? y : (h === 12 || h === 14 ? x : z); return ((h & 1) ? -u : u) + ((h & 2) ? -v : v); };
+    return (x, y, z) => {
+      let X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z);
+      x -= X; y -= Y; z -= Z; X &= 255; Y &= 255; Z &= 255;
+      const u = x * x * x * (x * (x * 6 - 15) + 10), v = y * y * y * (y * (y * 6 - 15) + 10), w = z * z * z * (z * (z * 6 - 15) + 10);
+      const A = p[X] + Y, AA = p[A] + Z, AB = p[A + 1] + Z, B = p[X + 1] + Y, BA = p[B] + Z, BB = p[B + 1] + Z;
+      const x1 = x - 1, y1 = y - 1, z1 = z - 1;
+      const l1 = g(p[AA], x, y, z) + u * (g(p[BA], x1, y, z) - g(p[AA], x, y, z));
+      const l2 = g(p[AB], x, y1, z) + u * (g(p[BB], x1, y1, z) - g(p[AB], x, y1, z));
+      const l3 = g(p[AA + 1], x, y, z1) + u * (g(p[BA + 1], x1, y, z1) - g(p[AA + 1], x, y, z1));
+      const l4 = g(p[AB + 1], x, y1, z1) + u * (g(p[BB + 1], x1, y1, z1) - g(p[AB + 1], x, y1, z1));
+      const m1 = l1 + v * (l2 - l1), m2 = l3 + v * (l4 - l3);
+      return m1 + w * (m2 - m1);
+    };
+  }
+
+  /* ================= TEXTURES ================= */
+  const TW = 512, TH = 256, TM = TW - 1, NT = TW * TH;
+  const DX = new Float32Array(NT), DY = new Float32Array(NT), DZ = new Float32Array(NT), CL = new Float32Array(TH), SL = new Float32Array(TH);
+  for (let v = 0; v < TH; v++) {
+    const lat = (.5 - (v + .5) / TH) * Math.PI; CL[v] = Math.cos(lat); SL[v] = Math.sin(lat);
+    for (let u = 0; u < TW; u++) { const lon = ((u + .5) / TW - .5) * Math.PI * 2, i = v * TW + u; DX[i] = CL[v] * Math.sin(lon); DY[i] = SL[v]; DZ[i] = CL[v] * Math.cos(lon); }
+  }
+  const HT = new Float32Array(NT), MO = new Float32Array(NT), CN = new Float32Array(NT), CI = new Float32Array(NT);
+  const ALB = new Uint8ClampedArray(NT * 3), WAT = new Uint8Array(NT), LANDC = new Uint8Array(NT), CITY = new Uint8Array(NT), LAVA = new Uint8Array(NT), CLD = new Uint8Array(NT), BIO = new Uint8Array(NT);
+  const HIST = new Float32Array(2048);
+  let seaThr = .5;
+  const BIOMES = ['Deep ocean', 'Shallow sea', 'Sea ice', 'Beach', 'Ice sheet', 'Tundra', 'Taiga', 'Temperate forest', 'Grassland', 'Steppe', 'Desert', 'Savanna', 'Rainforest', 'Mountains', 'Snowcap', 'Magma sea', 'Basalt plain', 'Cooling crust', 'Frozen sea', 'Open lead', 'Dune sea', 'Red mesa', 'Salt flat', 'Cloud band', 'Storm'];
+
+  const S = { seed: 4471, type: 'earth', sea: .52, temp: .55, rough: .5, clouds: .45, speed: .3, rings: false, moons: 1, grid: false, tilt: .32, pitch: .26, zoom: 1, rotU: 0, cloudU: 0 };
+  const TYPES = {
+    earth: { cls: 'Terrestrial · temperate', atmo: [95, 175, 255], atmoK: 1 },
+    ocean: { cls: 'Ocean world · archipelagic', atmo: [90, 190, 255], atmoK: 1.1 },
+    desert: { cls: 'Arid super-Earth', atmo: [255, 176, 110], atmoK: .8 },
+    lava: { cls: 'Magma world · young', atmo: [255, 96, 40], atmoK: .9 },
+    ice: { cls: 'Cryogenic world', atmo: [165, 215, 255], atmoK: .85 },
+    gas: { cls: 'Gas giant · banded', atmo: [240, 205, 160], atmoK: .7 }
+  };
+  const PRESETS = {
+    earth: { sea: .6, temp: .55, rough: .5, clouds: .45, rings: false, moons: 1, speed: .3, tilt: .41 },
+    desert: { sea: .12, temp: .8, rough: .62, clouds: .1, rings: false, moons: 2, speed: .22, tilt: .2 },
+    ocean: { sea: .86, temp: .6, rough: .42, clouds: .62, rings: false, moons: 1, speed: .34, tilt: .3 },
+    lava: { sea: .42, temp: .85, rough: .66, clouds: .3, rings: false, moons: 0, speed: .18, tilt: .1 },
+    ice: { sea: .55, temp: .12, rough: .5, clouds: .32, rings: true, moons: 3, speed: .26, tilt: .5 },
+    gas: { sea: .5, temp: .6, rough: .55, clouds: .3, rings: true, moons: 4, speed: .45, tilt: .46 }
+  };
+
+  let N1, N2, N3, N4;
+  function genNoiseFields() {
+    N1 = perlin(S.seed); N2 = perlin(S.seed * 7 + 13); N3 = perlin(S.seed * 31 + 7); N4 = perlin(S.seed * 101 + 3);
+    for (let i = 0; i < NT; i++) {
+      const x = DX[i], y = DY[i], z = DZ[i];
+      let s = 0, a = 1, f = 1.7, nm = 0;
+      for (let o = 0; o < 3; o++) { s += a * N2(x * f + 40, y * f, z * f); nm += a; a *= .5; f *= 2.1; }
+      MO[i] = s / nm;
+      const wx = N3(x * 1.4, y * 1.4 + 9, z * 1.4) * .5;
+      s = 0; a = 1; f = 2.1; nm = 0;
+      for (let o = 0; o < 4; o++) { s += a * N3(x * f + wx, y * f * 1.9, z * f - wx); nm += a; a *= .52; f *= 2.2; }
+      CN[i] = s / nm;
+      CI[i] = N4(x * 11, y * 11, z * 11) * .7 + N4(x * 23 + 5, y * 23, z * 23) * .3;
+    }
+    normalize(MO); normalize(CN); normalize(CI);
+  }
+  function normalize(A) { let mn = 1e9, mx = -1e9; for (let i = 0; i < NT; i++) { const v = A[i]; if (v < mn) mn = v; if (v > mx) mx = v; } const k = 1 / (mx - mn || 1); for (let i = 0; i < NT; i++) A[i] = (A[i] - mn) * k; }
+  function genHeights() {
+    const gain = .36 + S.rough * .3, ridgeK = .06 + S.rough * .2;
+    for (let i = 0; i < NT; i++) {
+      const x = DX[i], y = DY[i], z = DZ[i];
+      const w = N2(x * 1.1 + 3.1, y * 1.1, z * 1.1) * .55, w2 = N3(x * 1.1, y * 1.1 + 7.7, z * 1.1) * .55;
+      const px = x + w, py = y + w2, pz = z - w * .6;
+      let s = 0, a = 1, f = 1.25, nm = 0;
+      for (let o = 0; o < 6; o++) { s += a * N1(px * f + 11.3, py * f + 2.7, pz * f + 5.1); nm += a; a *= gain; f *= 2.07; }
+      const rg = 1 - Math.abs(N1(px * 3.3 + 50, py * 3.3, pz * 3.3));
+      HT[i] = s / nm + (rg * rg * rg - .3) * ridgeK;
+    }
+    normalize(HT);
+    HIST.fill(0);
+    for (let v = 0; v < TH; v++) { const w = CL[v]; for (let u = 0; u < TW; u += 2) HIST[Math.min(2047, (HT[v * TW + u] * 2047) | 0)] += w; }
+    let tot = 0; for (let b = 0; b < 2048; b++) { tot += HIST[b]; HIST[b] = tot; }
+    for (let b = 0; b < 2048; b++) HIST[b] /= tot;
+  }
+  const quant = f => { if (f <= 0) return -.01; if (f >= 1) return 1.01; for (let b = 0; b < 2048; b++) if (HIST[b] >= f) return b / 2047; return 1; };
+
+  /* ---------- colourise ---------- */
+  let stat = { ocean: 0, ice: 0, city: 0 };
+  function mixc(i, c1, c2, t) { const o = i * 3; ALB[o] = c1[0] + (c2[0] - c1[0]) * t; ALB[o + 1] = c1[1] + (c2[1] - c1[1]) * t; ALB[o + 2] = c1[2] + (c2[2] - c1[2]) * t; }
+  function setc(i, c, k) { const o = i * 3; ALB[o] = c[0] * k; ALB[o + 1] = c[1] * k; ALB[o + 2] = c[2] * k; }
+  const C = {
+    deep: [8, 26, 66], mid: [15, 58, 118], shallow: [30, 112, 168], coast: [52, 160, 190], seaice: [214, 230, 240],
+    sand: [214, 196, 146], snow: [236, 242, 247], ice: [205, 224, 238], tundra: [128, 132, 104], taiga: [46, 84, 62],
+    forest: [44, 98, 50], grass: [104, 150, 66], steppe: [158, 150, 92], desert: [210, 168, 102], desert2: [196, 132, 74],
+    savanna: [168, 158, 84], jungle: [26, 84, 40], rock: [112, 100, 88], rock2: [84, 74, 68],
+    basalt: [40, 30, 28], basalt2: [62, 44, 38], crust: [110, 34, 16], lava: [255, 110, 30],
+    frost: [222, 234, 244], frost2: [182, 208, 228], crev: [98, 146, 190], lead: [26, 58, 96],
+    dune: [224, 172, 102], dune2: [200, 128, 64], mesa: [156, 78, 46], salt: [238, 226, 200], lagoon: [40, 120, 140]
+  };
+  const ZA = new Float32Array(3), ZB = new Float32Array(3);
+  const lerpC = (out, a, b, t) => { out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t; };
+  const blendC = (out, c, t) => { out[0] += (c[0] - out[0]) * t; out[1] += (c[1] - out[1]) * t; out[2] += (c[2] - out[2]) * t; };
+  const lerpZ = (a, b, t) => { a[0] += (b[0] - a[0]) * t; a[1] += (b[1] - a[1]) * t; a[2] += (b[2] - a[2]) * t; };
+  const zoneCold = (out, m) => lerpC(out, C.tundra, C.taiga, smooth(.35, .62, m));
+  const zoneTemp = (out, m) => { lerpC(out, C.steppe, C.grass, smooth(.1, .34, m)); blendC(out, C.forest, smooth(.4, .64, m)); };
+  const zoneHot = (out, m, ci) => { lerpC(out, C.desert, C.desert2, ci * .7); blendC(out, C.savanna, smooth(.3, .46, m)); blendC(out, C.forest, smooth(.5, .64, m)); blendC(out, C.jungle, smooth(.64, .84, m)); };
+  function colorize() {
+    const T = S.temp, type = S.type, frac = type === 'gas' ? 0 : S.sea;
+    seaThr = quant(frac);
+    const thr = seaThr;
+    let oc = 0, ic = 0, ct = 0, wsum = 0;
+    const life = (type === 'earth' || type === 'ocean') && T > .25 && T < .85;
+    const GP = [
+      [[120, 170, 235], [58, 98, 196], [184, 216, 250], [36, 64, 150]],
+      [[226, 200, 146], [190, 150, 92], [242, 228, 192], [160, 118, 72]],
+      [[222, 186, 146], [170, 100, 60], [238, 218, 186], [120, 66, 42]],
+      [[232, 150, 108], [168, 66, 46], [246, 204, 168], [110, 36, 28]]
+    ];
+    const gpos = clamp(T, 0, .999) * 3, gi = Math.floor(gpos), gk = gpos - gi;
+    const pal = GP[gi].map((c, j) => [c[0] + (GP[gi + 1][j][0] - c[0]) * gk, c[1] + (GP[gi + 1][j][1] - c[1]) * gk, c[2] + (GP[gi + 1][j][2] - c[2]) * gk]);
+    if (type === 'gas') TYPES.gas.atmo = [pal[0][0] * .8, pal[0][1] * .8, pal[0][2]];
+    for (let v = 0; v < TH; v++) {
+      const al = Math.abs(SL[v]), wlat = CL[v];
+      for (let u = 0; u < TW; u++) {
+        const i = v * TW + u, h = HT[i], m = MO[i];
+        const hl = HT[v * TW + ((u - 1) & TM)], hr = HT[v * TW + ((u + 1) & TM)];
+        const relief = clamp(1 + (hl - hr) * 18, .72, 1.3);
+        let t = T * 1.3 - .2 - al * al * .95;
+        WAT[i] = 0; CITY[i] = 0; LAVA[i] = 0; LANDC[i] = h >= thr ? 1 : 0;
+        wsum += wlat;
+        if (type === 'gas') {
+          const warp = (CN[i] - .5) * .5 + (MO[i] - .5) * .25;
+          const band = Math.sin((SL[v] * 7.5 + warp) * Math.PI) * .5 + .5, band2 = Math.sin((SL[v] * 19 + warp * 2.2) * Math.PI) * .5 + .5;
+          const bi = band < .5 ? 0 : 2, c1 = pal[bi], c2 = pal[bi + 1];
+          mixc(i, c1, c2, clamp(band2 * .75 + (MO[i] - .5) * .5, 0, 1));
+          // great storm
+          const sl = SL[v] + .38, lon = (u / TW - .62) * 6.2832, d = Math.sqrt(sl * sl * 42 + lon * lon * 3.2);
+          if (d < 1) { const s = (1 - d) * (1 - d); const o = i * 3; ALB[o] = ALB[o] + (208 - ALB[o]) * s; ALB[o + 1] = ALB[o + 1] + (96 - ALB[o + 1]) * s; ALB[o + 2] = ALB[o + 2] + (60 - ALB[o + 2]) * s; BIO[i] = 24; }
+          else BIO[i] = 23;
+          continue;
+        }
+        if (h < thr) {
+          const d = clamp((thr - h) / Math.max(.05, thr), 0, 1);
+          if (type === 'lava') {
+            const hot = 1 - d * .6, fl = CI[i], crust = smooth(.56, .7, fl) * .85;
+            mixc(i, [255, 150, 60], [150, 30, 10], clamp(d * 1.3 + fl * .3, 0, 1));
+            if (crust > 0) { const o = i * 3; ALB[o] += (C.crust[0] * .6 - ALB[o]) * crust; ALB[o + 1] += (C.crust[1] * .6 - ALB[o + 1]) * crust; ALB[o + 2] += (C.crust[2] * .6 - ALB[o + 2]) * crust; }
+            LAVA[i] = clamp((hot * .7 + fl * .3) * 225 * (1 - d * .4) * (1 - crust * .75), 30, 235);
+            BIO[i] = 15; oc += wlat; continue;
+          }
+          if (type === 'ice') {
+            const lead = CI[i] > .84;
+            if (lead) { setc(i, C.lead, 1); WAT[i] = 1; BIO[i] = 19; }
+            else { mixc(i, C.frost, C.crev, clamp(Math.abs(CI[i] - .5) < .025 ? .9 : d * .35, 0, 1)); BIO[i] = 18; }
+            ic += wlat; oc += wlat; continue;
+          }
+          if (type === 'desert') { mixc(i, C.lagoon, C.mid, clamp(d * 1.8, 0, 1)); WAT[i] = 1; BIO[i] = d < .2 ? 1 : 0; oc += wlat; continue; }
+          const dd = Math.pow(d, .55);
+          if (dd < .12) mixc(i, C.coast, C.shallow, dd / .12);
+          else if (dd < .45) mixc(i, C.shallow, C.mid, (dd - .12) / .33);
+          else mixc(i, C.mid, C.deep, (dd - .45) / .55);
+          WAT[i] = 1; BIO[i] = dd < .2 ? 1 : 0; oc += wlat;
+          const si = smooth(-.05, -.17, t + (CI[i] - .5) * .05);
+          if (si > 0) { const o = i * 3; ALB[o] += (C.seaice[0] - ALB[o]) * si; ALB[o + 1] += (C.seaice[1] - ALB[o + 1]) * si; ALB[o + 2] += (C.seaice[2] - ALB[o + 2]) * si; if (si > .5) { WAT[i] = 0; BIO[i] = 2; ic += wlat; } }
+          continue;
+        }
+        const e = (h - thr) / Math.max(.05, 1 - thr);
+        t -= e * 1.25;
+        if (type === 'lava') {
+          const crack = Math.abs(CI[i] - .5) < .03 || e < .04;
+          if (crack) { setc(i, C.crust, 1); LAVA[i] = e < .04 ? 150 : 90; BIO[i] = 17; }
+          else { mixc(i, C.basalt, C.basalt2, clamp(m * 1.2 - .1, 0, 1)); const o = i * 3; ALB[o] *= relief; ALB[o + 1] *= relief; ALB[o + 2] *= relief; BIO[i] = e > .5 ? 13 : 16; }
+          continue;
+        }
+        if (type === 'ice') {
+          if (e > .45 && CI[i] > .5) { mixc(i, C.rock2, C.rock, m); BIO[i] = 13; }
+          else { mixc(i, C.frost, C.frost2, clamp(e * .8 + (CI[i] - .5) * .5, 0, 1)); BIO[i] = 4; ic += wlat; }
+          const o = i * 3; ALB[o] *= relief; ALB[o + 1] *= relief; ALB[o + 2] *= relief;
+          continue;
+        }
+        if (type === 'desert') {
+          if (e < .04) { setc(i, C.salt, 1); BIO[i] = 22; }
+          else if (e > .42) { mixc(i, C.mesa, C.rock2, clamp((e - .42) * 2, 0, 1)); BIO[i] = 21; }
+          else { const dune = Math.sin((DX[i] * 26 + DZ[i] * 15 + CI[i] * 5)) * .5 + .5; mixc(i, C.dune, C.dune2, clamp(m * .85 + dune * .18, 0, 1)); BIO[i] = 20; }
+          const o = i * 3;
+          const fr = smooth(-.2, -.36, t + (CI[i] - .5) * .08) * .9;
+          if (fr > 0) { ALB[o] += (C.salt[0] - ALB[o]) * fr; ALB[o + 1] += (C.salt[1] - ALB[o + 1]) * fr; ALB[o + 2] += (C.salt[2] - ALB[o + 2]) * fr; if (fr > .5) { ic += wlat; BIO[i] = 14; } }
+          ALB[o] *= relief; ALB[o + 1] *= relief; ALB[o + 2] *= relief;
+          continue;
+        }
+        // terrestrial biomes
+        // every boundary is a blend, so biomes, rock and snow never step texel by texel
+        let bio = t < .05 ? (m > .5 ? 6 : 5) : t > .56 ? (m < .36 ? 10 : m < .56 ? 11 : 12) : (m < .3 ? 9 : m < .55 ? 8 : 7);
+        const k1 = smooth(-.02, .14, t), k2 = smooth(.46, .66, t);
+        if (k2 > 0) { zoneTemp(ZA, m); zoneHot(ZB, m, CI[i]); lerpZ(ZA, ZB, k2); }
+        else if (k1 < 1) { zoneCold(ZA, m); zoneTemp(ZB, m); lerpZ(ZA, ZB, k1); }
+        else zoneTemp(ZA, m);
+        const o = i * 3;
+        ALB[o] = ZA[0]; ALB[o + 1] = ZA[1]; ALB[o + 2] = ZA[2];
+        const rk = smooth(.26, .44, e + (CI[i] - .5) * .08);
+        if (rk > 0) { const rc = m > .5 ? C.rock2 : C.rock; ALB[o] += (rc[0] - ALB[o]) * rk; ALB[o + 1] += (rc[1] - ALB[o + 1]) * rk; ALB[o + 2] += (rc[2] - ALB[o + 2]) * rk; if (rk > .5) bio = 13; }
+        const al2 = smooth(.44, .62, e) * smooth(.42, .22, t);
+        if (al2 > 0) { ALB[o] += (C.snow[0] - ALB[o]) * al2; ALB[o + 1] += (C.snow[1] - ALB[o + 1]) * al2; ALB[o + 2] += (C.snow[2] - ALB[o + 2]) * al2; if (al2 > .5) bio = 14; }
+        const sn = smooth(-.06, -.2, t + (CI[i] - .5) * .06);
+        if (sn > 0) { ALB[o] += (C.snow[0] - ALB[o]) * sn; ALB[o + 1] += (C.snow[1] - ALB[o + 1]) * sn; ALB[o + 2] += (C.snow[2] - ALB[o + 2]) * sn; if (sn > .5) { bio = e > .4 ? 14 : 4; ic += wlat; } }
+        const rl = 1 + (relief - 1) * (1 - Math.max(sn, al2) * .8) * (.55 + CL[v] * .45);
+        ALB[o] *= rl; ALB[o + 1] *= rl; ALB[o + 2] *= rl;
+        BIO[i] = bio;
+        if (life && bio !== 4 && bio !== 14 && bio !== 10 && bio !== 13 && t > .04 && t < .8) {
+          const coast = e < .06 ? 1.6 : 1;
+          const c = clamp((CI[i] - .58) * 4.2 * coast, 0, 1);
+          if (c > 0) { CITY[i] = c * 235; ct += wlat; }
+        }
+      }
+    }
+    stat = { ocean: oc / wsum, ice: ic / wsum, city: ct / wsum };
+  }
+  function cloudify() {
+    const cov = S.type === 'gas' ? S.clouds * .12 : S.clouds;
+    const lo = 1 - cov * .95 - .08, hi = lo + .26;
+    for (let i = 0; i < NT; i++) CLD[i] = cov <= .001 ? 0 : smooth(lo, hi, CN[i]) * 255;
+  }
+
+  /* ================= RINGS ================= */
+  const RR = 256, RIN = 1.32, ROUT = 2.2, RA = new Float32Array(RR), RC = new Uint8ClampedArray(RR * 3);
+  function genRings() {
+    const r = rng(S.seed * 3 + 1), iceTint = S.type === 'ice' ? 1 : 0;
+    const bands = []; for (let k = 0; k < 7; k++) bands.push([r() * RR, 6 + r() * 30, .3 + r() * .7]);
+    const gapAt = RR * (.55 + r() * .15);
+    for (let j = 0; j < RR; j++) {
+      let a = .32 + .25 * Math.sin(j * .19 + r() * .3) * .5;
+      bands.forEach(b => { const d = (j - b[0]) / b[1]; a += Math.exp(-d * d) * b[2] * .5; });
+      a *= smooth(0, 14, j) * smooth(RR, RR - 22, j);
+      if (Math.abs(j - gapAt) < 5) a *= .08;
+      a += (r() - .5) * .08;
+      RA[j] = clamp(a, 0, .92);
+      const t = j / RR;
+      RC[j * 3] = iceTint ? 200 + t * 30 : 214 - t * 40 + (r() - .5) * 20;
+      RC[j * 3 + 1] = iceTint ? 215 + t * 20 : 190 - t * 50 + (r() - .5) * 18;
+      RC[j * 3 + 2] = iceTint ? 235 : 160 - t * 60 + (r() - .5) * 16;
+    }
+  }
+  const ringAt = rq => { const j = ((rq - RIN) / (ROUT - RIN) * RR) | 0; return j >= 0 && j < RR ? j : -1; };
+
+  /* ================= VIEW (per-pixel precompute) ================= */
+  const L = (() => { const x = -.78, y = .34, z = .52, l = Math.hypot(x, y, z); return [x / l, y / l, z / l]; })();
+  const HV = (() => { const x = L[0], y = L[1], z = L[2] + 1, l = Math.hypot(x, y, z); return [x / l, y / l, z / l]; })();
+  let R = 150, BW = 0, buf = null, bctx = null, img = null;
+  let latF, lonB, dif, ngt, rim, spc, rsh, halo, ringI, ringL, flags, act, nAct = 0;
+  let M = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  function matrix() {
+    const ct = Math.cos(S.tilt), st = Math.sin(S.tilt), cp = Math.cos(S.pitch), sp = Math.sin(S.pitch);
+    M = [ct, -st * cp, st * sp, st, ct * cp, -ct * sp, 0, sp, cp];
+  }
+  function precompute() {
+    matrix();
+    const ext = 2.3, W = Math.ceil(2 * R * ext) + 2;
+    if (W !== BW) {
+      BW = W; const n = W * W;
+      buf = buf || document.createElement('canvas'); buf.width = buf.height = W; bctx = buf.getContext('2d');
+      img = bctx.createImageData(W, W);
+      latF = new Float32Array(n); lonB = new Float32Array(n); dif = new Float32Array(n); ngt = new Float32Array(n); rim = new Float32Array(n); spc = new Float32Array(n); rsh = new Float32Array(n); halo = new Float32Array(n); ringL = new Float32Array(n);
+      ringI = new Int16Array(n); flags = new Uint8Array(n); act = new Int32Array(n);
+    }
+    img.data.fill(0); flags.fill(0);
+    const c = BW / 2, m = M, rings = S.rings;
+    const Nx = m[1], Ny = m[4], Nz = m[7]; // planet north axis in view space = ring normal
+    const NL = Nx * L[0] + Ny * L[1] + Nz * L[2];
+    const faceLit = (NL >= 0) === (Nz >= 0) ? 1 : .38;
+    const HALO = 1.09;
+    nAct = 0;
+    for (let py = 0; py < BW; py++) {
+      const y = (c - py - .5) / R;
+      for (let px = 0; px < BW; px++) {
+        const x = (px + .5 - c) / R, r2 = x * x + y * y, k = py * BW + px;
+        let f = 0;
+        let zs = -9;
+        if (r2 < 1) {
+          const z = Math.sqrt(1 - r2); zs = z;
+          const qx = m[0] * x + m[3] * y + m[6] * z, qy = m[1] * x + m[4] * y + m[7] * z, qz = m[2] * x + m[5] * y + m[8] * z;
+          const lat = Math.asin(clamp(qy, -1, 1)), lon = Math.atan2(qx, qz);
+          latF[k] = clamp((.5 - lat / Math.PI) * TH - .5, 0, TH - 1.001);
+          lonB[k] = (lon / (2 * Math.PI) + .5) * TW - .5;
+          const nl = x * L[0] + y * L[1] + z * L[2];
+          dif[k] = clamp((nl + .07) / 1.07, 0, 1);
+          ngt[k] = smooth(.1, -.22, nl);
+          rim[k] = Math.pow(1 - z, 2.4);
+          const nh = x * HV[0] + y * HV[1] + z * HV[2];
+          spc[k] = nh > 0 ? Math.pow(nh, 70) * 1.3 + Math.pow(nh, 12) * .08 : 0;
+          let sh = 1;
+          if (rings && Math.abs(NL) > 1e-4) {
+            const t = -(Nx * x + Ny * y + Nz * z) / NL;
+            if (t > 0) {
+              const Qx = x + t * L[0], Qy = y + t * L[1], Qz = z + t * L[2];
+              const ax = m[0] * Qx + m[3] * Qy + m[6] * Qz, az = m[2] * Qx + m[5] * Qy + m[8] * Qz, j = ringAt(Math.sqrt(ax * ax + az * az));
+              if (j >= 0) sh = 1 - RA[j] * .88;
+            }
+          }
+          rsh[k] = sh;
+          f |= 1;
+        } else if (r2 < HALO * HALO) {
+          const rr = Math.sqrt(r2), hh = 1 - (rr - 1) / (HALO - 1);
+          const lit = clamp(((x * L[0] + y * L[1]) / rr) * .8 + .45, .08, 1);
+          halo[k] = hh * hh * lit;
+          f |= 2;
+        }
+        if (rings && Math.abs(Nz) > 1e-4) {
+          const zr = -(Nx * x + Ny * y) / Nz;
+          if (zr > zs) {
+            const ax = m[0] * x + m[3] * y + m[6] * zr, az = m[2] * x + m[5] * y + m[8] * zr, j = ringAt(Math.sqrt(ax * ax + az * az));
+            if (j >= 0 && RA[j] > .01) {
+              const b = x * L[0] + y * L[1] + zr * L[2], cc = x * x + y * y + zr * zr - 1;
+              const shadow = b < 0 && b * b - cc > 0;
+              ringI[k] = j; ringL[k] = (shadow ? .07 : .3 + .7 * Math.sqrt(Math.abs(NL))) * faceLit;
+              f |= 4;
+            }
+          }
+        }
+        if (f) { flags[k] = f; act[nAct++] = k; }
+      }
+    }
+  }
+
+  /* ================= RENDER ================= */
+  let grid = false;
+  const CS4 = new Int32Array(4), WS4 = new Float32Array(4);
+  function renderPlanet() {
+    const d = img.data, rotU = S.rotU, cU = S.cloudU, type = S.type, gas = type === 'gas';
+    const atmo = TYPES[type].atmo, ak = TYPES[type].atmoK, ar = atmo[0] * ak, ag = atmo[1] * ak, ab = atmo[2] * ak;
+    const lava = type === 'lava', cloudR = lava ? 90 : 245, cloudG = lava ? 82 : 248, cloudB = lava ? 80 : 255, cloudK = lava ? .75 : 1;
+    const gw = 1.6 / R * 180 / Math.PI;
+    for (let q = 0; q < nAct; q++) {
+      const k = act[q], f = flags[k], o = k * 4;
+      let r = 0, g = 0, b = 0, a = 0;
+      if (f & 1) {
+        const vf = latF[k], v0 = vf | 0, fv = vf - v0, v1 = v0 + 1 < TH ? v0 + 1 : v0;
+        let uf = lonB[k] + rotU;
+        if (gas) uf += rotU * .07 * Math.sin(SL[v0] * 9);
+        uf -= Math.floor(uf / TW) * TW;
+        const u0 = uf | 0, fu = uf - u0, u1 = (u0 + 1) & TM;
+        const r0 = v0 * TW, r1 = v1 * TW, i00 = r0 + u0, i01 = r0 + u1, i10 = r1 + u0, i11 = r1 + u1;
+        const w00 = (1 - fu) * (1 - fv), w01 = fu * (1 - fv), w10 = (1 - fu) * fv, w11 = fu * fv;
+        let cr, cg, cb, water;
+        const ls = LANDC[i00] + LANDC[i01] + LANDC[i10] + LANDC[i11];
+        if (gas || ls === 0 || ls === 4) {
+          cr = ALB[i00 * 3] * w00 + ALB[i01 * 3] * w01 + ALB[i10 * 3] * w10 + ALB[i11 * 3] * w11;
+          cg = ALB[i00 * 3 + 1] * w00 + ALB[i01 * 3 + 1] * w01 + ALB[i10 * 3 + 1] * w10 + ALB[i11 * 3 + 1] * w11;
+          cb = ALB[i00 * 3 + 2] * w00 + ALB[i01 * 3 + 2] * w01 + ALB[i10 * 3 + 2] * w10 + ALB[i11 * 3 + 2] * w11;
+          water = WAT[i00];
+        } else {
+          // coastline pixel: split corners into land and sea, then cut along the interpolated height contour (sub-texel, antialiased)
+          let wl = 0, ws = 0, lr = 0, lg = 0, lb = 0, sr = 0, sg = 0, sb = 0;
+          CS4[0] = i00; CS4[1] = i01; CS4[2] = i10; CS4[3] = i11; WS4[0] = w00; WS4[1] = w01; WS4[2] = w10; WS4[3] = w11;
+          for (let c4 = 0; c4 < 4; c4++) {
+            const ii = CS4[c4], w = WS4[c4] + 1e-4, o3 = ii * 3;
+            if (LANDC[ii]) { wl += w; lr += ALB[o3] * w; lg += ALB[o3 + 1] * w; lb += ALB[o3 + 2] * w; }
+            else { ws += w; sr += ALB[o3] * w; sg += ALB[o3 + 1] * w; sb += ALB[o3 + 2] * w; }
+          }
+          lr /= wl; lg /= wl; lb /= wl; sr /= ws; sg /= ws; sb /= ws;
+          const hh = HT[i00] * w00 + HT[i01] * w01 + HT[i10] * w10 + HT[i11] * w11;
+          const tl = smooth(seaThr - .0022, seaThr + .0022, hh);
+          cr = sr + (lr - sr) * tl; cg = sg + (lg - sg) * tl; cb = sb + (lb - sb) * tl;
+          water = tl < .5 && type !== 'lava' && type !== 'ice';
+        }
+        const df = dif[k] * rsh[k], lit = .028 + df * 1.08;
+        r = cr * lit; g = cg * lit; b = cb * lit;
+        if (water) { const s = spc[k] * rsh[k] * 170; r += s * .92; g += s * .96; b += s; }
+        // clouds (bilinear, drifting faster than the ground)
+        let cu = lonB[k] + cU; cu -= Math.floor(cu / TW) * TW;
+        const cu0 = cu | 0, cfu = cu - cu0, cu1 = (cu0 + 1) & TM;
+        const ca = ((CLD[r0 + cu0] * (1 - cfu) + CLD[r0 + cu1] * cfu) * (1 - fv) + (CLD[r1 + cu0] * (1 - cfu) + CLD[r1 + cu1] * cfu) * fv) * (1 / 255) * cloudK;
+        if (ca > 0) { const cl = .03 + df * 1.02; r += (cloudR * cl - r) * ca; g += (cloudG * cl - g) * ca; b += (cloudB * cl - b) * ca; }
+        const nt = ngt[k];
+        if (nt > 0) {
+          const cy = CITY[i00] * w00 + CITY[i01] * w01 + CITY[i10] * w10 + CITY[i11] * w11;
+          if (cy > 1) {
+            // sub-texel sparkle so settlements read as clusters of lights, not blobs
+            let hs = Math.imul((uf * 3) | 0, 374761393) + Math.imul((vf * 3) | 0, 668265263) | 0;
+            hs = Math.imul(hs ^ (hs >>> 13), 1274126177); hs = ((hs ^ (hs >>> 16)) >>> 0) / 4294967296;
+            const sp = hs > .45 ? (hs - .45) * 2.4 : .06;
+            const e = cy * nt * sp * (1 - ca * .8) * 1.25; r += e; g += e * .74; b += e * .4;
+          }
+        }
+        const lv = LAVA[i00] * w00 + LAVA[i01] * w01 + LAVA[i10] * w10 + LAVA[i11] * w11;
+        if (lv > 0) { const e = lv * (.5 + .5 * nt) * (1 - ca * .6); r += e; g += e * .38; b += e * .08; }
+        const rm = rim[k] * (.18 + df * 1.1);
+        r += ar * rm; g += ag * rm; b += ab * rm;
+        if (grid) {
+          const la = 90 - vf / TH * 180, lo = uf / TW * 360;
+          const dl = Math.abs(la - Math.round(la / 15) * 15), dn = Math.abs(lo - Math.round(lo / 15) * 15) * CL[v0];
+          if (dl < gw || dn < gw) { r = r * .6 + 30; g = g * .6 + 140; b = b * .6 + 170; }
+        }
+        a = 255;
+      } else if (f & 2) {
+        const h = halo[k]; r = ar; g = ag; b = ab; a = h * 200;
+      }
+      if (f & 4) {
+        const j = ringI[k], ra = RA[j], rl = ringL[k];
+        const rr = RC[j * 3] * rl, rgc = RC[j * 3 + 1] * rl, rb = RC[j * 3 + 2] * rl;
+        const ba = a / 255, na = ra + ba * (1 - ra);
+        if (na > 0) { r = (rr * ra + r * ba * (1 - ra)) / na; g = (rgc * ra + g * ba * (1 - ra)) / na; b = (rb * ra + b * ba * (1 - ra)) / na; a = na * 255; }
+      }
+      d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = a;
+    }
+    bctx.putImageData(img, 0, 0);
+  }
+
+  /* ================= MOONS ================= */
+  let MOONS = [];
+  function moonSprite(seed, size) {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    const g = c.getContext('2d'), id = g.createImageData(size, size), n = perlin(seed), r = rng(seed);
+    const craters = []; for (let k = 0; k < 14; k++) craters.push([r() * 2 - 1, r() * 2 - 1, .06 + r() * .22]);
+    const base = 120 + r() * 70, tint = [r() * 20 - 10, r() * 16 - 8, r() * 20 - 10];
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const nx = (x + .5) / size * 2 - 1, ny = 1 - (y + .5) / size * 2, r2 = nx * nx + ny * ny; if (r2 >= 1) continue;
+      const nz = Math.sqrt(1 - r2);
+      let alb = base + n(nx * 3, ny * 3, nz * 3) * 60 + n(nx * 9, ny * 9, nz * 9) * 25;
+      craters.forEach(cr => { const dd = Math.hypot(nx - cr[0], ny - cr[1]) / cr[2]; if (dd < 1) alb -= 28 * (1 - dd) ; else if (dd < 1.25) alb += 22 * (1.25 - dd) * 4 * .25; });
+      const nl = nx * L[0] + ny * L[1] + nz * L[2], lit = clamp(nl * 1.05 + .03, .02, 1.1);
+      const o = (y * size + x) * 4;
+      id.data[o] = (alb + tint[0]) * lit; id.data[o + 1] = (alb + tint[1]) * lit; id.data[o + 2] = (alb + tint[2]) * lit;
+      id.data[o + 3] = r2 > .96 ? (1 - r2) / .04 * 255 : 255;
+    }
+    g.putImageData(id, 0, 0);
+    return c;
+  }
+  function buildMoons() {
+    const r = rng(S.seed * 17 + 5);
+    MOONS = [];
+    for (let i = 0; i < S.moons; i++) {
+      MOONS.push({ spr: moonSprite(S.seed * 13 + i * 101, 72), a: (S.rings ? 2.4 : 1.55) + i * .36 + r() * .12, size: .08 + r() * .07, w: (.35 + r() * .3) / (1 + i * .45), ph: r() * Math.PI * 2, inc: (r() - .5) * .22 });
+    }
+  }
+
+  /* ================= STARS & NEBULA ================= */
+  const sky = $('#sky'), sctx = sky.getContext('2d'), view = $('#view'), ctx = view.getContext('2d');
+  let SW = 0, SH = 0, dpr = 1, dispR = 200, CX = 0, CY = 0;
+  function paintSky() {
+    const w = sky.width, h = sky.height, r = rng(90210);
+    sctx.fillStyle = '#02030a'; sctx.fillRect(0, 0, w, h);
+    const neb = [[.2, .25, .55, [74, 38, 132], .32], [.78, .72, .6, [18, 92, 118], .3], [.62, .18, .35, [150, 40, 110], .16], [.3, .85, .45, [40, 60, 150], .2]];
+    neb.forEach(([x, y, s, c, a]) => {
+      const R0 = Math.max(w, h) * s, gr = sctx.createRadialGradient(x * w, y * h, 0, x * w, y * h, R0);
+      gr.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a})`); gr.addColorStop(.5, `rgba(${c[0]},${c[1]},${c[2]},${a * .35})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      sctx.fillStyle = gr; sctx.fillRect(0, 0, w, h);
+    });
+    // wispy structure
+    sctx.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 260; k++) {
+      const x = r() * w, y = r() * h, s = (20 + r() * 90) * dpr, a = .012 + r() * .025;
+      const hue = r() < .5 ? [110, 70, 200] : [40, 140, 190];
+      const gr = sctx.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, `rgba(${hue[0]},${hue[1]},${hue[2]},${a})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      sctx.fillStyle = gr; sctx.fillRect(x - s, y - s, s * 2, s * 2);
+    }
+    const n = Math.floor(w * h / (1400 * dpr * dpr));
+    for (let k = 0; k < n; k++) {
+      const x = r() * w, y = r() * h, m = r(), s = (m < .97 ? .4 + r() * .8 : 1.2 + r() * 1.4) * dpr;
+      const col = r() < .2 ? '190,210,255' : r() < .1 ? '255,220,190' : '255,255,255';
+      sctx.fillStyle = `rgba(${col},${.25 + r() * .75})`;
+      sctx.beginPath(); sctx.arc(x, y, s * .5, 0, Math.PI * 2); sctx.fill();
+      if (m > .993) { sctx.strokeStyle = `rgba(${col},.35)`; sctx.lineWidth = dpr * .6; sctx.beginPath(); sctx.moveTo(x - s * 5, y); sctx.lineTo(x + s * 5, y); sctx.moveTo(x, y - s * 5); sctx.lineTo(x, y + s * 5); sctx.stroke(); }
+    }
+    sctx.globalCompositeOperation = 'source-over';
+  }
+  const stage = $('#stage');
+  function layout() {
+    const rc = stage.getBoundingClientRect();
+    SW = Math.max(1, rc.width); SH = Math.max(1, rc.height);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    sky.width = view.width = Math.round(SW * dpr); sky.height = view.height = Math.round(SH * dpr);
+    const narrow = SW < 700;
+    dispR = Math.min(SH * (narrow ? .3 : .34), SW * (narrow ? .36 : .235)) * S.zoom;
+    CX = narrow ? SW / 2 : SW * .6; CY = narrow ? SH * .6 : SH * .52;
+    R = Math.round(clamp(dispR * dpr * .78, 70, 205));
+    paintSky(); precompute();
+  }
+
+  /* ================= FRAME ================= */
+  let last = performance.now(), T = 0, vel = 0, dragging = false, hudA = 0;
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now; T += dt;
+    const spin = S.speed * .55 * (reduce ? .5 : 1);
+    if (!dragging) { S.rotU += (spin + vel) * dt * TW / (2 * Math.PI); vel *= Math.pow(.05, dt); if (Math.abs(vel) < .002) vel = 0; }
+    S.cloudU += (spin * 1.18 + .012) * dt * TW / (2 * Math.PI) + (dragging ? 0 : vel * dt * TW / (2 * Math.PI));
+    renderPlanet();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, view.width, view.height);
+    const sc = dispR * dpr / R, cx = CX * dpr, cy = CY * dpr;
+    // moons
+    const m = M, mp = [];
+    for (let i = 0; i < MOONS.length; i++) {
+      const mo = MOONS[i], th = mo.ph + T * mo.w * (reduce ? .4 : 1);
+      const e1x = m[0], e1y = m[3], e1z = m[6], e2x = m[2], e2y = m[5], e2z = m[8], nx = m[1], ny = m[4], nz = m[7];
+      const c1 = Math.cos(th) * mo.a, s1 = Math.sin(th) * mo.a, lift = Math.sin(th) * mo.inc * mo.a;
+      const X = e1x * c1 + e2x * s1 + nx * lift, Y = e1y * c1 + e2y * s1 + ny * lift, Z = e1z * c1 + e2z * s1 + nz * lift;
+      mp.push([X, Y, Z, mo]);
+    }
+    mp.sort((p, q) => p[2] - q[2]);
+    const drawMoon = p => {
+      const persp = 1 + p[2] * .06, s = p[3].size * dispR * dpr * 2 * persp;
+      const x = cx + p[0] * dispR * dpr, y = cy - p[1] * dispR * dpr;
+      ctx.globalAlpha = 1; ctx.drawImage(p[3].spr, x - s / 2, y - s / 2, s, s);
+    };
+    // orbit traces
+    if (MOONS.length) {
+      ctx.lineWidth = dpr * .8; ctx.strokeStyle = 'rgba(76,201,240,.14)';
+      MOONS.forEach(mo => {
+        ctx.beginPath();
+        for (let k = 0; k <= 72; k++) {
+          const th = k / 72 * Math.PI * 2, c1 = Math.cos(th) * mo.a, s1 = Math.sin(th) * mo.a, lift = Math.sin(th) * mo.inc * mo.a;
+          const X = m[0] * c1 + m[2] * s1 + m[1] * lift, Y = m[3] * c1 + m[5] * s1 + m[4] * lift;
+          const x = cx + X * dispR * dpr, y = cy - Y * dispR * dpr; if (k) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+        }
+        ctx.stroke();
+      });
+    }
+    mp.forEach(p => { if (p[2] < 0) drawMoon(p); });
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(buf, cx - BW / 2 * sc, cy - BW / 2 * sc, BW * sc, BW * sc);
+    mp.forEach(p => { if (p[2] >= 0) drawMoon(p); });
+    // HUD: thin ticked arc hugging the planet
+    hudA += dt * (reduce ? 0 : .06);
+    const hr = dispR * dpr * (S.rings ? 2.42 : 1.22);
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(hudA);
+    ctx.strokeStyle = 'rgba(76,201,240,.28)'; ctx.lineWidth = dpr;
+    ctx.beginPath(); ctx.arc(0, 0, hr, -.35, .35); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, hr, Math.PI - .35, Math.PI + .35); ctx.stroke();
+    for (let k = -6; k <= 6; k++) { const aa = k * .055; [0, Math.PI].forEach(b => { const an = aa + b, l = k % 3 === 0 ? 9 : 4; ctx.beginPath(); ctx.moveTo(Math.cos(an) * hr, Math.sin(an) * hr); ctx.lineTo(Math.cos(an) * (hr + l * dpr), Math.sin(an) * (hr + l * dpr)); ctx.stroke(); }); }
+    ctx.restore();
+    requestAnimationFrame(frame);
+  }
+
+  /* ================= CATALOGUE ================= */
+  const NOTES = {
+    earth: ['Surveyors report breathable air, dramatic coastlines and a suspicious abundance of ferns.', 'The night side glitters with settlements whose inhabitants appear to be arguing about lighthouses.', 'Temperate, blue, and recommended by nine out of ten imaginary cartographers.'],
+    ocean: ['Nearly all horizon. Local fishing charts are drawn on waterproof paper and optimism.', 'An archipelago of polite islands, each insisting it was here first.', 'Tides so reliable the settlers set their clocks by them.'],
+    desert: ['Wind carves the dunes into shapes the survey team refuses to describe as faces.', 'Rain was last recorded here during a clerical error.', 'Salt flats bright enough to read by, if anyone brought a book.'],
+    lava: ['The surface is still being written. Do not stand on the drafts.', 'Survey drones returned slightly melted and deeply impressed.', 'Magma seas glow through the night side like a city that never sleeps.'],
+    ice: ['Glaciers groan audibly; the team logged it as a conversation.', 'Cracks in the ice sheet reveal a dark ocean nobody has volunteered to taste.', 'So reflective the approach vector requires sunglasses.'],
+    gas: ['No surface to land on, but the cloud bands are breathtaking from orbit.', 'The great storm has been spinning longer than the survey office has existed.', 'Radio operators swear the ring hums in a minor key.']
+  };
+  function catalogue() {
+    const r = rng(S.seed * 5 + 11), L1 = 'ABCDEFGHJKLMNPRSTVXZ';
+    const des = L1[Math.floor(r() * L1.length)] + L1[Math.floor(r() * L1.length)] + '-' + String(S.seed % 10000).padStart(4, '0');
+    const suffix = 'bcdefgh'[Math.floor(r() * 7)];
+    $('#desig').innerHTML = `${des}<small>${suffix}</small>`;
+    $('#desig').dataset.name = `${des} ${suffix}`;
+    const T = S.temp, t = S.type;
+    let cls = TYPES[t].cls;
+    if (t === 'earth') cls = T < .3 ? 'Terrestrial · frigid' : T > .72 ? 'Terrestrial · hot house' : TYPES.earth.cls;
+    $('#cls').textContent = cls;
+    const rad = t === 'gas' ? 6 + r() * 6 : .6 + r() * 1.3, dens = t === 'gas' ? .18 + r() * .08 : .82 + r() * .3;
+    const grav = t === 'gas' ? 1.1 + r() * 1.6 : rad * dens;
+    $('#s-rad').innerHTML = `${rad.toFixed(2)}<small>R⊕</small>`;
+    $('#s-grav').innerHTML = `${grav.toFixed(2)}<small>g</small>`;
+    $('#s-day').innerHTML = S.speed < .02 ? 'Locked' : `${(t === 'gas' ? 6 : 9) + (1 - S.speed) * 38 | 0}<small>h</small>`;
+    const tc = { earth: -60 + T * 130, ocean: -40 + T * 100, desert: 10 + T * 80, lava: 700 + T * 700, ice: -230 + T * 170, gas: -190 + T * 120 }[t];
+    $('#s-temp').innerHTML = `${Math.round(tc)}<small>°C</small>`;
+    $('#s-oce-l').textContent = t === 'lava' ? 'Magma seas' : t === 'ice' ? 'Frozen ocean' : t === 'gas' ? 'Cloud deck' : 'Ocean cover';
+    $('#s-oce').innerHTML = t === 'gas' ? `${Math.round(40 + S.clouds * 60)}<small>%</small>` : `${Math.round(stat.ocean * 100)}<small>%</small>`;
+    $('#s-moon').innerHTML = `${S.moons}<small>·</small> ${Math.round(S.tilt * 57.3)}<small>°</small>`;
+    const ns = NOTES[t]; $('#note').textContent = ns[Math.floor(r() * ns.length)];
+  }
+
+  /* ================= UI ================= */
+  const inputs = { sea: $('#sea'), temp: $('#temp'), rough: $('#rough'), clouds: $('#clouds'), speed: $('#speed') };
+  function fmtTemp() { const T = S.temp; const tc = { earth: -60 + T * 130, ocean: -40 + T * 100, desert: 10 + T * 80, lava: 700 + T * 700, ice: -230 + T * 170, gas: -190 + T * 120 }[S.type]; return `${Math.round(tc)} °C`; }
+  function syncUI() {
+    Object.keys(inputs).forEach(k => { const el = inputs[k]; el.value = Math.round(S[k] * 100); el.style.setProperty('--v', el.value + '%'); });
+    $('#o-sea').textContent = S.type === 'gas' ? 'n/a' : `${Math.round(S.sea * 100)}%`;
+    $('#o-temp').textContent = fmtTemp();
+    $('#o-rough').textContent = `${Math.round(S.rough * 100)}%`;
+    $('#o-clouds').textContent = `${Math.round(S.clouds * 100)}%`;
+    $('#o-speed').textContent = S.speed < .02 ? 'locked' : `${Math.round(S.speed * 100)}%`;
+    $('#rings').setAttribute('aria-checked', S.rings ? 'true' : 'false');
+    $('#grid').setAttribute('aria-checked', grid ? 'true' : 'false');
+    $('#o-moons').textContent = S.moons;
+    $('#seed').value = S.seed;
+    document.querySelectorAll('.preset').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === S.type ? 'true' : 'false'));
+  }
+  let pend = 0; // 1 heights, 2 colour, 4 clouds, 8 view, 16 moons, 32 noise, 64 rings
+  function schedule(mask) { pend |= mask; }
+  function flush() {
+    if (!pend) return;
+    const p = pend; pend = 0;
+    if (p & 32) genNoiseFields();
+    if (p & (1 | 32)) genHeights();
+    if (p & (64 | 32)) genRings();
+    if (p & (1 | 2 | 32)) colorize();
+    if (p & (4 | 32)) cloudify();
+    if (p & (8 | 64 | 32)) precompute();
+    if (p & (16 | 32)) buildMoons();
+    catalogue();
+  }
+  (function pump() { flush(); setTimeout(() => requestAnimationFrame(pump), 60); })();
+
+  inputs.sea.addEventListener('input', () => { S.sea = inputs.sea.value / 100; syncUI(); schedule(2); });
+  inputs.temp.addEventListener('input', () => { S.temp = inputs.temp.value / 100; syncUI(); schedule(2); });
+  inputs.rough.addEventListener('input', () => { S.rough = inputs.rough.value / 100; syncUI(); schedule(1); });
+  inputs.clouds.addEventListener('input', () => { S.clouds = inputs.clouds.value / 100; syncUI(); schedule(4); });
+  inputs.speed.addEventListener('input', () => { S.speed = inputs.speed.value / 100; syncUI(); catalogue(); });
+  $('#rings').addEventListener('click', () => { S.rings = !S.rings; syncUI(); schedule(64 | 8); toast(S.rings ? 'Rings deployed — watch the shadow band' : 'Rings removed'); });
+  $('#grid').addEventListener('click', () => { grid = !grid; syncUI(); });
+  $('#m-up').addEventListener('click', () => { S.moons = Math.min(4, S.moons + 1); syncUI(); schedule(16); });
+  $('#m-dn').addEventListener('click', () => { S.moons = Math.max(0, S.moons - 1); syncUI(); schedule(16); });
+  function preset(name, silent) {
+    const p = PRESETS[name]; S.type = name;
+    Object.assign(S, { sea: p.sea, temp: p.temp, rough: p.rough, clouds: p.clouds, rings: p.rings, moons: p.moons, speed: p.speed, tilt: p.tilt });
+    syncUI(); schedule(1 | 2 | 4 | 8 | 16 | 64);
+    if (!silent) toast(`Preset loaded: ${TYPES[name].cls}`);
+  }
+  document.querySelectorAll('.preset').forEach(b => b.addEventListener('click', () => preset(b.dataset.p)));
+  function forgeSeed(v) {
+    const n = Math.max(0, Math.min(999999, Math.floor(+v || 0)));
+    S.seed = n; syncUI(); schedule(32); toast(`Forging seed ${n}…`);
+  }
+  $('#apply-seed').addEventListener('click', () => forgeSeed($('#seed').value));
+  $('#seed').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); forgeSeed(e.target.value); } });
+  function randomize() {
+    const r = Math.random, keys = Object.keys(PRESETS), t = keys[Math.floor(r() * keys.length)], p = PRESETS[t];
+    S.type = t; S.seed = Math.floor(r() * 999999);
+    S.sea = clamp(p.sea + (r() - .5) * .3, .02, .96); S.temp = clamp(p.temp + (r() - .5) * .3, 0, 1); S.rough = clamp(p.rough + (r() - .5) * .4, 0, 1);
+    S.clouds = clamp(p.clouds + (r() - .5) * .4, 0, 1); S.rings = t === 'gas' ? r() < .85 : r() < .25; S.moons = Math.floor(r() * 5); S.speed = .15 + r() * .45; S.tilt = r() * .6;
+    syncUI(); schedule(32 | 1 | 2 | 4 | 8 | 16 | 64);
+    toast('New world forged');
+  }
+  $('#rand').addEventListener('click', randomize);
+
+  /* PNG export */
+  function download() {
+    try {
+      const w = view.width, h = view.height, c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d');
+      g.drawImage(sky, 0, 0); g.drawImage(view, 0, 0);
+      const s = dpr, name = $('#desig').dataset.name || 'planet';
+      g.fillStyle = 'rgba(76,201,240,.9)'; g.font = `600 ${11 * s}px Menlo, Consolas, monospace`;
+      g.fillText('PLANET FORGE · SURVEY RECORD', 28 * s, h - 58 * s);
+      g.fillStyle = '#fff'; g.font = `500 ${30 * s}px Futura, "Century Gothic", sans-serif`;
+      g.fillText(name.toUpperCase(), 28 * s, h - 26 * s);
+      g.fillStyle = 'rgba(230,244,251,.6)'; g.font = `500 ${11 * s}px Menlo, Consolas, monospace`;
+      g.fillText(`${$('#cls').textContent.toUpperCase()} · SEED ${S.seed}`, 28 * s + g.measureText('').width, h - 10 * s);
+      const a = document.createElement('a');
+      a.href = c.toDataURL(); a.download = `${name.replace(/\s+/g, '-')}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      toast(`Saved ${name}.png`);
+    } catch (e) { toast('Export blocked in this context'); }
+  }
+  $('#png').addEventListener('click', download);
+
+  /* drag / zoom / hover */
+  let px0 = 0, py0 = 0, lastX = 0, lastT = 0, pid = null, tiltMode = false;
+  view.addEventListener('pointerdown', e => {
+    pid = e.pointerId; dragging = true; view.classList.add('drag'); tiltMode = e.shiftKey;
+    px0 = lastX = e.clientX; py0 = e.clientY; lastT = performance.now(); vel = 0;
+    try { view.setPointerCapture(pid); } catch (err) { /* ignore */ }
+  });
+  view.addEventListener('pointermove', e => {
+    hover(e);
+    if (!dragging || e.pointerId !== pid) return;
+    const dx = e.clientX - lastX, now = performance.now();
+    const ang = dx / dispR;
+    S.rotU -= ang * TW / (2 * Math.PI);
+    vel = -ang / Math.max(.008, (now - lastT) / 1000) * .6;
+    lastX = e.clientX; lastT = now;
+    const dy = e.clientY - py0;
+    if (e.pointerType === 'mouse' && Math.abs(dy) > 2) { S.pitch = clamp(S.pitch + dy / dispR * .9, -.9, .95); py0 = e.clientY; schedule(8); }
+  });
+  const endDrag = e => { if (e.pointerId !== pid) return; dragging = false; pid = null; view.classList.remove('drag'); if (reduce) vel = 0; };
+  view.addEventListener('pointerup', endDrag); view.addEventListener('pointercancel', endDrag);
+  view.addEventListener('pointerleave', () => { $('#readout').innerHTML = ''; });
+  view.addEventListener('wheel', e => { e.preventDefault(); S.zoom = clamp(S.zoom * (e.deltaY > 0 ? .93 : 1.07), .6, 1.5); layout(); }, { passive: false });
+  view.addEventListener('keydown', e => {
+    const k = e.key;
+    if (k === 'ArrowLeft' || k === 'ArrowRight') { e.preventDefault(); S.rotU += (k === 'ArrowLeft' ? 1 : -1) * TW / 36; }
+    if (k === 'ArrowUp' || k === 'ArrowDown') { e.preventDefault(); S.pitch = clamp(S.pitch + (k === 'ArrowUp' ? -.08 : .08), -.9, .95); schedule(8); }
+    if (k === '+' || k === '=') { S.zoom = clamp(S.zoom * 1.08, .6, 1.5); layout(); }
+    if (k === '-') { S.zoom = clamp(S.zoom / 1.08, .6, 1.5); layout(); }
+  });
+  function hover(e) {
+    const rc = view.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top;
+    const sc = dispR / R, bx = Math.floor((x - CX) / sc + BW / 2), by = Math.floor((y - CY) / sc + BW / 2);
+    const out = $('#readout');
+    if (bx < 0 || by < 0 || bx >= BW || by >= BW) { out.innerHTML = ''; return; }
+    const k = by * BW + bx;
+    if (!(flags[k] & 1)) { out.innerHTML = (flags[k] & 4) ? `Ring system <span>· particle band ${ringI[k]}</span>` : ''; return; }
+    const vf = latF[k], v0 = vf | 0; let uf = lonB[k] + S.rotU; uf -= Math.floor(uf / TW) * TW;
+    const i = v0 * TW + (uf | 0), la = 90 - vf / TH * 180, lo = uf / TW * 360 - 180;
+    const h = HT[i], el = S.type === 'gas' ? null : Math.round((h - seaThr) * (h >= seaThr ? 9000 / Math.max(.05, 1 - seaThr) : 7000 / Math.max(.05, seaThr)));
+    out.innerHTML = `${Math.abs(la).toFixed(1)}°${la >= 0 ? 'N' : 'S'} ${Math.abs(lo).toFixed(1)}°${lo >= 0 ? 'E' : 'W'} <span>· ${BIOMES[BIO[i]] || '—'}${el === null ? '' : ` · ${el >= 0 ? 'elev' : 'depth'} ${Math.abs(el).toLocaleString('en-US')} m`}</span>`;
+  }
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('input') || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'r' || e.key === 'R') randomize();
+    else if (e.key === 'd' || e.key === 'D') download();
+    else if (e.key === 'g' || e.key === 'G') { grid = !grid; syncUI(); }
+  });
+
+  let tt = 0;
+  function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2400); }
+  let rz = 0;
+  window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(layout); });
+
+  /* ================= BOOT ================= */
+  preset('earth', true);
+  S.seed = 4471;
+  genNoiseFields(); genHeights(); genRings(); colorize(); cloudify(); buildMoons(); pend = 0;
+  layout(); catalogue(); syncUI();
+  requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>

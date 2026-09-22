@@ -1,0 +1,39 @@
+TITLE: Nijūshi Sekki — The Twenty-Four Seasons
+FILE: 031-twenty-four-seasons.html
+
+=== PROMPT (exact prompt used) ===
+Design "Nijūshi Sekki — The Twenty-Four Seasons", a contemplative calendar of the traditional East Asian 24 solar terms. A large circular SVG dial divided into 24 arcs at 15° intervals of the sun's ecliptic longitude, each filled with a traditional Japanese colour suited to that part of the year (e.g. sakura-iro #fef4f4, moegi #aacf53, ruri #1e50a2, kuchiba #e0c38c, kakishibu). The current date's term is marked by a small sun computed from today's date (approximate dates are fine; say so). Selecting a term shows its romanized name, kanji and English meaning (e.g. Risshun 立春 "Beginning of Spring"), its approximate date range, a short poetic description, and a softly animated seasonal generative motif behind the text (petals, rain, fireflies, falling leaves, snow). Typography: vertical Japanese text using writing-mode for the kanji and an elegant serif for English. Palette: washi white #f8f5ee and sumi #2b2b2b, tinted by the selected term's colour. Interaction: click arcs, arrow keys to step through, a "Today" button. Responsive: the dial scales and the detail panel moves below it on phones.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Nijūshi Sekki is a contemplative calendar built around a large SVG volvelle of the twenty-four solar terms. The wheel is laid out in the traditional East Asian way, with spring (east) on the left, summer (south) at the top, autumn on the right and winter at the bottom. It is divided into 24 arcs, one for every 15° of the sun's ecliptic longitude, and each arc is painted in a traditional Japanese colour suited to its time of year (kōbai-iro plum pink, sakura-iro, moegi, fuji-iro, ruri-iro, himawari-iro, kikyō-iro, akane-iro, kakishibu-iro, kon-iro and more), with the term's kanji standing upright in it. Around the wheel run 72 fine ticks for the microseasons (kō), a month ring placed at the sun's true longitude on the first of each month, and today's sun: a vermilion disc computed from the date, with a dashed hand to the centre. At the heart of the wheel, a brush-drawn ensō holds the season's kanji. The whole washi page (#f8f5ee with kozo fibres, sumi #2b2b2b ink) is tinted by the selected term's colour and sky, and a quiet generative motif drifts behind everything. To the right (below on phones), the selected term appears as large vertical kanji with a vermilion seal, its romanized name with macrons, the English meaning, its approximate date range and longitude span, an original short description, one of its three traditional microseasons and its colour swatch. A footnote says plainly that the dates are approximate.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A procedural SVG dial: annular-sector arcs from polar maths, 72 microseason ticks, month labels positioned with a low-precision solar-longitude formula, and seasonal kanji placed on the equinox and solstice axes
+- The wheel rotates like a volvelle so that the selected arc sits under a fixed vermilion index (at the right on desktop, at the bottom on phones). It is animated by attribute in one requestAnimationFrame loop, and every label is counter-rotated so the kanji stay upright throughout
+- The selected arc springs outward on an underdamped spring, hovered arcs lift slightly, and on load the arcs unfold in sequence while the wheel turns a quarter-circle round to today
+- An astronomy-based "today": the sun's ecliptic longitude uses the Astronomical Almanac approximation, and each term's start and end come from solving for the moment the sun crosses its 15° boundary (Newton-style iteration), shown in Japan Standard Time
+- A generated ensō: a closed brush-stroke outline with a varying width profile, a thick loaded start and a tapered, dry-brush tail of dashed arcs
+- Page tinting through registered @property colour custom properties (--tint, --sky, --accent, --term), so the whole washi page and sky gradient cross-fade to the new term's colour
+- A kozo-fibre washi texture drawn once to a canvas tile and multiplied over the page
+- A full-page canvas particle engine with cross-fading layers and 15 motif kinds: plum and cherry petals (with and without a notch) that flip in 3D, maple, ginkgo, bamboo and round leaves, soft sprite snow, slanted rain with ripples, drifting mist, glowing fireflies at dusk, rising motes, fluttering butterflies, swallows, a V of wild geese, red dragonflies that dart and hover, twinkling dew, wind streaks, winter stars, and dandelion or cotton fluff
+- Vertical Japanese typography with writing-mode: vertical-rl in a Mincho stack, with a clip-path "brush" reveal character by character and a seal that stamps in
+
+=== INTERACTION MODEL ===
+- Click or tap any arc to select its term. The wheel turns it under the index, the page re-tints and the motif cross-fades
+- Drag the ring to spin the wheel freely by hand. On release it snaps to the term under the index
+- ← → (or ↑ ↓) step through the terms, Home and End jump to the first and last, T returns to today. Arcs are focusable (roving tabindex), and Enter or Space selects
+- The Previous and Next buttons and the "Today" button (shown as pressed while today's term is selected) sit beneath the dial
+- A polite live region announces each new term. Focus rings are visible
+- Reduced motion turns the wheel instantly, skips the unfold and brush reveals, and slows and thins the particles

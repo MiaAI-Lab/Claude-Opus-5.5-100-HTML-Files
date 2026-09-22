@@ -1,0 +1,37 @@
+TITLE: Pages from Juno's Sketchbook
+FILE: 087-sketchbook-portfolio.html
+
+=== PROMPT (exact prompt used) ===
+Create "Pages from Juno's Sketchbook" (a fictional illustrator), a portfolio designed as a physical sketchbook. Dot-grid paper (#fbf8f1 with faint blue dots), graphite lines (#3d3d3d), highlighter yellow (#fff176) and a single red-pencil accent (#d64545). All illustrations are SVG line drawings with a hand-drawn wobble (SVG turbulence displacement plus slightly irregular paths) that draw themselves as they enter the viewport. Elements: washi-tape strips holding polaroid-style frames of CSS/SVG doodle artworks; sticky notes in a casual handwriting stack ("Segoe Print", "Bradley Hand", "Comic Neue", Chalkboard, cursive); margin doodles (coffee rings, arrows, stars); a spiral binding along the left edge. Sections: a hello note, selected work (six sketched projects), process scribbles, and contact written on an envelope. Interaction: pages flip horizontally with a page-curl animation on desktop and scroll on mobile; doodles wiggle on hover; a pencil cursor leaves a faint fading trail.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Pages from Juno's Sketchbook" is the portfolio of Juno, a clearly fictional illustrator, built as a physical spiral-bound sketchbook lying on a desk beside a pencil and an eraser. A kraft cover with an elastic band, a lined label, a red rubber stamp, a star, a "hello!" dot and a die-cut cat sticker opens onto dot-grid pages (#fbf8f1 with faint blue dots) held by a metal wire coil threaded through punched holes. Inside: a hello note with a self-portrait, two pages of selected work (six projects shown as polaroids stuck down with washi tape), a page of process scribbles (thumbnails, a joke "ideas vs. cups of coffee" chart, a tool checklist), and a contact page written on an airmail envelope that opens to reveal a letter. Everything is drawn in graphite #3d3d3d with highlighter-yellow #fff176 washes and a single red-pencil accent #d64545, and every illustration draws itself line by line as its page appears. On desktop the pages peel over like real paper; on phones the book lies open as one long scroll.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A true 2D page curl: the dragged corner defines a fold line (the perpendicular bisector of corner and pointer); the page is clipped on one side, a paper-back flap is mirrored across the fold with a CSS reflection matrix and clipped to the peeled region, and a sheen band on the flap, a drop shadow and a cast-shadow band on the revealed page follow the fold
+- The corner is constrained so paper never stretches (it stays within reach of both ends of the spine); the flap swings past the spine and fades as the page goes over
+- Hand-drawn wobble: all line art passes through SVG feTurbulence + feDisplacementMap filters over slightly irregular hand-plotted paths; hovering switches between three turbulence seeds for animation-style "line boil" plus a small wiggle
+- Self-drawing illustrations: every stroke uses pathLength=1 with a dash/gap pattern offset into the gap (so not even round caps show), then transitions to 0 with staggered delays; the highlighter sweeps in and the red underlines draw on
+- Spiral binding from an inline SVG pattern of metallic-gradient coils aligned to CSS radial-gradient punched holes
+- Paper objects in CSS: torn-edge washi tape (zigzag clip-path over striped, dotted, grid and yellow patterns), polaroids, sticky notes with adhesive strips, index tabs on the fore-edge, airmail stripes, a perforated stamp (radial-gradient mask) and a postmark, turbulence-distorted coffee rings
+- An envelope with correct paper layering: its flap rotates open in 3D and drops behind the letter halfway through via a delayed z-index transition, while the letter slides up out of an opaque pocket
+- A pencil cursor (inline SVG data-URI) that leaves a faint graphite trail on a full-screen canvas, each segment fading out over about a second
+
+=== INTERACTION MODEL ===
+- Desktop: turn pages with the hand-drawn arrow buttons, Left/Right or PageUp/PageDown, Home/End, the corner button (Enter/Space), or the coloured index tabs (which riffle quickly through the pages in between); or grab the page corner and peel it by hand, and on release it completes the turn or falls back
+- Phones (at or below 860px): no flipping; the pages stack as a scroll with the coil on each page, and each page's drawings draw themselves as it scrolls into view (IntersectionObserver)
+- Hover a doodle or polaroid to make it wiggle and boil; hover, focus or click the envelope to open it and read the letter
+- "copy" copies the (fictional, deliberately non-address-shaped) contact line through the Clipboard API, falling back to selecting the text with a hint
+- The graphite trail follows mouse pointers only; prefers-reduced-motion shows every drawing already finished, turns pages instantly, and disables the wiggle, boil and trail

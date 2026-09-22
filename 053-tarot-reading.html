@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arcana Nocturne — A Three-Card Reading</title>
+<meta name="description" content="Arcana Nocturne: shuffle a deck of the 22 Major Arcana, each drawn procedurally in gold foil, fan it across a velvet table and draw three cards for Past, Present and Future. For entertainment.">
+<meta name="theme-color" content="#140a24">
+<style>
+:root{
+  --night:#140a24; --velvet:#23103d; --gold:#d4af37; --gold-hi:#f7e7a1; --silver:#c9d1e0; --moon:#e8ecf5;
+  --ink:#e9e1f5; --soft:#b3a6cc; --dim:#7f6f9c;
+  --caps:"Baskerville","Baskerville Old Face","Hoefler Text","Garamond","EB Garamond","C059","Century Schoolbook",serif;
+  --body:"Hoefler Text","Garamond","Baskerville","Georgia","C059",serif;
+  --cw:150px; --ch:257px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;min-height:100vh;background:#140a24;color:var(--ink);font-family:var(--body)}
+#dust{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.page{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:0 24px 36px}
+.skip{position:absolute;left:-999px;top:10px;z-index:40;background:var(--gold);color:#140a24;padding:8px 14px;border-radius:4px}
+.skip:focus{left:12px}
+
+/* ---------- header ---------- */
+.head{text-align:center;padding:18px 0 2px}
+.orn{display:block;width:210px;height:22px;margin:0 auto 6px}
+h1{
+  margin:0;font-family:var(--caps);font-weight:400;font-size:clamp(34px,4.3vw,56px);line-height:1;letter-spacing:.2em;padding-left:.2em;
+  font-variant:small-caps;text-transform:lowercase;
+  background:linear-gradient(100deg,#8a6a1c 0%,#d4af37 18%,#f7e7a1 32%,#c9a232 46%,#f3dc8a 62%,#b8912c 80%,#f7e7a1 100%);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:foil 9s ease-in-out infinite alternate;
+  filter:drop-shadow(0 2px 10px rgba(212,175,55,.2));
+}
+@keyframes foil{from{background-position:0% 50%}to{background-position:100% 50%}}
+.tag{margin:6px 0 0;font-style:italic;font-size:17px;color:var(--soft);letter-spacing:.02em}
+.controls{display:flex;justify-content:center;flex-wrap:wrap;gap:10px 12px;margin:13px 0 4px}
+.cbtn{
+  position:relative;cursor:pointer;border:0;padding:11px 20px 12px;font-family:var(--caps);font-size:15px;letter-spacing:.2em;
+  font-variant:small-caps;text-transform:lowercase;color:var(--gold-hi);background:rgba(20,10,36,.65);
+  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%);
+  transition:color .2s,background .2s,transform .15s;
+}
+.cbtn::before{content:"";position:absolute;inset:0;padding:1px;background:linear-gradient(100deg,#8a6a1c,#f7e7a1,#b8912c,#f3dc8a);
+  clip-path:inherit;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.cbtn:hover{background:rgba(58,29,102,.75);color:#fff6d6}
+.cbtn:active{transform:translateY(1px)}
+.cbtn.primary{background:linear-gradient(180deg,rgba(212,175,55,.3),rgba(138,106,28,.28));color:#fff3cf}
+.cbtn[aria-pressed="true"]{background:rgba(212,175,55,.22);color:#fff6d6}
+.cbtn[disabled]{opacity:.45;cursor:default}
+.cbtn:focus-visible{outline:2px solid var(--gold-hi);outline-offset:4px}
+.status{margin:6px 0 0;text-align:center;font-style:italic;font-size:17px;color:var(--soft);min-height:1.4em}
+.status b{font-style:normal;font-family:var(--caps);font-variant:small-caps;text-transform:lowercase;letter-spacing:.14em;color:var(--gold-hi);font-weight:400}
+
+/* ---------- velvet table ---------- */
+.table{
+  position:relative;margin-top:14px;border-radius:36px;padding:16px 20px 18px;overflow:hidden;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 40%,rgba(110,52,160,.42),transparent 70%),
+    radial-gradient(ellipse 35% 25% at 28% 22%,rgba(255,255,255,.05),transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 90%,rgba(0,0,0,.35),transparent 70%),
+    repeating-linear-gradient(118deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(28deg,rgba(0,0,0,.05) 0 1px,transparent 1px 4px),
+    linear-gradient(180deg,#26113f,#1a0b2e 60%,#140824);
+  box-shadow:inset 0 0 0 1px rgba(212,175,55,.2),inset 0 0 90px rgba(0,0,0,.6),0 30px 60px -30px rgba(0,0,0,.8);
+}
+.table::before{content:"";position:absolute;inset:9px;border-radius:28px;border:1px dashed rgba(212,175,55,.28);pointer-events:none}
+.wheel{position:absolute;left:50%;top:var(--wheelY,210px);width:760px;height:760px;margin:-380px 0 0 -380px;opacity:.16;pointer-events:none;animation:turn 360s linear infinite}
+@keyframes turn{to{transform:rotate(360deg)}}
+.spread{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,250px));justify-content:center;gap:0 44px}
+.slotcol{display:flex;flex-direction:column;align-items:center;min-width:0}
+.slot-label{margin:0 0 10px;font-family:var(--caps);font-weight:400;font-size:15px;letter-spacing:.3em;padding-left:.3em;font-variant:small-caps;text-transform:lowercase;color:var(--gold)}
+.slot-label span{color:var(--dim);letter-spacing:.1em;margin-right:.4em}
+.slot{position:relative;width:var(--cw);height:var(--ch);border-radius:calc(var(--cw) * .06);
+  border:1px dashed rgba(212,175,55,.42);background:radial-gradient(circle at 50% 45%,rgba(212,175,55,.08),transparent 65%)}
+.slot svg{position:absolute;left:50%;top:50%;width:40%;height:auto;transform:translate(-50%,-50%);opacity:.32}
+.reading{min-height:112px;width:100%;max-width:250px;margin-top:12px;text-align:center;opacity:0;transform:translateY(8px);transition:opacity .7s ease,transform .7s ease}
+.reading.show{opacity:1;transform:none}
+.reading h3,.mread h3{margin:0;font-family:var(--caps);font-weight:400;font-size:20px;letter-spacing:.12em;font-variant:small-caps;text-transform:lowercase;color:var(--gold-hi)}
+.orient{margin:3px 0 0;font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--silver);opacity:.8}
+.interp{margin:8px 0 0;font-style:italic;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.fanzone{position:relative;height:var(--fanH,230px)}
+.synth{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:min(92%,640px);text-align:center;font-style:italic;font-size:17px;line-height:1.55;color:var(--moon);opacity:0;transition:opacity .9s;pointer-events:none}
+.synth.show{opacity:1}
+.synth b{font-style:normal;font-family:var(--caps);font-variant:small-caps;text-transform:lowercase;letter-spacing:.1em;color:var(--gold-hi);font-weight:400}
+.mreadings{display:none;margin-top:18px}
+.mread{padding:16px 6px 14px;border-top:1px solid rgba(212,175,55,.2);text-align:center;opacity:0;transition:opacity .7s}
+.mread:empty{display:none}
+.mread.show{opacity:1}
+.mread .slotname{display:block;font-family:var(--caps);font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+.msynth{margin:10px 0 0;padding-top:14px;border-top:1px solid rgba(212,175,55,.2);text-align:center;font-style:italic;color:var(--moon);line-height:1.55}
+.msynth b{font-style:normal;color:var(--gold-hi)}
+
+/* ---------- cards ---------- */
+.cards{position:absolute;inset:0;z-index:3;pointer-events:none}
+.card{position:absolute;left:0;top:0;width:var(--cw);height:var(--ch);pointer-events:auto;transform-origin:50% 50%;perspective:900px;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.card.placed{cursor:default}
+.lift{display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.card.in-fan:hover .lift,.card.in-fan:focus-visible .lift{transform:translateY(-15%)}
+.card.in-stack:hover .lift{transform:translateY(-3%)}
+.tilt{display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.flip{display:block;position:relative;width:100%;height:100%;transform-style:preserve-3d;transform:rotateY(180deg);transition:transform .95s cubic-bezier(.35,.75,.2,1)}
+.card.up .flip{transform:rotateY(0deg)}
+.face{position:absolute;inset:0;display:block;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:calc(var(--cw) * .058);overflow:hidden;box-shadow:0 12px 26px -10px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.4)}
+.face svg{display:block;width:100%;height:100%}
+.back{transform:rotateY(180deg)}
+.card.rev .front{transform:rotate(180deg)}
+.cap{position:absolute;left:0;right:0;display:block;text-align:center;font-family:var(--caps);line-height:1;white-space:nowrap;text-transform:uppercase;transform:translateY(-50%);
+  background:linear-gradient(100deg,#b8912c 0%,#f7e7a1 38%,#d4af37 62%,#f3dc8a 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cap.num{top:10.9%;font-size:calc(var(--cw) * 10 / 140);letter-spacing:calc(var(--cw) * 1.6 / 140);padding-left:calc(var(--cw) * 1.6 / 140)}
+.cap.ttl{top:86.3%;font-size:calc(var(--cw) * var(--fs) / 140);letter-spacing:calc(var(--cw) * var(--ls) / 140);padding-left:calc(var(--cw) * var(--ls) / 140)}
+.card.in-fan:focus-visible .face{box-shadow:0 0 0 2px var(--gold-hi),0 0 22px rgba(247,231,161,.6)}
+.card.in-fan:hover .face{box-shadow:0 16px 30px -10px rgba(0,0,0,.9),0 0 18px rgba(212,175,55,.35)}
+.glint{position:absolute;inset:0;display:block;pointer-events:none;background:linear-gradient(105deg,transparent 34%,rgba(255,246,214,.55) 46%,rgba(255,255,255,.95) 50%,rgba(255,246,214,.5) 54%,transparent 66%);transform:translateX(-140%);mix-blend-mode:screen}
+.card.glinting .glint{animation:glint 1.1s cubic-bezier(.3,.6,.3,1) both}
+@keyframes glint{from{transform:translateX(-140%)}to{transform:translateX(140%)}}
+.shimmer{position:absolute;inset:0;display:block;pointer-events:none;opacity:0;transition:opacity .35s;mix-blend-mode:screen;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,40%),rgba(255,246,214,.38),transparent 42%),
+             linear-gradient(118deg,transparent 22%,rgba(247,231,161,.2) 40%,rgba(196,214,255,.2) 52%,rgba(247,231,161,.12) 60%,transparent 76%);
+  background-size:100% 100%,260% 260%;background-position:0 0,var(--sx,50%) var(--sy,50%)}
+.card:hover .shimmer,.card.tilting .shimmer{opacity:1}
+
+.foot{position:relative;z-index:1;max-width:820px;margin:26px auto 0;text-align:center;font-size:14px;line-height:1.7;font-style:italic;color:var(--dim)}
+.foot p{margin:0 0 6px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:760px){
+  .page{padding:0 12px 28px}
+  .head{padding-top:16px}
+  .orn{width:160px}
+  h1{letter-spacing:.12em;padding-left:.12em;font-size:clamp(30px,9vw,40px)}
+  .tag{font-size:15px}
+  .controls{gap:8px;margin-top:12px}
+  .cbtn{font-size:13px;padding:9px 14px 10px;letter-spacing:.14em}
+  .status{font-size:15px}
+  .table{border-radius:24px;padding:12px 10px 12px;margin-top:10px}
+  .table::before{inset:6px;border-radius:19px}
+  .spread{gap:0 10px;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .slot-label{font-size:12px;letter-spacing:.16em;padding-left:.16em;margin-bottom:7px}
+  .slot-label span{display:none}
+  .reading{display:none}
+  .mreadings{display:block}
+  .synth{display:none}
+  .wheel{width:520px;height:520px;margin:-260px 0 0 -260px}
+}
+@media (prefers-reduced-motion:reduce){
+  h1{animation:none}
+  .wheel{animation:none}
+  .flip,.lift,.tilt,.reading,.mread,.synth{transition-duration:.01ms!important}
+  .card.glinting .glint{animation:none}
+}
+</style>
+</head>
+<body>
+<canvas id="dust" aria-hidden="true"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="140" y2="240">
+      <stop offset="0" stop-color="#8a6a1c"/><stop offset=".2" stop-color="#d4af37"/><stop offset=".36" stop-color="#f7e7a1"/>
+      <stop offset=".5" stop-color="#c9a232"/><stop offset=".66" stop-color="#f3dc8a"/><stop offset=".84" stop-color="#b8912c"/><stop offset="1" stop-color="#7a5a14"/>
+    </linearGradient>
+    <linearGradient id="gs" gradientUnits="userSpaceOnUse" x1="140" y1="0" x2="0" y2="240">
+      <stop offset="0" stop-color="#8c93a6"/><stop offset=".3" stop-color="#e8ecf5"/><stop offset=".55" stop-color="#a9b0c4"/><stop offset=".8" stop-color="#f4f6fb"/><stop offset="1" stop-color="#7d8499"/>
+    </linearGradient>
+    <linearGradient id="night" gradientUnits="userSpaceOnUse" x1="0" y1="42" x2="0" y2="192">
+      <stop offset="0" stop-color="#2d185c"/><stop offset=".55" stop-color="#170c33"/><stop offset="1" stop-color="#0b0618"/>
+    </linearGradient>
+    <radialGradient id="cardBase" gradientUnits="userSpaceOnUse" cx="70" cy="110" r="150">
+      <stop offset="0" stop-color="#25143f"/><stop offset=".6" stop-color="#140a26"/><stop offset="1" stop-color="#0a0514"/>
+    </radialGradient>
+    <radialGradient id="backGrad" gradientUnits="userSpaceOnUse" cx="70" cy="120" r="160">
+      <stop offset="0" stop-color="#3d1f6c"/><stop offset=".55" stop-color="#1d0f3a"/><stop offset="1" stop-color="#0c0619"/>
+    </radialGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#fff6d0" stop-opacity=".95"/><stop offset=".35" stop-color="#f7e7a1" stop-opacity=".45"/><stop offset="1" stop-color="#f7e7a1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moonGlow">
+      <stop offset="0" stop-color="#e8ecf5" stop-opacity=".55"/><stop offset="1" stop-color="#e8ecf5" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="lattice" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M5 0 L10 5 L5 10 L0 5 Z" fill="none" stroke="#d4af37" stroke-opacity=".24" stroke-width=".45"/>
+      <circle cx="5" cy="5" r=".6" fill="#f7e7a1" fill-opacity=".35"/>
+    </pattern>
+    <pattern id="pom" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="6" r="2.1" fill="#b3394a" fill-opacity=".6"/><circle cx="0" cy="0" r="1.5" fill="#d4af37" fill-opacity=".45"/><circle cx="12" cy="12" r="1.5" fill="#d4af37" fill-opacity=".45"/>
+      <path d="M6 3.6 V2.6 M5.2 3 L6 2.4 L6.8 3" stroke="#d4af37" stroke-opacity=".5" stroke-width=".4" fill="none"/>
+    </pattern>
+    <symbol id="corner" viewBox="0 0 16 16">
+      <path d="M1 15 V7 Q1 1 7 1 H15" fill="none" stroke="url(#gf)" stroke-width="1"/>
+      <path d="M4 15 V9 Q4 4 9 4 H15" fill="none" stroke="url(#gf)" stroke-width=".5"/>
+      <circle cx="6.5" cy="6.5" r="1.4" fill="url(#gf)"/>
+    </symbol>
+    <symbol id="backArt" viewBox="0 0 140 240">
+      <rect width="140" height="240" rx="8" fill="url(#backGrad)"/>
+      <rect x="9" y="9" width="122" height="222" rx="3" fill="url(#lattice)"/>
+      <rect x="3.5" y="3.5" width="133" height="233" rx="6" fill="none" stroke="url(#gf)" stroke-width="1.6"/>
+      <rect x="6.5" y="6.5" width="127" height="227" rx="4.5" fill="none" stroke="url(#gf)" stroke-width="1" stroke-dasharray=".1 2.3" stroke-linecap="round"/>
+      <rect x="9" y="9" width="122" height="222" rx="3" fill="none" stroke="url(#gf)" stroke-width=".7"/>
+      <use href="#corner" x="10" y="10" width="16" height="16"/>
+      <use href="#corner" x="10" y="10" width="16" height="16" transform="translate(140 0) scale(-1 1)"/>
+      <use href="#corner" x="10" y="10" width="16" height="16" transform="translate(0 240) scale(1 -1)"/>
+      <use href="#corner" x="10" y="10" width="16" height="16" transform="translate(140 240) scale(-1 -1)"/>
+      <path d="M70 18 L73 28 L70 38 L67 28 Z M70 202 L73 212 L70 222 L67 212 Z" fill="url(#gf)"/>
+      <path d="M50 58 A22 22 0 0 0 90 58 A26 26 0 0 1 50 58 Z" fill="url(#gf)"/>
+      <path d="M50 182 A22 22 0 0 1 90 182 A26 26 0 0 0 50 182 Z" fill="url(#gf)"/>
+      <circle cx="70" cy="120" r="47" fill="#120824" stroke="url(#gf)" stroke-width="1.3"/>
+      <circle cx="70" cy="120" r="43" fill="none" stroke="url(#gf)" stroke-width="1" stroke-dasharray=".1 2.25" stroke-linecap="round"/>
+      <polygon id="backBurst" points="" fill="url(#gf)"/>
+      <circle cx="70" cy="120" r="20" fill="#0d0619" stroke="url(#gf)" stroke-width="1"/>
+      <path d="M53 120 Q70 105 87 120 Q70 135 53 120 Z" fill="#1d1238" stroke="url(#gf)" stroke-width="1"/>
+      <circle cx="70" cy="120" r="6.6" fill="url(#gs)"/>
+      <circle cx="70" cy="120" r="2.8" fill="#0d0619"/>
+      <circle cx="71.8" cy="118.2" r="1.1" fill="#fff"/>
+      <path d="M58 113 L56 110 M64 110 L63.4 106.6 M70 109 V105.4 M76 110 L76.6 106.6 M82 113 L84 110" stroke="url(#gf)" stroke-width=".8" stroke-linecap="round"/>
+      <circle cx="16" cy="120" r="3" fill="none" stroke="url(#gf)" stroke-width=".8"/><circle cx="124" cy="120" r="3" fill="none" stroke="url(#gf)" stroke-width=".8"/>
+      <path d="M16 106 V92 M16 134 V148 M124 106 V92 M124 134 V148" stroke="url(#gf)" stroke-width=".6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#table">Skip to the reading table</a>
+<div class="page">
+  <header class="head">
+    <svg class="orn" viewBox="0 0 210 22" aria-hidden="true">
+      <defs><linearGradient id="ornG" x1="0" x2="1"><stop offset="0" stop-color="#d4af37" stop-opacity="0"/><stop offset=".5" stop-color="#f7e7a1"/><stop offset="1" stop-color="#d4af37" stop-opacity="0"/></linearGradient></defs>
+      <path d="M8 11 H86 M124 11 H202" stroke="url(#ornG)" stroke-width="1"/>
+      <path d="M99 3.5 A8 8 0 1 0 99 18.5 A6.4 6.4 0 1 1 99 3.5 Z" fill="#e8ecf5"/>
+      <path d="M113 5 L114.4 9.6 L119 11 L114.4 12.4 L113 17 L111.6 12.4 L107 11 L111.6 9.6 Z" fill="#f7e7a1"/>
+      <circle cx="90" cy="11" r="1.4" fill="#d4af37"/><circle cx="122" cy="11" r="1.4" fill="#d4af37"/>
+    </svg>
+    <h1>Arcana Nocturne</h1>
+    <p class="tag">A three-card reading beneath the midnight hour</p>
+    <div class="controls">
+      <button type="button" class="cbtn primary" id="shuffleBtn">Shuffle the deck</button>
+      <button type="button" class="cbtn" id="fanBtn" disabled>Fan the cards</button>
+      <button type="button" class="cbtn" id="revBtn" aria-pressed="false">Reversals · off</button>
+      <button type="button" class="cbtn" id="soundBtn" aria-pressed="false">Sound · off</button>
+    </div>
+    <p class="status" id="status" aria-live="polite">The reader spreads the deck…</p>
+  </header>
+
+  <main class="table" id="table" aria-label="The reading table">
+    <svg class="wheel" viewBox="-300 -300 600 600" aria-hidden="true">
+      <g fill="none" stroke="#d4af37">
+        <circle r="292" stroke-width="1.2"/>
+        <circle r="286" stroke-width=".5"/>
+        <circle r="274" stroke-width="8" stroke-dasharray="1 22.91"/>
+        <circle r="266" stroke-width=".6"/>
+        <circle r="245" stroke-width="42" stroke-dasharray="1.2 127.08" stroke-opacity=".8"/>
+        <circle r="232" stroke-width="6" stroke-dasharray="0 121.47" stroke-linecap="round" transform="rotate(15)"/>
+        <circle r="202" stroke-width=".8"/>
+        <circle r="160" stroke-width="3.2" stroke-dasharray="0 27.93" stroke-linecap="round"/>
+        <circle r="124" stroke-width=".7"/>
+        <polygon points="0,-120 103.9,60 -103.9,60" stroke-width=".8"/>
+        <polygon points="0,120 103.9,-60 -103.9,-60" stroke-width=".8"/>
+        <circle r="60" stroke-width=".6"/>
+      </g>
+    </svg>
+    <section class="spread" aria-label="The spread">
+      <div class="slotcol">
+        <h2 class="slot-label"><span>I</span>Past</h2>
+        <div class="slot" id="slot0"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M26 6 A15 15 0 1 0 26 34 A12 12 0 1 1 26 6 Z" fill="#d4af37"/></svg></div>
+        <article class="reading" id="read0" aria-live="polite"></article>
+      </div>
+      <div class="slotcol">
+        <h2 class="slot-label"><span>II</span>Present</h2>
+        <div class="slot" id="slot1"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="13" fill="none" stroke="#d4af37" stroke-width="2"/><circle cx="20" cy="20" r="5" fill="#d4af37"/></svg></div>
+        <article class="reading" id="read1" aria-live="polite"></article>
+      </div>
+      <div class="slotcol">
+        <h2 class="slot-label"><span>III</span>Future</h2>
+        <div class="slot" id="slot2"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L23.5 16.5 L37 20 L23.5 23.5 L20 37 L16.5 23.5 L3 20 L16.5 16.5 Z" fill="#d4af37"/></svg></div>
+        <article class="reading" id="read2" aria-live="polite"></article>
+      </div>
+    </section>
+    <section class="fanzone" id="fanzone" aria-label="The deck">
+      <p class="synth" id="synth"></p>
+    </section>
+    <div class="cards" id="cards"></div>
+  </main>
+
+  <section class="mreadings" id="mreadings" aria-label="Your reading">
+    <div class="mread" id="mread0"></div>
+    <div class="mread" id="mread1"></div>
+    <div class="mread" id="mread2"></div>
+    <p class="msynth" id="msynth" hidden></p>
+  </section>
+
+  <footer class="foot">
+    <p>Arcana Nocturne is a work of entertainment. The interpretations are original reflections to muse on, not predictions or advice.</p>
+    <p>The twenty-two Major Arcana run from The Fool (0) to The World (XXI), numbered here in the Rider–Waite–Smith order with Strength at VIII and Justice at XI. Every card face is drawn procedurally in SVG for this page.</p>
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduce = mq.matches;
+  const G = 'url(#gf)', SV = 'url(#gs)', DK = '#0b0618';
+
+  /* ================= the deck: names, keywords and readings ================= */
+  const CARDS = [
+    ['0', 'The Fool', 'a leap into the unknown', 'a leap taken too hastily',
+      'A step off the edge of the known. Travel light, trust the updraft, and let curiosity outrun caution for once.',
+      'The leap is tempting, but the ground is closer than it looks. Check the map before you vanish into the fog.'],
+    ['I', 'The Magician', 'skill and intention', 'scattered talent',
+      'Every tool you need is already on the table. Name what you want out loud; the room is listening.',
+      'Sleight of hand is at work, perhaps your own. Talent without direction scatters like sparks.'],
+    ['II', 'The High Priestess', 'quiet intuition', 'an inner voice ignored',
+      'Something is known that has not yet been said. Sit between the pillars and let the quiet speak first.',
+      'You are talking over the voice you trust most. The veil thins the moment you stop.'],
+    ['III', 'The Empress', 'abundance and care', 'care given away too freely',
+      'Abundance grows where it is tended. Rest, feed the senses, and let something ripen at its own pace.',
+      'The garden is overgrown with other people’s needs. Give yourself the care you hand out so freely.'],
+    ['IV', 'The Emperor', 'structure and authority', 'rigid control',
+      'Build the walls that let good things stand. Structure is not a cage when you are the one holding the plans.',
+      'Control has hardened into rigidity. A throne can become a fortress with no doors.'],
+    ['V', 'The Hierophant', 'tradition and teaching', 'questioning the rules',
+      'There is wisdom in the old forms. Seek a teacher, a tradition, a key that others have already cut.',
+      'The rulebook was written for someone else. Question the ritual before you repeat it.'],
+    ['VI', 'The Lovers', 'a wholehearted choice', 'values pulling apart',
+      'A choice made with the whole heart. Two paths, one truth: choose the one you can stand beside.',
+      'Your values are pulling in different directions. Harmony waits on an honest conversation.'],
+    ['VII', 'The Chariot', 'willpower and momentum', 'a stalled direction',
+      'Opposing forces, harnessed and moving forward. Hold the reins lightly and let your will do the steering.',
+      'The sphinxes pull apart. Stop cracking the whip and find out which way you actually want to go.'],
+    ['VIII', 'Strength', 'gentle courage', 'self-doubt',
+      'Courage that purrs rather than roars. Gentleness can close the jaws of the fiercest thing in the room.',
+      'Self-doubt is feeding the lion. Your quiet power has not left; it is waiting to be called.'],
+    ['IX', 'The Hermit', 'solitude and insight', 'isolation',
+      'One lantern, one path, one honest question. Solitude is not absence; it is where the light grows brighter.',
+      'Withdrawal has become hiding. The mountain is lonely when the lantern goes unlit.'],
+    ['X', 'Wheel of Fortune', 'the turning of fortune', 'resisting change',
+      'The wheel turns, and you are on it. What rose will fall and what fell will rise; ride the turn.',
+      'A run of bad luck is not a verdict. Loosen your grip on the spoke you are clinging to.'],
+    ['XI', 'Justice', 'truth and balance', 'an imbalance to correct',
+      'The scales settle where truth is placed. Clear accounts, fair words, and consequences that fit.',
+      'Something is out of balance and you already know what. Weighing it honestly is the first correction.'],
+    ['XII', 'The Hanged Man', 'surrender and a new view', 'stalling',
+      'Pause, turn the world upside down and look again. Surrender here is a vantage point, not a defeat.',
+      'Waiting has become stalling. The rope is looser than you think; you can step down.'],
+    ['XIII', 'Death', 'an ending that clears the ground', 'clinging to what is leaving',
+      'An ending that clears the ground. The old season is closing so that the white rose can open.',
+      'You are holding a door shut against a necessary change. What you resist is already leaving.'],
+    ['XIV', 'Temperance', 'patience and blending', 'excess',
+      'Pour slowly between the cups. Patience and a steady middle way turn opposites into something new.',
+      'Too much here, too little there. Recalibrate before the balance spills.'],
+    ['XV', 'The Devil', 'attachments seen clearly', 'a loosening grip',
+      'Look closely at the chains: they hang loose around the neck. Appetite is honest; bondage is optional.',
+      'The grip is weakening. Name the habit and it loses half its hold.'],
+    ['XVI', 'The Tower', 'sudden revelation', 'a slow collapse',
+      'Lightning finds the false crown. What falls now was never built on rock, and the view afterwards is clearer.',
+      'The collapse is happening slowly, or being put off. Better a careful demolition than a storm.'],
+    ['XVII', 'The Star', 'hope and renewal', 'dimmed faith',
+      'After the storm, a quiet star to steer by. Hope returns like water to a dry pool.',
+      'Faith has dimmed, not died. Look up long enough and your eyes adjust to the dark.'],
+    ['XVIII', 'The Moon', 'dreams and uncertainty', 'the fog lifting',
+      'The path between the towers is lit by uncertain light. Dreams and fears look alike tonight; walk on anyway.',
+      'The fog is lifting. What looked monstrous by moonlight has an ordinary shape by day.'],
+    ['XIX', 'The Sun', 'joy and clarity', 'joy delayed',
+      'Warmth, clarity and the plain joy of being seen. Let yourself be as bright as you are.',
+      'Clouds cross the sun, but it is still up there. Joy is delayed, not cancelled.'],
+    ['XX', 'Judgement', 'a calling and a reckoning', 'harsh self-judgement',
+      'A call you cannot pretend not to hear. Rise, reckon with the past, and answer to who you are becoming.',
+      'Self-judgement is drowning out the trumpet. Forgive the older version of you and listen again.'],
+    ['XXI', 'The World', 'completion', 'an unfinished circle',
+      'A circle completes. Dance at the centre of what you have made, and notice the next door opening.',
+      'You are so close to the finish. Tie the last thread before you reach for a new beginning.']
+  ];
+
+  /* ================= SVG helpers for the card faces ================= */
+  const f2 = (n) => (+n).toFixed(2);
+  function pts(cx, cy, list) { return list.map(([r, a]) => f2(cx + r * Math.cos(a * Math.PI / 180)) + ',' + f2(cy + r * Math.sin(a * Math.PI / 180))).join(' '); }
+  function starPts(cx, cy, ro, ri, n, rot) { const l = []; for (let k = 0; k < 2 * n; k++) l.push([k % 2 ? ri : ro, (rot === undefined ? -90 : rot) + k * 180 / n]); return pts(cx, cy, l); }
+  function star8(cx, cy, r, fill) { const l = []; for (let k = 0; k < 16; k++) l.push([k % 2 ? r * 0.28 : (k % 4 === 0 ? r : r * 0.6), -90 + k * 22.5]); return `<polygon points="${pts(cx, cy, l)}" fill="${fill || G}"/>`; }
+  function star(cx, cy, ro, ri, n, fill, rot) { return `<polygon points="${starPts(cx, cy, ro, ri, n, rot)}" fill="${fill || G}"/>`; }
+  function rays(cx, cy, r1, r2, n, stroke, w, alt) {
+    let s = '';
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * Math.PI * 2, rr = alt && k % 2 ? r1 + (r2 - r1) * 0.55 : r2;
+      s += `<line x1="${f2(cx + r1 * Math.cos(a))}" y1="${f2(cy + r1 * Math.sin(a))}" x2="${f2(cx + rr * Math.cos(a))}" y2="${f2(cy + rr * Math.sin(a))}"/>`;
+    }
+    return `<g stroke="${stroke || G}" stroke-width="${w || 1}" stroke-linecap="round">${s}</g>`;
+  }
+  function wave(x1, x2, y, amp, n, stroke, w, op) {
+    const step = (x2 - x1) / n; let d = `M${f2(x1)} ${f2(y)}`;
+    for (let k = 0; k < n; k++) d += ` q${f2(step / 4)} ${f2(-amp)} ${f2(step / 2)} 0 t${f2(step / 2)} 0`;
+    return `<path d="${d}" fill="none" stroke="${stroke || SV}" stroke-width="${w || 0.8}" opacity="${op || 0.7}"/>`;
+  }
+  function flower(cx, cy, r, fill, center) {
+    let s = '';
+    for (let k = 0; k < 5; k++) { const a = -90 + k * 72; s += `<circle cx="${f2(cx + r * 0.55 * Math.cos(a * Math.PI / 180))}" cy="${f2(cy + r * 0.55 * Math.sin(a * Math.PI / 180))}" r="${f2(r * 0.5)}"/>`; }
+    return `<g fill="${fill || SV}">${s}</g><circle cx="${cx}" cy="${cy}" r="${f2(r * 0.3)}" fill="${center || G}"/>`;
+  }
+  function lemni(cx, cy, w, stroke, sw) {
+    const h = w * 0.34;
+    return `<path d="M${cx} ${cy} C${f2(cx - w * 0.12)} ${f2(cy - h)} ${f2(cx - w / 2)} ${f2(cy - h)} ${f2(cx - w / 2)} ${cy} C${f2(cx - w / 2)} ${f2(cy + h)} ${f2(cx - w * 0.12)} ${f2(cy + h)} ${cx} ${cy} C${f2(cx + w * 0.12)} ${f2(cy - h)} ${f2(cx + w / 2)} ${f2(cy - h)} ${f2(cx + w / 2)} ${cy} C${f2(cx + w / 2)} ${f2(cy + h)} ${f2(cx + w * 0.12)} ${f2(cy + h)} ${cx} ${cy} Z" fill="none" stroke="${stroke || G}" stroke-width="${sw || 1.3}"/>`;
+  }
+  function crescent(cx, cy, r, fill, flip) {
+    const d = `M${cx} ${f2(cy - r)} A${r} ${r} 0 1 0 ${cx} ${f2(cy + r)} A${f2(r * 1.25)} ${f2(r * 1.25)} 0 0 1 ${cx} ${f2(cy - r)} Z`;
+    return `<path d="${d}" fill="${fill || G}"${flip ? ` transform="translate(${2 * cx} 0) scale(-1 1)"` : ''}/>`;
+  }
+  function drop(cx, cy, s, fill) { return `<path d="M${cx} ${f2(cy - s)} C${f2(cx + s * 0.7)} ${f2(cy - s * 0.1)} ${f2(cx + s * 0.6)} ${f2(cy + s * 0.8)} ${cx} ${f2(cy + s * 0.8)} C${f2(cx - s * 0.6)} ${f2(cy + s * 0.8)} ${f2(cx - s * 0.7)} ${f2(cy - s * 0.1)} ${cx} ${f2(cy - s)} Z" fill="${fill || G}"/>`; }
+  function specks(seed) {
+    let a = seed * 9301 + 49297, s = '';
+    for (let k = 0; k < 16; k++) { a = (a * 9301 + 49297) % 233280; const x = 22 + (a / 233280) * 96; a = (a * 9301 + 49297) % 233280; const y = 46 + (a / 233280) * 70; s += `<circle cx="${f2(x)}" cy="${f2(y)}" r="${k % 5 ? 0.45 : 0.8}"/>`; }
+    return `<g fill="#e8ecf5" opacity=".55">${s}</g>`;
+  }
+  // a few engraved capitals drawn as strokes (SVG text misbehaves inside 3D-flipped faces)
+  function glyph(ch, x, y, s, st, w) {
+    const h = s / 2, d = {
+      T: `M${x - h * 0.8} ${y - h} H${x + h * 0.8} M${x} ${y - h} V${y + h}`,
+      A: `M${x - h * 0.8} ${y + h} L${x} ${y - h} L${x + h * 0.8} ${y + h} M${x - h * 0.42} ${y + h * 0.2} H${x + h * 0.42}`,
+      R: `M${x - h * 0.6} ${y + h} V${y - h} H${x + h * 0.15} Q${x + h * 0.7} ${y - h} ${x + h * 0.7} ${y - h * 0.45} Q${x + h * 0.7} ${y + h * 0.05} ${x + h * 0.15} ${y + h * 0.05} H${x - h * 0.6} M${x + h * 0.05} ${y + h * 0.05} L${x + h * 0.75} ${y + h}`,
+      O: `M${x} ${y - h} Q${x + h * 0.85} ${y - h} ${x + h * 0.85} ${y} Q${x + h * 0.85} ${y + h} ${x} ${y + h} Q${x - h * 0.85} ${y + h} ${x - h * 0.85} ${y} Q${x - h * 0.85} ${y - h} ${x} ${y - h} Z`,
+      B: `M${x - h * 0.6} ${y - h} V${y + h} H${x + h * 0.15} Q${x + h * 0.75} ${y + h} ${x + h * 0.75} ${y + h * 0.48} Q${x + h * 0.75} ${y - h * 0.02} ${x + h * 0.1} ${y - h * 0.02} H${x - h * 0.6} M${x + h * 0.1} ${y - h * 0.02} Q${x + h * 0.62} ${y - h * 0.02} ${x + h * 0.62} ${y - h * 0.52} Q${x + h * 0.62} ${y - h} ${x + h * 0.05} ${y - h} H${x - h * 0.6}`,
+      J: `M${x - h * 0.3} ${y - h} H${x + h * 0.7} M${x + h * 0.3} ${y - h} V${y + h * 0.35} Q${x + h * 0.3} ${y + h} ${x - h * 0.2} ${y + h} Q${x - h * 0.65} ${y + h} ${x - h * 0.7} ${y + h * 0.45}`
+    }[ch];
+    return `<path d="${d}" fill="none" stroke="${st || G}" stroke-width="${w || 1}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+  const L = (x1, y1, x2, y2, st, w) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${st || G}" stroke-width="${w || 1}" stroke-linecap="round"/>`;
+  const C = (cx, cy, r, fill, st, w) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill || 'none'}"${st ? ` stroke="${st}" stroke-width="${w || 1}"` : ''}/>`;
+  const P = (d, fill, st, w, extra) => `<path d="${d}" fill="${fill || 'none'}"${st ? ` stroke="${st}" stroke-width="${w || 1}"` : ''} stroke-linejoin="round" stroke-linecap="round"${extra ? ' ' + extra : ''}/>`;
+
+  /* ================= twenty-two motifs ================= */
+  const MOTIF = [
+    // 0 The Fool: a sun, a precipice, a traveller with a bundle and a white rose
+    () => rays(98, 66, 13, 22, 16, G, 1, true) + C(98, 66, 10, G) +
+      P('M18 192 V150 L64 139 L78 150 L80 192 Z', DK, G, 1.1) + P('M78 150 L84 192', 'none', G, 0.5, 'opacity=".6"') +
+      wave(86, 122, 166, 2.5, 3, SV, 0.8, 0.55) + wave(86, 122, 176, 2.5, 3, SV, 0.8, 0.45) + wave(86, 122, 186, 2.5, 3, SV, 0.8, 0.35) +
+      C(48, 110, 5.5, SV) + P('M48 116 L39 139 H57 Z', SV, null, 0, 'opacity=".85"') + L(54, 124, 72, 96, G, 1.6) + C(74, 93, 5, G) +
+      flower(36, 128, 7, '#f4f6fb') + P('M24 147 Q40 143 58 141', 'none', G, 0.8, 'stroke-dasharray="1.5 2.5"') + star8(30, 70, 4),
+    // I The Magician: lemniscate, raised wand, a table with the four suits
+    () => lemni(70, 60, 26) + C(70, 82, 6, SV) + P('M70 89 L55 150 H85 Z', SV, G, 0.8, 'fill-opacity=".3"') +
+      L(73, 95, 88, 72, SV, 2) + L(88, 72, 91, 64, G, 1.8) + C(91, 63, 1.5, G) + L(67, 100, 55, 122, SV, 2) + L(55, 122, 53, 128, G, 1.6) +
+      `<rect x="26" y="150" width="88" height="6" fill="${G}"/>` + L(32, 156, 32, 186, G, 1.4) + L(108, 156, 108, 186, G, 1.4) +
+      P('M33 139 H45 L43 147 H35 Z', G) + L(39, 147, 39, 150, G, 1.2) + L(57, 134, 57, 149, G, 1.8) +
+      L(83, 133, 83, 149, SV, 1.5) + L(79, 138, 87, 138, G, 1.4) + C(101, 143, 5.5, 'none', G, 1) + star(101, 143, 4.6, 1.8, 5, G) +
+      flower(44, 176, 5, '#c7485a', G) + flower(70, 180, 5, '#f4f6fb', G) + flower(96, 176, 5, '#c7485a', G),
+    // II The High Priestess: two pillars, a pomegranate veil, the triple moon and a crescent at her feet
+    () => `<rect x="38" y="74" width="64" height="112" fill="url(#pom)"/>` +
+      `<rect x="24" y="68" width="14" height="122" fill="#070410" stroke="${G}" stroke-width=".9"/><rect x="22" y="62" width="18" height="6" fill="${G}"/>` +
+      `<rect x="102" y="68" width="14" height="122" fill="${SV}" stroke="${G}" stroke-width=".9"/><rect x="100" y="62" width="18" height="6" fill="${G}"/>` +
+      glyph('B', 31, 128, 9, G, 1.2) + glyph('J', 109, 128, 9, '#140a24', 1.3) +
+      crescent(58, 56, 6, SV, true) + C(70, 56, 6, SV) + crescent(82, 56, 6, SV) +
+      C(70, 96, 7, SV) + P('M70 104 C58 122 56 160 52 184 H88 C84 160 82 122 70 104 Z', SV, SV, 0.8, 'fill-opacity=".22"') +
+      L(70, 112, 70, 128, G, 1.5) + L(63, 119, 77, 119, G, 1.5) + P('M56 178 Q70 196 84 178 Q70 189 56 178 Z', G),
+    // III The Empress: a crown of twelve stars, a heart shield with Venus, ripe wheat and a stream
+    () => (() => { let s = ''; for (let k = 0; k < 12; k++) { const a = (200 + k * (140 / 11)) * Math.PI / 180; s += star8(70 + 40 * Math.cos(a), 104 + 40 * Math.sin(a), 4.2); } return s; })() +
+      C(70, 72, 4, G) + P('M70 160 C42 142 50 114 64 118 C68 119 70 124 70 127 C70 124 72 119 76 118 C90 114 98 142 70 160 Z', SV, G, 1.2, 'fill-opacity=".25"') +
+      C(70, 131, 6, 'none', G, 1.4) + L(70, 137, 70, 150, G, 1.4) + L(65, 144, 75, 144, G, 1.4) +
+      (() => { let s = ''; for (const x of [26, 34, 42, 98, 106, 114]) { s += L(x, 192, x - 2, 160, G, 0.9); for (let k = 0; k < 4; k++) s += `<ellipse cx="${x - 2}" cy="${160 + k * 5}" rx="1.6" ry="3" fill="${G}" transform="rotate(${k % 2 ? 25 : -25} ${x - 2} ${160 + k * 5})"/>`; } return s; })() +
+      wave(52, 88, 182, 2, 3, SV, 0.9, 0.7) + wave(52, 88, 188, 2, 3, SV, 0.9, 0.5),
+    // IV The Emperor: mountains, a stone throne with ram spirals, orb and ankh sceptre
+    () => P('M18 152 L36 116 L50 134 L70 100 L90 132 L104 114 L122 152 Z', DK, G, 0.8) +
+      `<rect x="38" y="112" width="64" height="78" fill="${SV}" fill-opacity=".14" stroke="${G}" stroke-width="1.3"/>` +
+      P('M38 112 m-7 0 a7 7 0 1 1 7 7 a4.4 4.4 0 1 1 -4.4 -4.4 a2 2 0 1 1 2 2', 'none', G, 1.1) +
+      P('M102 112 m7 0 a7 7 0 1 0 -7 7 a4.4 4.4 0 1 0 4.4 -4.4 a2 2 0 1 0 -2 2', 'none', G, 1.1) +
+      C(70, 122, 7, SV) + P('M62 115 L64 106 L67 111 L70 103 L73 111 L76 106 L78 115 Z', G) + P('M65 128 L70 142 L75 128 Z', SV, null, 0, 'opacity=".8"') +
+      P('M56 132 L70 146 L84 132 L86 176 H54 Z', '#7e1f2e', G, 0.9, 'fill-opacity=".75"') +
+      C(89, 120, 4, 'none', G, 1.3) + L(89, 124, 89, 156, G, 1.6) + L(85, 128, 93, 128, G, 1.3) +
+      C(51, 142, 5, G) + L(51, 137, 51, 131, G, 1.2) + L(48, 133, 54, 133, G, 1.2) +
+      C(70, 180, 5, 'none', G, 1) + P('M65 177 q-5 -6 -9 0 M75 177 q5 -6 9 0', 'none', G, 1),
+    // V The Hierophant: grey pillars, triple crown, triple cross and two crossed keys
+    () => `<rect x="22" y="70" width="12" height="120" fill="#1b1333" stroke="${G}" stroke-width=".8"/><rect x="106" y="70" width="12" height="120" fill="#1b1333" stroke="${G}" stroke-width=".8"/>` +
+      P('M58 84 H82 L80 78 H60 Z M60 77 H80 L78 71 H62 Z M62 70 H78 Q70 58 62 70 Z', G) + L(70, 60, 70, 54, G, 1.4) + L(67, 57, 73, 57, G, 1.2) +
+      C(70, 92, 7, SV) + P('M70 99 L48 172 H92 Z', '#7e1f2e', G, 0.9, 'fill-opacity=".6"') + L(70, 104, 70, 170, G, 0.8) +
+      L(94, 88, 94, 162, G, 1.6) + L(88, 94, 100, 94, G, 1.4) + L(90, 100, 98, 100, G, 1.4) + L(92, 106, 96, 106, G, 1.4) +
+      `<g transform="rotate(35 70 176)">${C(70, 164, 3.5, 'none', G, 1.3)}${L(70, 167, 70, 190, G, 1.6)}${L(70, 186, 75, 186, G, 1.4)}${L(70, 182, 74, 182, G, 1.2)}</g>` +
+      `<g transform="rotate(-35 70 176)">${C(70, 164, 3.5, 'none', SV, 1.3)}${L(70, 167, 70, 190, SV, 1.6)}${L(70, 186, 65, 186, SV, 1.4)}${L(70, 182, 66, 182, SV, 1.2)}</g>`,
+    // VI The Lovers: a radiant sun, a winged figure above, two lovers and their trees before a peak
+    () => rays(70, 60, 12, 22, 20, G, 0.9, true) + C(70, 60, 9.5, G) +
+      P('M70 82 C52 70 34 76 26 94 C44 88 56 90 70 96 C84 90 96 88 114 94 C106 76 88 70 70 82 Z', SV, SV, 0.7, 'fill-opacity=".3"') + C(70, 84, 5, SV) +
+      P('M58 192 L70 124 L82 192 Z', DK, G, 0.8) +
+      L(28, 190, 28, 122, G, 1.2) + drop(22, 126, 4) + drop(34, 124, 4) + drop(24, 138, 4) + drop(33, 138, 4) + drop(28, 116, 4) +
+      L(112, 190, 112, 122, G, 1.2) + C(106, 124, 3, '#c7485a') + C(117, 128, 3, '#c7485a') + C(110, 136, 3, '#c7485a') + P('M112 176 C104 170 120 164 112 158 C104 152 120 146 112 140', 'none', SV, 1.1) +
+      C(44, 134, 6, SV) + P('M44 140 L35 180 H53 Z', SV) + C(96, 134, 6, G) + P('M96 140 L87 180 H105 Z', G),
+    // VII The Chariot: a starry canopy, the charioteer, a stone chariot with a winged disc, two sphinxes
+    () => `<rect x="32" y="64" width="76" height="14" fill="${DK}" stroke="${G}" stroke-width="1"/>` + [42, 56, 70, 84, 98].map((x) => star8(x, 71, 4.2)).join('') +
+      L(36, 78, 36, 124, G, 1.2) + L(104, 78, 104, 124, G, 1.2) +
+      C(70, 94, 7, SV) + star8(70, 83, 4, G) + `<rect x="60" y="102" width="20" height="20" fill="${SV}" fill-opacity=".3" stroke="${G}" stroke-width=".9"/>` +
+      crescent(57, 105, 4, G, true) + crescent(83, 105, 4, G) +
+      `<rect x="36" y="122" width="68" height="40" fill="#120a24" stroke="${G}" stroke-width="1.3"/>` + C(70, 139, 5, G) +
+      P('M64 139 C56 133 48 134 44 137 C50 139 56 140 64 141 Z M76 139 C84 133 92 134 96 137 C90 139 84 140 76 141 Z', G) +
+      C(44, 164, 9, 'none', G, 1.2) + C(96, 164, 9, 'none', G, 1.2) + rays(44, 164, 2, 9, 8, G, 0.6) + rays(96, 164, 2, 9, 8, G, 0.6) +
+      P('M18 192 C18 176 28 172 38 178 C42 182 44 188 44 192 Z', '#070410', G, 0.8) + C(26, 172, 5, '#070410', G, 0.8) +
+      P('M122 192 C122 176 112 172 102 178 C98 182 96 188 96 192 Z', SV) + C(114, 172, 5, SV),
+    // VIII Strength: a lemniscate, a garland of flowers and a lion's maned head calmed by a hand
+    () => lemni(70, 60, 24) + [[36, 104], [46, 94], [58, 88], [70, 86], [82, 88], [94, 94], [104, 104]].map(([x, y], k) => flower(x, y, 5, k % 2 ? '#c7485a' : '#f4f6fb', G)).join('') +
+      `<polygon points="${starPts(70, 140, 34, 21, 18)}" fill="${G}" fill-opacity=".6" stroke="${G}" stroke-width=".8"/>` +
+      C(70, 140, 20, '#1d1233', G, 1.3) + `<ellipse cx="62" cy="135" rx="2.6" ry="1.8" fill="${G}"/><ellipse cx="78" cy="135" rx="2.6" ry="1.8" fill="${G}"/>` +
+      P('M66 143 H74 L70 149 Z', G) + P('M63 152 Q70 157 77 152', 'none', G, 1.2) + P('M60 128 Q64 125 67 128 M73 128 Q76 125 80 128', 'none', G, 0.9) +
+      P('M28 186 C44 170 56 166 70 166 C78 166 84 168 88 172', 'none', SV, 3),
+    // IX The Hermit: a snowy peak, a cloaked figure with a staff and a lantern holding a six-pointed star
+    () => specks(9) + C(92, 112, 26, 'url(#glow)') + P('M18 192 L48 152 L66 166 L94 132 L122 172 V192 Z', SV, SV, 0.8, 'fill-opacity=".22"') +
+      P('M60 82 C50 94 48 132 42 186 H82 C80 150 78 112 74 86 Z', '#1b1235', G, 1) + C(66, 88, 9, '#1b1235', G, 1) + P('M61 92 L66 104 L70 92 Z', SV) +
+      L(52, 94, 40, 188, G, 1.9) + L(76, 102, 90, 104, SV, 1.4) +
+      P('M85 104 H99 L103 113 L99 124 H85 L81 113 Z', '#2a1650', G, 1.1) + star(92, 114, 6, 3.4, 6, '#fff6d0') + L(92, 104, 92, 100, G, 1),
+    // X Wheel of Fortune: a great wheel with the letters T A R O, alchemical marks, the serpent, the sphinx and four winged beings
+    () => C(70, 120, 40, 'none', G, 2) + C(70, 120, 34, 'none', G, 0.6) + C(70, 120, 24, 'none', SV, 1) + C(70, 120, 7, G) +
+      rays(70, 120, 7, 34, 8, G, 0.9) +
+      ['T', 'A', 'R', 'O'].map((t, k) => { const a = (-90 + k * 90) * Math.PI / 180; return glyph(t, +f2(70 + 37 * Math.cos(a)), +f2(120 + 37 * Math.sin(a)), 6, G, 0.9); }).join('') +
+      [45, 135, 225, 315].map((d) => { const a = d * Math.PI / 180; return C(f2(70 + 29 * Math.cos(a)), f2(120 + 29 * Math.sin(a)), 2.4, SV); }).join('') +
+      P('M24 72 C34 86 16 98 26 112 C36 126 18 140 28 154 C34 164 30 172 26 178', 'none', G, 1.6) + P('M62 82 L70 70 L78 82 Z', SV) + L(70, 70, 70, 60, SV, 1.2) +
+      [[32, 72], [108, 72], [30, 178], [110, 178]].map(([x, y]) => C(x, y, 7, SV, SV, 0.8).replace('/>', ' fill-opacity=".35"/>') + P(`M${x - 9} ${y - 2} Q${x - 4} ${y - 8} ${x} ${y - 4} Q${x + 4} ${y - 8} ${x + 9} ${y - 2}`, 'none', G, 0.8)).join(''),
+    // XI Justice: pillars and a violet veil, a square crown, an upright sword and the scales
+    () => `<rect x="32" y="70" width="76" height="122" fill="#2a1650" fill-opacity=".55"/><rect x="22" y="66" width="10" height="126" fill="#1b1333" stroke="${G}" stroke-width=".7"/><rect x="108" y="66" width="10" height="126" fill="#1b1333" stroke="${G}" stroke-width=".7"/>` +
+      P('M60 72 H80 V63 L76 67 L70 59 L64 67 L60 63 Z', G) + C(70, 80, 7, SV) + P('M70 88 L50 190 H90 Z', '#7e1f2e', G, 0.9, 'fill-opacity=".7"') +
+      `<rect x="66.5" y="98" width="7" height="7" fill="none" stroke="${G}" stroke-width="1"/>` +
+      L(88, 52, 88, 118, SV, 2.4) + L(81, 118, 95, 118, G, 2.2) + L(88, 118, 88, 128, G, 2.2) + C(88, 130, 2.2, G) +
+      L(52, 94, 52, 104, G, 1.4) + L(34, 104, 70, 104, G, 1.4) + L(36, 104, 31, 124, G, 0.6) + L(36, 104, 41, 124, G, 0.6) + L(68, 104, 63, 124, G, 0.6) + L(68, 104, 73, 124, G, 0.6) +
+      P('M29 124 Q36 132 43 124 Z', G) + P('M61 124 Q68 132 75 124 Z', G),
+    // XII The Hanged Man: a living tau of two trunks and a beam, a figure hanging calmly with a haloed head
+    () => L(34, 58, 34, 192, G, 2.2) + L(106, 58, 106, 192, G, 2.2) + L(28, 60, 112, 60, G, 2.6) +
+      [70, 96, 122, 148].map((y) => drop(30, y, 3.2) + drop(110, y + 10, 3.2)).join('') +
+      L(70, 60, 70, 68, SV, 1) + L(70, 68, 70, 114, SV, 3.2) + P('M70 82 L84 94 L71.5 106', 'none', SV, 3) +
+      P('M62 114 H78 L76 148 H64 Z', '#7e1f2e', SV, 0.9, 'fill-opacity=".8"') + P('M64 118 L54 136 L64 142 M76 118 L86 136 L76 142', 'none', SV, 1.4) +
+      C(70, 158, 17, 'url(#glow)') + rays(70, 158, 12, 19, 16, G, 0.8, true) + C(70, 158, 7, SV),
+    // XIII Death: a banner with the white rose, a river, and a sun rising between two towers
+    () => L(18, 152, 122, 152, G, 0.6) + `<rect x="90" y="128" width="7" height="24" fill="${DK}" stroke="${G}" stroke-width=".8"/><rect x="108" y="128" width="7" height="24" fill="${DK}" stroke="${G}" stroke-width=".8"/>` +
+      P('M94 152 A8.5 8.5 0 0 1 111 152 Z', G) + rays(102.5, 152, 11, 17, 14, G, 0.7) +
+      wave(18, 122, 164, 2.2, 6, SV, 0.9, 0.6) + wave(18, 122, 173, 2.2, 6, SV, 0.9, 0.45) + wave(18, 122, 182, 2.2, 6, SV, 0.9, 0.3) +
+      L(40, 62, 40, 192, G, 1.7) + C(40, 60, 2, G) + P('M40 66 H88 L82 82 L88 98 H40 Z', DK, G, 1.1) + flower(62, 82, 13, '#f4f6fb', G) +
+      P('M26 60 Q52 38 84 50', 'none', SV, 1.2, 'opacity=".7"'),
+    // XIV Temperance: wings, a triangle within a square, water poured between two cups, a path to a crowned sun and irises
+    () => P('M36 192 C48 172 28 160 58 148 S92 112 100 78', 'none', G, 1, 'stroke-dasharray="2 3"') + C(100, 72, 6, G) + rays(100, 72, 8.5, 13, 12, G, 0.8) +
+      P('M70 92 C52 62 30 62 24 86 C40 82 54 88 70 98 Z', SV, SV, 0.7, 'fill-opacity=".28"') + P('M70 92 C88 62 110 62 116 86 C100 82 86 88 70 98 Z', SV, SV, 0.7, 'fill-opacity=".28"') +
+      C(70, 86, 6, SV) + `<rect x="63" y="100" width="14" height="14" fill="none" stroke="${G}" stroke-width="1"/>` + P('M70 102 L76 112 H64 Z', G) +
+      P('M40 118 H54 L52 128 H42 Z', G) + P('M86 136 H100 L98 146 H88 Z', SV) + P('M52 120 C66 112 82 122 90 136', 'none', SV, 1.6, 'stroke-dasharray="3 2"') +
+      wave(18, 70, 178, 2, 3, SV, 0.9, 0.65) + wave(18, 70, 185, 2, 3, SV, 0.9, 0.45) +
+      L(104, 192, 104, 172, G, 0.9) + P('M104 172 C100 166 98 170 101 174 M104 172 C108 166 110 170 107 174 M104 172 V166', 'none', '#b69ae6', 1.6) +
+      L(114, 192, 114, 178, G, 0.9) + P('M114 178 C110 172 108 176 111 180 M114 178 C118 172 120 176 117 180', 'none', '#b69ae6', 1.6),
+    // XV The Devil: an inverted pentagram, horned head and bat wings, a pedestal and two loosely chained figures
+    () => `<polygon points="${starPts(70, 62, 14, 5.4, 5, 90)}" fill="none" stroke="${G}" stroke-width="1.3"/>` + C(70, 62, 16, 'none', G, 0.6) +
+      P('M70 102 C56 86 40 82 22 90 L30 98 L24 106 L36 108 L32 118 C46 112 58 110 70 112 Z', DK, G, 1) +
+      P('M70 102 C84 86 100 82 118 90 L110 98 L116 106 L104 108 L108 118 C94 112 82 110 70 112 Z', DK, G, 1) +
+      C(70, 98, 8, '#1a0f2e', G, 1) + P('M64 92 Q56 80 61 72 M76 92 Q84 80 79 72', 'none', G, 1.6) + C(67, 97, 1, G) + C(73, 97, 1, G) +
+      `<rect x="52" y="138" width="36" height="16" fill="${DK}" stroke="${G}" stroke-width="1"/>` + C(70, 146, 3, 'none', G, 1) +
+      P('M70 149 L46 170 M70 149 L94 170', 'none', SV, 1.1, 'stroke-dasharray="1.6 1.6"') +
+      C(46, 168, 4, SV) + P('M46 172 L40 192 H52 Z', SV) + C(94, 168, 4, SV) + P('M94 172 L88 192 H100 Z', SV) +
+      L(84, 118, 92, 130, G, 1.4) + drop(94, 136, 4, '#ff9d4a'),
+    // XVI The Tower: a lightning bolt, a crown blown from a burning tower on a rock, falling sparks and figures
+    () => P('M28 192 L46 172 L56 178 L70 162 L86 176 L94 170 L112 192 Z', DK, G, 0.8) +
+      `<rect x="56" y="74" width="28" height="96" fill="${SV}" fill-opacity=".2" stroke="${G}" stroke-width="1.3"/>` +
+      [84, 94, 104, 114, 124, 134, 144, 154].map((y) => L(56, y, 84, y, G, 0.3)).join('') +
+      P('M56 74 L60 69 L64 75 L68 68 L72 74 L76 67 L80 73 L84 70', 'none', G, 1) +
+      `<rect x="61" y="90" width="5" height="9" fill="#ffcf6a"/><rect x="74" y="90" width="5" height="9" fill="#ffcf6a"/><rect x="67" y="118" width="6" height="11" fill="#ffcf6a"/><rect x="67" y="144" width="6" height="11" fill="#ffcf6a"/>` +
+      drop(63.5, 86, 3.6, '#ff9d4a') + drop(76.5, 86, 3.6, '#ff9d4a') + drop(70, 114, 4, '#ff9d4a') +
+      `<g transform="translate(96 60) rotate(28)">${P('M-10 4 H10 L12 -6 L6 -1 L0 -9 L-6 -1 L-12 -6 Z', G)}</g>` +
+      `<polyline points="20,44 42,62 36,64 56,78 50,80 68,74" fill="none" stroke="#fff6d0" stroke-width="3.6" stroke-linejoin="round" opacity=".35"/>` +
+      `<polyline points="20,44 42,62 36,64 56,78 50,80 68,74" fill="none" stroke="${G}" stroke-width="1.9" stroke-linejoin="round"/>` +
+      [[34, 96], [102, 92], [30, 132], [108, 124], [44, 150], [98, 150], [38, 172]].map(([x, y]) => drop(x, y, 2.6)).join('') +
+      C(42, 112, 3.5, SV) + L(42, 108, 38, 96, SV, 1.6) + C(100, 134, 3.5, SV) + L(100, 130, 104, 118, SV, 1.6),
+    // XVII The Star: a great eight-pointed star, seven smaller stars, a pool and two pouring jugs
+    () => specks(17) + C(70, 70, 28, 'url(#glow)') + star8(70, 70, 22) + star8(70, 70, 10, '#fff6d0') +
+      [[34, 64], [106, 64], [28, 92], [112, 92], [44, 112], [96, 112], [70, 104]].map(([x, y]) => star8(x, y, 7)).join('') +
+      P('M18 170 Q40 160 58 168 V192 H18 Z', DK, G, 0.7) + `<ellipse cx="88" cy="178" rx="36" ry="11" fill="#1b2a52" stroke="${SV}" stroke-width=".8"/>` +
+      `<ellipse cx="88" cy="178" rx="22" ry="6" fill="none" stroke="${SV}" stroke-width=".5"/><ellipse cx="88" cy="178" rx="10" ry="3" fill="none" stroke="${SV}" stroke-width=".4"/>` +
+      P('M44 132 C40 136 40 146 48 148 C56 146 56 136 52 132 Z', SV) + P('M46 150 C44 160 40 166 34 172', 'none', SV, 1.3) +
+      P('M88 130 C84 134 84 144 92 146 C100 144 100 134 96 130 Z', G) + P('M94 148 C96 158 92 166 90 174', 'none', SV, 1.3) +
+      L(26, 170, 26, 138, G, 1) + P('M26 140 C30 132 36 132 38 136 L34 138', 'none', G, 1),
+    // XVIII The Moon: a radiant moon with a crescent, falling dew, two towers, a winding path, the pool and its crayfish, a dog and a wolf
+    () => specks(18) + C(70, 74, 34, 'url(#moonGlow)') + rays(70, 74, 23, 31, 24, SV, 0.8, true) + C(70, 74, 20, SV) + crescent(70, 74, 17, G) +
+      [[40, 100], [54, 108], [86, 108], [100, 100], [70, 114]].map(([x, y]) => drop(x, y, 3)).join('') +
+      `<rect x="22" y="114" width="14" height="58" fill="${DK}" stroke="${G}" stroke-width=".9"/>` + P('M22 114 V109 H25 V112 H28 V109 H31 V112 H33 V109 H36 V114', 'none', G, 0.8) + `<rect x="27" y="124" width="4" height="7" fill="${G}"/>` +
+      `<rect x="104" y="114" width="14" height="58" fill="${DK}" stroke="${G}" stroke-width=".9"/>` + P('M104 114 V109 H107 V112 H110 V109 H113 V112 H115 V109 H118 V114', 'none', G, 0.8) + `<rect x="109" y="124" width="4" height="7" fill="${G}"/>` +
+      P('M70 184 C58 172 82 164 70 152 C62 144 76 136 70 126', 'none', G, 1.2, 'stroke-dasharray="2 2"') +
+      `<ellipse cx="70" cy="186" rx="34" ry="7" fill="#1b2a52" stroke="${SV}" stroke-width=".8"/>` + P('M66 186 q4 -7 8 0 M64 184 l-3 -3 M76 184 l3 -3', 'none', G, 1) +
+      P('M40 176 L46 164 L48 170 L52 166 L52 176 Z', SV) + P('M100 176 L94 164 L92 170 L88 166 L88 176 Z', '#4a3a6e', SV, 0.6),
+    // XIX The Sun: a sun with straight and wavy rays, sunflowers over a garden wall and a banner
+    () => (() => { let s = ''; for (let k = 0; k < 16; k++) { const a = k * 22.5 * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a); if (k % 2) s += L(f2(70 + 22 * c), f2(84 + 22 * sn), f2(70 + 36 * c), f2(84 + 36 * sn), G, 1.3); else { const px = -sn, py = c; s += P(`M${f2(70 + 22 * c)} ${f2(84 + 22 * sn)} Q${f2(70 + 27 * c + px * 3)} ${f2(84 + 27 * sn + py * 3)} ${f2(70 + 31 * c)} ${f2(84 + 31 * sn)} T${f2(70 + 40 * c)} ${f2(84 + 40 * sn)}`, 'none', G, 1.2); } } return s; })() +
+      C(70, 84, 26, 'url(#glow)') + C(70, 84, 18, G) + C(70, 84, 12, 'none', '#fff6d0', 0.8) +
+      `<rect x="18" y="152" width="104" height="16" fill="#2a1650" stroke="${G}" stroke-width=".7"/>` + [26, 42, 58, 74, 90, 106].map((x) => L(x, 152, x, 160, G, 0.4) + L(x + 8, 160, x + 8, 168, G, 0.4)).join('') + L(18, 160, 122, 160, G, 0.4) +
+      `<rect x="18" y="168" width="104" height="24" fill="#120a22"/>` +
+      [[32, 142], [52, 136], [88, 136], [108, 142]].map(([x, y]) => L(x, y, x, 152, G, 0.9) + `<polygon points="${starPts(x, y, 7, 4, 12)}" fill="${G}"/>` + C(x, y, 3, '#3a2210')).join('') +
+      P('M56 180 Q70 172 84 180 Q70 186 56 180 Z', '#c0392b', G, 0.6),
+    // XX Judgement: clouds and a trumpet with a cross banner, snowy peaks, and figures rising from their coffins
+    () => P('M18 72 Q26 58 36 64 Q44 52 56 60 Q66 50 76 60 Q88 52 96 62 Q108 54 122 66 V40 H18 Z', SV, null, 0, 'fill-opacity=".38"') +
+      `<polygon points="98,64 104,72 64,106 60,102" fill="${G}"/>` + C(61, 105, 5, G) + L(98, 64, 108, 56, G, 2) +
+      P('M78 88 L90 78 L94 90 L82 100 Z', '#f4f6fb', G, 0.6) + L(84, 84, 88, 94, '#c0392b', 1.2) + L(81, 90, 91, 88, '#c0392b', 1.2) +
+      P('M18 150 L34 126 L46 140 L62 118 L80 146 L96 122 L122 150 Z', SV, SV, 0.6, 'fill-opacity=".22"') +
+      wave(18, 122, 160, 2, 6, SV, 0.8, 0.5) +
+      [[26, 170], [60, 176], [94, 170]].map(([x, y]) => `<rect x="${x}" y="${y}" width="22" height="9" fill="${DK}" stroke="${G}" stroke-width=".8"/>` + C(x + 11, y - 9, 4, SV) + P(`M${x + 11} ${y - 5} V${y} M${x + 11} ${y - 3} L${x + 5} ${y - 12} M${x + 11} ${y - 3} L${x + 17} ${y - 12}`, 'none', SV, 1.4)).join(''),
+    // XXI The World: a laurel mandorla tied with ribbons, a dancer with two wands, four beings at the corners
+    () => (() => { let s = `<ellipse cx="70" cy="118" rx="30" ry="52" fill="none" stroke="${G}" stroke-width="1.6"/>`; for (let k = 0; k < 28; k++) { const t = k / 28 * Math.PI * 2, x = 70 + 30 * Math.cos(t), y = 118 + 52 * Math.sin(t); const ang = Math.atan2(52 * Math.cos(t), -30 * Math.sin(t)) * 180 / Math.PI; s += `<ellipse cx="${f2(x)}" cy="${f2(y)}" rx="4.4" ry="1.7" fill="${G}" transform="rotate(${f2(ang + (k % 2 ? 35 : -35))} ${f2(x)} ${f2(y)})"/>`; } return s; })() +
+      lemni(70, 64, 18, '#c7485a', 1.6) + lemni(70, 172, 18, '#c7485a', 1.6) +
+      C(70, 96, 5, SV) + P('M64 104 C82 114 58 126 76 138 C66 146 72 154 68 160', 'none', SV, 3) + P('M70 138 L63 156 M70 138 L78 150 L72 158', 'none', SV, 1.6) +
+      L(58, 104, 55, 94, G, 1.3) + L(84, 120, 88, 110, G, 1.3) +
+      [[30, 72], [110, 72], [30, 178], [110, 178]].map(([x, y]) => C(x, y, 7.5, SV, SV, 0.8).replace('/>', ' fill-opacity=".3"/>') + star8(x, y, 5)).join('')
+  ];
+
+  const WIN = 'M20 192 V92 A50 50 0 0 1 120 92 V192 Z';
+  const WIN_OUT = 'M16 196 V92 A54 54 0 0 1 124 92 V196 Z';
+  function faceSVG(i) {
+    return `<svg viewBox="0 0 140 240" aria-hidden="true" focusable="false">
+<defs><clipPath id="win${i}"><path d="${WIN}"/></clipPath></defs>
+<rect width="140" height="240" rx="8" fill="url(#cardBase)"/>
+<rect x="3.5" y="3.5" width="133" height="233" rx="6" fill="none" stroke="${G}" stroke-width="1.6"/>
+<rect x="6.5" y="6.5" width="127" height="227" rx="4.5" fill="none" stroke="${G}" stroke-width="1" stroke-dasharray=".1 2.3" stroke-linecap="round"/>
+<rect x="9" y="9" width="122" height="222" rx="3" fill="none" stroke="${G}" stroke-width=".7"/>
+<use href="#corner" x="10" y="10" width="16" height="16"/>
+<use href="#corner" x="10" y="10" width="16" height="16" transform="translate(140 0) scale(-1 1)"/>
+<use href="#corner" x="10" y="10" width="16" height="16" transform="translate(0 240) scale(1 -1)"/>
+<use href="#corner" x="10" y="10" width="16" height="16" transform="translate(140 240) scale(-1 -1)"/>
+<path d="${WIN_OUT}" fill="none" stroke="${G}" stroke-width=".5"/>
+<path d="${WIN}" fill="url(#night)"/>
+<g clip-path="url(#win${i})">${specks(i + 3)}${MOTIF[i]()}</g>
+<path d="${WIN}" fill="none" stroke="${G}" stroke-width="1.4"/>
+${star8(19, 46, 3.4)}${star8(121, 46, 3.4)}
+<path d="M46 26 L52 17.5 H88 L94 26 L88 34.5 H52 Z" fill="#0d0619" stroke="${G}" stroke-width=".9"/>
+<path d="M18 207 L25 199 H115 L122 207 L115 215 H25 Z" fill="#0d0619" stroke="${G}" stroke-width=".9"/>
+<path d="M70 221 L72.5 224.5 L70 228 L67.5 224.5 Z" fill="${G}"/>
+</svg>`;
+  }
+  // numeral and title are HTML so they stay crisp and correctly placed through the 3D flip
+  function faceLabels(i) {
+    const [num, name] = CARDS[i];
+    const fs = name.length > 16 ? 6.5 : name.length > 12 ? 7.3 : name.length > 9 ? 8.2 : 9;
+    const ls = name.length > 16 ? 0.7 : name.length > 12 ? 1 : 1.4;
+    return `<span class="cap num">${num}</span><span class="cap ttl" style="--fs:${fs};--ls:${ls}">${name}</span>`;
+  }
+
+  /* ================= build the deck ================= */
+  // the sunburst on the card back
+  (() => { const l = []; for (let k = 0; k < 32; k++) l.push([k % 2 ? 22 : (k % 4 === 0 ? 41 : 33), -90 + k * 11.25]); document.getElementById('backBurst').setAttribute('points', pts(70, 120, l)); })();
+
+  const layer = $('#cards'), table = $('#table');
+  const cards = CARDS.map((c, i) => {
+    const el = document.createElement('div');
+    el.className = 'card in-stack';
+    el.setAttribute('role', 'button');
+    el.tabIndex = -1;
+    el.innerHTML = `<span class="lift"><span class="tilt"><span class="flip"><span class="face back"><svg viewBox="0 0 140 240" aria-hidden="true" focusable="false"><use href="#backArt"/></svg><span class="shimmer"></span></span><span class="face front">${faceSVG(i)}${faceLabels(i)}<span class="shimmer"></span><span class="glint"></span></span></span></span></span>`;
+    layer.appendChild(el);
+    return { id: i, el, tilt: el.querySelector('.tilt'), pos: { x: 0, y: 0, r: 0, s: 1 }, where: 'stack', rev: false, anim: null, jit: (Math.random() - 0.5) * 2.4 };
+  });
+
+  /* ================= geometry ================= */
+  let cw = 150, ch = 257, fanS = 0.6, fanCX = 0, fanY0 = 0, fanR = 1200, fanSpread = 36, deckX = 0, deckY = 0, phone = false;
+  function geometry() {
+    phone = window.innerWidth < 760;
+    const tw = table.clientWidth;
+    if (phone) { cw = Math.max(76, Math.min(104, Math.floor((tw - 24 - 20) / 3))); }
+    else cw = Math.round(Math.max(112, Math.min(160, (window.innerHeight - 450) / 3.3)));
+    ch = Math.round(cw * 12 / 7);
+    fanS = phone ? 0.58 : 0.56;
+    table.style.setProperty('--cw', cw + 'px'); table.style.setProperty('--ch', ch + 'px');
+    const halfW = phone ? tw * 0.33 : Math.min(tw * 0.4, 470);
+    fanSpread = phone ? 46 : 34;
+    fanR = halfW / Math.sin(fanSpread / 2 * Math.PI / 180);
+    const drop = fanR * (1 - Math.cos(fanSpread / 2 * Math.PI / 180));
+    const fanH = Math.round(ch * fanS + drop + (phone ? 30 : 40));
+    table.style.setProperty('--fanH', fanH + 'px');
+    const fz = $('#fanzone');
+    const lr = layer.getBoundingClientRect(), fr = fz.getBoundingClientRect();
+    fanCX = lr.width / 2;
+    fanY0 = fr.top - lr.top + (phone ? 14 : 20) + ch * fanS / 2;
+    deckX = fanCX; deckY = fanY0 + drop * 0.35;
+    const s0 = $('#slot0').getBoundingClientRect();
+    table.style.setProperty('--wheelY', (s0.top - lr.top + s0.height / 2) + 'px');
+  }
+  function slotPos(k) {
+    const lr = layer.getBoundingClientRect(), r = $('#slot' + k).getBoundingClientRect();
+    return { x: r.left - lr.left + r.width / 2, y: r.top - lr.top + r.height / 2, r: 0, s: 1 };
+  }
+  function fanPos(i, n) {
+    const step = n > 1 ? Math.min(fanSpread / (n - 1), 4.2) : 0;
+    const a = (i - (n - 1) / 2) * step, rad = a * Math.PI / 180;
+    return { x: fanCX + fanR * Math.sin(rad), y: fanY0 + fanR - fanR * Math.cos(rad), r: a, s: fanS };
+  }
+  function stackPos(k, c) { return { x: deckX - k * 0.35, y: deckY - k * 0.45, r: c ? c.jit : 0, s: fanS }; }
+  function pilePos(side, k) { return { x: deckX + side * cw * fanS * 0.72 - k * 0.3, y: deckY - k * 0.4 + 6, r: side * 7, s: fanS }; }
+
+  const tf = (p) => `translate(${(p.x - cw / 2).toFixed(1)}px, ${(p.y - ch / 2).toFixed(1)}px) rotate(${p.r.toFixed(2)}deg) scale(${p.s.toFixed(3)})`;
+  function move(c, to, o) {
+    o = o || {};
+    const from = c.pos; c.pos = to;
+    if (c.anim) { try { c.anim.cancel(); } catch (e) { /* ignore */ } c.anim = null; }
+    c.el.style.transform = tf(to);
+    if (reduce || !o.dur) return Promise.resolve();
+    const kf = [{ transform: tf(from) }];
+    if (o.arc) kf.push({ transform: tf({ x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 + o.arc, r: (from.r + to.r) / 2, s: Math.max(from.s, to.s) * (o.pop || 1) }), offset: 0.5 });
+    kf.push({ transform: tf(to) });
+    const a = c.el.animate(kf, { duration: o.dur, delay: o.delay || 0, easing: o.easing || 'cubic-bezier(.25,.8,.25,1)', fill: 'backwards' });
+    c.anim = a;
+    return a.finished.then(() => { if (c.anim === a) c.anim = null; }).catch(() => {});
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+
+  /* ================= state ================= */
+  let order = cards.map((c) => c.id);   // deck order, bottom to top
+  let picks = [], busy = false, allowRev = false, pickLock = 0;
+  const SLOTS = ['Past', 'Present', 'Future'];
+  const statusEl = $('#status');
+  const setStatus = (h) => { statusEl.innerHTML = h; };
+  function shuffleArr(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  const fanCards = () => order.map((id) => cards[id]).filter((c) => c.where === 'fan');
+
+  function setWhere(c, w) {
+    c.where = w;
+    c.el.classList.toggle('in-fan', w === 'fan');
+    c.el.classList.toggle('in-stack', w === 'stack');
+    c.el.classList.toggle('placed', w === 'slot');
+    if (w === 'fan') { c.el.tabIndex = -1; c.el.setAttribute('role', 'button'); c.el.setAttribute('aria-label', 'Face-down card. Choose it for your ' + SLOTS[Math.min(picks.length, 2)]); }
+    else if (w === 'stack') { c.el.tabIndex = -1; c.el.setAttribute('role', 'button'); c.el.setAttribute('aria-label', 'The deck. Fan the cards'); }
+    else { c.el.tabIndex = -1; c.el.setAttribute('role', 'img'); }
+  }
+  // one tab stop for the whole fan; the arrow keys move between cards
+  function roving(target) {
+    const fc = fanCards();
+    if (!fc.length) return;
+    const t = target && fc.includes(target) ? target : fc[Math.floor(fc.length / 2)];
+    fc.forEach((c) => { c.el.tabIndex = c === t ? 0 : -1; c.el.setAttribute('aria-label', 'Face-down card ' + (fc.indexOf(c) + 1) + ' of ' + fc.length + '. Choose it for your ' + SLOTS[Math.min(picks.length, 2)]); });
+    return t;
+  }
+  function layoutFan(anim) {
+    const fc = fanCards(), n = fc.length;
+    roving();
+    return Promise.all(fc.map((c, i) => { c.el.style.zIndex = 20 + i; return move(c, fanPos(i, n), anim ? { dur: anim, delay: i * (anim > 400 ? 16 : 0) } : null); }));
+  }
+  function snapAll() {
+    geometry();
+    const fc = fanCards();
+    order.forEach((id, k) => { const c = cards[id]; if (c.where === 'stack') { c.el.style.zIndex = 20 + k; move(c, stackPos(k, c)); } });
+    fc.forEach((c, i) => move(c, fanPos(i, fc.length)));
+    picks.forEach((id, k) => move(cards[id], slotPos(k)));
+  }
+
+  async function fanOut() {
+    if (busy) return;
+    busy = true; setButtons();
+    order.forEach((id) => { const c = cards[id]; if (c.where === 'stack') setWhere(c, 'fan'); });
+    flick();
+    await layoutFan(560);
+    busy = false; setButtons();
+    promptNext();
+  }
+  function promptNext() {
+    if (picks.length < 3) setStatus('Choose a card for your <b>' + SLOTS[picks.length] + '</b> · ' + (3 - picks.length) + ' to draw');
+  }
+
+  async function shuffleDeck() {
+    if (busy) return;
+    busy = true; setButtons();
+    setStatus('Shuffling…');
+    clearReadings();
+    // return any laid cards, face down, to the deck
+    if (picks.length) {
+      picks.forEach((id) => { const c = cards[id]; c.el.classList.remove('up', 'glinting'); });
+      await wait(picks.length ? 520 : 0);
+      picks.forEach((id) => { const c = cards[id]; c.rev = false; c.el.classList.remove('rev'); });
+      picks = [];
+    }
+    order.forEach((id) => setWhere(cards[id], 'stack'));
+    // gather
+    await Promise.all(order.map((id, k) => { const c = cards[id]; c.el.style.zIndex = 20 + k; return move(c, stackPos(k, c), { dur: 420, delay: k * 10, arc: -10 }); }));
+    // split into two halves
+    const half = Math.ceil(order.length / 2), left = order.slice(0, half), right = order.slice(half);
+    flick();
+    await Promise.all([...left.map((id, k) => move(cards[id], pilePos(-1, k), { dur: 300, delay: k * 5 })), ...right.map((id, k) => move(cards[id], pilePos(1, k), { dur: 300, delay: k * 5 }))]);
+    // riffle: the halves bend and interleave; the final order is a true Fisher-Yates shuffle
+    const next = shuffleArr(order);
+    const riffles = next.map((id, k) => {
+      const c = cards[id], d = 80 + k * 30;
+      setTimeout(() => { c.el.style.zIndex = 60 + k; if (k % 3 === 0) flick(); }, reduce ? 0 : d);
+      c.jit = (Math.random() - 0.5) * 2.4;
+      return move(c, stackPos(k, c), { dur: 210, delay: d, arc: -14, easing: 'cubic-bezier(.3,.6,.3,1)' });
+    });
+    await Promise.all(riffles);
+    order = next;
+    // square the deck with a small tap
+    await Promise.all(order.map((id, k) => { const c = cards[id]; c.el.style.zIndex = 20 + k; return move(c, { x: deckX - k * 0.35, y: deckY - k * 0.45 - 5, r: 0, s: fanS }, { dur: 120 }).then(() => move(c, stackPos(k, c), { dur: 160 })); }));
+    busy = false; setButtons();
+    setStatus('The deck is shuffled. <b>Fan the cards</b>, or tap the deck');
+    if (!reduce) { const top = cards[order[order.length - 1]]; top.el.focus({ preventScroll: true }); }
+  }
+
+  function pick(c) {
+    if (busy || c.where !== 'fan' || picks.length >= 3 || performance.now() < pickLock) return;
+    pickLock = performance.now() + 380;
+    const k = picks.length;
+    picks.push(c.id);
+    setWhere(c, 'slot');
+    c.rev = allowRev && Math.random() < 0.35;
+    c.el.classList.toggle('rev', c.rev);
+    c.el.style.zIndex = 200 + k;
+    c.el.blur();
+    flick();
+    layoutFan(420);
+    const [num, name] = CARDS[c.id];
+    c.el.setAttribute('aria-label', SLOTS[k] + ': ' + name + (c.rev ? ', reversed' : ''));
+    move(c, slotPos(k), { dur: 820, arc: phone ? -30 : -70, pop: 1.25, easing: 'cubic-bezier(.22,.7,.2,1)' }).then(() => reveal(c, k));
+    if (picks.length < 3) promptNext();
+    else { setStatus('The spread is laid · the cards turn…'); }
+    // keep keyboard focus in the fan
+    const fc = fanCards(); if (fc.length && picks.length < 3) { const nb = roving(); setTimeout(() => { if (document.activeElement === document.body && nb) nb.el.focus({ preventScroll: true }); }, 60); }
+  }
+  function reveal(c, k) {
+    c.el.classList.add('up');
+    bell(k);
+    setTimeout(() => {
+      c.el.classList.add('glinting');
+      showReading(c, k);
+      if (k === 2) finish();
+    }, reduce ? 0 : 900);
+  }
+  function readingHTML(c, k, withSlot) {
+    const [num, name, kwU, kwR, up, rev] = CARDS[c.id];
+    return (withSlot ? `<span class="slotname">${SLOTS[k]}</span>` : '') + `<h3>${name}</h3><p class="orient">${c.rev ? 'Reversed' : 'Upright'} · ${num}</p><p class="interp">${c.rev ? rev : up}</p>`;
+  }
+  function showReading(c, k) {
+    const r = $('#read' + k), m = $('#mread' + k);
+    r.innerHTML = readingHTML(c, k, false); m.innerHTML = readingHTML(c, k, true);
+    requestAnimationFrame(() => { r.classList.add('show'); m.classList.add('show'); });
+  }
+  async function finish() {
+    const kw = picks.map((id) => { const c = cards[id]; return c.rev ? CARDS[id][3] : CARDS[id][2]; });
+    const line = `Your past speaks of <b>${kw[0]}</b>, your present of <b>${kw[1]}</b>, and your future leans toward <b>${kw[2]}</b>.`;
+    // the rest of the deck is gathered away
+    fanCards().forEach((c) => setWhere(c, 'stack'));
+    await Promise.all(order.filter((id) => cards[id].where === 'stack').map((id, k) => { const c = cards[id]; c.el.style.zIndex = 20 + k; return move(c, stackPos(k, c), { dur: 480, delay: k * 8, arc: -8 }); }));
+    const s = $('#synth'); s.innerHTML = line; s.classList.add('show');
+    const ms = $('#msynth'); ms.innerHTML = line + '<br>Shuffle again whenever the question changes.'; ms.hidden = false;
+    // settle the deck a little higher and smaller so the summary has room beneath it
+    if (!phone) await Promise.all(order.filter((id) => cards[id].where === 'stack').map((id, k) => move(cards[id], { x: deckX - k * 0.3, y: deckY - 24 - k * 0.4, r: cards[id].jit, s: fanS * 0.84 }, { dur: 520 })));
+    setStatus('Your reading is laid out · <b>shuffle</b> to ask again');
+    setButtons();
+  }
+  function clearReadings() {
+    for (let k = 0; k < 3; k++) { const r = $('#read' + k), m = $('#mread' + k); r.classList.remove('show'); m.classList.remove('show'); r.innerHTML = ''; m.innerHTML = ''; }
+    $('#synth').classList.remove('show'); $('#msynth').hidden = true;
+  }
+  function setButtons() {
+    const hasStack = order.some((id) => cards[id].where === 'stack');
+    $('#shuffleBtn').disabled = busy;
+    $('#fanBtn').disabled = busy || !hasStack || picks.length >= 3;
+  }
+
+  /* ================= pointer: tilt and shimmer ================= */
+  layer.addEventListener('pointermove', (e) => {
+    const cardEl = e.target.closest && e.target.closest('.card');
+    if (!cardEl || e.pointerType === 'touch') return;
+    const c = cards.find((q) => q.el === cardEl); if (!c) return;
+    const r = cardEl.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+    const amt = c.where === 'slot' ? 16 : 7;
+    if (!reduce) c.tilt.style.transform = `rotateX(${(-(py - 0.5) * amt).toFixed(2)}deg) rotateY(${((px - 0.5) * amt).toFixed(2)}deg)`;
+    cardEl.style.setProperty('--mx', (px * 100).toFixed(1) + '%'); cardEl.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+    cardEl.style.setProperty('--sx', (px * 100).toFixed(1) + '%'); cardEl.style.setProperty('--sy', (py * 100).toFixed(1) + '%');
+    cardEl.classList.add('tilting');
+  });
+  layer.addEventListener('pointerout', (e) => {
+    const cardEl = e.target.closest && e.target.closest('.card');
+    if (!cardEl || (e.relatedTarget && cardEl.contains(e.relatedTarget))) return;
+    const c = cards.find((q) => q.el === cardEl); if (!c) return;
+    c.tilt.style.transform = ''; cardEl.classList.remove('tilting');
+  });
+  layer.addEventListener('click', (e) => {
+    const cardEl = e.target.closest && e.target.closest('.card'); if (!cardEl) return;
+    const c = cards.find((q) => q.el === cardEl); if (!c) return;
+    if (c.where === 'fan') pick(c); else if (c.where === 'stack' && picks.length < 3) fanOut();
+  });
+  layer.addEventListener('keydown', (e) => {
+    const cardEl = e.target.closest && e.target.closest('.card'); if (!cardEl) return;
+    const c = cards.find((q) => q.el === cardEl); if (!c) return;
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (c.where === 'fan') pick(c); else if (c.where === 'stack' && picks.length < 3) fanOut(); return; }
+    if (c.where === 'fan' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End')) {
+      e.preventDefault();
+      const fc = fanCards(), i = fc.indexOf(c);
+      const j = e.key === 'Home' ? 0 : e.key === 'End' ? fc.length - 1 : Math.max(0, Math.min(fc.length - 1, i + (e.key === 'ArrowLeft' ? -1 : 1)));
+      roving(fc[j]);
+      fc[j].el.focus({ preventScroll: true });
+    }
+  });
+
+  /* ================= buttons ================= */
+  $('#shuffleBtn').addEventListener('click', shuffleDeck);
+  $('#fanBtn').addEventListener('click', fanOut);
+  const revBtn = $('#revBtn');
+  revBtn.addEventListener('click', () => {
+    allowRev = !allowRev;
+    revBtn.setAttribute('aria-pressed', String(allowRev));
+    revBtn.textContent = allowRev ? 'Reversals · on' : 'Reversals · off';
+    try { localStorage.setItem('arcana-reversals', allowRev ? '1' : '0'); } catch (e) { /* storage blocked */ }
+  });
+  try { if (localStorage.getItem('arcana-reversals') === '1') revBtn.click(); } catch (e) { /* storage blocked */ }
+
+  /* ================= sound: paper flicks and a small bell ================= */
+  let actx = null, master = null, noise = null, soundOn = false, lastFlick = 0;
+  function ensureAudio() {
+    if (actx) return true;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+      actx = new AC(); master = actx.createGain(); master.gain.value = 0.5; master.connect(actx.destination);
+      noise = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.25), actx.sampleRate);
+      const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1);
+      return true;
+    } catch (e) { actx = null; return false; }
+  }
+  function flick() {
+    if (!soundOn || !actx) return;
+    const now = performance.now(); if (now - lastFlick < 45) return; lastFlick = now;
+    const t = actx.currentTime, n = actx.createBufferSource(); n.buffer = noise;
+    const f = actx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 2200 + Math.random() * 1500;
+    const g = actx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    n.connect(f); f.connect(g); g.connect(master); n.start(t, Math.random() * 0.15); n.stop(t + 0.07);
+  }
+  function bell(k) {
+    if (!soundOn || !actx) return;
+    const t = actx.currentTime + 0.2, base = [523.25, 659.25, 783.99][k] || 659.25;
+    [[1, 0.16], [2.76, 0.05], [5.4, 0.025]].forEach(([m, v]) => {
+      const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = base * m;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.2 / m + 0.4);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + 3);
+    });
+  }
+  const soundBtn = $('#soundBtn');
+  soundBtn.addEventListener('click', () => {
+    if (!soundOn) { if (!ensureAudio()) return; if (actx.state === 'suspended') actx.resume(); }
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    soundBtn.textContent = soundOn ? 'Sound · on' : 'Sound · off';
+    if (soundOn) bell(1);
+  });
+
+  /* ================= star dust ================= */
+  const dust = $('#dust'), dctx = dust.getContext('2d');
+  let DW = 0, DH = 0, ddpr = 1, motes = [], mx = 0, my = 0, dustRaf = 0, lastT = 0;
+  function sizeDust() {
+    ddpr = Math.min(2, window.devicePixelRatio || 1);
+    DW = window.innerWidth; DH = window.innerHeight;
+    dust.width = Math.round(DW * ddpr); dust.height = Math.round(DH * ddpr);
+    const n = Math.round(Math.min(220, DW * DH / 6500));
+    motes = [];
+    for (let i = 0; i < n; i++) motes.push({ x: Math.random() * DW, y: Math.random() * DH, z: 0.3 + Math.random() * 0.9, r: Math.random() < 0.08 ? 1.6 + Math.random() * 1.4 : 0.4 + Math.random() * 1.1, ph: Math.random() * 6.28, sp: 0.6 + Math.random() * 1.6, gold: Math.random() < 0.55, vx: 3 + Math.random() * 6, vy: -2 - Math.random() * 7 });
+    drawDust(performance.now(), 0);
+  }
+  function drawDust(now, dt) {
+    const x = dctx;
+    x.setTransform(ddpr, 0, 0, ddpr, 0, 0);
+    x.clearRect(0, 0, DW, DH);
+    const g = x.createRadialGradient(DW * 0.5, DH * 0.1, 0, DW * 0.5, DH * 0.1, Math.max(DW, DH) * 0.7);
+    g.addColorStop(0, 'rgba(90,50,150,.28)'); g.addColorStop(1, 'rgba(20,10,36,0)');
+    x.fillStyle = g; x.fillRect(0, 0, DW, DH);
+    const t = now / 1000;
+    for (const m of motes) {
+      if (dt) { m.x += m.vx * m.z * dt; m.y += m.vy * m.z * dt; if (m.x > DW + 10) m.x = -10; if (m.y < -10) { m.y = DH + 10; m.x = Math.random() * DW; } }
+      const tw = reduce ? 0.8 : 0.45 + 0.55 * Math.abs(Math.sin(t * m.sp + m.ph));
+      const px = m.x + mx * m.z * 14, py = m.y + my * m.z * 10;
+      if (m.r > 1.5) {
+        const gg = x.createRadialGradient(px, py, 0, px, py, m.r * 3.2);
+        gg.addColorStop(0, m.gold ? 'rgba(247,231,161,' + (0.5 * tw).toFixed(3) + ')' : 'rgba(232,236,245,' + (0.5 * tw).toFixed(3) + ')');
+        gg.addColorStop(1, 'rgba(0,0,0,0)');
+        x.fillStyle = gg; x.beginPath(); x.arc(px, py, m.r * 3.2, 0, 6.2832); x.fill();
+      }
+      x.fillStyle = m.gold ? 'rgba(247,231,161,' + (0.85 * tw).toFixed(3) + ')' : 'rgba(232,236,245,' + (0.8 * tw).toFixed(3) + ')';
+      x.beginPath(); x.arc(px, py, m.r * 0.6, 0, 6.2832); x.fill();
+    }
+  }
+  function dustLoop(now) {
+    dustRaf = requestAnimationFrame(dustLoop);
+    if (document.hidden) { lastT = now; return; }
+    const dt = lastT ? Math.min(0.05, (now - lastT) / 1000) : 0; lastT = now;
+    if (reduce) return;
+    drawDust(now, dt);
+  }
+  window.addEventListener('pointermove', (e) => { mx = e.clientX / Math.max(1, DW) - 0.5; my = e.clientY / Math.max(1, DH) - 0.5; }, { passive: true });
+
+  /* ================= resize & boot ================= */
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { sizeDust(); snapAll(); }, 80); });
+  if (mq.addEventListener) mq.addEventListener('change', (e) => { reduce = e.matches; });
+
+  sizeDust();
+  dustRaf = requestAnimationFrame(dustLoop);
+  geometry();
+  order = shuffleArr(order);
+  order.forEach((id, k) => { const c = cards[id]; c.el.style.zIndex = 20 + k; setWhere(c, 'stack'); move(c, stackPos(k, c)); });
+  setButtons();
+  setTimeout(() => { fanOut(); }, reduce ? 0 : 320);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+TITLE: The Clockmaker's Orrery
+FILE: 004-brass-orrery.html
+
+=== PROMPT (exact prompt used) ===
+Create "The Clockmaker's Orrery", an interactive mechanical model of the solar system in the style of an 18th-century brass instrument. Parchment background (#efe3c6 with a subtle radial vignette and paper fibres from layered gradients), deep ink lines (#2b1d0e), and brass/gold metallic gradients (#b8860b → #f3d27a → #7a5410) for arms, rings and gears. Centre: a glowing sun; eight planets on brass arms orbiting at correct relative orbital periods (Mercury 0.241 y … Neptune 164.8 y) with log-compressed distances; an engraved zodiac ring with degree ticks around the edge; interlocking gears in a corner that rotate in sync with simulated time. Typography: engraved-looking serif small caps ("Iowan Old Style", "Palatino Linotype", Palatino, "P052", Georgia, serif) with generous letter-spacing. UI: a brass-styled readout of the simulated date, a speed dial (pause, 1 day/s, 1 month/s, 1 year/s), and click-a-planet to open an ornate cartouche with its name, period and a short engraved description. Delight: optional tiny ticking sound (Web Audio, after a gesture) and hover glints on the brass. SVG for the instrument, requestAnimationFrame for motion.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"The Clockmaker's Orrery" is an imagined 1774 brass instrument laid out as a museum plate on aged parchment: an engraved title and gear train on the left, the orrery itself filling the centre, and a column of screwed-down brass plates on the right. Eight painted globes ride on tapered brass arms around a glowing, slowly turning Sun. Each arm stands at its planet's real heliocentric longitude for the simulated date, reckoned from J2000 mean orbital elements plus the equation of the centre, and each moves at its true orbital period. Distances are log-compressed. Around the planets runs a silvered kalendar ring, with day ticks and month names placed where the Earth stands on each date, and a brass zodiac ring engraved with Latin sign names, degree ticks and numerals. A dotted index hand from the Earth arm points at today's date on that ring. The Earth carries a tiny Moon on its own sub-arm. In the corner, a hand-cranked annual gear train (48/16/32/24 teeth, phase-correct meshing) and an oscillating balance wheel turn with simulated time.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Parchment built only from layered gradients: a radial vignette, crossed hairline "fibre" repeats, faint foxing spots and a warm central bloom
+- Zodiac ring in CSS conic-gradient brass, masked to an annulus with a radial mask. Its sheen angle follows the pointer (hover glint), and inset and outer box-shadows lift it off the plate
+- Engraving drawn twice in SVG, once as a pale offset highlight and once in ink, so the lines read as cut grooves: 360 degree ticks, sign boundaries, text on textPath for sign and month names, rotated numerals, lozenge flourishes and a curved Latin motto
+- Kalendar ring computed from the Earth's longitude on every day of the current year, so each month label sits exactly where the Earth arm points on that date
+- Globes use radial gradients with a sun-facing highlight plus a terminator overlay in each arm's rotating frame, so the lit side always faces the Sun. Top-down details include Jupiter's concentric belts and red spot, polar caps on Earth and Mars, and Saturn's multi-band ring counter-rotated to stay fixed in space
+- A separate shadow layer, offset in screen space and deeper for lower arms, gives a stacked 3D feel to the arm heights
+- Procedural gear teeth, spoke windows and axle holes built as one even-odd path per wheel. Wheels are filled with a repeating radial "engine-turned" brass gradient that does not change as they rotate. Meshing phases are derived from pitch angles so the teeth genuinely interlock
+- A balance wheel with a hairspring and a jewelled cock swings on a decaying amplitude that dies away when time is halted
+- Four-point star glints spawned via the Web Animations API wherever the pointer crosses brass. Brass HTML plates get a sweeping specular band and slotted screws drawn with gradients
+- An ornate cartouche dialog with engraved corner scrollwork, a crest, a rubricated drop cap and a painted portrait globe
+
+=== INTERACTION MODEL ===
+- The simulation runs at one day per second from the real current date, opening with a 1.3 s "setting" sweep that fans the arms out from 0° to their true places
+- The Rate of the Heavens dial is a knurled brass knob with four detents (Halt, Day, Month, Year). Click the knob to cycle, click a label, or use the arrow keys in the radiogroup. The rate eases toward its target so the machine spins up and down with inertia
+- Click, tap or focus a planet (or its row in the Index of Wanderers) and press Enter to open its cartouche. It shows period, distance, diameter, day length, a live heliocentric place and an accurate short history. The orbit is highlighted. Close with the ✕, Esc, or a click on the plate
+- The index lists each planet's live zodiacal place and period. The date plate shows the date, Roman-numeral year, weekday, Julian Day and the Sun's sign
+- Drag the ebony crank of the great wheel to wind time forward or back: one turn is one year. With the crank focused, arrow keys step a week, Page Up and Page Down step a year, and Home returns to now
+- "Today" winds the instrument back to the present with an eased sweep. Clicking the Sun sets off a solar flare pulse (and a soft chime when sound is on)
+- The optional escapement tick is synthesized with Web Audio (a band-passed noise click plus a sine body) and synced to the balance wheel. It is off until you press the Ticking toggle
+- prefers-reduced-motion starts the instrument halted and skips the intro sweep, glints, sheen motion and ray rotation. Planet labels hide on small screens except for the selected planet

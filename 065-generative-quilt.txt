@@ -1,0 +1,38 @@
+TITLE: Patchwork — A Generative Quilt
+FILE: 065-generative-quilt.html
+
+=== PROMPT (exact prompt used) ===
+Create "Patchwork — A Generative Quilt". Every visit (and every click on "Stitch a new quilt") generates a unique quilt made from traditional blocks — Log Cabin, Flying Geese, Half-Square Triangles, Nine Patch, Pinwheel, Churn Dash, Ohio Star — laid out on a grid with sashing and borders. Fabrics are procedural SVG patterns: gingham, calico florals (tiny flower motifs), polka dots, stripes and chambray, in warm cottage palettes (e.g. barn red #9e2a2b, mustard #e09f3e, denim #335c67, cream #fff3b0, sage #9fb8ad). Visible dashed stitching, slight puffy shading on each patch (quilted look via inner shadows) and a wavy binding edge. Interaction: hovering a block lifts it slightly and shows its pattern name; clicking cycles its pattern; a palette chooser (Farmhouse, Indigo, Sunset, Scandinavian); a "drape" toggle shows the quilt hanging on a line, waving gently in the wind. Download PNG. Typography: a warm serif with an embroidery-like dashed underline.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Patchwork is a cottage-craft page that pieces a new quilt on every visit. It sits on warm linen and is set in a chunky warm serif with an embroidered, dashed underline and a spool-and-needle mark. The quilt is built entirely in SVG from seven traditional blocks: Log Cabin, Flying Geese, Half-Square Triangles, Nine Patch, Pinwheel, Churn Dash and Ohio Star. Each block is drawn from real piecing geometry in a unit square and turned a random quarter-turn. The blocks sit in sashing with cornerstones, a printed border and a wavy binding. Every patch is cut from procedural SVG fabric patterns: gingham, calico florals with five-petal flowers and leaves, polka dots, straight or bias stripes, chambray weave, flecked muslin and near-solids. The palettes are cottage-warm (Farmhouse's barn red, mustard, denim, cream and sage, plus Indigo, Sunset and Scandinavian). Patches get puffy quilted shading and dashed hand-stitching inset along every seam. A sewn-on label card gives the quilt a whimsical fictional name, a number, block counts with mini icons and its finished size, and holds the controls. A "Drape on line" mode hangs the quilt from wooden pegs on a sagging washing line under an open sky, where it billows in the wind.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Seeded procedural generation: each quilt favours two or three block types, with the occasional surprise, and a role system (light background, dark, accent, medium) maps fabrics to patches so contrast reads the way it does in real piecing
+- Fabrics as SVG <pattern> tiles generated per palette from its light, mid and dark tones (gingham by overlapping translucent bands, calico from petal circles, chambray from crossing hairlines, bias stripes via patternTransform)
+- Quilted puff: an objectBoundingBox radial gradient laid over every patch, plus seam lines and dashed running stitches on a mathematically inset copy of each convex patch; a fine weave overlay covers the whole quilt
+- Wavy binding built from alternating quadratic curves, border and binding stitch lines, cornerstones, and a soft blurred shadow under the quilt
+- Hover lift with a CSS transform and an SVG feDropShadow filter; a pop animation when a block is re-pieced; a staggered "stitched in" reveal for new quilts
+- Drape mode: the SVG is serialized into an image and texture-mapped onto a 22×16 cloth mesh with affine triangle warping on canvas; travelling sine waves and gusts, a sway that grows toward the hem, per-quad light and shadow in the folds, a catenary washing line and clothes pegs
+- Mini block icons in the legend are rendered from the same block geometry
+
+=== INTERACTION MODEL ===
+- "Stitch a new quilt" generates a new design with a new name and number, and the blocks stitch in one by one
+- Hovering a block lifts it and shows a fabric-tag tooltip with the pattern name and a one-line note; clicking cycles the block through all seven patterns
+- Blocks are focusable buttons: Enter or Space re-pieces a block, and the arrow keys move between blocks
+- Palette chooser (Farmhouse, Indigo, Sunset, Scandinavian) re-dyes every fabric in place
+- "Drape on line" / "Lay it flat" toggles the waving washing-line view, which updates live if you change the palette or stitch a new quilt
+- "Save PNG" rasterizes the quilt at 2× and downloads it; the page is responsive: a 4×5 quilt beside the label on desktop, 3×4 stacked above it on phones
+- Reduced motion slows the wind and turns off the pop and reveal animations; the drape loop stops while the tab is hidden

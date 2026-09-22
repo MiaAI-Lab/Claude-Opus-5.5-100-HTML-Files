@@ -1,0 +1,38 @@
+TITLE: Riso Lab — Halftone Print Studio
+FILE: 049-riso-halftone-lab.html
+
+=== PROMPT (exact prompt used) ===
+Create "Riso Lab — Halftone Print Studio", a tool that turns procedural artwork into a two- or three-colour risograph print simulation. The source image is generated in-page, chosen from: a gradient sphere, a sunset landscape, a big typographic word the user types, a geometric face made of shapes, or a doodle drawn on a small canvas. The output renders colour separations as halftone dot screens at classic angles (e.g. 15°, 45°, 75°) in fluorescent pink #ff48b0, medium blue #0078bf, yellow #ffe800 and black, printed on off-white paper (#f4efe2) with multiply blending, slight misregistration, ink-density variation and paper grain. Controls: dot size/LPI, per-ink screen angle, misregistration amount, ink colours, dot shape (circle, line, square) and PNG download. Each ink has a small "drum" control that toggles its layer with a satisfying roller animation. Layout: a clean studio UI in white and black with tiny monospace labels, the print displayed like a poster pinned up with tape.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Riso Lab is a clean black-and-white print-studio tool whose output is pinned to a warm plaster wall. The left panel is Swiss-plain: hairline rules, tiny uppercase monospace labels, square slider thumbs, and a "RISO LAB" wordmark printed as three overlapping multiply layers. One of five procedural artworks (a lit sphere over a dusk floor, a layered-ridge sunset, a big tilted word you type, a flat geometric face, or your own doodle) is separated into three spot inks and screened as halftone at each drum's angle. The proof overprints fluorescent pink #ff48b0, medium blue #0078bf and yellow #ffe800 (plus black, teal and orange) on #f4efe2 paper with real multiply blending. The poster hangs from two torn washi-tape strips with a slight tilt and soft shadow, and carries print furniture: four registration targets and crop ticks printed by every drum (so misregistration shows as colour-fringed marks), a colour bar with solid, tint and overprint patches, and a colophon set in the darkest ink. A museum-style caption under the poster records the proof number, inks, angles, ruling and misregistration.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Colour separation by bounded least squares in optical-density space: each pixel's density relative to the paper is solved for up to three ink coverages (projected coordinate descent, clamped 0–1, light regularisation), so any ink combination gets a best-effort separation
+- Halftone screening per drum on its own canvas: a rotated cell grid at the drum's angle, with coverage sampled bilinearly from the separation map; circle dots (area-true radius, closing at high coverage), square dots, or line screens drawn as variable-thickness row polygons; dot gain and a clip to the image area
+- Each ink canvas is stacked with CSS mix-blend-mode: multiply, so layers overprint like translucent riso ink; misregistration is a per-drum CSS translate and micro-rotation that can change without re-rendering
+- Ink texture knocked out of each layer: a low-frequency density-drift field, starvation toward one edge, fine speckle and faint drum drag streaks, all seeded so "Print again" gives a new but repeatable pull
+- Paper: mottled formation, fibres and speckle, plus a multiply grain layer and a screen-blended "tooth" layer so paper texture shows through the ink
+- Live separation-plate previews per drum; a source thumbnail; ink drum controls built from CSS cylinders with shading, ridges, end caps and an LED
+- Wipe-in print pass animation (clip-path) when a drum is loaded or a new proof is pulled; a plaster wall with dotted texture, a ruler and a proof note
+
+=== INTERACTION MODEL ===
+- Source picker (Sphere, Sunset, Word, Face, Doodle); Word shows a text field (up to 10 letters) that re-screens as you type; Doodle shows a drawing pad with four brush colours and Clear, and re-screens live while you draw (pointer events: mouse, pen, touch)
+- Ink drums A/B/C: click a drum to load or remove its layer, with a spinning-roller animation and a sliding cylinder; choose each drum's ink from six swatches (radio group); set each screen angle from 0 to 90° with a slider
+- Screen: dot shape (circle, line, square), dot size / ruling (lines across the image, shown in px), misregistration (0–10 px, instant) and ink grain / density drift
+- Print again re-rolls misregistration, ink texture and paper for a new numbered proof, which wipes in drum by drum; Download PNG flattens paper, inks (with the same offsets) and paper texture at 2× into a PNG
+- Rendering is batched through requestAnimationFrame; only the affected drum re-renders when its angle changes
+- On phones the poster comes first, with its caption and actions, and the full control panel follows below; reduced motion disables the wipe and roller animations

@@ -1,0 +1,43 @@
+TITLE: Brush & Ink — Calligraphy Pad
+FILE: 075-calligraphy-pad.html
+
+=== PROMPT (exact prompt used) ===
+Build "Brush & Ink — Calligraphy Pad". A sheet of rice paper (#f5f0e1 with visible fibres and an optional faint grid of practice squares) on a dark wood desk (#2b1d14), with an inkstone and a brush illustrated at the side. Drawing produces convincing brush strokes: width responds to speed (slow = thick, fast = thin) and to pointer pressure when available; ink runs out over a long stroke, producing dry-brush "flying white" texture; stroke ends taper; ink bleeds slightly into the paper (a subtle blurred halo). Ink colours: sumi black, diluted grey and vermillion. Tools: brush size, ink wetness, undo, clear (the paper slides away and a fresh sheet slides in), a red seal stamp you can place (SVG seal with generated square characters), and PNG download. Include a "trace" mode that shows faint model strokes of a simple character (e.g. 永) to practise over. Typography: small, elegant serif labels with vertical-text accents.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Brush & Ink is a quiet, lamp-lit calligraphy desk. A sheet of rice paper with a deckled edge, drifting fibres and faint laid lines lies on a dark procedurally grained wooden desk; to its left a lacquer-dark tool rail with vertical 筆墨 lettering, to its right an illustrated inkstone with an ink stick, a bamboo brush on a porcelain rest and a carved red seal. On load the brush writes 永 (eternity), the character used to teach the "eight principles of yong", stroke by stroke, followed by a small vertical inscription giving the current season and year in the sexagenary cycle, and the seal. From then on the paper is yours: strokes swell when you move slowly and thin when you move fast, respond to pen pressure, taper at the ends, bleed a soft halo into the paper and run dry over long strokes into streaky "flying white".
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A custom brush engine that stamps along each stroke at sub-pixel spacing: width follows smoothed speed (slow = thick) and pen pressure, eases in at the entry, and tapers into a tail whose length depends on exit speed
+- Dry brush: 26 simulated bristles with their own dryness bias and low-frequency noise; as the stroke's ink falls, the solid core shrinks and only bristles with enough ink leave marks, producing parallel streaks of flying white; bristle normals are smoothed so turns do not fan out
+- Ink bleed: every wet stamp also paints a larger, low-alpha disc on a separate canvas shown through a CSS blur, giving a subtle feathered halo that is stronger for wetter ink
+- Layered canvases (paper, grid, trace, bleed, live stroke, ink); the live stroke is drawn opaque and composited at the ink's alpha on release, so diluted grey stays even within a stroke but darkens where strokes overlap
+- Procedural rice paper: soft mottling, thousands of curved light and dark fibres, specks, laid lines, edge tint and a randomly jittered clip-path polygon for the deckled edge
+- Procedural wooden desk: planks of wavy grain lines that swerve around knots, seams, and a lamp-glow vignette
+- The model 永 is defined as five stroke skeletons (dot, horizontal-turn-hook, horizontal-sweep, sweep, press) with per-point pacing, interpolated with Catmull-Rom splines and written by the same engine, so the model has true brush modulation
+- Seal carving: seeded, rectilinear pseudo-characters in a 2×2 layout cut out of a vermilion square, with edge wear and speckle, rendered as SVG for the preview and to canvas for stamping
+- Vertical CJK accents set with writing-mode: vertical-rl in a Kai-style font stack, set against small italic Garamond-style labels
+
+=== INTERACTION MODEL ===
+- Draw with mouse, finger or pen (coalesced pointer events for smooth curves); a ring cursor shows the brush footprint on desktop
+- Ink wells choose sumi black, diluted grey or vermilion (radio group with arrow-key support); the brush illustration's tip darkens with the chosen ink and fades as the stroke's ink runs out
+- Sliders set brush size and ink wetness; wetter ink lasts longer and bleeds more
+- Undo (button or Ctrl/Cmd+Z) removes the last stroke, seal or inscription by replaying the recorded strokes exactly, with the same seeds
+- Clear slides the sheet off the desk and slides a fresh sheet, with new fibres, in from the other side
+- Trace shows the faint model 永 in a large practice square with numbered stroke order; Grid toggles faint vermilion practice squares (twelve small squares, or the large one while tracing)
+- Seal: pick it up from the rail or the desk, see a ghost follow the pointer, click to press it onto the paper; "carve another" generates a new seal
+- Save downloads a PNG composed of paper, grid, trace, blurred bleed and ink
+- Clicking the inkstone grinds fresh ink with a ripple; settings persist in guarded localStorage; the drawing re-renders at the new size when the window changes; reduced motion writes the opening character instantly and skips the sliding animations

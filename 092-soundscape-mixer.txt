@@ -1,0 +1,36 @@
+TITLE: Ambience — Soundscape Mixer
+FILE: 092-soundscape-mixer.html
+
+=== PROMPT (exact prompt used) ===
+Build "Ambience — Soundscape Mixer", a calm app for mixing natural ambient sounds, all synthesized with Web Audio (no audio files): rain (filtered noise plus random droplet clicks), thunder (low noise bursts), wind (band-pass-swept noise), ocean waves (noise with slow amplitude swells), campfire (crackle impulses and a low rumble), forest birds (short FM chirps at random intervals), crickets (pulsed high sine tones), café murmur (band-limited noise through formant-like filters) and a soft drone pad. Each sound is a card with a hand-crafted SVG illustration that animates subtly while that sound is active (raindrops fall, flames flicker, waves roll), a volume slider and an on/off toggle. Earthy, calm palette: moss #606c38, deep forest #283618, cream #fefae0, sand #dda15e, clay #bc6c25. Presets ("Stormy cabin", "Beach at dusk", "Deep focus"), a master volume, and a sleep timer that fades everything out. The background gradient shifts subtly with the active mix. Typography: a soft humanist sans. Audio starts only after a gesture.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Ambience is a calm, tactile mixer for natural sound, set in the requested earthy palette: cream #fefae0 paper, moss #606c38, deep forest #283618, sand #dda15e and clay #bc6c25. A sticky side panel holds the brand, a large clay play button inside a breathing, audio-reactive orb, a live status line, master volume, four presets (Stormy cabin, Beach at dusk, Deep focus, Summer night) and a sleep timer with a progress ring. The main area is a 3×3 grid of cream cards, one per sound, each topped by a hand-drawn SVG vignette: rain from a cloud into rippling puddles, a thundercloud with lightning, gusting wind with tumbling leaves, rolling sea swells, a campfire, two birds on a branch, crickets under a crescent moon with fireflies, a café cup with steam and chatter bubbles, and a singing bowl for the drone pad. Every sound is synthesized in real time with the Web Audio API, and the page background slowly re-tints (wet, green, warm, night) to match whatever is in the mix.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Nine hand-authored inline SVG illustrations, desaturated and still when off, with scoped CSS keyframe motion when on: falling drops and ripple rings, drifting clouds, flowing dash-offset gust lines, tumbling leaves, swaying grass, looping wave layers with a slow swell, three-layer flame flicker with rising sparks and a pulsing glow, hopping birds with song marks, pulsing cricket arcs, blinking fireflies, rising steam, chatter bubbles, a swaying pendant lamp, expanding singing-bowl rings and a travelling sine line
+- Audio-to-visual sync: each thunder burst triggers a lightning strike on its card just before the rumble, bird phrases pop song marks, and café clinks spark on the cup
+- Audio-reactive orb: an AnalyserNode drives 48 log-spaced bands, smoothed into two layered organic blobs (quadratic midpoint curves) around the play button, which breathe gently when paused
+- Mood background: stacked radial/linear gradient layers (wet, green, warm, night) whose opacities are weighted by which sounds are on and how loud they are, cross-fading over 2.4 s, over a procedural paper-grain multiply layer
+- Custom range sliders with a filled track driven by a CSS variable, springy toggle switches, pulsing "live" dots, embossed cream cards with soft forest shadows, humanist sans typography (Seravek / Candara / Cantarell)
+
+=== INTERACTION MODEL ===
+- Nothing sounds until the visitor acts: Play, a card switch, a card illustration or a preset creates the AudioContext inside that gesture. Play toggles to Pause (with a fade, then the context is suspended); Space also toggles when focus is not on a control
+- Each card has a role="switch" on/off toggle (the illustration is also clickable) and its own volume slider; the master volume sets the overall level through a gentle compressor
+- The synthesis: rain = pink and brown noise beds plus scheduled band-passed droplet clicks and rising plinks; thunder = random low-passed brown-noise rumbles with rolling sub-swells and occasional cracks; wind = band-pass noise swept by two slow LFOs plus a whistling resonance; ocean = filtered noise with scheduled amplitude and brightness swells and a foam wash; campfire = clustered crackle impulses and pops over a modulated low rumble; birds = FM chirp phrases from four "species" through a soft echo; crickets = three panned sine pulses at around 4.4 to 5.1 kHz in chirp trains; café = formant-filtered noise voices with syllabic modulation, a room bed and cup clinks; drone = a detuned D-based chord through a slowly moving low-pass
+- Events are timed on the audio clock by a lookahead scheduler, which uses a longer lookahead in background tabs so the sound keeps running there
+- Presets switch and set levels for several sounds at once. The sleep timer (15, 30 or 60 minutes) counts down and fades everything out over the last stretch, then pauses
+- The mix, levels, master volume and active preset are saved in localStorage (guarded with try/catch); the visualizer animation pauses while the tab is hidden; reduced-motion mode freezes the illustration animations

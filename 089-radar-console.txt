@@ -1,0 +1,40 @@
+TITLE: SENTINEL — Radar Array
+FILE: 089-radar-console.html
+
+=== PROMPT (exact prompt used) ===
+Create "SENTINEL — Radar Array", a radar/sonar console as polished UI art, set in a clearly fictional scenario. Phosphor green (#39ff88) on dark olive-black (#020a05), with an amber mode. The centrepiece: a circular PPI radar scope on canvas with range rings, bearing ticks (0–359°), a rotating sweep beam with a fading afterglow wedge, and contacts (blips) that brighten when swept and then decay; contacts move along plausible tracks (aircraft, ships, a fast unknown), each with a small data tag (ID, heading, speed, altitude) and a trail of past positions. Surrounding console panels: a contact table, a signal-strength waterfall/spectrogram, system status indicators, a compass heading readout and a scrolling event log. Interaction: click a contact to lock on (target reticle, detailed readout); a range selector (10/25/50 nm) that rescales smoothly; a radar/sonar toggle — sonar switches to a blue-green water palette with pings and a Web Audio ping sound after a gesture. Typography: monospace with stencilled headings.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+SENTINEL is a radar and sonar console built as UI art for a clearly fictional training exercise ("Exercise Grey Heron", picket station K-7, all contacts fictional). Phosphor green #39ff88 glows on olive-black #020a05 under CRT scanlines and a vignette, with stencil-cut headings and monospace readouts everywhere. The centrepiece is a large plan-position-indicator scope: a bezel with 1°, 5° and 10° bearing ticks and 000–350 labels, range rings that rescale smoothly between 10, 25 and 50 nm, a dotted graticule, and a rotating sweep with a conic afterglow wedge. A true phosphor-persistence layer holds island coastlines, sea clutter, a drifting rain squall and speckle, and the returns fade after each pass. Aircraft, ships, a helicopter, a fishing boat, a ferry and a fast unknown move on plausible tracks. Each shows blips that flare when swept and then decay, trails of past plots, velocity leaders, domain symbols and data tags (ID, heading, speed, altitude). Around the scope sit a sortable track table with a symbol legend, system status lamps with live values and level bars, a target-lock readout with CPA/TCPA and an A-scope trace, a Doppler waterfall, an own-ship heading tape and a timestamped event log. Sonar mode turns everything blue-green: expanding ping rings replace the sweep, subsurface and biologic contacts appear, and the waterfall becomes a LOFAR-style tonal display. An amber P3 phosphor mode is also available.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- PPI scope on canvas with a pre-rendered bezel layer (face gradient, graticule, dashed cross and diagonals, 360 ticks, bearing labels), rebuilt on resize or palette change
+- Phosphor persistence: an offscreen layer that fades exponentially each frame (destination-out), painted only inside the angular slice the beam swept this frame (radar) or the range band the ping crossed (sonar), with returns sampled from a rasterised island mask (bright coasts facing the antenna, grainy interiors), sea clutter or reverberation, a rain cell, a fish school and noise
+- Sweep beam as a conic-gradient afterglow wedge plus a glowing beam line (with a sliced fallback); in sonar, a glowing expanding ping ring
+- Contacts as vector overlays in world coordinates (nautical miles), so range changes rescale smoothly; blip brightness decays exponentially from the last hit; trails of past plots; the lock reticle tracks the predicted position with rotating brackets, corner marks, a bearing line and a pulse
+- Tags flip sides so they stay on the canvas; unknown contacts use a warning yellow
+- Doppler waterfall built from ImageData rows scrolled by self-drawImage; each track's radial velocity sets its line position, and the locked track burns brighter; sonar shows paired tonal lines; history is pre-filled so it never opens empty
+- An A-scope trace (amplitude against range) for the locked target, and a canvas heading tape with cardinal points
+- CSS theme variables swap the whole console between green, amber and water palettes; stencil headings use a mask cut; CRT scanlines, a vignette and bracketed panel corners
+
+=== INTERACTION MODEL ===
+- Click a blip on the scope (or a row in the track table, with Enter/Space from the keyboard) to lock on: lock beeps, the reticle appears, and the readout shows bearing, range, heading, speed, altitude or depth, IFF, closest point of approach with time to it, track quality and an A-scope
+- RANGE 10 / 25 / 50 NM (or keys 1 2 3) rescales rings, blips and trails smoothly while old phosphor fades quickly
+- MODE RADAR / SONAR (or M): sonar recolours the console, fires a synthesized Web Audio ping with an echo loop every few seconds (a softer echo when a ping reaches the locked target), and changes which contacts are held, the status values and the waterfall type
+- PHOS P1 GRN / P3 AMB switches the radar phosphor colour; SND toggles all sound (off by default; audio starts only after a gesture)
+- RELEASE or Esc drops the lock; hovering a blip brightens its tag
+- A live simulation at ×8 time (labelled): tracks turn, orbit, zigzag, shuttle and meander; contacts leaving 60 nm respawn; the event log records new tracks, IFF failures, locks, mode and range changes
+- On phones the scope comes first at full width, with the lock readout, waterfall, heading, log, track table and status stacked below; reduced motion slows the sweep and stops the blinking; the loop pauses when the tab is hidden

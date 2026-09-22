@@ -1,0 +1,39 @@
+TITLE: Helix — The Double Helix Explained
+FILE: 052-dna-helix.html
+
+=== PROMPT (exact prompt used) ===
+Build "Helix — The Double Helix Explained", an educational, beautiful interactive visualization. Centre: a rotating B-DNA double helix drawn on canvas with 3D projection — two sugar-phosphate backbones as glossy ribbons (#2ec4b6 and #e71d36 with depth shading) and base pairs as rungs coloured by nucleotide (A #ff9f1c, T #ffbf69, G #6a4c93, C #8ac926), with correct pairing (A–T, G–C), ~10.5 base pairs per turn, and depth fading for the back strands. A clean biotech palette on off-white (#f7f9fb) with a dark-mode toggle. A side panel with annotations and leader lines (major/minor groove; hydrogen bonds: 2 for A–T, 3 for G–C; 5'→3' direction), a sequence input where typing A/T/G/C rebuilds the helix live (auto-generating the complementary strand), and an "Unzip" button that animates replication — the strands separate and new complementary nucleotides float in. Interaction: drag to rotate, scroll to zoom, hover a base pair to highlight and label it. Typography: a modern sans with a monospace sequence display.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Helix is a clean, editorial biotech explainer. On the left, a large canvas on an off-white dotted-grid "lab bench" (#f7f9fb) shows an idealised B-DNA double helix, rendered in true 3D with perspective. It is right-handed, has 10.5 base pairs per turn and a 0.34 nm rise, and its two backbones are offset about 135° around the axis, which produces a visibly wide major groove and a narrow minor groove. The helix slowly rotates on a slightly diagonal axis, beside a bold "The Double Helix" headline and a one-turn scale bracket. On the right, a white annotation panel lists five numbered features (5′→3′ direction, sugar–phosphate backbone, major groove, minor groove, hydrogen bonds). Live leader lines run from each note to numbered pins that track the matching feature as the molecule turns. Below the notes are the key measurements, a sequence builder with a colour-coded complementary strand, and a legend. An "Unzip & replicate" sequence animates a simplified semi-conservative replication. A dark mode moves the whole piece to deep navy.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Hand-written 3D pipeline on canvas 2D: model coordinates in ångström, spin about the helix axis, tilt, perspective divide, then an in-plane roll (diagonal on wide screens, near-vertical on phones)
+- Correct B-DNA geometry: right-handed twist of 360°/10.5 per bp, 3.4 Å rise, 10 Å radius, 135° backbone offset giving roughly 13 Å and 22 Å grooves; antiparallel strands labelled 5′/3′ at their ends
+- Glossy backbone ribbons (#2ec4b6, #e71d36) built from per-segment quads, lit by a Lambert and specular term from the ribbon normal, with phosphate beads and white 5′→3′ chevrons
+- Base-pair rungs split at a purine/pyrimidine-weighted point and coloured by nucleotide (A #ff9f1c, T #ffbf69, G #6a4c93, C #8ac926), with specular highlight lines and dashed hydrogen bonds (two for A=T, three for G≡C)
+- Depth handled by pooled draw items sorted back to front (painter's algorithm), plus depth fading of back elements toward the page colour (works in both themes)
+- Live leader lines: an SVG overlay connects panel anchors to the front-most matching feature each frame (a groove centre, a backbone point, an A–T and a G–C pair); canvas pins carry the numbers
+- Replication: a moving fork separates the strands onto two offset axes, free nucleotides fly in along eased wobbling paths, then new lighter-tinted backbones join up into two daughter helices
+- Pop-in growth for bases that change when the sequence is edited; a dotted-grid CSS background; a theme-aware palette
+
+=== INTERACTION MODEL ===
+- Drag to rotate: movement across the axis spins the helix and movement along it tilts it; spin keeps its inertia and eases back into the auto-rotation. Scroll wheel or pinch to zoom; buttons for pause/play, zoom and reset; keyboard (arrows rotate and tilt, +/− zoom, Space pauses)
+- Hover a rung (or tap on touch) to highlight that base pair: a tooltip names both bases, purine or pyrimidine, and the number of hydrogen bonds, and the matching column lights up in the sequence display. Hovering letters in the sequence display highlights the pair in 3D
+- Hover an annotation to emphasise its leader line and pin
+- Sequence input accepts A/T/G/C only (other characters are stripped with a gentle warning), 2 to 40 bases; the helix rebuilds live with the complementary strand, and GC %, hydrogen-bond count, turns, length and a basic Tm estimate update. A Random button generates a new sequence
+- "Unzip & replicate" runs the fork and synthesis with stage captions, then becomes "Rejoin strands" to reverse it
+- The dark-mode toggle is saved in localStorage (guarded with try/catch); rendering pauses when the tab is hidden; reduced motion slows rotation and speeds up the replication steps

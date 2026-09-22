@@ -1,0 +1,36 @@
+TITLE: Luminote — Piano with Falling Lights
+FILE: 080-falling-notes-piano.html
+
+=== PROMPT (exact prompt used) ===
+Create "Luminote — Piano with Falling Lights". A full-width three-octave piano keyboard along the bottom (glossy black and ivory keys with realistic depth and pressed states), playable by mouse/touch (multi-touch) and computer keyboard (two rows mapped). Above it, a dark stage (#0a0a12) where notes fall toward the keys like a rhythm-game visualizer: glowing rounded bars coloured by pitch (a soft chromatic rainbow), with sparks and a light burst when they land. Sound: a pleasant piano-like tone synthesized with Web Audio (several detuned harmonics, fast attack, exponential decay, and reverb from a convolver with a generated noise impulse). Modes: "Free play" — played notes rise as light trails; "Listen" — auto-plays public-domain melodies (Ode to Joy, the opening of Für Elise, Twinkle Twinkle Little Star, the opening of Gymnopédie No. 1) with falling notes; "Learn" — the song waits for you to press the right key. Tempo slider and a note-name toggle. Typography: a refined sans with small caps.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A nocturnal, immersive piano visualizer. A deep #0a0a12 stage fills the screen above a realistic three-octave keyboard (C3–C6, 37 keys) with a lacquered fallboard and a thin red felt line. Glowing rounded bars fall toward the keys, each coloured by pitch class on a soft chromatic rainbow (rose C through orange, lime, cyan and indigo to magenta B). When a bar lands, its key sinks and glows, a light beam rises from it, and a burst of sparks and an elliptical bloom flare up. Faint key lanes, octave marks, drifting dust and a violet horizon glow give the stage depth. A floating glass control bar carries the rainbow small-caps "Luminote" wordmark, the three modes, a melody picker, play/restart, a tempo slider, a label toggle and mute. The page opens in Listen mode, already raining the opening of Für Elise silently, with a breathing "Tap anywhere to wake the piano" pill.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A DPR-aware canvas stage over a pre-rendered backdrop (gradient, lane shading, octave labels). Additive ("lighter") compositing for bars, beams, blooms and sparks. Bars are rounded rects with a vertical gradient, a pitch-coloured shadowBlur halo and a bright inner core.
+- A pooled spark system (420 particles, gravity, drag, streak rendering), key light beams that fade on release, radial bloom bursts, twinkling dust motes and a rainbow horizon line at the keys.
+- CSS-built keys. Ivory keys use layered gradients with a front lip (inset shadows); black keys have a glossy highlight strip and a raised lip. Pressed states translate the key, shrink the lip and cast a glow in the note's colour (a CSS custom property per key). Learn-mode hints pulse, and wrong notes shake.
+- Web Audio piano synthesis: eight sine partials with slight detune and inharmonic stretch, per-partial decays, a 5 ms attack, pitch-dependent exponential decay, a lowpass whose cutoff falls over time, a filtered-noise hammer tick, a convolver reverb from a generated stereo noise impulse (with sparse early reflections and a darkening tail), and a gentle compressor.
+- A glass UI with backdrop blur, a gradient-text wordmark, small-caps labels and a rainbow progress bar.
+
+=== INTERACTION MODEL ===
+- Play with mouse or touch: multi-touch chords work, and sliding across keys plays a glissando. On a computer keyboard, the bottom row Z…/ (with S D G H J L ;) starts at C3 and the top row Q…] (with 2 3 5 6 7 9 0 =) starts at C4. Pressing near the front of a key plays slightly louder.
+- Free play: every note you play rises from its key as a ribbon of light that grows while held and floats away on release.
+- Listen: auto-plays Ode to Joy, the opening of Für Elise, Twinkle Twinkle Little Star, or the opening of Satie's Gymnopédie No. 1 (with its alternating G/D major-seventh accompaniment). Notes fall in time and loop "da capo". Play/pause and restart are available.
+- Learn: the melody falls and stops when the next note reaches the keyboard. That key glows, and the coach shows its name and computer key until you play it. Wrong notes shake, a first-try accuracy score is kept and a result card appears at the end.
+- The tempo slider (40–160%) keeps the fall speed constant in pixels while changing the pace. Labels switch between note names, computer-key letters and off, and are remembered with tempo and mute in localStorage (guarded).
+- Audio starts on the first gesture, and the mute button fades the master output. On phones, a compact bar hides the extra settings behind a toggle. The stage and keyboard scroll sideways together, auto-following the upcoming notes unless you scroll yourself. Reduced motion trims sparks and dust.

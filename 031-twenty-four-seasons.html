@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nijūshi Sekki — The Twenty-Four Seasons</title>
+<meta name="description" content="A contemplative dial of the twenty-four solar terms of the East Asian calendar, each painted in a traditional Japanese colour, with today's sun computed from the date and a seasonal motif drifting behind the text.">
+<style>
+@property --tint{syntax:'<color>';inherits:true;initial-value:#f8f5ee}
+@property --sky{syntax:'<color>';inherits:true;initial-value:#f8f5ee}
+@property --accent{syntax:'<color>';inherits:true;initial-value:#2b2b2b}
+@property --term{syntax:'<color>';inherits:true;initial-value:#c9c3b6}
+:root{
+  --washi:#f8f5ee;
+  --sumi:#2b2b2b;
+  --sumi-soft:#5a5752;
+  --shu:#c53a32;
+  --tint:#f8f5ee;
+  --sky:#f8f5ee;
+  --accent:#2b2b2b;
+  --term:#c9c3b6;
+  --serif:"Cochin","Baskerville","Baskerville Old Face","Hoefler Text","Garamond","Times New Roman","Nimbus Roman",serif;
+  --mincho:"Hiragino Mincho ProN","Hiragino Mincho Pro","Yu Mincho","YuMincho","Noto Serif CJK JP","Noto Serif JP","Source Han Serif JP","MS PMincho",serif;
+  transition:--tint 1.4s ease,--sky 1.4s ease,--accent 1.4s ease,--term 1.4s ease;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:var(--sumi);font-family:var(--serif);background:var(--washi);overflow-x:hidden}
+.backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 45% at 78% 8%,color-mix(in srgb,var(--term) 22%,transparent),transparent 70%),
+    linear-gradient(180deg,var(--sky) 0%,var(--tint) 58%,var(--tint) 100%);
+}
+.fibres{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:var(--kozo,none);background-size:360px 360px;opacity:.75;mix-blend-mode:multiply}
+#motif{position:fixed;left:0;top:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--shu);outline-offset:3px}
+
+.shell{position:relative;z-index:2;min-height:100vh;display:grid;grid-template-columns:104px minmax(0,1fr);}
+
+/* the vertical masthead */
+.mast{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:38px 0 30px;border-right:1px solid color-mix(in srgb,var(--sumi) 16%,transparent)}
+.mast-jp{writing-mode:vertical-rl;font-family:var(--mincho);font-size:38px;letter-spacing:.32em;margin:0;font-weight:500;line-height:1}
+.seal{display:grid;place-items:center;width:40px;height:40px;background:var(--shu);color:#fbefe4;font-family:var(--mincho);font-size:13px;line-height:1.05;border-radius:3px;letter-spacing:0;box-shadow:inset 0 0 0 2px rgba(251,239,228,.55),inset 0 0 0 3px var(--shu);margin-top:18px;transform:rotate(-3deg)}
+.seal span{writing-mode:vertical-rl}
+.mast-en{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--sumi-soft);margin:0}
+
+/* stage */
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,470px);gap:10px 44px;align-items:center;padding:24px 56px 24px 36px;min-height:100vh}
+.dial-col{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.dial-box{position:relative;width:min(100%,calc(100vh - 150px));aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none}
+#dial{width:100%;height:100%;display:block;overflow:visible;cursor:grab}
+#dial.dragging{cursor:grabbing}
+.controls{display:flex;align-items:center;gap:14px;margin-top:6px}
+.btn{-webkit-appearance:none;appearance:none;font:inherit;color:var(--sumi);background:color-mix(in srgb,var(--washi) 70%,transparent);border:1px solid color-mix(in srgb,var(--sumi) 38%,transparent);cursor:pointer;transition:background-color .3s,border-color .3s,transform .2s,color .3s}
+.btn:hover{border-color:var(--sumi);background:var(--washi)}
+.btn:active{transform:scale(.96)}
+.btn-round{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:18px;line-height:1}
+.btn-round svg{width:18px;height:18px}
+.btn-today{height:44px;padding:0 22px;border-radius:22px;font-size:15px;letter-spacing:.14em;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px}
+.btn-today .dot{width:9px;height:9px;border-radius:50%;background:var(--shu);box-shadow:0 0 0 3px color-mix(in srgb,var(--shu) 22%,transparent)}
+.btn-today[aria-pressed="true"]{background:var(--sumi);color:var(--washi);border-color:var(--sumi)}
+.today-line{margin:10px 0 0;font-size:13.5px;letter-spacing:.06em;color:var(--sumi-soft);text-align:center;font-style:italic}
+
+/* dial parts */
+.ring-line{fill:none;stroke:var(--sumi);stroke-opacity:.55}
+.tick{stroke:var(--sumi)}
+.month text,.season-k,.arc-k{font-family:var(--mincho)}
+.month text{font-family:var(--serif);font-size:17px;letter-spacing:2px;fill:var(--sumi-soft);text-transform:uppercase}
+.arc{cursor:pointer;outline:none}
+.arc .sec{stroke:var(--tint);stroke-width:2.5;transition:stroke .4s}
+.arc.sel .sec{stroke:var(--sumi);stroke-width:2.2}
+.arc:focus-visible .sec{stroke:var(--shu);stroke-width:4}
+.arc-k{font-size:37px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.arc.today-arc .today-dot{opacity:1}
+.season-k{font-size:28px;fill:var(--sumi);fill-opacity:.62;text-anchor:middle;dominant-baseline:central}
+.enso{fill:var(--sumi);fill-opacity:.9}
+.enso-dry{fill:none;stroke:var(--sumi);stroke-linecap:round}
+.center-k{font-family:var(--mincho);font-size:150px;text-anchor:middle;dominant-baseline:central;fill:var(--sumi);transition:opacity .45s}
+.center-en{font-family:var(--serif);font-size:19px;letter-spacing:7px;text-anchor:middle;fill:var(--sumi-soft);text-transform:uppercase}
+.center-n{font-family:var(--serif);font-size:17px;letter-spacing:3px;text-anchor:middle;fill:var(--sumi-soft);font-style:italic}
+.pointer{fill:var(--shu)}
+.sun-ray{stroke:var(--shu);stroke-width:2.2;stroke-linecap:round}
+.sun-hand{stroke:var(--shu);stroke-width:1.6;stroke-dasharray:3 6;stroke-linecap:round;opacity:.75}
+.sun-lab{font-family:var(--mincho);font-size:22px;fill:var(--shu);text-anchor:middle;dominant-baseline:central}
+.intro .enso-g{animation:ensoin 1.3s ease both}
+@keyframes ensoin{from{opacity:0}to{opacity:1}}
+
+/* detail panel */
+.detail{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 30px;align-items:start;padding:10px 0}
+.masthead-r{grid-column:1 / -1;margin:0 0 28px;padding-bottom:18px;border-bottom:1px solid color-mix(in srgb,var(--sumi) 20%,transparent)}
+.eyebrow{margin:0 0 6px;font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--sumi-soft)}
+h1{margin:0;font-weight:400;font-size:clamp(28px,2.4vw,36px);letter-spacing:.02em;line-height:1.1}
+h1 em{font-style:italic;color:var(--accent);transition:color 1s}
+.vk{grid-column:2;grid-row:2 / span 2;writing-mode:vertical-rl;font-family:var(--mincho);font-size:clamp(84px,8.4vw,128px);line-height:1.02;margin:0;letter-spacing:.06em;font-weight:500;display:flex;align-items:center;position:relative}
+.vk .ch{display:inline-block;animation:brush .9s cubic-bezier(.3,.7,.2,1) both}
+.vk .ch:nth-child(2){animation-delay:.16s}
+.vk .ch:nth-child(3){animation-delay:.32s}
+@keyframes brush{from{clip-path:inset(0 0 100% 0);opacity:.2;transform:translateY(-6px)}to{clip-path:inset(0 0 0 0);opacity:1;transform:none}}
+.vk .stamp{writing-mode:horizontal-tb;margin-top:14px;width:34px;height:34px;display:grid;place-items:center;background:var(--shu);color:#fbefe4;font-size:17px;border-radius:2px;box-shadow:inset 0 0 0 2px rgba(251,239,228,.5),inset 0 0 0 3px var(--shu);transform:rotate(4deg);animation:stamp .5s cubic-bezier(.3,1.6,.5,1) .5s both}
+@keyframes stamp{from{opacity:0;transform:scale(1.5) rotate(4deg)}to{opacity:1;transform:rotate(4deg)}}
+.info{grid-column:1;grid-row:2;min-width:0}
+.idx{margin:0 0 14px;font-size:12.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--sumi-soft)}
+.idx b{font-weight:400;color:var(--accent)}
+.romaji{margin:0;font-weight:400;font-size:clamp(44px,4.4vw,64px);line-height:1;letter-spacing:.01em}
+.meaning{margin:10px 0 0;font-size:clamp(19px,1.7vw,23px);font-style:italic;color:var(--accent);transition:color 1s}
+.dates{margin:16px 0 0;font-size:14.5px;letter-spacing:.08em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dates .lon{font-size:12px;letter-spacing:.2em;padding:3px 8px;border:1px solid color-mix(in srgb,var(--sumi) 30%,transparent);border-radius:20px;color:var(--sumi-soft)}
+.poem{margin:22px 0 0;font-size:clamp(16.5px,1.3vw,18.5px);line-height:1.66;max-width:34em;text-wrap:pretty}
+.ko{grid-column:1 / -1;grid-row:3;margin:24px 0 0;display:flex;align-items:baseline;gap:14px;padding-top:16px;border-top:1px solid color-mix(in srgb,var(--sumi) 16%,transparent)}
+.ko-k{font-family:var(--mincho);font-size:21px;letter-spacing:.12em;white-space:nowrap}
+.ko-t{font-size:14.5px;line-height:1.45;color:var(--sumi-soft)}
+.ko-t i{color:var(--sumi)}
+.swatch{grid-column:1 / -1;grid-row:4;margin:18px 0 0;display:flex;align-items:center;gap:14px}
+.chip{width:58px;height:38px;border-radius:2px;background:var(--term);box-shadow:inset 0 0 0 1px rgba(43,43,43,.18),0 6px 14px -8px rgba(43,43,43,.5);flex:none}
+.swatch-t{font-size:14.5px;line-height:1.35}
+.swatch-t .jp{font-family:var(--mincho);letter-spacing:.1em;margin-left:6px}
+.swatch-t .hex{display:block;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--sumi-soft)}
+.fade-swap{transition:opacity .28s ease,transform .28s ease}
+.swapping .fade-swap{opacity:0;transform:translateY(6px)}
+
+.note{position:relative;z-index:2;grid-column:1 / -1;margin:0;padding:0 56px 26px 140px;font-size:12.5px;line-height:1.55;color:var(--sumi-soft);font-style:italic;max-width:1100px}
+
+/* responsive */
+@media (max-width:1180px){
+  .stage{grid-template-columns:1fr;padding:28px 36px 20px}
+  .dial-box{width:min(100%,640px)}
+  .detail{max-width:720px;width:100%;margin:0 auto}
+  .note{padding-left:140px}
+}
+@media (max-width:720px){
+  .shell{grid-template-columns:1fr}
+  .mast{position:relative;height:auto;flex-direction:row;justify-content:space-between;padding:18px 18px 14px;border-right:0;border-bottom:1px solid color-mix(in srgb,var(--sumi) 16%,transparent)}
+  .mast-jp{writing-mode:horizontal-tb;font-size:22px;letter-spacing:.18em;white-space:nowrap}
+  .mast-en{max-width:190px;letter-spacing:.24em}
+  .mast-en{writing-mode:horizontal-tb;transform:none;font-size:10px;letter-spacing:.3em;text-align:right;line-height:1.5}
+  .seal{margin:0 0 0 12px;width:34px;height:34px;font-size:11px}
+  .mast-l{display:flex;align-items:center}
+  .stage{padding:14px 16px 10px;gap:8px}
+  .dial-box{width:100%}
+  .controls{margin-top:2px}
+  .masthead-r{margin-bottom:20px;padding-bottom:14px}
+  .detail{grid-template-columns:minmax(0,1fr) auto;gap:0 18px}
+  .vk{font-size:74px}
+  .romaji{font-size:44px}
+  .poem{font-size:16.5px}
+  .ko{flex-direction:column;gap:4px}
+  .note{padding:6px 18px 26px}
+}
+@media (prefers-reduced-motion:reduce){
+  :root{transition:none}
+  .intro .enso-g,.vk .ch,.vk .stamp{animation:none}
+  .fade-swap{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"></div>
+<div class="fibres" aria-hidden="true"></div>
+<canvas id="motif" aria-hidden="true"></canvas>
+
+<div class="shell">
+  <header class="mast">
+    <div class="mast-l">
+      <p class="mast-jp" lang="ja">二十四節気</p>
+      <div class="seal" aria-hidden="true"><span lang="ja">節気</span></div>
+    </div>
+    <p class="mast-en">Nijūshi Sekki &middot; a calendar of the sun</p>
+  </header>
+
+  <main class="stage">
+    <section class="dial-col" aria-label="The dial of the twenty-four solar terms">
+      <div class="dial-box" id="dial-box">
+        <svg id="dial" class="intro" viewBox="-540 -540 1080 1080" role="group" aria-label="Solar term dial. Use the arrow keys to step through the terms."></svg>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn btn-round" id="prev" aria-label="Previous solar term"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4L6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" class="btn btn-today" id="today" aria-pressed="true"><span class="dot" aria-hidden="true"></span>Today</button>
+        <button type="button" class="btn btn-round" id="next" aria-label="Next solar term"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <p class="today-line" id="today-line"></p>
+    </section>
+
+    <section class="detail" id="detail" aria-label="The selected solar term">
+      <div class="masthead-r">
+        <p class="eyebrow">Nijūshi Sekki</p>
+        <h1>The Twenty-Four <em>Seasons</em></h1>
+      </div>
+      <p class="vk" id="vk" lang="ja" aria-hidden="true"></p>
+      <div class="info fade-swap">
+        <p class="idx" id="idx"></p>
+        <h2 class="romaji" id="romaji"></h2>
+        <p class="meaning" id="meaning"></p>
+        <p class="dates" id="dates"></p>
+        <p class="poem" id="poem"></p>
+      </div>
+      <div class="ko fade-swap" id="ko"></div>
+      <div class="swatch fade-swap" id="swatch"></div>
+      <p class="sr" id="live" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <p class="note">Dates are approximate. The sun's ecliptic longitude is worked out from today's date with a low-precision almanac formula, and each term's dates are the days on which the sun crosses its 15° boundary, reckoned in Japan Standard Time; elsewhere, and from year to year, they can fall a day earlier or later. The colour values follow one common modern rendering of each traditional name; historical dyes varied.</p>
+</div>
+
+<script>
+(() => {
+'use strict';
+const DEG = Math.PI / 180;
+const $ = (s) => document.querySelector(s);
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ------------------------------------------------------------------
+   The twenty-four terms, from Risshun at 315°
+------------------------------------------------------------------ */
+const TERMS = [
+  { r: 'Risshun', k: '立春', en: 'Beginning of Spring', c: '#f2a0a1', cn: 'Kōbai-iro', ck: '紅梅色', ce: 'red plum blossom', sky: '#efdfe0',
+    ko: ['東風解凍', 'the east wind melts the ice'],
+    p: 'The coldest days are not over, but the light has turned. Plum buds redden on bare branches, and the seasonal year opens here, on the first thaw carried by the east wind.',
+    m: [['petals', { n: 20, cols: ['#e88e94', '#f2a0a1', '#d9737b'], notch: false, size: 1 }], ['snow', { n: 10, size: .8 }]] },
+  { r: 'Usui', k: '雨水', en: 'Rain Water', c: '#bce2e8', cn: 'Mizu-iro', ck: '水色', ce: 'water', sky: '#d6e5e8',
+    ko: ['霞始靆', 'mist begins to linger'],
+    p: 'Snow softens into rain and the frozen ground loosens. Mist lies low over the fields at dawn; farmers once took this as the sign to ready the soil.',
+    m: [['mist', { n: 6 }], ['rain', { n: 46, col: 'rgba(96,128,140,.34)', speed: .75, slant: .12, len: .8 }]] },
+  { r: 'Keichitsu', k: '啓蟄', en: 'Awakening of Insects', c: '#a8c97f', cn: 'Yanagi-iro', ck: '柳色', ce: 'willow', sky: '#e3ead4',
+    ko: ['蟄虫啓戸', 'hibernating insects open their doors'],
+    p: 'Warmth reaches down into the earth. Creatures that wintered underground push open their doors, and the first thunder of spring is said to wake them.',
+    m: [['butterflies', { n: 5 }], ['motes', { n: 26, col: '138,120,60' }]] },
+  { r: 'Shunbun', k: '春分', en: 'Spring Equinox', c: '#fef4f4', cn: 'Sakura-iro', ck: '桜色', ce: 'cherry blossom', sky: '#f5e3e7',
+    ko: ['桜始開', 'the first cherry blossoms open'],
+    p: 'Day and night stand at equal length. Cherry trees begin to open, and families tend ancestral graves during higan, the week that gathers around this day.',
+    m: [['petals', { n: 42, cols: ['#f4b6c2', '#f7c9d2', '#eea3b3', '#fbe0e5'], notch: true, size: .95 }]] },
+  { r: 'Seimei', k: '清明', en: 'Pure and Clear', c: '#aacf53', cn: 'Moegi', ck: '萌黄', ce: 'sprouting green', sky: '#dfeccf',
+    ko: ['玄鳥至', 'the swallows return'],
+    p: 'Everything is fresh, bright and clear. Swallows come back from the south to nest under the eaves, and the first rainbows of the year arch over wet fields.',
+    m: [['swallows', { n: 2 }], ['petals', { n: 10, cols: ['#f4c2cc', '#f7d4db'], notch: true, size: .85 }], ['motes', { n: 14, col: '150,170,70' }]] },
+  { r: 'Kokuu', k: '穀雨', en: 'Grain Rain', c: '#bbbcde', cn: 'Fuji-iro', ck: '藤色', ce: 'wisteria', sky: '#dcdcec',
+    ko: ['霜止出苗', 'frost ends and rice seedlings grow'],
+    p: 'Soft, steady rain feeds the newly sown grain. The last frosts give way, rice seedlings rise in their beds, and wisteria hangs in long violet clusters.',
+    m: [['rain', { n: 64, col: 'rgba(100,98,150,.32)', speed: .8, slant: .06, len: .9 }], ['ripples', { n: 9, col: '100,98,150' }]] },
+  { r: 'Rikka', k: '立夏', en: 'Beginning of Summer', c: '#68be8d', cn: 'Wakatake-iro', ck: '若竹色', ce: 'young bamboo', sky: '#d5ebdc',
+    ko: ['蛙始鳴', 'frogs begin to sing'],
+    p: 'Summer begins while spring’s green is still new. Frogs start singing in the flooded paddies, and young bamboo shoots rise so fast you can almost watch them.',
+    m: [['leaves', { n: 14, cols: ['#68be8d', '#8fcf9f', '#4f9e70'], shape: 'bamboo', size: 1.1, rise: true }], ['wind', { n: 4, col: '70,130,95' }]] },
+  { r: 'Shōman', k: '小満', en: 'Lesser Fullness', c: '#cc7eb1', cn: 'Ayame-iro', ck: '菖蒲色', ce: 'iris', sky: '#eee0e8',
+    ko: ['紅花栄', 'safflowers bloom'],
+    p: 'Life swells toward fullness. Silkworms wake to feast on mulberry, safflowers blaze in the fields, and the barley ripens to autumn gold in early summer.',
+    m: [['fluff', { n: 16 }], ['motes', { n: 18, col: '190,120,160' }]] },
+  { r: 'Bōshu', k: '芒種', en: 'Grain in Ear', c: '#38a1db', cn: 'Tsuyukusa-iro', ck: '露草色', ce: 'dayflower', sky: '#9fb3c0',
+    ko: ['腐草為螢', 'rotting grass becomes fireflies'],
+    p: 'The time to sow bearded grains, as the rainy season settles in. Over damp grass at dusk the fireflies rise; the old almanac says the rotting grass itself turns into light.',
+    m: [['fireflies', { n: 30 }]] },
+  { r: 'Geshi', k: '夏至', en: 'Summer Solstice', c: '#1e50a2', cn: 'Ruri-iro', ck: '瑠璃色', ce: 'lapis lazuli', sky: '#cbd6ec',
+    ko: ['菖蒲華', 'irises bloom'],
+    p: 'The longest day. The sun climbs highest and lingers; irises open in the wet meadows while the tsuyu rains keep the air heavy, warm and green.',
+    m: [['rain', { n: 38, col: 'rgba(30,80,162,.26)', speed: .7, slant: .04, len: .8 }], ['ripples', { n: 12, col: '30,80,162' }]] },
+  { r: 'Shōsho', k: '小暑', en: 'Lesser Heat', c: '#00a3af', cn: 'Asagi-iro', ck: '浅葱色', ce: 'pale green onion', sky: '#cfe8e8',
+    ko: ['蓮始開', 'lotuses begin to bloom'],
+    p: 'The rainy season ends and warm winds arrive. Lotus flowers unfold on the ponds in the early morning, and young hawks learn to fly.',
+    m: [['wind', { n: 7, col: '0,120,130' }], ['motes', { n: 18, col: '0,140,150' }]] },
+  { r: 'Taisho', k: '大暑', en: 'Greater Heat', c: '#fcc800', cn: 'Himawari-iro', ck: '向日葵色', ce: 'sunflower', sky: '#f6e6b4',
+    ko: ['大雨時行', 'great rains sometimes fall'],
+    p: 'The height of the heat. The earth steams, paulownia sets its seed, and a sudden evening downpour cools the streets for an hour before the cicadas start again.',
+    m: [['rain', { n: 110, col: 'rgba(120,110,60,.28)', speed: 1.25, slant: .2, len: 1.3 }], ['ripples', { n: 10, col: '130,110,40' }]] },
+  { r: 'Risshū', k: '立秋', en: 'Beginning of Autumn', c: '#f5e56b', cn: 'Kariyasu-iro', ck: '刈安色', ce: 'kariyasu grass', sky: '#f1ecc8',
+    ko: ['寒蝉鳴', 'evening cicadas sing'],
+    p: 'Autumn begins inside summer’s heat. A first cool wind comes at night, and higurashi cicadas fill the dusk with their falling, bell-like call.',
+    m: [['wind', { n: 6, col: '150,130,40' }], ['leaves', { n: 6, cols: ['#b9c26a', '#d8cf6a'], shape: 'round', size: .9 }]] },
+  { r: 'Shosho', k: '処暑', en: 'End of Heat', c: '#5654a2', cn: 'Kikyō-iro', ck: '桔梗色', ce: 'balloon flower', sky: '#dedbee',
+    ko: ['綿柎開', 'cotton bolls open'],
+    p: 'The heat begins to withdraw. Cotton bolls split open, the typhoons pass through, and in the paddies the rice begins to ripen.',
+    m: [['fluff', { n: 26, cotton: true }]] },
+  { r: 'Hakuro', k: '白露', en: 'White Dew', c: '#eaf4fc', cn: 'Geppaku', ck: '月白', ce: 'moon white', sky: '#d9e5ef',
+    ko: ['草露白', 'dew glistens white on the grass'],
+    p: 'Nights grow cool enough for dew to gather white on the grass. Wagtails call along the rivers, and the swallows leave again for the south.',
+    m: [['dew', { n: 44, col: '104,132,160' }]] },
+  { r: 'Shūbun', k: '秋分', en: 'Autumn Equinox', c: '#e6b422', cn: 'Kogane-iro', ck: '黄金色', ce: 'gold', sky: '#f2e4be',
+    ko: ['雷乃収声', 'thunder lowers its voice'],
+    p: 'Day and night balance once more. Thunder quiets, insects seal their burrows, and red spider lilies flare along the edges of the rice fields.',
+    m: [['dragonflies', { n: 6 }], ['motes', { n: 16, col: '190,150,40' }]] },
+  { r: 'Kanro', k: '寒露', en: 'Cold Dew', c: '#ec6800', cn: 'Terigaki', ck: '照柿', ce: 'glowing persimmon', sky: '#f1dcc6',
+    ko: ['鴻雁来', 'wild geese return'],
+    p: 'Dew turns cold. Wild geese return from the north in long lines, chrysanthemums open, and crickets sing close to the door.',
+    m: [['geese', { n: 1 }], ['leaves', { n: 10, cols: ['#ec6800', '#e6b422', '#d9824a'], shape: 'ginkgo', size: 1 }]] },
+  { r: 'Sōkō', k: '霜降', en: 'Frost Descends', c: '#b7282e', cn: 'Akane-iro', ck: '茜色', ce: 'madder red', sky: '#eed5cf',
+    ko: ['楓蔦黄', 'maples and ivy turn'],
+    p: 'The first frost settles on still mornings. Light rains come and go, and in the hills the maples and ivy turn to crimson and gold.',
+    m: [['leaves', { n: 30, cols: ['#b7282e', '#d0452f', '#e6772e', '#e6b422', '#9e2a2b'], shape: 'maple', size: 1.55 }]] },
+  { r: 'Rittō', k: '立冬', en: 'Beginning of Winter', c: '#9f563a', cn: 'Kakishibu-iro', ck: '柿渋色', ce: 'persimmon tannin', sky: '#e6d9cc',
+    ko: ['山茶始開', 'camellias begin to bloom'],
+    p: 'Winter begins. Sasanqua camellias open against the cold, the ground starts to freeze at night, and daffodils push up their first leaves.',
+    m: [['leaves', { n: 16, cols: ['#9f563a', '#917347', '#b98a4f', '#7a4a30'], shape: 'round', size: 1 }], ['petals', { n: 6, cols: ['#c0303a', '#d44a55'], notch: false, size: 1.4 }]] },
+  { r: 'Shōsetsu', k: '小雪', en: 'Lesser Snow', c: '#917347', cn: 'Kuchiba-iro', ck: '朽葉色', ce: 'decayed leaves', sky: '#d9d6cf',
+    ko: ['虹蔵不見', 'rainbows hide'],
+    p: 'A little snow falls in the mountains. Rainbows hide themselves away, the north wind strips the last leaves, and the tachibana citrus turns yellow.',
+    m: [['snow', { n: 40, size: .9 }], ['leaves', { n: 4, cols: ['#917347', '#7a5f3a'], shape: 'round', size: .9 }]] },
+  { r: 'Taisetsu', k: '大雪', en: 'Greater Snow', c: '#f3f3f2', cn: 'Shironeri', ck: '白練', ce: 'glossed white silk', sky: '#c9ced6',
+    ko: ['熊蟄穴', 'bears retreat to their dens'],
+    p: 'Heavy snow closes the mountain passes. The sky hangs low and winter settles in; bears retreat to their dens, and salmon crowd upstream.',
+    m: [['snow', { n: 120, size: 1.1 }]] },
+  { r: 'Tōji', k: '冬至', en: 'Winter Solstice', c: '#223a70', cn: 'Kon-iro', ck: '紺色', ce: 'navy blue', sky: '#95a0bd',
+    ko: ['雪下出麦', 'barley sprouts beneath the snow'],
+    p: 'The longest night. From here the light returns a little each day. Families bathe with yuzu and eat pumpkin for health, and barley sprouts beneath the snow.',
+    m: [['stars', { n: 70 }], ['snow', { n: 14, size: .7 }]] },
+  { r: 'Shōkan', k: '小寒', en: 'Lesser Cold', c: '#165e83', cn: 'Ai-iro', ck: '藍色', ce: 'indigo', sky: '#c3d2dc',
+    ko: ['芹乃栄', 'Japanese parsley flourishes'],
+    p: 'The cold deepens: this is kan no iri, the entry into the cold. Springs keep moving under the ice, and parsley flourishes in the chilly streams.',
+    m: [['snow', { n: 46, size: .85 }], ['dew', { n: 18, col: '22,94,131' }]] },
+  { r: 'Daikan', k: '大寒', en: 'Greater Cold', c: '#afafb0', cn: 'Gin-nezu', ck: '銀鼠', ce: 'silver grey', sky: '#c3c8d0',
+    ko: ['款冬華', 'butterbur buds push up'],
+    p: 'The coldest time of the year. Butterbur buds push through frozen earth, streams freeze thick, and hens begin to lay. Spring is already hidden inside the cold.',
+    m: [['snow', { n: 95, size: .75, wind: 70, speed: 1.3 }]] }
+];
+const SEASONS = [['春', 'Spring'], ['夏', 'Summer'], ['秋', 'Autumn'], ['冬', 'Winter']];
+const NUM_JP = ['一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','二十一','二十二','二十三','二十四'];
+TERMS.forEach((t, i) => { t.i = i; t.lon = (315 + i * 15) % 360; t.season = Math.floor(i / 6); });
+
+/* ------------------------------------------------------------------
+   The sun: low-precision ecliptic longitude (Astronomical Almanac style)
+------------------------------------------------------------------ */
+function sunLon(ms){
+  const n = ms / 86400000 + 2440587.5 - 2451545.0;
+  const L = 280.460 + 0.9856474 * n;
+  const g = (357.528 + 0.9856003 * n) * DEG;
+  const lam = L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g);
+  return ((lam % 360) + 360) % 360;
+}
+const wrap180 = (d) => ((d % 360) + 540) % 360 - 180;
+function crossing(target, nearMs){
+  let t = nearMs + wrap180(target - sunLon(nearMs)) / 0.98565 * 86400000;
+  for (let k = 0; k < 6; k++) t += wrap180(target - sunLon(t)) / 0.98565 * 86400000;
+  return t;
+}
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function jst(ms){ const d = new Date(ms + 9 * 3600000); return { y: d.getUTCFullYear(), m: d.getUTCMonth(), d: d.getUTCDate() }; }
+const NOW = Date.now();
+const LAM_NOW = sunLon(NOW);
+const TODAY_I = Math.floor((((LAM_NOW - 315) % 360) + 360) % 360 / 15);
+function termDates(i){
+  const t = TERMS[i];
+  // the occurrence of this term nearest to now; the current one starts in the past
+  let near = NOW;
+  if (i === TODAY_I) near = NOW - 7 * 86400000;
+  const start = crossing(t.lon, near);
+  let end = crossing((t.lon + 15) % 360, start + 15 * 86400000) - 86400000;
+  // today still belongs to the current term until the sun actually crosses
+  if (i === TODAY_I && end < NOW) end = NOW;
+  const a = jst(start), b = jst(end);
+  const sameYear = a.y === b.y;
+  return `c. ${a.d} ${MONTHS[a.m]}${sameYear ? '' : ' ' + a.y} – ${b.d} ${MONTHS[b.m]} ${b.y}`;
+}
+
+/* ------------------------------------------------------------------
+   Colour helpers
+------------------------------------------------------------------ */
+function rgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function hex(a){ return '#' + a.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join(''); }
+function mix(a, b, t){ const A = rgb(a), B = rgb(b); return hex(A.map((v, i) => v + (B[i] - v) * t)); }
+function lum(h){ const c = rgb(h).map((v) => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; }
+
+/* ------------------------------------------------------------------
+   Build the dial
+------------------------------------------------------------------ */
+const dial = $('#dial');
+const R_IN = 300, R_OUT = 440, R_LAB = 370;
+const ang = (lam) => (180 - lam) * DEG; // spring left, summer top, autumn right, winter bottom
+const pos = (r, lam) => [r * Math.cos(ang(lam)), -r * Math.sin(ang(lam))];
+const f1 = (v) => Math.round(v * 10) / 10;
+function sector(l0, l1, ri, ro){
+  const a = pos(ro, l0), b = pos(ro, l1), c = pos(ri, l1), d = pos(ri, l0);
+  return `M${f1(a[0])} ${f1(a[1])}A${ro} ${ro} 0 0 1 ${f1(b[0])} ${f1(b[1])}L${f1(c[0])} ${f1(c[1])}A${ri} ${ri} 0 0 0 ${f1(d[0])} ${f1(d[1])}Z`;
+}
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function ensoPath(R, seed){
+  const rnd = mulberry(seed), N = 120, start = -118, sweep = 322, outer = [], inner = [];
+  const ph = rnd() * 6;
+  for (let i = 0; i <= N; i++){
+    const t = i / N, a = (start + sweep * t) * DEG;
+    let w = 30 * (1 - .5 * t);
+    if (t < .05) w *= .55 + t / .05 * .45;
+    if (t > .86) w *= Math.max(.04, (1 - t) / .14);
+    w *= 1 + .1 * Math.sin(t * 29 + ph) + .06 * Math.sin(t * 71);
+    const r = R + 5 * Math.sin(t * 3.4 + ph) + (t > .8 ? (t - .8) * 30 : 0);
+    outer.push([Math.cos(a) * (r + w * .55), Math.sin(a) * (r + w * .55)]);
+    inner.push([Math.cos(a) * (r - w * .45), Math.sin(a) * (r - w * .45)]);
+  }
+  const pts = outer.concat(inner.reverse());
+  let d = `M${f1(pts[0][0])} ${f1(pts[0][1])}`;
+  for (let i = 1; i < pts.length - 1; i++){
+    const m = [(pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2];
+    d += `Q${f1(pts[i][0])} ${f1(pts[i][1])} ${f1(m[0])} ${f1(m[1])}`;
+  }
+  let dry = '';
+  for (let k = 0; k < 7; k++){
+    const off = -10 + k * 3.4 + rnd() * 2, a0 = (start + sweep * (.55 + rnd() * .12)) * DEG, a1 = (start + sweep * (.9 + rnd() * .07)) * DEG;
+    const r = R + off;
+    dry += `<path class="enso-dry" d="M${f1(Math.cos(a0) * r)} ${f1(Math.sin(a0) * r)}A${f1(r)} ${f1(r)} 0 0 1 ${f1(Math.cos(a1) * r)} ${f1(Math.sin(a1) * r)}" stroke-width="${f1(.8 + rnd() * 1.6)}" stroke-dasharray="${f1(20 + rnd() * 60)} ${f1(3 + rnd() * 9)} ${f1(10 + rnd() * 30)} ${f1(2 + rnd() * 6)}" stroke-opacity="${(.35 + rnd() * .4).toFixed(2)}"/>`;
+  }
+  return `<path class="enso" d="${d}Z"/>${dry}`;
+}
+
+let svg = '';
+// static backplate
+svg += `<circle r="${R_IN - 4}" fill="var(--tint)" fill-opacity=".72"/>`;
+svg += `<g id="wheel">`;
+// outer rings and 72 kō ticks (one every 5°)
+svg += `<circle r="488" class="ring-line" stroke-width="1.4"/><circle r="462" class="ring-line" stroke-width=".8"/><circle r="${R_OUT + 6}" class="ring-line" stroke-width=".6" stroke-opacity=".3"/>`;
+let ticks = '';
+for (let k = 0; k < 72; k++){
+  const lam = k * 5, major = k % 3 === 0;
+  const a = pos(major ? 462 : 472, lam), b = pos(488, lam);
+  ticks += `M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}`;
+}
+svg += `<path class="tick" d="${ticks}" stroke-width="1.1" stroke-opacity=".6"/>`;
+// month labels at the sun's longitude on the first of each month (JST)
+const yearNow = jst(NOW).y;
+let months = '<g class="month">';
+for (let m = 0; m < 12; m++){
+  const lam = sunLon(Date.UTC(yearNow, m, 1) - 9 * 3600000);
+  const p = pos(514, lam), q = pos(488, lam), q2 = pos(498, lam);
+  months += `<path d="M${f1(q[0])} ${f1(q[1])}L${f1(q2[0])} ${f1(q2[1])}" stroke="var(--sumi)" stroke-width="1.6"/>`;
+  months += `<g transform="translate(${f1(p[0])} ${f1(p[1])})"><g class="up"><text text-anchor="middle" dominant-baseline="central">${MONTHS[m]}</text></g></g>`;
+}
+svg += months + '</g>';
+// the arcs
+TERMS.forEach((t, i) => {
+  const c = t.lon + 7.5, u = pos(1, c);
+  const dark = lum(t.c) < .28;
+  const lp = pos(R_LAB, c);
+  svg += `<g class="arc" data-i="${i}" role="button" tabindex="-1" aria-label="${t.r}, ${t.en}" style="--dx:${u[0].toFixed(3)};--dy:${u[1].toFixed(3)};--n:${i}">` +
+    `<g class="mv"><path class="sec" d="${sector(t.lon, t.lon + 15, R_IN, R_OUT)}" fill="${t.c}"/>` +
+    `<g transform="translate(${f1(lp[0])} ${f1(lp[1])})"><g class="up">` +
+    `<text class="arc-k" y="-20" fill="${dark ? '#f8f5ee' : '#2b2b2b'}">${t.k[0]}</text><text class="arc-k" y="20" fill="${dark ? '#f8f5ee' : '#2b2b2b'}">${t.k[1]}</text>` +
+    `</g></g></g></g>`;
+});
+// the four seasons, centred on the equinoxes and solstices as tradition has it
+[[0, '春'], [90, '夏'], [180, '秋'], [270, '冬']].forEach(([lam, k]) => {
+  const p = pos(272, lam);
+  svg += `<g transform="translate(${f1(p[0])} ${f1(p[1])})"><g class="up"><text class="season-k">${k}</text></g></g>`;
+});
+// today's sun
+const sp = pos(452, LAM_NOW), h0 = pos(R_IN - 12, LAM_NOW), h1 = pos(R_OUT + 2, LAM_NOW), sl = pos(452, LAM_NOW);
+let rays = '';
+for (let k = 0; k < 8; k++){ const a = k * 45 * DEG; rays += `<path class="sun-ray" d="M${f1(Math.cos(a) * 13)} ${f1(Math.sin(a) * 13)}L${f1(Math.cos(a) * 19)} ${f1(Math.sin(a) * 19)}"/>`; }
+svg += `<path class="sun-hand" d="M${f1(h0[0])} ${f1(h0[1])}L${f1(h1[0])} ${f1(h1[1])}"/>`;
+svg += `<g transform="translate(${f1(sl[0])} ${f1(sl[1])})"><g class="up"><circle r="10" fill="var(--shu)"/><circle r="10" fill="none" stroke="#fbefe4" stroke-width="1.5" stroke-opacity=".7"/>${rays}</g></g>`;
+svg += `</g>`; // wheel
+// static centre: an ensō and the season
+svg += `<g class="enso-g">${ensoPath(196, 11)}</g>`;
+svg += `<text class="center-k" id="center-k" y="-8" lang="ja">春</text>`;
+svg += `<text class="center-en" id="center-en" y="118">Spring</text>`;
+svg += `<text class="center-n" id="center-n" y="-128"></text>`;
+// fixed pointer
+svg += `<g id="pointer"><path class="pointer" d="M0 0L-14 -10L-14 10Z"/><path d="M-4 0H-40" stroke="var(--shu)" stroke-width="2"/></g>`;
+dial.innerHTML = svg;
+const wheel = $('#wheel'), pointerG = $('#pointer');
+const arcs = Array.from(dial.querySelectorAll('.arc'));
+arcs[TODAY_I].classList.add('today-arc');
+
+/* ------------------------------------------------------------------
+   Kozo fibres for the washi
+------------------------------------------------------------------ */
+(function kozo(){
+  try {
+    const S = 360, c = document.createElement('canvas');
+    c.width = S; c.height = S;
+    const g = c.getContext('2d');
+    const rnd = mulberry(5);
+    for (let i = 0; i < 170; i++){
+      const x = rnd() * S, y = rnd() * S, a = rnd() * Math.PI * 2, L = 40 + rnd() * 140;
+      for (let ox = -S; ox <= S; ox += S) for (let oy = -S; oy <= S; oy += S){
+        g.beginPath();
+        let px = x + ox, py = y + oy;
+        g.moveTo(px, py);
+        const steps = 8;
+        let aa = a;
+        for (let s = 0; s < steps; s++){ aa += (rnd() - .5) * .5; px += Math.cos(aa) * L / steps; py += Math.sin(aa) * L / steps; g.lineTo(px, py); }
+        g.strokeStyle = `rgba(150,138,112,${(.05 + rnd() * .08).toFixed(3)})`;
+        g.lineWidth = .4 + rnd() * .6;
+        g.stroke();
+      }
+    }
+    for (let i = 0; i < 260; i++){
+      g.fillStyle = `rgba(140,126,100,${(.04 + rnd() * .08).toFixed(3)})`;
+      g.fillRect(rnd() * S, rnd() * S, 1 + rnd() * 1.5, 1 + rnd());
+    }
+    document.documentElement.style.setProperty('--kozo', 'url("' + c.toDataURL() + '")');
+  } catch (e) { /* plain washi */ }
+})();
+
+/* ------------------------------------------------------------------
+   Motif engine: seasonal particles on a full-page canvas
+------------------------------------------------------------------ */
+const cv = $('#motif'), cx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+function sizeCanvas(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+}
+sizeCanvas();
+const rand = (a, b) => a + (b - a) * Math.random();
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+function sprite(stops, size){
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  stops.forEach((s) => gr.addColorStop(s[0], s[1]));
+  g.fillStyle = gr; g.fillRect(0, 0, size, size);
+  return c;
+}
+const SPR = {
+  snow: sprite([[0, 'rgba(255,255,255,1)'], [.42, 'rgba(255,255,255,.96)'], [.56, 'rgba(120,132,152,.32)'], [1, 'rgba(120,132,152,0)']], 64),
+  mist: sprite([[0, 'rgba(255,255,255,.75)'], [.5, 'rgba(255,255,255,.35)'], [1, 'rgba(255,255,255,0)']], 128),
+  fly: sprite([[0, 'rgba(255,252,200,1)'], [.18, 'rgba(240,240,120,.85)'], [.45, 'rgba(200,215,70,.28)'], [1, 'rgba(200,215,70,0)']], 64)
+};
+const P_MAPLE = (() => {
+  const p = new Path2D();
+  // a seven-pointed maple leaf, drawn around its centre
+  const pts = [];
+  const tips = [-90, -38, 14, 66, 114, 166, 218];
+  const lens = [1, .86, .7, .45, .45, .7, .86];
+  for (let i = 0; i < 7; i++){
+    const a = tips[i] * DEG, b = (tips[i] + 26) * DEG;
+    pts.push([Math.cos(a) * lens[i], Math.sin(a) * lens[i]]);
+    pts.push([Math.cos(b) * .3, Math.sin(b) * .3]);
+  }
+  p.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) p.lineTo(pts[i][0], pts[i][1]);
+  p.closePath();
+  return p;
+})();
+const P_ROUND = (() => { const p = new Path2D(); p.moveTo(0, -1); p.bezierCurveTo(.62, -.55, .55, .55, 0, 1); p.bezierCurveTo(-.55, .55, -.62, -.55, 0, -1); p.closePath(); return p; })();
+const P_BAMBOO = (() => { const p = new Path2D(); p.moveTo(0, -1.4); p.bezierCurveTo(.26, -.6, .24, .7, 0, 1.4); p.bezierCurveTo(-.24, .7, -.26, -.6, 0, -1.4); p.closePath(); return p; })();
+const P_GINKGO = (() => { const p = new Path2D(); p.moveTo(0, .9); p.lineTo(-.08, .2); p.bezierCurveTo(-.9, -.1, -1, -.7, -.7, -.9); p.quadraticCurveTo(-.3, -.72, -.05, -.95); p.lineTo(0, -.7); p.lineTo(.05, -.95); p.quadraticCurveTo(.3, -.72, .7, -.9); p.bezierCurveTo(1, -.7, .9, -.1, .08, .2); p.closePath(); return p; })();
+const P_PETAL_N = (() => { const p = new Path2D(); p.moveTo(0, 1); p.bezierCurveTo(.95, .45, .72, -.82, .16, -1); p.lineTo(0, -.72); p.lineTo(-.16, -1); p.bezierCurveTo(-.72, -.82, -.95, .45, 0, 1); p.closePath(); return p; })();
+const P_PETAL_R = (() => { const p = new Path2D(); p.moveTo(0, 1); p.bezierCurveTo(1, .5, .8, -1, 0, -1); p.bezierCurveTo(-.8, -1, -1, .5, 0, 1); p.closePath(); return p; })();
+
+function setM(a, b, c, d, e, f){ cx.setTransform(a * DPR, b * DPR, c * DPR, d * DPR, e * DPR, f * DPR); }
+
+const KINDS = {
+  petals: {
+    spawn(o, init){ return { x: rand(-20, W + 20), y: init ? rand(-20, H) : rand(-60, -10), s: rand(4.5, 8) * (o.size || 1), vy: rand(16, 36), vx: rand(-8, 14), rot: rand(0, 6.28), vr: rand(-1.4, 1.4), fl: rand(0, 6.28), vf: rand(1.4, 3.4), sw: rand(10, 28), ph: rand(0, 6.28), col: pick(o.cols) }; },
+    step(p, dt, o, t){ p.y += p.vy * dt; p.x += (p.vx + Math.sin(t * 1.1 + p.ph) * p.sw) * dt; p.rot += p.vr * dt; p.fl += p.vf * dt; return p.y < H + 30 && p.x < W + 60 && p.x > -60; },
+    draw(ps, o){
+      const path = o.notch ? P_PETAL_N : P_PETAL_R;
+      for (const p of ps){
+        const c = Math.cos(p.rot) * p.s, s = Math.sin(p.rot) * p.s, k = Math.cos(p.fl);
+        setM(c, s, -s * k, c * k, p.x, p.y);
+        cx.fillStyle = p.col; cx.fill(path);
+        cx.globalAlpha *= .5; cx.strokeStyle = 'rgba(150,60,70,.5)'; cx.lineWidth = .6 / p.s; cx.stroke(path); cx.globalAlpha /= .5;
+      }
+    }
+  },
+  leaves: {
+    spawn(o, init){ return { x: rand(-20, W + 20), y: o.rise ? (init ? rand(0, H) : H + rand(10, 60)) : (init ? rand(-20, H) : rand(-60, -10)), s: rand(7, 12) * (o.size || 1), vy: o.rise ? -rand(14, 30) : rand(22, 44), vx: rand(-6, 22), rot: rand(0, 6.28), vr: rand(-1.8, 1.8), fl: rand(0, 6.28), vf: rand(1, 2.6), sw: rand(12, 30), ph: rand(0, 6.28), col: pick(o.cols) }; },
+    step(p, dt, o, t){ p.y += p.vy * dt; p.x += (p.vx + Math.sin(t * .9 + p.ph) * p.sw) * dt; p.rot += p.vr * dt; p.fl += p.vf * dt; return (o.rise ? p.y > -40 : p.y < H + 40) && p.x < W + 60 && p.x > -60; },
+    draw(ps, o){
+      const path = o.shape === 'maple' ? P_MAPLE : o.shape === 'ginkgo' ? P_GINKGO : o.shape === 'bamboo' ? P_BAMBOO : P_ROUND;
+      for (const p of ps){
+        const c = Math.cos(p.rot) * p.s, s = Math.sin(p.rot) * p.s, k = .35 + .65 * Math.abs(Math.cos(p.fl));
+        setM(c * k, s * k, -s, c, p.x, p.y);
+        cx.fillStyle = p.col; cx.fill(path);
+        cx.strokeStyle = 'rgba(60,40,30,.35)'; cx.lineWidth = .7 / p.s;
+        cx.beginPath(); cx.moveTo(0, o.shape === 'ginkgo' ? .9 : 1); cx.lineTo(0, o.shape === 'maple' ? -.6 : -.8); cx.stroke();
+      }
+    }
+  },
+  snow: {
+    spawn(o, init){ const r = rand(1, 3.4) * (o.size || 1); return { x: rand(-40, W + 40), y: init ? rand(-10, H) : rand(-30, -6), r, vy: (10 + r * 9) * (o.speed || 1), sw: rand(6, 22), ph: rand(0, 6.28) }; },
+    step(p, dt, o, t){ p.y += p.vy * dt; p.x += (Math.sin(t * .7 + p.ph) * p.sw * .6 + (o.wind || 0) * (.6 + p.r * .15)) * dt; if (p.x > W + 50) p.x -= W + 90; return p.y < H + 12; },
+    draw(ps){ for (const p of ps){ const d = p.r * 4; cx.drawImage(SPR.snow, (p.x - d / 2) * DPR, (p.y - d / 2) * DPR, d * DPR, d * DPR); } }
+  },
+  rain: {
+    spawn(o, init){ return { x: rand(-60, W + 20), y: init ? rand(-20, H) : rand(-80, -10), l: rand(10, 22) * (o.len || 1), v: rand(360, 520) * (o.speed || 1) }; },
+    step(p, dt, o){ p.y += p.v * Math.cos(o.slant || 0) * dt; p.x += p.v * Math.sin(o.slant || 0) * dt; return p.y < H + 30; },
+    draw(ps, o){
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      cx.strokeStyle = o.col; cx.lineWidth = 1; cx.lineCap = 'round';
+      cx.beginPath();
+      const sx = Math.sin(o.slant || 0), sy = Math.cos(o.slant || 0);
+      for (const p of ps){ cx.moveTo(p.x, p.y); cx.lineTo(p.x - sx * p.l, p.y - sy * p.l); }
+      cx.stroke();
+    }
+  },
+  ripples: {
+    spawn(){ return { x: rand(0, W), y: H * rand(.58, .98), m: rand(12, 34), life: -rand(0, 2.5), dur: rand(1.3, 2.3) }; },
+    step(p, dt){ p.life += dt; return p.life < p.dur; },
+    draw(ps, o){
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      cx.lineWidth = 1;
+      for (const p of ps){
+        if (p.life < 0) continue;
+        const k = p.life / p.dur, r = p.m * k;
+        cx.strokeStyle = `rgba(${o.col},${(.42 * (1 - k)).toFixed(3)})`;
+        cx.beginPath(); cx.ellipse(p.x, p.y, r, r * .3, 0, 0, Math.PI * 2); cx.stroke();
+        if (r > 8){ cx.beginPath(); cx.ellipse(p.x, p.y, r * .55, r * .55 * .3, 0, 0, Math.PI * 2); cx.stroke(); }
+      }
+    }
+  },
+  mist: {
+    spawn(o, init){ return { x: init ? rand(-200, W) : -rand(300, 500), y: H * rand(.12, .9), w: rand(320, 620), h: rand(50, 110), vx: rand(8, 20), a: rand(.35, .7) }; },
+    step(p, dt){ p.x += p.vx * dt; return p.x - p.w / 2 < W + 40; },
+    draw(ps){
+      cx.setTransform(1, 0, 0, 1, 0, 0);
+      for (const p of ps){ cx.globalAlpha *= p.a; cx.drawImage(SPR.mist, (p.x - p.w / 2) * DPR, (p.y - p.h / 2) * DPR, p.w * DPR, p.h * DPR); cx.globalAlpha /= p.a; }
+    }
+  },
+  fireflies: {
+    spawn(o, init){ return { x: rand(0, W), y: init ? H * rand(.15, .95) : H * rand(.3, 1), vx: rand(-10, 10), vy: rand(-10, 10), ph: rand(0, 6.28), f: rand(.6, 1.5) }; },
+    step(p, dt){ p.vx += (Math.random() - .5) * 60 * dt; p.vy += (Math.random() - .5) * 60 * dt - 1.2 * dt; p.vx *= .985; p.vy *= .985; p.x += p.vx * dt; p.y += p.vy * dt; if (p.x < -20) p.x = W + 20; if (p.x > W + 20) p.x = -20; return p.y > -30 && p.y < H + 30; },
+    draw(ps, o, t){
+      for (const p of ps){
+        const a = Math.pow(Math.max(0, Math.sin(t * p.f * 2.2 + p.ph)), 2);
+        if (a < .02) continue;
+        const d = 30 + a * 16;
+        const g0 = cx.globalAlpha; cx.globalAlpha = g0 * a;
+        cx.drawImage(SPR.fly, (p.x - d / 2) * DPR, (p.y - d / 2) * DPR, d * DPR, d * DPR);
+        cx.globalAlpha = g0;
+      }
+    }
+  },
+  motes: {
+    spawn(o, init){ return { x: rand(0, W), y: init ? rand(0, H) : H + rand(4, 30), r: rand(.8, 2.1), vy: -rand(5, 16), ph: rand(0, 6.28) }; },
+    step(p, dt, o, t){ p.y += p.vy * dt; p.x += Math.sin(t * .8 + p.ph) * 8 * dt; return p.y > -10; },
+    draw(ps, o, t){
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      for (const p of ps){ cx.fillStyle = `rgba(${o.col},${(.25 + .3 * Math.sin(t * 1.3 + p.ph) ** 2).toFixed(3)})`; cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, Math.PI * 2); cx.fill(); }
+    }
+  },
+  butterflies: {
+    spawn(o, init){ return { x: init ? rand(0, W) : -30, y: H * rand(.15, .85), h: rand(-.5, .5), sp: rand(28, 48), ph: rand(0, 6.28), col: pick(['#fbf8e6', '#f1e39a', '#fbf8e6']), s: rand(5, 7.5) }; },
+    step(p, dt, o, t){ p.h += (Math.random() - .5) * 3 * dt + Math.sin(t * .5 + p.ph) * .4 * dt; p.x += Math.cos(p.h) * p.sp * dt; p.y += (Math.sin(p.h) * p.sp + Math.sin(t * 6 + p.ph) * 18) * dt; if (p.y < H * .08) p.h = Math.abs(p.h); if (p.y > H * .92) p.h = -Math.abs(p.h); return p.x < W + 40 && p.x > -60; },
+    draw(ps, o, t){
+      for (const p of ps){
+        const flap = .25 + .75 * Math.abs(Math.sin(t * 13 + p.ph));
+        setM(1, 0, 0, 1, p.x, p.y);
+        cx.fillStyle = p.col; cx.strokeStyle = 'rgba(70,60,40,.55)'; cx.lineWidth = .6;
+        for (const sd of [-1, 1]){
+          cx.beginPath(); cx.ellipse(sd * p.s * .62 * flap, -p.s * .25, p.s * .62 * flap, p.s * .5, sd * .3, 0, Math.PI * 2); cx.fill(); cx.stroke();
+          cx.beginPath(); cx.ellipse(sd * p.s * .48 * flap, p.s * .38, p.s * .42 * flap, p.s * .34, -sd * .3, 0, Math.PI * 2); cx.fill(); cx.stroke();
+        }
+        cx.strokeStyle = 'rgba(50,40,30,.8)'; cx.lineWidth = 1.1; cx.beginPath(); cx.moveTo(0, -p.s * .6); cx.lineTo(0, p.s * .6); cx.stroke();
+      }
+    }
+  },
+  swallows: {
+    spawn(o, init){ const dir = Math.random() < .5 ? 1 : -1; return { x: dir > 0 ? -40 : W + 40, y: H * rand(.08, .5), vx: dir * rand(150, 230), vy: rand(-18, 18), ph: rand(0, 6.28), wait: init ? rand(.2, 2.5) : rand(2, 6), s: rand(9, 13) }; },
+    step(p, dt, o, t){ if (p.wait > 0){ p.wait -= dt; return true; } p.x += p.vx * dt; p.y += (p.vy + Math.sin(t * 2.2 + p.ph) * 34) * dt; return p.x > -80 && p.x < W + 80; },
+    draw(ps, o, t){
+      cx.fillStyle = 'rgba(35,38,52,.78)';
+      for (const p of ps){
+        if (p.wait > 0) continue;
+        const dir = Math.sign(p.vx), fl = Math.sin(t * 9 + p.ph) * .35, s = p.s;
+        setM(dir, 0, 0, 1, p.x, p.y);
+        cx.beginPath();
+        cx.moveTo(s * 1.1, 0);
+        cx.quadraticCurveTo(s * .2, -s * (.35 + fl), -s * .7, -s * (1.05 + fl));
+        cx.quadraticCurveTo(-s * .05, -s * .15, -s * .55, 0);
+        cx.lineTo(-s * 1.45, -s * .28); cx.lineTo(-s * .8, s * .05); cx.lineTo(-s * 1.45, s * .3);
+        cx.quadraticCurveTo(-s * .2, s * .2, s * 1.1, 0);
+        cx.fill();
+      }
+    }
+  },
+  geese: {
+    spawn(o, init){ return { x: W + 60, y: H * rand(.1, .35), vx: -rand(52, 70), ph: rand(0, 6.28), n: 5 + Math.floor(rand(0, 5)), wait: init ? .4 : rand(5, 10) }; },
+    step(p, dt){ if (p.wait > 0){ p.wait -= dt; return true; } p.x += p.vx * dt; p.y -= 4 * dt; return p.x > -360; },
+    draw(ps, o, t){
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      cx.strokeStyle = 'rgba(40,40,46,.7)'; cx.lineWidth = 1.5; cx.lineCap = 'round'; cx.lineJoin = 'round';
+      for (const p of ps){
+        if (p.wait > 0) continue;
+        cx.beginPath();
+        for (let k = 0; k < p.n; k++){
+          const side = k === 0 ? 0 : (k % 2 ? -1 : 1), rank = Math.ceil(k / 2);
+          const bx = p.x + rank * 30, by = p.y + side * rank * 17;
+          const fl = Math.sin(t * 4 + p.ph + k * .7) * 3.5;
+          cx.moveTo(bx - 9, by - 2 - fl); cx.quadraticCurveTo(bx - 4, by - 4 - fl, bx, by); cx.quadraticCurveTo(bx + 4, by - 4 - fl, bx + 9, by - 2 - fl);
+        }
+        cx.stroke();
+      }
+    }
+  },
+  dragonflies: {
+    spawn(o, init){ return { x: rand(0, W), y: H * rand(.2, .85), tx: 0, ty: 0, pause: rand(0, 1.5), h: rand(0, 6.28), sp: 0, ph: rand(0, 6.28) }; },
+    step(p, dt){
+      if (p.pause > 0){ p.pause -= dt; if (p.pause <= 0){ const a = rand(0, 6.28), d = rand(80, 240); p.tx = Math.max(20, Math.min(W - 20, p.x + Math.cos(a) * d)); p.ty = Math.max(H * .1, Math.min(H * .95, p.y + Math.sin(a) * d)); } return true; }
+      const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy);
+      if (d < 4){ p.pause = rand(.5, 2.2); return true; }
+      p.h = Math.atan2(dy, dx);
+      const v = Math.min(260, d * 3.2);
+      p.x += dx / d * v * dt; p.y += dy / d * v * dt;
+      return true;
+    },
+    draw(ps, o, t){
+      for (const p of ps){
+        const jx = p.pause > 0 ? Math.sin(t * 7 + p.ph) * 1.2 : 0;
+        const c = Math.cos(p.h), s = Math.sin(p.h);
+        setM(c, s, -s, c, p.x + jx, p.y);
+        const fl = .8 + .2 * Math.sin(t * 40 + p.ph);
+        cx.fillStyle = 'rgba(255,255,255,.55)'; cx.strokeStyle = 'rgba(70,60,50,.35)'; cx.lineWidth = .6;
+        for (const sd of [-1, 1]){
+          cx.beginPath(); cx.ellipse(1.5, sd * 8 * fl, 2.4, 8 * fl, sd * .15, 0, Math.PI * 2); cx.fill(); cx.stroke();
+          cx.beginPath(); cx.ellipse(-2.5, sd * 7 * fl, 2.2, 7 * fl, -sd * .15, 0, Math.PI * 2); cx.fill(); cx.stroke();
+        }
+        cx.strokeStyle = '#c4452c'; cx.lineWidth = 2.2; cx.lineCap = 'round';
+        cx.beginPath(); cx.moveTo(4, 0); cx.lineTo(-18, 0); cx.stroke();
+        cx.fillStyle = '#7a2a1a'; cx.beginPath(); cx.arc(5.5, 0, 2.2, 0, Math.PI * 2); cx.fill();
+      }
+    }
+  },
+  dew: {
+    spawn(o, init){ return { x: rand(0, W), y: H * rand(.3, .99), life: init ? rand(0, 3) : -rand(0, 3), dur: rand(1.6, 3.6), s: rand(3.5, 8) }; },
+    step(p, dt){ p.life += dt; return p.life < p.dur; },
+    draw(ps, o){
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      for (const p of ps){
+        if (p.life < 0) continue;
+        const a = Math.sin(Math.PI * p.life / p.dur);
+        cx.strokeStyle = `rgba(${o.col},${(.78 * a).toFixed(3)})`; cx.lineWidth = 1.1;
+        cx.beginPath(); cx.moveTo(p.x - p.s * a, p.y); cx.lineTo(p.x + p.s * a, p.y); cx.moveTo(p.x, p.y - p.s * 1.4 * a); cx.lineTo(p.x, p.y + p.s * 1.4 * a); cx.stroke();
+        cx.fillStyle = `rgba(255,255,255,${(.95 * a).toFixed(3)})`; cx.beginPath(); cx.arc(p.x, p.y, 1.6, 0, Math.PI * 2); cx.fill();
+        cx.strokeStyle = `rgba(${o.col},${(.5 * a).toFixed(3)})`; cx.beginPath(); cx.arc(p.x, p.y, 2.4, 0, Math.PI * 2); cx.stroke();
+      }
+    }
+  },
+  wind: {
+    spawn(o, init){ return { x: init ? rand(0, W + 300) : -rand(20, 200), y: rand(H * .05, H * .95), len: rand(140, 340), amp: rand(4, 14), sp: rand(90, 170), ph: rand(0, 6.28), a: rand(.18, .38) }; },
+    step(p, dt){ p.x += p.sp * dt; return p.x - p.len < W + 20; },
+    draw(ps, o, t){
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      cx.lineWidth = 1.1; cx.lineCap = 'round';
+      for (const p of ps){
+        cx.strokeStyle = `rgba(${o.col},${p.a.toFixed(3)})`;
+        cx.beginPath();
+        for (let x = p.x - p.len; x <= p.x; x += 10){
+          const y = p.y + Math.sin(x * .018 + p.ph + t * .8) * p.amp;
+          if (x === p.x - p.len) cx.moveTo(x, y); else cx.lineTo(x, y);
+        }
+        cx.stroke();
+      }
+    }
+  },
+  stars: {
+    spawn(){ return { x: rand(0, W), y: rand(0, H * .62), s: rand(1.2, 3.4), ph: rand(0, 6.28), f: rand(.4, 1.3) }; },
+    step(){ return true; },
+    draw(ps, o, t){
+      cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      for (const p of ps){
+        const a = .35 + .65 * Math.pow(Math.sin(t * p.f + p.ph) * .5 + .5, 2), s = p.s * (.7 + .3 * a);
+        cx.fillStyle = `rgba(255,250,230,${(.9 * a).toFixed(3)})`;
+        cx.beginPath(); cx.moveTo(p.x, p.y - s * 2.2); cx.lineTo(p.x + s * .35, p.y); cx.lineTo(p.x, p.y + s * 2.2); cx.lineTo(p.x - s * .35, p.y); cx.closePath(); cx.fill();
+        cx.beginPath(); cx.moveTo(p.x - s * 2.2, p.y); cx.lineTo(p.x, p.y + s * .35); cx.lineTo(p.x + s * 2.2, p.y); cx.lineTo(p.x, p.y - s * .35); cx.closePath(); cx.fill();
+      }
+    }
+  },
+  fluff: {
+    spawn(o, init){ return { x: init ? rand(0, W) : -rand(10, 60), y: init ? rand(0, H) : H * rand(.2, 1), vx: rand(10, 24), vy: -rand(3, 11), rot: rand(0, 6.28), vr: rand(-.6, .6), s: rand(4, 8) * (o.cotton ? 1.3 : 1), ph: rand(0, 6.28) }; },
+    step(p, dt, o, t){ p.x += (p.vx + Math.sin(t * .7 + p.ph) * 6) * dt; p.y += (p.vy + Math.cos(t * .9 + p.ph) * 5) * dt; p.rot += p.vr * dt; return p.x < W + 40 && p.y > -40; },
+    draw(ps, o){
+      for (const p of ps){
+        const c = Math.cos(p.rot), s = Math.sin(p.rot);
+        setM(c, s, -s, c, p.x, p.y);
+        if (o.cotton){
+          cx.fillStyle = 'rgba(255,255,255,.92)'; cx.strokeStyle = 'rgba(120,110,130,.35)'; cx.lineWidth = .7;
+          cx.beginPath();
+          for (let k = 0; k < 5; k++){ const a = k / 5 * 6.28; cx.moveTo(Math.cos(a) * p.s * .55 + p.s * .42, Math.sin(a) * p.s * .55); cx.arc(Math.cos(a) * p.s * .55, Math.sin(a) * p.s * .55, p.s * .42, 0, Math.PI * 2); }
+          cx.fill(); cx.stroke();
+        } else {
+          cx.strokeStyle = 'rgba(110,100,90,.5)'; cx.lineWidth = .6;
+          cx.beginPath();
+          for (let k = 0; k < 9; k++){ const a = k / 9 * 6.28; cx.moveTo(0, 0); cx.lineTo(Math.cos(a) * p.s, Math.sin(a) * p.s); }
+          cx.stroke();
+          cx.fillStyle = 'rgba(110,90,60,.8)'; cx.beginPath(); cx.arc(0, 0, 1.1, 0, Math.PI * 2); cx.fill();
+        }
+      }
+    }
+  }
+};
+
+let layers = [];
+function setMotif(spec){
+  layers.forEach((L) => { L.target = 0; });
+  const mobile = W < 700;
+  const L = { alpha: reduce ? 1 : 0, target: 1, ems: spec.map(([kind, o]) => {
+    const n = Math.max(1, Math.round((o.n || 10) * (mobile ? .6 : 1) * (reduce ? .5 : 1)));
+    const parts = [];
+    for (let i = 0; i < n; i++) parts.push(KINDS[kind].spawn(o, true));
+    return { kind, o, parts };
+  }) };
+  layers.push(L);
+  if (reduce) layers = [L];
+}
+let last = performance.now(), T = 0;
+function frame(now){
+  const dt = Math.min(.05, (now - last) / 1000) * (reduce ? .18 : 1);
+  last = now; T += dt;
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  cx.clearRect(0, 0, cv.width, cv.height);
+  for (const L of layers){
+    L.alpha += (L.target - L.alpha) * Math.min(1, dt * 1.6);
+    cx.globalAlpha = Math.max(0, Math.min(1, L.alpha));
+    for (const em of L.ems){
+      const K = KINDS[em.kind];
+      for (let i = 0; i < em.parts.length; i++){
+        if (!K.step(em.parts[i], dt, em.o, T)) em.parts[i] = K.spawn(em.o, false);
+      }
+      K.draw(em.parts, em.o, T);
+    }
+  }
+  cx.globalAlpha = 1;
+  layers = layers.filter((L) => L.target > 0 || L.alpha > .01);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.addEventListener('visibilitychange', () => { last = performance.now(); });
+
+/* ------------------------------------------------------------------
+   Selection
+------------------------------------------------------------------ */
+let cur = -1, spin = 0;
+function pointerTheta(){ return window.innerWidth <= 1180 ? -90 : 0; }
+function placePointer(){
+  const th = pointerTheta() * DEG, r = 530;
+  const x = Math.cos(th) * r, y = -Math.sin(th) * r, rot = -pointerTheta();
+  pointerG.setAttribute('transform', `translate(${f1(x)} ${f1(y)}) rotate(${rot + 180})`);
+}
+function targetSpin(i){ return 180 - (TERMS[i].lon + 7.5) - pointerTheta(); }
+
+/* the wheel turns by attribute, one rAF loop for spin, arc lifts and the opening unfold */
+const ups = Array.from(dial.querySelectorAll('.up'));
+const mvs = arcs.map((a) => a.querySelector('.mv'));
+const dirs = TERMS.map((t) => pos(1, t.lon + 7.5));
+const lifts = arcs.map(() => ({ v: 0, vel: 0 }));
+let hoverI = -1, spinShown = 0, tween = null, introT0 = reduce ? -1 : null, looping = false, lastL = 0;
+function setSpinNow(s){
+  spinShown = s;
+  wheel.setAttribute('transform', `rotate(${s.toFixed(2)})`);
+  const r = `rotate(${(-s).toFixed(2)})`;
+  for (const u of ups) u.setAttribute('transform', r);
+}
+const ease = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+function dialLoop(now){
+  const dt = Math.min(.05, (now - (lastL || now)) / 1000);
+  lastL = now;
+  let busy = false;
+  if (tween){
+    const k = Math.max(0, Math.min(1, (now - tween.t0) / tween.dur));
+    setSpinNow(tween.from + (tween.to - tween.from) * ease(k));
+    if (k >= 1) tween = null; else busy = true;
+  }
+  if (introT0 === null) introT0 = now;
+  const intro = introT0 >= 0 ? (now - introT0) : 1e9;
+  for (let i = 0; i < 24; i++){
+    const L = lifts[i], target = i === cur ? 18 : i === hoverI ? 7 : 0;
+    // a lightly underdamped spring gives the lifted arc a small settle
+    const acc = (target - L.v) * 260 - L.vel * 22;
+    L.vel += acc * dt; L.v += L.vel * dt;
+    if (Math.abs(target - L.v) > .05 || Math.abs(L.vel) > .05) busy = true; else { L.v = target; L.vel = 0; }
+    let p = 1;
+    if (intro < 2000){ p = Math.max(0, Math.min(1, (intro - i * 38) / 700)); busy = true; }
+    const q = 1 - Math.pow(1 - p, 3), off = L.v - 70 * (1 - q);
+    mvs[i].setAttribute('transform', `translate(${(dirs[i][0] * off).toFixed(2)} ${(dirs[i][1] * off).toFixed(2)})`);
+    if (p < 1) mvs[i].setAttribute('opacity', q.toFixed(3)); else mvs[i].removeAttribute('opacity');
+  }
+  if (busy) requestAnimationFrame(dialLoop); else { looping = false; lastL = 0; }
+}
+function kick(){ if (!looping){ looping = true; requestAnimationFrame(dialLoop); } }
+function spinTo(i, instant){
+  spin += wrap180(targetSpin(i) - spin);
+  if (instant || reduce){ tween = null; setSpinNow(spin); }
+  else tween = { from: spinShown, to: spin, t0: performance.now(), dur: 1150 };
+  kick();
+}
+arcs.forEach((a, i) => {
+  a.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse'){ hoverI = i; kick(); } });
+  a.addEventListener('pointerleave', () => { if (hoverI === i){ hoverI = -1; kick(); } });
+});
+
+const detail = $('#detail');
+function fillDetail(i){
+  const t = TERMS[i];
+  $('#vk').innerHTML = `<span class="ch">${t.k[0]}</span><span class="ch">${t.k[1]}</span><span class="stamp">${SEASONS[t.season][0]}</span>`;
+  $('#idx').innerHTML = `Term <b>${i + 1}</b> of 24 &middot; ${SEASONS[t.season][1]}`;
+  $('#romaji').textContent = t.r;
+  $('#meaning').textContent = t.en;
+  $('#dates').innerHTML = `<span>${termDates(i)}</span><span class="lon">${t.lon}°–${(t.lon + 15) % 360 || 360}°</span>`;
+  $('#poem').textContent = t.p;
+  $('#ko').innerHTML = `<span class="ko-k" lang="ja">${t.ko[0]}</span><span class="ko-t">One of its three microseasons: <i>${t.ko[1]}</i>.</span>`;
+  $('#swatch').innerHTML = `<span class="chip" aria-hidden="true"></span><span class="swatch-t"><span>${t.cn}</span><span class="jp" lang="ja">${t.ck}</span>, ${t.ce}<span class="hex">${t.c}</span></span>`;
+  $('#live').textContent = `${t.r}, ${t.en}. ${termDates(i)}.`;
+  $('#center-k').textContent = SEASONS[t.season][0];
+  $('#center-en').textContent = SEASONS[t.season][1];
+  $('#center-n').textContent = `第${NUM_JP[i]} · ${i + 1} / 24`;
+}
+function select(i, opts){
+  opts = opts || {};
+  i = (i + 24) % 24;
+  const t = TERMS[i];
+  const first = cur < 0;
+  cur = i;
+  arcs.forEach((a, k) => {
+    a.classList.toggle('sel', k === i);
+    a.setAttribute('tabindex', k === i ? '0' : '-1');
+    a.setAttribute('aria-pressed', String(k === i));
+  });
+  if (!opts.keepSpin) spinTo(i);
+  kick();
+  // tint the washi with the term's colour
+  const root = document.documentElement.style;
+  root.setProperty('--term', t.c);
+  root.setProperty('--tint', mix('#f8f5ee', t.c, lum(t.c) > .8 ? .12 : .085));
+  root.setProperty('--sky', t.sky);
+  const L = lum(t.c);
+  root.setProperty('--accent', L > .45 ? mix(t.c, '#2b2b2b', .62) : L > .2 ? mix(t.c, '#2b2b2b', .35) : t.c);
+  $('#today').setAttribute('aria-pressed', String(i === TODAY_I));
+  if (first || reduce){ fillDetail(i); }
+  else {
+    detail.classList.add('swapping');
+    clearTimeout(select.tm);
+    select.tm = setTimeout(() => { fillDetail(i); detail.classList.remove('swapping'); }, 260);
+  }
+  setMotif(t.m);
+}
+
+/* today line */
+(function(){
+  const d = jst(NOW);
+  $('#today-line').textContent = `Today, ${d.d} ${MONTHS_LONG[d.m]} ${d.y} · the sun stands at ${LAM_NOW.toFixed(1)}° — ${TERMS[TODAY_I].r}`;
+})();
+
+/* ------------------------------------------------------------------
+   Input: click, drag the wheel, keys, buttons
+------------------------------------------------------------------ */
+$('#prev').addEventListener('click', () => select(cur - 1));
+$('#next').addEventListener('click', () => select(cur + 1));
+$('#today').addEventListener('click', () => select(TODAY_I));
+
+let drag = null;
+function screenAngle(e){
+  const r = dial.getBoundingClientRect();
+  return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) / DEG;
+}
+dial.addEventListener('pointerdown', (e) => {
+  const r = dial.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const rr = Math.hypot(dx, dy) / (r.width / 2) * 540;
+  drag = { id: e.pointerId, a0: screenAngle(e), s0: spin, x: e.clientX, y: e.clientY, moved: false, ring: rr > 250 && rr < 530, target: e.target };
+  if (drag.ring){ try { dial.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } }
+});
+dial.addEventListener('pointermove', (e) => {
+  if (!drag || e.pointerId !== drag.id || !drag.ring) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+  if (!drag.moved){ drag.moved = true; dial.classList.add('dragging'); tween = null; drag.s0 = spinShown; drag.a0 = screenAngle(e); }
+  spin = drag.s0 + wrap180(screenAngle(e) - drag.a0);
+  setSpinNow(spin);
+});
+function endDrag(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag;
+  drag = null;
+  dial.classList.remove('dragging');
+  if (d.moved){
+    const lamAtPointer = 180 - pointerTheta() - spin;
+    const idx = Math.floor((((lamAtPointer - 315) % 360) + 360) % 360 / 15);
+    requestAnimationFrame(() => select(idx));
+  } else {
+    const a = d.target && d.target.closest ? d.target.closest('.arc') : null;
+    if (a) select(+a.dataset.i);
+  }
+}
+dial.addEventListener('pointerup', endDrag);
+dial.addEventListener('pointercancel', endDrag);
+dial.addEventListener('keydown', (e) => {
+  const a = e.target.closest && e.target.closest('.arc');
+  if (a && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); select(+a.dataset.i); }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  let n = null;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = cur + 1;
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = cur - 1;
+  else if (e.key === 'Home') n = 0;
+  else if (e.key === 'End') n = 23;
+  else if (e.key === 't' || e.key === 'T') n = TODAY_I;
+  if (n === null) return;
+  e.preventDefault();
+  select(n);
+  if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#dial')) arcs[cur].focus({ preventScroll: true });
+});
+
+let rsT = 0, lastPT = pointerTheta();
+window.addEventListener('resize', () => {
+  clearTimeout(rsT);
+  rsT = setTimeout(() => {
+    sizeCanvas();
+    placePointer();
+    if (pointerTheta() !== lastPT){ lastPT = pointerTheta(); spinTo(cur); }
+  }, 60);
+});
+
+/* go: begin a quarter-turn away and let the wheel come round to today */
+placePointer();
+spin = targetSpin(TODAY_I) - (reduce ? 0 : 100);
+setSpinNow(spin);
+select(TODAY_I, { keepSpin: true });
+if (reduce){ spinTo(TODAY_I, true); }
+else {
+  tween = { from: spin, to: spin + 100, t0: performance.now() + 120, dur: 1500 };
+  spin += 100;
+  kick();
+}
+setTimeout(() => dial.classList.remove('intro'), 1800);})();
+</script>
+</body>
+</html>

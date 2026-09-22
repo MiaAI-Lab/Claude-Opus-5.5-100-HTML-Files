@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helix — The Double Helix Explained</title>
+<meta name="description" content="An interactive, annotated B-DNA double helix: rotate and zoom it, type your own sequence, inspect base pairs and hydrogen bonds, and watch it unzip and replicate.">
+<meta name="theme-color" content="#f7f9fb">
+<style>
+:root{
+  --sans:"Inter","Segoe UI Variable Text","Segoe UI",Roboto,"Helvetica Neue","Liberation Sans","DejaVu Sans",Arial,sans-serif;
+  --mono:"JetBrains Mono","SF Mono",Menlo,Consolas,"DejaVu Sans Mono","Liberation Mono","Nimbus Mono PS",monospace;
+  --bg:#f7f9fb; --panel:#ffffff; --panel2:#f2f5f8; --ink:#0f1b2d; --ink2:#46566b; --ink3:#8793a4; --line:#e2e7ee; --dot:rgba(15,27,45,.075);
+  --teal:#2ec4b6; --red:#e71d36; --A:#ff9f1c; --T:#ffbf69; --G:#6a4c93; --C:#8ac926;
+  --focus:#1b6fd8; --tip:#0f1b2d; --tip-ink:#ffffff; --shadow:0 18px 40px -26px rgba(15,27,45,.35);
+}
+:root[data-theme="dark"]{
+  --bg:#0b1220; --panel:#0f1829; --panel2:#142036; --ink:#e7edf6; --ink2:#a6b3c6; --ink3:#6c7b91; --line:#1d2940; --dot:rgba(231,237,246,.06);
+  --focus:#7db4ff; --tip:#e7edf6; --tip-ink:#0b1220; --shadow:0 18px 40px -26px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;transition:background-color .4s,color .4s;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:8px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:-1px;padding:0;border:0}
+
+/* ---------- header ---------- */
+.top{height:60px;display:flex;align-items:center;gap:14px;padding:0 22px;border-bottom:1px solid var(--line);background:var(--panel);position:relative;z-index:4;transition:background-color .4s,border-color .4s}
+.mark{display:flex;align-items:center;gap:10px}
+.mark svg{width:26px;height:26px}
+.mark b{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.top .tag{font-size:13px;color:var(--ink3);padding-left:14px;border-left:1px solid var(--line)}
+.top .grow{flex:1}
+.iconbtn{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line);background:var(--panel);transition:background-color .2s,border-color .4s}
+.iconbtn:hover{background:var(--panel2)}
+.iconbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn .moon{display:none}
+:root[data-theme="dark"] .iconbtn .moon{display:block}
+:root[data-theme="dark"] .iconbtn .sun{display:none}
+
+/* ---------- layout ---------- */
+.app{display:grid;grid-template-columns:minmax(0,1fr) 420px;height:calc(100vh - 60px);min-height:560px}
+.viz{position:relative;overflow:hidden;background-color:var(--bg);background-image:radial-gradient(var(--dot) 1.1px,transparent 1.3px);background-size:22px 22px;transition:background-color .4s}
+#helix{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#helix.dragging{cursor:grabbing}
+.title{position:absolute;left:34px;top:30px;max-width:420px;pointer-events:none}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--teal)}
+.title h1{font-size:clamp(30px,3.6vw,52px);line-height:1.02;letter-spacing:-.035em;font-weight:800;margin-top:10px}
+.title h1 span{color:var(--ink3);font-weight:300}
+.title p{margin-top:12px;font-size:15px;line-height:1.5;color:var(--ink2);max-width:25em}
+.ctrls{position:absolute;left:28px;bottom:26px;display:flex;gap:6px;padding:5px;border-radius:14px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);transition:background-color .4s,border-color .4s}
+.ctrls .iconbtn{border-color:transparent;width:36px;height:36px}
+.ctrls .play .pl{display:none}
+.ctrls .play[aria-pressed="false"] .pl{display:block}
+.ctrls .play[aria-pressed="false"] .pa{display:none}
+.hint{position:absolute;right:26px;bottom:34px;font-size:12px;color:var(--ink3);pointer-events:none;text-align:right;line-height:1.5}
+.stage-cap{position:absolute;right:24px;top:24px;padding:9px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;letter-spacing:.01em;line-height:1.4;
+  opacity:0;transition:opacity .4s;pointer-events:none;max-width:min(460px,62%);box-shadow:var(--shadow)}
+.stage-cap.on{opacity:1}
+.tip{position:absolute;left:0;top:0;pointer-events:none;background:var(--tip);color:var(--tip-ink);border-radius:10px;padding:9px 12px;font-size:12px;line-height:1.45;
+  opacity:0;transform:translate(14px,14px);transition:opacity .15s;box-shadow:0 10px 30px -12px rgba(0,0,0,.45);max-width:250px}
+.tip.on{opacity:1}
+.tip b{font-family:var(--mono);font-size:15px;letter-spacing:.04em}
+.tip i{font-style:normal;opacity:.7}
+
+/* ---------- panel ---------- */
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:24px 26px 30px;transition:background-color .4s,border-color .4s;position:relative;z-index:3}
+.panel h2{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);margin:26px 0 12px}
+.panel h2:first-child{margin-top:0}
+.anns{list-style:none;display:grid;gap:4px}
+.ann{position:relative;display:grid;grid-template-columns:26px 1fr;gap:10px;padding:10px 10px 10px 8px;margin-left:-8px;border-radius:12px;transition:background-color .2s;cursor:default}
+.ann:hover,.ann.hot{background:var(--panel2)}
+.pin{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--bg);background:var(--ink);transition:background-color .2s,transform .2s}
+.ann:hover .pin,.ann.hot .pin{background:var(--focus);color:#fff;transform:scale(1.08)}
+.ann h3{font-size:14.5px;font-weight:650;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ann p{font-size:13px;line-height:1.5;color:var(--ink2);margin-top:3px}
+.bond{font-family:var(--mono);font-size:11.5px;padding:1px 6px;border-radius:6px;background:var(--panel2);color:var(--ink2);border:1px solid var(--line)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fact{padding:10px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.fact b{display:block;font-size:19px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fact span{font-size:11.5px;color:var(--ink2)}
+.seqbox label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.seqrow{display:flex;gap:6px}
+#seqIn{flex:1;min-width:0;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);padding:0 12px;font-family:var(--mono);font-size:14px;letter-spacing:.12em;text-transform:uppercase;transition:border-color .2s,background-color .4s}
+#seqIn:focus{outline:none;border-color:var(--focus)}
+.btn{height:42px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;transition:background-color .2s,transform .15s}
+.btn:hover{background:var(--panel2)}
+.btn:active{transform:scale(.97)}
+.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn.primary{width:100%;justify-content:center;margin-top:10px;height:46px;border:0;color:#fff;background:linear-gradient(90deg,#1fb3a5,#2ec4b6 45%,#e71d36 140%);box-shadow:0 10px 24px -14px rgba(46,196,182,.9)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.primary:disabled{opacity:.6;cursor:progress}
+.msg{font-size:12px;color:var(--ink3);margin-top:6px;min-height:18px;transition:color .2s}
+.msg.warn{color:var(--red)}
+.seq{margin-top:12px;padding:12px 12px 10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-family:var(--mono);font-size:13px;overflow-x:auto}
+.srow{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.srow .end{font-size:11px;color:var(--ink3);width:18px;flex:none}
+.srow .end.r{text-align:right}
+.bases{display:flex}
+.bases span{width:1.02em;text-align:center;font-weight:700;border-radius:3px;transition:background-color .15s,transform .15s;cursor:default}
+.bases span.hl{background:rgba(27,111,216,.16);transform:translateY(-1px)}
+.bases.hb span{font-weight:400;color:var(--ink3);font-size:10px;line-height:1.5}
+.b-A{color:#e08500}.b-T{color:#d9962f}.b-G{color:var(--G)}.b-C{color:#5f9a0e}
+:root[data-theme="dark"] .b-A{color:var(--A)} :root[data-theme="dark"] .b-T{color:var(--T)} :root[data-theme="dark"] .b-G{color:#b49ae0} :root[data-theme="dark"] .b-C{color:var(--C)}
+.stats{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--ink2)}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lg{display:flex;align-items:center;gap:10px;font-size:13px}
+.lg i{width:26px;height:12px;border-radius:4px;flex:none}
+.lg small{display:block;font-size:11px;color:var(--ink3)}
+.strands{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--ink2);flex-wrap:wrap}
+.strands span{display:inline-flex;align-items:center;gap:6px}
+.strands i{width:18px;height:6px;border-radius:3px}
+.note{margin-top:22px;font-size:11.5px;line-height:1.55;color:var(--ink3)}
+#leaders{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;overflow:visible}
+#leaders path{fill:none;stroke:var(--ink3);stroke-width:1;stroke-opacity:.75;transition:opacity .3s}
+#leaders path.hot{stroke:var(--focus);stroke-width:1.8}
+#leaders circle{fill:var(--bg);stroke:var(--ink);stroke-width:1.5}
+#leaders circle.hot{stroke:var(--focus);stroke-width:2.4}
+
+@media (max-width:1180px){ .app{grid-template-columns:minmax(0,1fr) 360px} }
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr);height:auto}
+  .panel{min-width:0}
+  .viz{height:max(460px,70vh)}
+  .panel{border-left:0;border-top:1px solid var(--line);overflow:visible;padding:22px 18px 30px}
+  #leaders{display:none}
+  .title{left:18px;top:18px;right:18px}
+  .title h1{font-size:30px}
+  .title p{display:none}
+  .hint{display:none}
+  .ctrls{left:12px;bottom:12px}
+  .stage-cap{left:12px;right:12px;top:auto;bottom:70px;max-width:none;text-align:center;font-size:12.5px}
+  .top .tag{display:none}
+}
+@media (max-width:420px){
+  .facts{grid-template-columns:1fr 1fr}
+  .legend{grid-template-columns:1fr 1fr}
+  .top{padding:0 14px}
+}
+@media (prefers-reduced-motion:reduce){ *{transition-duration:.01s!important} }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="mark">
+    <svg viewBox="0 0 26 26" aria-hidden="true"><path d="M5 2 C5 9 21 9 21 13 C21 17 5 17 5 24" fill="none" stroke="#2ec4b6" stroke-width="2.4" stroke-linecap="round"/><path d="M21 2 C21 9 5 9 5 13 C5 17 21 17 21 24" fill="none" stroke="#e71d36" stroke-width="2.4" stroke-linecap="round"/><path d="M8 5.5H18M8 20.5H18" stroke="#ff9f1c" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <b>Helix</b>
+  </div>
+  <span class="tag">The double helix, explained</span>
+  <span class="grow"></span>
+  <button type="button" class="iconbtn" id="themeBtn" aria-label="Dark mode" aria-pressed="false">
+    <svg class="sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4"/></svg>
+    <svg class="moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 12.4A7 7 0 0 1 7.6 3.5a7 7 0 1 0 8.9 8.9z"/></svg>
+  </button>
+</header>
+
+<div class="app">
+  <main class="viz" id="viz">
+    <canvas id="helix" tabindex="0" aria-label="Rotating double helix. Drag or use the arrow keys to rotate, scroll or press plus and minus to zoom, hover a base pair to inspect it." role="img"></canvas>
+    <div class="title">
+      <p class="kicker">B-DNA · right-handed</p>
+      <h1>The Double <span>Helix</span></h1>
+      <p>Two antiparallel strands wound around one axis, held together by paired bases, ten and a half pairs to every turn.</p>
+    </div>
+    <div class="stage-cap" id="cap" aria-live="polite"></div>
+    <div class="tip" id="tip"></div>
+    <div class="ctrls" role="toolbar" aria-label="View controls">
+      <button type="button" class="iconbtn play" id="playBtn" aria-pressed="true" aria-label="Auto-rotate">
+        <svg class="pa" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4.5v11M13 4.5v11"/></svg>
+        <svg class="pl" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 4.2 15.5 10l-9 5.8z"/></svg>
+      </button>
+      <button type="button" class="iconbtn" id="zoomOut" aria-label="Zoom out"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10h11"/></svg></button>
+      <button type="button" class="iconbtn" id="zoomIn" aria-label="Zoom in"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 10h11M10 4.5v11"/></svg></button>
+      <button type="button" class="iconbtn" id="resetBtn" aria-label="Reset view"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 9a6 6 0 1 1 1.8 4.6M4 4.5V9h4.5"/></svg></button>
+    </div>
+    <p class="hint">Drag to rotate · Scroll to zoom<br>Hover a base pair to read it</p>
+  </main>
+
+  <aside class="panel" aria-label="Annotations and controls">
+    <h2>Anatomy</h2>
+    <ol class="anns" id="anns">
+      <li class="ann" data-k="dir"><span class="pin">1</span><div><h3>5′ → 3′ direction</h3><p>The strands are antiparallel. The teal strand runs 5′→3′ along the axis; its red partner runs 5′→3′ the opposite way. The small chevrons show each strand's direction.</p></div></li>
+      <li class="ann" data-k="bb"><span class="pin">2</span><div><h3>Sugar–phosphate backbone</h3><p>Each strand's outer rail: deoxyribose sugars and phosphate groups joined by phosphodiester bonds. The phosphates give DNA its negative charge.</p></div></li>
+      <li class="ann" data-k="maj"><span class="pin">3</span><div><h3>Major groove</h3><p>The wide gap, about 2.2 nm across. The edges of the bases are most exposed here, so many DNA-binding proteins read the sequence through it.</p></div></li>
+      <li class="ann" data-k="min"><span class="pin">4</span><div><h3>Minor groove</h3><p>The narrow gap, about 1.2 nm across. The grooves differ because the two backbones are not directly opposite each other around the axis.</p></div></li>
+      <li class="ann" data-k="hb"><span class="pin">5</span><div><h3>Hydrogen bonds <span class="bond">A=T · 2</span><span class="bond">G≡C · 3</span></h3><p>Adenine pairs with thymine through two hydrogen bonds, and guanine with cytosine through three. A purine always faces a pyrimidine, so every rung is the same width.</p></div></li>
+    </ol>
+
+    <h2>Measurements</h2>
+    <div class="facts">
+      <div class="fact"><b>10.5</b><span>base pairs per turn</span></div>
+      <div class="fact"><b>0.34 nm</b><span>rise per base pair</span></div>
+      <div class="fact"><b>≈ 3.6 nm</b><span>length of one turn</span></div>
+      <div class="fact"><b>≈ 2 nm</b><span>helix diameter</span></div>
+    </div>
+
+    <h2>Build a sequence</h2>
+    <div class="seqbox">
+      <label for="seqIn">Top strand, read 5′ → 3′</label>
+      <div class="seqrow">
+        <input id="seqIn" type="text" maxlength="40" spellcheck="false" autocomplete="off" autocapitalize="characters" aria-describedby="seqMsg" value="ATGGCTAGCCTAAGTTCGGATCAC">
+        <button type="button" class="btn" id="randBtn" aria-label="Random sequence"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="3"/><circle cx="7" cy="7" r=".9" fill="currentColor"/><circle cx="13" cy="13" r=".9" fill="currentColor"/><circle cx="13" cy="7" r=".9" fill="currentColor"/><circle cx="7" cy="13" r=".9" fill="currentColor"/></svg>Random</button>
+      </div>
+      <p class="msg" id="seqMsg">Type A, T, G or C (2 to 40 bases). The partner strand is generated for you.</p>
+      <div class="seq" aria-label="Sequence with its complementary strand">
+        <div class="srow"><span class="end">5′</span><span class="bases" id="rowA"></span><span class="end r">3′</span></div>
+        <div class="srow"><span class="end"></span><span class="bases hb" id="rowH" aria-hidden="true"></span><span class="end"></span></div>
+        <div class="srow"><span class="end">3′</span><span class="bases" id="rowB"></span><span class="end r">5′</span></div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <button type="button" class="btn primary" id="unzipBtn"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v5M10 7 5 18M10 7l5 11M7.3 12h5.4"/></svg><span id="unzipLbl">Unzip &amp; replicate</span></button>
+    </div>
+
+    <h2>Legend</h2>
+    <div class="legend">
+      <div class="lg"><i style="background:#ff9f1c"></i><span>Adenine (A)<small>purine · pairs with T</small></span></div>
+      <div class="lg"><i style="background:#ffbf69"></i><span>Thymine (T)<small>pyrimidine · pairs with A</small></span></div>
+      <div class="lg"><i style="background:#6a4c93"></i><span>Guanine (G)<small>purine · pairs with C</small></span></div>
+      <div class="lg"><i style="background:#8ac926"></i><span>Cytosine (C)<small>pyrimidine · pairs with G</small></span></div>
+    </div>
+    <div class="strands"><span><i style="background:#2ec4b6"></i>Top strand</span><span><i style="background:#e71d36"></i>Partner strand</span><span><i style="background:linear-gradient(90deg,#8ae2d8,#f48c9a)"></i>Newly built strands</span></div>
+    <p class="note">The geometry follows idealised B-DNA: 10.5 bp per turn, 0.34 nm rise, about 2 nm across, with the two backbones offset by roughly 135° around the axis. Replication here is simplified: helicase, primase and polymerase are left out, and both new strands are drawn growing in the same direction.</p>
+  </aside>
+</div>
+<svg id="leaders" aria-hidden="true"></svg>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+let reduced = mq.matches;
+if (mq.addEventListener) mq.addEventListener('change', e => { reduced = e.matches; });
+
+/* ---------- theme ---------- */
+const root = document.documentElement, themeBtn = $('themeBtn');
+const MONO = getComputedStyle(root).getPropertyValue('--mono').trim() || 'monospace';
+const SANS = getComputedStyle(root).getPropertyValue('--sans').trim() || 'sans-serif';
+let dark = false;
+try { dark = localStorage.getItem('helix-theme') === 'dark'; } catch (e) {}
+function applyTheme(){
+  root.dataset.theme = dark ? 'dark' : 'light';
+  themeBtn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#0b1220' : '#f7f9fb');
+}
+applyTheme();
+themeBtn.addEventListener('click', () => { dark = !dark; applyTheme(); try { localStorage.setItem('helix-theme', dark ? 'dark' : 'light'); } catch (e) {} });
+
+/* =====================================================================
+   Model constants (Ångström)
+   ===================================================================== */
+const MAXN = 40, SUB = 4;
+const TWIST = 2 * Math.PI / 10.5, RISE = 3.4, RAD = 10, DELTA = 135 * Math.PI / 180, FOCAL = 95, HW = 1.55, RB = 8.4;
+const PAIR = { A: 'T', T: 'A', G: 'C', C: 'G' };
+const PUR = { A: true, G: true, T: false, C: false };
+const NAME = { A: 'Adenine', T: 'Thymine', G: 'Guanine', C: 'Cytosine' };
+const BASE = { A: [255, 159, 28], T: [255, 191, 105], G: [106, 76, 147], C: [138, 201, 38] };
+const STR = [[46, 196, 182], [231, 29, 54], [244, 140, 154], [138, 226, 216]];
+
+let seq = [], comp = [], n = 0;
+const grow = new Float32Array(MAXN).fill(1);
+const sep = new Float32Array(MAXN), arrA = new Float32Array(MAXN), arrB = new Float32Array(MAXN);
+const spawnA = new Float32Array(MAXN * 3), spawnB = new Float32Array(MAXN * 3), delA = new Float32Array(MAXN), delB = new Float32Array(MAXN);
+let mode = 'duplex', mt = 0;
+
+/* =====================================================================
+   Canvas + projection
+   ===================================================================== */
+const viz = $('viz'), cv = $('helix'), ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, landscape = true, cx = 0, cy = 0, k = 10, roll = 0, cR = 1, sR = 0;
+const view = { spin: 0.6, spinV: 0, tilt: 0.16, tiltT: 0.16, zoom: 1, zoomT: 1, auto: true };
+let cT = 1, sT = 0;
+let PX = 0, PY = 0, PD = 0, PS = 1;
+function proj(u, v, w){
+  const u2 = u * cT - w * sT, w2 = u * sT + w * cT, s = FOCAL / (FOCAL - w2);
+  const x = u2 * s * k, y = v * s * k;
+  PX = cx + x * cR - y * sR; PY = cy + x * sR + y * cR; PD = w2; PS = s;
+}
+function layout(){
+  const r = viz.getBoundingClientRect();
+  DPR = Math.min(2, window.devicePixelRatio || 1); W = Math.max(1, r.width); H = Math.max(1, r.height);
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  landscape = W > H * 1.05;
+  measureAnchors();
+}
+function frameGeometry(){
+  roll = landscape ? -0.24 : -Math.PI / 2 + 0.38; cR = Math.cos(roll); sR = Math.sin(roll);
+  cT = Math.cos(view.tilt); sT = Math.sin(view.tilt);
+  const L = landscape ? W * 0.8 : Math.min(W / Math.abs(cR), (H - 90) / Math.abs(sR)) * 0.8;
+  const risePx = Math.min(landscape ? 46 : W / 14, L / Math.max(n, 8));
+  k = risePx / RISE * view.zoom;
+  cx = landscape ? W * 0.47 : W / 2; cy = landscape ? H * 0.56 : H * 0.55;
+}
+
+/* ---------- colour ---------- */
+let BG = [247, 249, 251];
+function bgNow(){ return dark ? [11, 18, 32] : [247, 249, 251]; }
+function paint(rgb, lit, spec, depth, alpha){
+  const fade = Math.pow(Math.max(0, Math.min(1, (RAD - depth) / (2 * RAD))), 1.25) * (dark ? .66 : .6);
+  let r = rgb[0] * lit + 255 * spec, g = rgb[1] * lit + 255 * spec, b = rgb[2] * lit + 255 * spec;
+  r = Math.min(255, r + (BG[0] - r) * fade); g = Math.min(255, g + (BG[1] - g) * fade); b = Math.min(255, b + (BG[2] - b) * fade);
+  return 'rgba(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ',' + alpha.toFixed(3) + ')';
+}
+const LU = -.28, LV = -.5, LW = .82;
+function light(th){
+  const nv = Math.cos(th), nw0 = -Math.sin(th);
+  const nu = -nw0 * sT, nw = nw0 * cT;
+  const d = nu * LU + nv * LV + nw * LW;
+  const lit = .42 + .58 * Math.max(0, d) + (nw < 0 ? -.08 : 0);
+  const spec = Math.pow(Math.max(0, d), 22) * .65;
+  return [lit, spec];
+}
+
+/* ---------- item pool (painter's algorithm) ---------- */
+const pool = [], list = [];
+let pc = 0;
+function item(t, d){
+  let o = pool[pc];
+  if (!o) { o = { t: 0, d: 0, x0: 0, y0: 0, x1: 0, y1: 0, x2: 0, y2: 0, x3: 0, y3: 0, w: 0, c: '', c2: '', n: 0, a: 1, hl: 0 }; pool[pc] = o; }
+  pc++; o.t = t; o.d = d; o.hl = 0; o.a = 1; return o;
+}
+
+/* strand sample buffers: xL,yL,xR,yR,depth,x,y per sample */
+const SB = [0, 1, 2, 3].map(() => new Float32Array(((MAXN - 1) * SUB + 1) * 7));
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const smooth = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+const DSEP = RAD * 1.32;
+function axisOff(which, s){ return (which === 0 || which === 2 ? 1 : -1) * DSEP * smooth(s); }
+function angleOf(which){ return which === 1 || which === 2 ? DELTA : 0; }
+function sampleStrand(si){
+  const buf = SB[si], m = (n - 1) * SUB + 1;
+  for (let s = 0; s < m; s++) {
+    const t = s / SUB, i0 = Math.floor(t), i1 = Math.min(n - 1, i0 + 1), f = t - i0;
+    const sp = sep[i0] + (sep[i1] - sep[i0]) * f;
+    const off = axisOff(si, sp), th = TWIST * t + view.spin + angleOf(si), u = (t - (n - 1) / 2) * RISE;
+    const v = RAD * Math.cos(th) + off, w = -RAD * Math.sin(th);
+    const o = s * 7;
+    proj(u - HW, v, w); buf[o] = PX; buf[o + 1] = PY; const d0 = PD;
+    proj(u + HW, v, w); buf[o + 2] = PX; buf[o + 3] = PY;
+    proj(u, v, w); buf[o + 4] = (d0 + PD) / 2; buf[o + 5] = PX; buf[o + 6] = PY;
+  }
+}
+function pushRibbon(si, alphaAt){
+  const buf = SB[si], m = (n - 1) * SUB + 1, rgb = STR[si];
+  for (let s = 0; s < m - 1; s++) {
+    const a = alphaAt ? alphaAt(s) : 1;
+    if (a <= 0.01) continue;
+    const o = s * 7, p = o + 7, t = (s + .5) / SUB, th = TWIST * t + view.spin + angleOf(si);
+    const L = light(th), d = (buf[o + 4] + buf[p + 4]) / 2;
+    const it = item(0, d);
+    it.x0 = buf[o]; it.y0 = buf[o + 1]; it.x1 = buf[o + 2]; it.y1 = buf[o + 3]; it.x2 = buf[p + 2]; it.y2 = buf[p + 3]; it.x3 = buf[p]; it.y3 = buf[p + 1];
+    it.c = paint(rgb, L[0], L[1], d, a);
+    if (s % SUB === 0 && s > 0 && s < m - SUB) { const bd = item(3, buf[o + 4] + .05); bd.x0 = buf[o + 5]; bd.y0 = buf[o + 6]; bd.w = 1.05 * k * FOCAL / (FOCAL - buf[o + 4]); bd.c = paint([255, 255, 255], .95, 0, buf[o + 4], a * .55); }
+  }
+}
+
+/* one base half: backbone attachment (angle thX) to the split towards partner (angle thP) around an axis */
+const HALF = { x0: 0, y0: 0, x1: 0, y1: 0, d: 0, s: 1, tx: 0, ty: 0, mx: 0, my: 0 };
+function baseHalf(i, thX, thP, off, purine, g, du, dv, dw){
+  const u = (i - (n - 1) / 2) * RISE + du;
+  const xv = RB * Math.cos(thX) + off + dv, xw = -RB * Math.sin(thX) + dw;
+  const pv = RB * Math.cos(thP) + off + dv, pw = -RB * Math.sin(thP) + dw;
+  const f = (purine ? .545 : .455) - .032;
+  const ev = xv + (pv - xv) * f * g, ew = xw + (pw - xw) * f * g;
+  proj(u, xv, xw); HALF.x0 = PX; HALF.y0 = PY; const d0 = PD;
+  proj(u, ev, ew); HALF.x1 = PX; HALF.y1 = PY; HALF.d = (d0 + PD) / 2; HALF.s = PS;
+  const mf = purine ? .545 : .455;
+  proj(u, xv + (pv - xv) * mf, xw + (pw - xw) * mf); HALF.mx = PX; HALF.my = PY;
+}
+function pushHalf(ch, alpha, hl){
+  const it = item(1, HALF.d);
+  it.x0 = HALF.x0; it.y0 = HALF.y0; it.x1 = HALF.x1; it.y1 = HALF.y1;
+  it.w = 1.25 * k * HALF.s;
+  it.c = paint(BASE[ch], 1, 0, HALF.d, alpha);
+  it.c2 = paint([255, 255, 255], 1, 0, HALF.d, alpha * .38);
+  it.hl = hl;
+  return it;
+}
+function pushBonds(x0, y0, x1, y1, count, d, alpha, s){
+  const it = item(2, d);
+  it.x0 = x0; it.y0 = y0; it.x1 = x1; it.y1 = y1; it.n = count; it.a = alpha; it.w = s;
+}
+
+/* hit-testing data, filled every frame */
+const hit = new Float32Array(MAXN * 5);
+let hover = -1, hoverSeq = -1;
+
+function build(){
+  pc = 0;
+  const hotHB = annHot === 'hb';
+  const inDuplex = mode === 'duplex';
+  sampleStrand(0); sampleStrand(1);
+  pushRibbon(0, null); pushRibbon(1, null);
+  if (!inDuplex) {
+    sampleStrand(2); sampleStrand(3);
+    const ok = (arr, s) => { const i0 = Math.floor(s / SUB), i1 = Math.min(n - 1, Math.ceil((s + 1) / SUB)); const a = Math.min(arr[i0], arr[i1]); return a < .97 ? 0 : (a - .97) / .03; };
+    pushRibbon(2, s => ok(arrA, s)); pushRibbon(3, s => ok(arrB, s));
+  }
+  for (let i = 0; i < n; i++) {
+    const th = TWIST * i + view.spin, a = seq[i], b = comp[i], g = grow[i];
+    const sp = sep[i], offA = axisOff(0, sp), offB = axisOff(1, sp);
+    const dim = hover >= 0 && hover !== i ? .55 : 1, hl = hover === i ? 1 : 0;
+    baseHalf(i, th, th + DELTA, offA, PUR[a], g, 0, 0, 0);
+    const hA = pushHalf(a, g * dim, hl); const ax = HALF.x1, ay = HALF.y1, amx = HALF.mx, amy = HALF.my;
+    hit[i * 5] = HALF.x0; hit[i * 5 + 1] = HALF.y0;
+    baseHalf(i, th + DELTA, th, offB, PUR[b], g, 0, 0, 0);
+    const hB = pushHalf(b, g * dim, hl);
+    hit[i * 5 + 2] = HALF.x0; hit[i * 5 + 3] = HALF.y0; hit[i * 5 + 4] = (hA.d + hB.d) / 2;
+    if (sp < .1) pushBonds(ax, ay, HALF.x1, HALF.y1, a === 'A' || a === 'T' ? 2 : 3, (hA.d + hB.d) / 2 + .01, (1 - sp / .1) * g * dim, HALF.s);
+    if (!inDuplex) {
+      /* new partner on the top-strand template (sequence = comp) */
+      const ea = easeOut(arrA[i]);
+      if (arrA[i] > 0) {
+        const m = 1 - ea, du = spawnA[i * 3] * m, dv = spawnA[i * 3 + 1] * m + Math.sin(arrA[i] * Math.PI) * 2, dw = spawnA[i * 3 + 2] * m;
+        baseHalf(i, th + DELTA, th, offA, PUR[b], 1, du, dv, dw);
+        pushHalf(b, Math.min(1, arrA[i] * 2.5), 0);
+        const bead = item(3, HALF.d + .02); bead.x0 = HALF.x0; bead.y0 = HALF.y0; bead.w = 1.5 * k * HALF.s; bead.c = paint(STR[2], 1, 0, HALF.d, Math.min(1, arrA[i] * 2.5));
+        if (arrA[i] > .9) { baseHalf(i, th, th + DELTA, offA, PUR[a], 1, 0, 0, 0); const tx = HALF.x1, ty = HALF.y1; baseHalf(i, th + DELTA, th, offA, PUR[b], 1, 0, 0, 0); pushBonds(tx, ty, HALF.x1, HALF.y1, a === 'A' || a === 'T' ? 2 : 3, HALF.d + .01, (arrA[i] - .9) * 10, HALF.s); }
+      }
+      const eb = easeOut(arrB[i]);
+      if (arrB[i] > 0) {
+        const m = 1 - eb, du = spawnB[i * 3] * m, dv = spawnB[i * 3 + 1] * m - Math.sin(arrB[i] * Math.PI) * 2, dw = spawnB[i * 3 + 2] * m;
+        baseHalf(i, th, th + DELTA, offB, PUR[a], 1, du, dv, dw);
+        pushHalf(a, Math.min(1, arrB[i] * 2.5), 0);
+        const bead = item(3, HALF.d + .02); bead.x0 = HALF.x0; bead.y0 = HALF.y0; bead.w = 1.5 * k * HALF.s; bead.c = paint(STR[3], 1, 0, HALF.d, Math.min(1, arrB[i] * 2.5));
+        if (arrB[i] > .9) { baseHalf(i, th + DELTA, th, offB, PUR[b], 1, 0, 0, 0); const tx = HALF.x1, ty = HALF.y1; baseHalf(i, th, th + DELTA, offB, PUR[a], 1, 0, 0, 0); pushBonds(tx, ty, HALF.x1, HALF.y1, a === 'A' || a === 'T' ? 2 : 3, HALF.d + .01, (arrB[i] - .9) * 10, HALF.s); }
+      }
+    }
+  }
+  /* direction chevrons on the old strands */
+  for (let si = 0; si < 2; si++) {
+    const buf = SB[si];
+    for (let i = 2; i < n - 1; i += 5) {
+      const s = i * SUB, o = s * 7, p = (s + 1) * 7;
+      if (buf[o + 4] < RAD * .35) continue;
+      let dx = buf[p + 5] - buf[o + 5], dy = buf[p + 6] - buf[o + 6];
+      if (si === 1) { dx = -dx; dy = -dy; }
+      const it = item(4, buf[o + 4] + .08); it.x0 = buf[o + 5]; it.y0 = buf[o + 6]; it.x1 = Math.atan2(dy, dx); it.w = k * .9 * FOCAL / (FOCAL - buf[o + 4]);
+    }
+  }
+  list.length = pc;
+  for (let i = 0; i < pc; i++) list[i] = pool[i];
+  list.sort((p, q) => p.d - q.d);
+  void hotHB;
+}
+
+function draw(){
+  BG = bgNow();
+  ctx.clearRect(0, 0, W, H);
+  /* axis */
+  const u0 = (-(n - 1) / 2 - 1.5) * RISE, u1 = ((n - 1) / 2 + 1.5) * RISE;
+  ctx.setLineDash([3, 6]); ctx.lineWidth = 1; ctx.strokeStyle = dark ? 'rgba(231,237,246,.18)' : 'rgba(15,27,45,.16)';
+  if (mode === 'duplex') { ctx.beginPath(); proj(u0, 0, 0); ctx.moveTo(PX, PY); proj(u1, 0, 0); ctx.lineTo(PX, PY); ctx.stroke(); }
+  ctx.setLineDash([]);
+  /* one-turn bracket */
+  if (mode === 'duplex' && n >= 12) {
+    const a0 = (-(n - 1) / 2) * RISE, a1 = a0 + 10.5 * RISE, vv = RAD + 7;
+    ctx.strokeStyle = dark ? 'rgba(231,237,246,.42)' : 'rgba(15,27,45,.38)'; ctx.lineWidth = 1;
+    ctx.beginPath(); proj(a0, vv, 0); const bx0 = PX, by0 = PY; ctx.moveTo(PX, PY); proj(a1, vv, 0); ctx.lineTo(PX, PY); const bx1 = PX, by1 = PY; ctx.stroke();
+    const nx = -(by1 - by0), ny = bx1 - bx0, nl = Math.hypot(nx, ny) || 1, tx = nx / nl * 5, ty = ny / nl * 5;
+    ctx.beginPath(); ctx.moveTo(bx0 - tx, by0 - ty); ctx.lineTo(bx0 + tx, by0 + ty); ctx.moveTo(bx1 - tx, by1 - ty); ctx.lineTo(bx1 + tx, by1 + ty); ctx.stroke();
+    ctx.save(); ctx.translate((bx0 + bx1) / 2 + tx * 3.2, (by0 + by1) / 2 + ty * 3.2); ctx.rotate(Math.atan2(by1 - by0, bx1 - bx0));
+    ctx.fillStyle = dark ? 'rgba(231,237,246,.7)' : 'rgba(15,27,45,.62)'; ctx.font = '600 11px ' + MONO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('one turn · 10.5 bp · ≈ 3.6 nm', 0, 0); ctx.restore();
+  }
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (let i = 0; i < list.length; i++) {
+    const it = list[i];
+    if (it.t === 0) {
+      ctx.fillStyle = it.c; ctx.strokeStyle = it.c; ctx.lineWidth = .8;
+      ctx.beginPath(); ctx.moveTo(it.x0, it.y0); ctx.lineTo(it.x1, it.y1); ctx.lineTo(it.x2, it.y2); ctx.lineTo(it.x3, it.y3); ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (it.t === 1) {
+      if (it.hl) { ctx.strokeStyle = dark ? '#ffffff' : '#0f1b2d'; ctx.lineWidth = it.w + 4; ctx.beginPath(); ctx.moveTo(it.x0, it.y0); ctx.lineTo(it.x1, it.y1); ctx.stroke(); }
+      ctx.strokeStyle = it.c; ctx.lineWidth = it.w; ctx.beginPath(); ctx.moveTo(it.x0, it.y0); ctx.lineTo(it.x1, it.y1); ctx.stroke();
+      const dx = it.x1 - it.x0, dy = it.y1 - it.y0, l = Math.hypot(dx, dy) || 1, ox = -dy / l * it.w * .2, oy = dx / l * it.w * .2;
+      ctx.strokeStyle = it.c2; ctx.lineWidth = it.w * .28; ctx.beginPath(); ctx.moveTo(it.x0 + ox, it.y0 + oy - it.w * .1); ctx.lineTo(it.x1 + ox, it.y1 + oy - it.w * .1); ctx.stroke();
+    } else if (it.t === 2) {
+      if (it.a <= .01) continue;
+      const dx = it.x1 - it.x0, dy = it.y1 - it.y0, l = Math.hypot(dx, dy) || 1, px = -dy / l, py = dx / l, gap = Math.max(2.2, it.w * k * .34);
+      ctx.strokeStyle = dark ? 'rgba(231,237,246,' + (it.a * .9).toFixed(3) + ')' : 'rgba(15,27,45,' + (it.a * .75).toFixed(3) + ')';
+      ctx.lineWidth = Math.max(1, k * .12 * it.w); ctx.setLineDash([Math.max(1.5, k * .18), Math.max(1.2, k * .12)]);
+      ctx.beginPath();
+      for (let b = 0; b < it.n; b++) { const o = (b - (it.n - 1) / 2) * gap; ctx.moveTo(it.x0 + px * o - dx * .12, it.y0 + py * o - dy * .12); ctx.lineTo(it.x1 + px * o + dx * .12, it.y1 + py * o + dy * .12); }
+      ctx.stroke(); ctx.setLineDash([]);
+    } else if (it.t === 3) {
+      ctx.fillStyle = it.c; ctx.beginPath(); ctx.arc(it.x0, it.y0, Math.max(1.2, it.w * .5), 0, 6.2832); ctx.fill();
+    } else if (it.t === 4) {
+      const s = Math.max(3, it.w * .55);
+      ctx.save(); ctx.translate(it.x0, it.y0); ctx.rotate(it.x1);
+      ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineWidth = Math.max(1.4, s * .32);
+      ctx.beginPath(); ctx.moveTo(-s * .5, -s * .6); ctx.lineTo(s * .35, 0); ctx.lineTo(-s * .5, s * .6); ctx.stroke(); ctx.restore();
+    }
+  }
+  /* strand ends */
+  if (n > 1) {
+    ctx.font = '700 ' + Math.round(Math.max(11, Math.min(15, k * 1.25))) + 'px ' + MONO;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const ends = [[0, 0, '5′'], [0, n - 1, '3′'], [1, 0, '3′'], [1, n - 1, '5′']];
+    for (const [si, i, lab] of ends) {
+      const th = TWIST * i + view.spin + angleOf(si), u = (i - (n - 1) / 2) * RISE + (i === 0 ? -4.8 : 4.8);
+      proj(u, RAD * Math.cos(th) + axisOff(si, sep[i]), -RAD * Math.sin(th));
+      ctx.fillStyle = si === 0 ? '#1aa698' : '#d0162d';
+      if (dark) ctx.fillStyle = si === 0 ? '#5ce0d3' : '#ff5a6e';
+      ctx.fillText(lab, PX, PY);
+    }
+  }
+  /* pins */
+  if (mode === 'duplex' && annAlpha > .02) drawPins();
+}
+
+/* =====================================================================
+   Annotation targets + leader lines
+   ===================================================================== */
+const ANN = ['dir', 'bb', 'maj', 'min', 'hb'];
+const annEls = [...document.querySelectorAll('.ann')];
+let annHot = null, annAlpha = 1;
+const targets = {};
+function frontMost(lo, hi, fn){
+  let best = null, bd = -1e9;
+  const a = Math.max(0, Math.floor(n * lo)), b = Math.min(n - 1, Math.ceil(n * hi));
+  for (let i = a; i <= b; i++) { const r = fn(i); if (r && r.d > bd) { bd = r.d; best = r; } }
+  return best;
+}
+function surf(i, ang, rad){ const th = TWIST * i + view.spin + ang, u = (i - (n - 1) / 2) * RISE; proj(u, rad * Math.cos(th), -rad * Math.sin(th)); return { x: PX, y: PY, d: PD, i }; }
+function computeTargets(){
+  if (n < 4) { ANN.forEach(key => { targets[key] = null; }); return; }
+  targets.dir = [frontMost(.8, 1, i => surf(i, 0, RAD))];
+  targets.bb = [frontMost(.6, .8, i => surf(i, DELTA, RAD))];
+  targets.maj = [frontMost(.42, .62, i => surf(i + .5, Math.PI + DELTA / 2, RAD * .96))];
+  targets.min = [frontMost(.24, .44, i => surf(i + .5, DELTA / 2, RAD * .92))];
+  const pairAt = want => frontMost(.02, .5, i => {
+    const at = seq[i] === 'A' || seq[i] === 'T';
+    if (want !== at) return null;
+    const th = TWIST * i + view.spin, u = (i - (n - 1) / 2) * RISE, f = PUR[seq[i]] ? .545 : .455;
+    const xv = RB * Math.cos(th), xw = -RB * Math.sin(th), pv = RB * Math.cos(th + DELTA), pw = -RB * Math.sin(th + DELTA);
+    proj(u, xv + (pv - xv) * f, xw + (pw - xw) * f); return { x: PX, y: PY, d: PD, i };
+  });
+  targets.hb = [pairAt(true), pairAt(false)].filter(Boolean);
+}
+function drawPins(){
+  ctx.font = '700 11px ' + SANS;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ANN.forEach((key, idx) => {
+    const ts = targets[key]; if (!ts) return;
+    ts.forEach(t => {
+      const hot = annHot === key, r = (hot ? 12 : 9.5) * (landscape ? 1 : .86);
+      ctx.globalAlpha = annAlpha;
+      ctx.fillStyle = hot ? '#1b6fd8' : (dark ? '#e7edf6' : '#0f1b2d');
+      ctx.beginPath(); ctx.arc(t.x, t.y, r, 0, 6.2832); ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = dark ? '#0b1220' : '#ffffff'; ctx.stroke();
+      ctx.fillStyle = hot ? '#fff' : (dark ? '#0b1220' : '#ffffff');
+      ctx.fillText(String(idx + 1), t.x, t.y + .5);
+      ctx.globalAlpha = 1;
+    });
+  });
+}
+const svgL = $('leaders');
+const anchors = [];
+function measureAnchors(){
+  const panel = document.querySelector('.panel').getBoundingClientRect();
+  anchors.length = 0;
+  annEls.forEach(el => { const p = el.querySelector('.pin').getBoundingClientRect(); anchors.push({ x: p.left - 4, y: p.top + p.height / 2, edge: panel.left, top: panel.top, bottom: panel.bottom }); });
+}
+svgL.innerHTML = '<path d=""/>'.repeat(ANN.length * 2);
+const leadPaths = ANN.map((key, i) => [svgL.children[i * 2], svgL.children[i * 2 + 1]]);
+function updateLeaders(){
+  if (getComputedStyle(svgL).display === 'none') return;
+  const vr = viz.getBoundingClientRect();
+  ANN.forEach((key, i) => {
+    const a = anchors[i], ts = targets[key] || [];
+    leadPaths[i].forEach((p, j) => {
+      const t = ts[j];
+      if (!a || !t || mode !== 'duplex' || a.y < a.top + 8 || a.y > a.bottom - 8) { p.setAttribute('d', ''); return; }
+      const tx = vr.left + t.x, ty = vr.top + t.y, ex = a.edge - 18 - i * 3;
+      const ang = Math.atan2(ty - a.y, tx - ex), r = annHot === key ? 12 : 9.5;
+      p.setAttribute('d', 'M' + a.x.toFixed(1) + ' ' + a.y.toFixed(1) + 'H' + ex.toFixed(1) + 'L' + (tx - Math.cos(ang) * r).toFixed(1) + ' ' + (ty - Math.sin(ang) * r).toFixed(1));
+      p.style.opacity = annAlpha.toFixed(2);
+      p.setAttribute('class', annHot === key ? 'hot' : '');
+    });
+  });
+}
+annEls.forEach(el => {
+  el.addEventListener('pointerenter', () => { annHot = el.dataset.k; el.classList.add('hot'); });
+  el.addEventListener('pointerleave', () => { annHot = null; el.classList.remove('hot'); });
+});
+document.querySelector('.panel').addEventListener('scroll', measureAnchors, { passive: true });
+
+/* =====================================================================
+   Sequence handling
+   ===================================================================== */
+const seqIn = $('seqIn'), seqMsg = $('seqMsg'), rowA = $('rowA'), rowB = $('rowB'), rowH = $('rowH'), stats = $('stats');
+function setSequence(str, animate){
+  const old = seq.join('');
+  seq = str.split(''); comp = seq.map(c => PAIR[c]);
+  const prevN = n; n = seq.length;
+  for (let i = 0; i < n; i++) if (animate && (i >= prevN || old[i] !== seq[i])) grow[i] = 0;
+  cancelReplication();
+  let a = '', b = '', h = '';
+  seq.forEach((c, i) => {
+    a += '<span class="b-' + c + '" data-i="' + i + '">' + c + '</span>';
+    b += '<span class="b-' + comp[i] + '" data-i="' + i + '">' + comp[i] + '</span>';
+    h += '<span data-i="' + i + '">' + (c === 'A' || c === 'T' ? '‖' : '⦀') + '</span>';
+  });
+  rowA.innerHTML = a; rowB.innerHTML = b; rowH.innerHTML = h;
+  const gc = seq.filter(c => c === 'G' || c === 'C').length, at = n - gc;
+  const tm = n < 14 ? 2 * at + 4 * gc : 64.9 + 41 * (gc - 16.4) / n;
+  stats.innerHTML = '<span>Length <b>' + n + ' bp</b> (' + (n * .34).toFixed(1) + ' nm)</span><span>Turns <b>' + (n / 10.5).toFixed(2) + '</b></span><span>GC <b>' + Math.round(gc / n * 100) + '%</b></span><span>H-bonds <b>' + (2 * at + 3 * gc) + '</b></span><span>Tm ≈ <b>' + Math.round(tm) + ' °C</b> <span title="Basic estimate: Wallace rule under 14 bases, otherwise 64.9 + 41(GC − 16.4)/N">(basic estimate)</span></span>';
+  frameGeometry(); computeTargets();
+}
+let msgT = 0;
+seqIn.addEventListener('input', () => {
+  const raw = seqIn.value, clean = raw.toUpperCase().replace(/[^ATGC]/g, '').slice(0, MAXN);
+  if (clean !== raw) {
+    const pos = seqIn.selectionStart - (raw.length - clean.length);
+    seqIn.value = clean; try { seqIn.setSelectionRange(Math.max(0, pos), Math.max(0, pos)); } catch (e) {}
+    if (/[^ATGCatgc]/.test(raw)) { seqMsg.textContent = 'Only A, T, G and C are DNA bases — other letters were left out.'; seqMsg.classList.add('warn'); clearTimeout(msgT); msgT = setTimeout(resetMsg, 2600); }
+  }
+  if (clean.length >= 2) setSequence(clean, true);
+  else { seqMsg.textContent = 'Type at least two bases to build a helix.'; seqMsg.classList.add('warn'); }
+});
+function resetMsg(){ seqMsg.textContent = 'Type A, T, G or C (2 to 40 bases). The partner strand is generated for you.'; seqMsg.classList.remove('warn'); }
+seqIn.addEventListener('blur', () => { if (seqIn.value.length < 2) { seqIn.value = seq.join(''); resetMsg(); } });
+$('randBtn').addEventListener('click', () => {
+  const L = 18 + Math.floor(Math.random() * 13); let s = '';
+  for (let i = 0; i < L; i++) s += 'ATGC'[Math.floor(Math.random() * 4)];
+  seqIn.value = s; resetMsg(); setSequence(s, true);
+});
+function setSeqHighlight(i){
+  if (i === hoverSeq) return;
+  [rowA, rowB, rowH].forEach(r => { const o = r.children[hoverSeq]; if (o) o.classList.remove('hl'); const c = r.children[i]; if (c) c.classList.add('hl'); });
+  hoverSeq = i;
+}
+[rowA, rowB, rowH].forEach(r => {
+  r.addEventListener('pointerover', e => { const i = e.target.dataset && e.target.dataset.i; if (i !== undefined && mode === 'duplex') { hover = +i; setSeqHighlight(+i); } });
+  r.addEventListener('pointerleave', () => { hover = -1; setSeqHighlight(-1); });
+});
+
+/* =====================================================================
+   Replication
+   ===================================================================== */
+const unzipBtn = $('unzipBtn'), unzipLbl = $('unzipLbl'), cap = $('cap');
+function caption(t){ if (t) { cap.textContent = t; cap.classList.add('on'); } else cap.classList.remove('on'); }
+function cancelReplication(){
+  mode = 'duplex'; mt = 0; sep.fill(0); arrA.fill(0); arrB.fill(0);
+  unzipLbl.textContent = 'Unzip & replicate'; unzipBtn.disabled = false; caption('');
+}
+function startReplication(){
+  if (mode === 'duplex') {
+    for (let i = 0; i < n; i++) {
+      spawnA[i * 3] = (Math.random() - .5) * 26; spawnA[i * 3 + 1] = 16 + Math.random() * 20; spawnA[i * 3 + 2] = (Math.random() - .5) * 34;
+      spawnB[i * 3] = (Math.random() - .5) * 26; spawnB[i * 3 + 1] = -(16 + Math.random() * 20); spawnB[i * 3 + 2] = (Math.random() - .5) * 34;
+      delA[i] = Math.random() * .45; delB[i] = Math.random() * .45;
+    }
+    mode = 'unzip'; mt = 0; hover = -1; setSeqHighlight(-1); $('tip').classList.remove('on');
+    unzipBtn.disabled = true; unzipLbl.textContent = 'Replicating…';
+    caption('Hydrogen bonds break and the strands separate');
+  } else if (mode === 'done') {
+    mode = 'rejoin'; mt = 0; unzipBtn.disabled = true; unzipLbl.textContent = 'Rejoining…';
+    caption('Returning to the original double helix');
+  }
+}
+unzipBtn.addEventListener('click', startReplication);
+function stepReplication(dt){
+  if (mode === 'duplex') return;
+  const sp = reduced ? 2.2 : 1;
+  mt += dt * sp;
+  if (mode === 'unzip' || mode === 'synth' || mode === 'done') {
+    const T1 = 2.6, fork = mt / T1 * 1.25;
+    for (let i = 0; i < n; i++) {
+      sep[i] = Math.max(0, Math.min(1, (fork - i / n) * 3.2));
+      const start = .55 + (i / n) * T1 * .95;
+      arrA[i] = Math.max(0, Math.min(1, (mt - start - delA[i]) / .95));
+      arrB[i] = Math.max(0, Math.min(1, (mt - start - delB[i]) / .95));
+    }
+    if (mode === 'unzip' && mt > 1.1) { mode = 'synth'; caption('Free nucleotides pair with each exposed base: A with T, G with C'); }
+    if (mode === 'synth' && mt > .55 + T1 * .95 + .45 + .95 + .2) {
+      mode = 'done'; unzipBtn.disabled = false; unzipLbl.textContent = 'Rejoin strands';
+      caption('Two daughter helices, each keeping one original strand: semi-conservative replication');
+    }
+  } else if (mode === 'rejoin') {
+    const k1 = Math.min(1, mt / 1.1);
+    for (let i = 0; i < n; i++) { arrA[i] = Math.min(arrA[i], 1 - k1); arrB[i] = Math.min(arrB[i], 1 - k1); }
+    if (mt > 1.1) {
+      const f = (mt - 1.1) / 1.6 * 1.25;
+      for (let i = 0; i < n; i++) sep[i] = Math.min(sep[i], Math.max(0, Math.min(1, (1.25 - f - (1 - i / n)) * 3.2)));
+    }
+    if (mt > 2.9) { cancelReplication(); }
+  }
+}
+
+/* =====================================================================
+   Pointer, wheel, keyboard
+   ===================================================================== */
+const tip = $('tip');
+const pts = new Map();
+let dragging = false, lastX = 0, lastY = 0, velPerp = 0, pinch0 = 0, zoom0 = 1, idleAt = 0;
+cv.addEventListener('pointerdown', e => {
+  pts.set(e.pointerId, [e.clientX, e.clientY]);
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  if (pts.size === 1) { dragging = true; lastX = e.clientX; lastY = e.clientY; velPerp = 0; cv.classList.add('dragging'); }
+  if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch0 = Math.hypot(a[0] - b[0], a[1] - b[1]); zoom0 = view.zoomT; }
+});
+cv.addEventListener('pointermove', e => {
+  if (pts.has(e.pointerId)) pts.set(e.pointerId, [e.clientX, e.clientY]);
+  if (pts.size === 2) { const [a, b] = [...pts.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch0 > 0) view.zoomT = Math.max(.55, Math.min(2.8, zoom0 * d / pinch0)); return; }
+  const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  if (dragging) {
+    const dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
+    const perp = landscape ? dy * cR - dx * sR : dx, along = landscape ? dx * cR + dy * sR : -dy;
+    view.spin += perp * .011; velPerp = perp * .011 * 60;
+    view.tiltT = Math.max(-1.05, Math.min(1.05, view.tiltT + along * .005));
+    idleAt = performance.now();
+    return;
+  }
+  if (e.pointerType === 'mouse') pick(mx, my, e.clientX, e.clientY);
+});
+const endPtr = e => {
+  pts.delete(e.pointerId);
+  if (pts.size < 2) pinch0 = 0;
+  if (pts.size === 0) { dragging = false; cv.classList.remove('dragging'); view.spinV = velPerp; }
+  if (e.pointerType !== 'mouse' && e.type === 'pointerup') { const r = cv.getBoundingClientRect(); pick(e.clientX - r.left, e.clientY - r.top, e.clientX, e.clientY); }
+};
+cv.addEventListener('pointerup', endPtr);
+cv.addEventListener('pointercancel', endPtr);
+cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !dragging) { hover = -1; setSeqHighlight(-1); tip.classList.remove('on'); } });
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  const d = Math.max(-110, Math.min(110, e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY));
+  view.zoomT = Math.max(.55, Math.min(2.8, view.zoomT * Math.exp(-d * .0013)));
+}, { passive: false });
+function pick(mx, my, clientX, clientY){
+  if (mode !== 'duplex') { hover = -1; tip.classList.remove('on'); return; }
+  let best = -1, bd = 1e9;
+  for (let i = 0; i < n; i++) {
+    const x0 = hit[i * 5], y0 = hit[i * 5 + 1], x1 = hit[i * 5 + 2], y1 = hit[i * 5 + 3];
+    const dx = x1 - x0, dy = y1 - y0, L = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((mx - x0) * dx + (my - y0) * dy) / L));
+    const d = Math.hypot(mx - (x0 + dx * t), my - (y0 + dy * t)) - hit[i * 5 + 4] * .25;
+    if (d < bd) { bd = d; best = i; }
+  }
+  const lim = Math.max(10, k * 1.1);
+  if (best >= 0 && bd < lim) {
+    hover = best; setSeqHighlight(best);
+    const a = seq[best], b = comp[best], at = a === 'A' || a === 'T';
+    tip.innerHTML = '<b>' + a + (at ? '=' : '≡') + b + '</b> <i>· pair ' + (best + 1) + ' of ' + n + '</i><br>' + NAME[a] + ' (' + (PUR[a] ? 'purine' : 'pyrimidine') + ') with ' + NAME[b] + ' (' + (PUR[b] ? 'purine' : 'pyrimidine') + ')<br>' + (at ? 2 : 3) + ' hydrogen bonds';
+    const vr = viz.getBoundingClientRect();
+    let tx = clientX - vr.left, ty = clientY - vr.top;
+    if (tx > vr.width - 270) tx -= 280;
+    if (ty > vr.height - 110) ty -= 110;
+    tip.style.left = tx + 'px'; tip.style.top = ty + 'px'; tip.classList.add('on');
+  } else { hover = -1; setSeqHighlight(-1); tip.classList.remove('on'); }
+}
+cv.addEventListener('keydown', e => {
+  const key = e.key; let used = true;
+  if (key === 'ArrowLeft') view.spin -= .18; else if (key === 'ArrowRight') view.spin += .18;
+  else if (key === 'ArrowUp') view.tiltT = Math.max(-1.05, view.tiltT - .12); else if (key === 'ArrowDown') view.tiltT = Math.min(1.05, view.tiltT + .12);
+  else if (key === '+' || key === '=') view.zoomT = Math.min(2.8, view.zoomT * 1.2); else if (key === '-' || key === '_') view.zoomT = Math.max(.55, view.zoomT / 1.2);
+  else if (key === ' ') toggleAuto(); else used = false;
+  if (used) { e.preventDefault(); idleAt = performance.now(); }
+});
+const playBtn = $('playBtn');
+function toggleAuto(){ view.auto = !view.auto; playBtn.setAttribute('aria-pressed', view.auto ? 'true' : 'false'); }
+playBtn.addEventListener('click', toggleAuto);
+$('zoomIn').addEventListener('click', () => { view.zoomT = Math.min(2.8, view.zoomT * 1.25); });
+$('zoomOut').addEventListener('click', () => { view.zoomT = Math.max(.55, view.zoomT / 1.25); });
+$('resetBtn').addEventListener('click', () => { view.zoomT = 1; view.tiltT = .16; view.spinV = 0; });
+
+/* =====================================================================
+   Loop
+   ===================================================================== */
+let last = 0, raf = 0, leaderTick = 0;
+function frame(now){
+  const dt = last ? Math.min(.05, (now - last) / 1000) : .016; last = now;
+  const autoSpeed = view.auto ? (reduced ? .12 : .42) : 0;
+  if (!dragging) {
+    view.spinV += (autoSpeed - view.spinV) * Math.min(1, dt * 1.6);
+    view.spin += view.spinV * dt;
+  }
+  view.tilt += (view.tiltT - view.tilt) * Math.min(1, dt * 6);
+  view.zoom += (view.zoomT - view.zoom) * Math.min(1, dt * 7);
+  for (let i = 0; i < n; i++) if (grow[i] < 1) grow[i] = Math.min(1, grow[i] + dt * (reduced ? 6 : 2.4));
+  stepReplication(dt);
+  annAlpha += ((mode === 'duplex' ? 1 : 0) - annAlpha) * Math.min(1, dt * 6);
+  frameGeometry();
+  build();
+  computeTargets();
+  draw();
+  leaderTick += dt;
+  if (leaderTick > .5) { leaderTick = 0; measureAnchors(); }
+  updateLeaders();
+  raf = requestAnimationFrame(frame);
+}
+function start(){ if (!raf) { last = 0; raf = requestAnimationFrame(frame); } }
+function stop(){ if (raf) cancelAnimationFrame(raf); raf = 0; }
+document.addEventListener('visibilitychange', () => { document.hidden ? stop() : start(); });
+let rt = 0;
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 60); });
+
+layout();
+setSequence(seqIn.value.toUpperCase().replace(/[^ATGC]/g, '') || 'ATGGCTAGCCTAAGTTCGGATCAC', false);
+start();
+})();
+</script>
+</body>
+</html>

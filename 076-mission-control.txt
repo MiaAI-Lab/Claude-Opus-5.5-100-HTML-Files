@@ -1,0 +1,39 @@
+TITLE: ARES VII Mission Control
+FILE: 076-mission-control.html
+
+=== PROMPT (exact prompt used) ===
+Create "ARES VII Mission Control", a dashboard for a fictional crewed Mars mission with clearly simulated telemetry. Aesthetic: "NASA-punk" — dark slate panels (#0e1116), safety orange #ff6b1a, off-white #e8e6e3, amber warnings #ffb000, cyan data #4ee1ff, thin grid lines, rounded-rectangle panels with corner brackets and tiny monospace labels. Panels: a mission elapsed time (MET) counter and a countdown to orbit insertion; a trajectory diagram (SVG Hohmann transfer between Earth and Mars with the spacecraft moving along it); live telemetry charts (cabin O₂, CO₂ ppm, power, velocity) as smoothly scrolling line charts; crew status cards with heart-rate waveforms; a comms log whose messages arrive after a one-way light-time delay; a subsystem status grid with nominal/caution/warning lights; and an animated spacecraft schematic. Interaction: click subsystems for detail; an "acknowledge" button when a random caution appears (flashing, with a Web Audio beep after a gesture); a toggle between Earth time and Mars sol time. A responsive grid that collapses gracefully.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+ARES VII Mission Control is a "NASA-punk" flight-control dashboard for an invented crewed Mars transfer, and it is labelled throughout as simulated. Slate panels (#0e1116) sit on a faint cyan grid, each with safety-orange corner brackets, a numbered monospace header and small status chips. Off-white numerals, cyan data traces and amber caution states complete the palette. The header carries the mission patch, a live mission elapsed time, a countdown to Mars orbit insertion and a clock that switches between Earth UTC and Mars time, plus a sound toggle and a physical-looking MASTER CAUTION lamp. Six panels fill the grid: a heliocentric Hohmann-transfer diagram, four scrolling strip-chart telemetry channels, an animated vehicle schematic, a 12-light subsystem matrix, four crew biomedical cards with live ECG sweeps, and a comms log whose traffic is governed by the one-way light time. The fiction rests on real mechanics. The transfer uses a = 1.262 AU and e = 0.208 (258.9 days). Position comes from solving Kepler's equation, speed from vis-viva, and light time from the Earth–ship range. Array power falls as 1/r², crew dose accumulates at the ~1.84 mSv/day the Curiosity rover's RAD instrument measured in cruise, and the Mars clock uses the Mars24 Mars Sol Date formula.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Corner-bracket panel chrome built from eight gradient strokes on a pseudo-element, over a 24 px blueprint grid on the page background
+- Trajectory SVG: Earth and Mars orbits, the full transfer ellipse drawn from its focus, a flown arc (solid orange) and remaining arc (dashed) re-traced from the solved true anomaly, a pulsing spacecraft marker, TMI/MOI markers, and an Earth line of sight labelled with the live light time
+- Four canvas strip charts sized to devicePixelRatio: a 10 Hz ring buffer with sub-sample interpolation for smooth scrolling, a moving time grid, dashed amber limit lines, gradient area fills, a glowing head dot, auto-scaling on the nav channel, and amber recolouring when a limit is crossed
+- ECG sweeps drawn incrementally like a bedside monitor (erase bar plus sweep head) from a synthetic PQRST waveform at each crew member's heart rate; heart icons pulse on each beat
+- Vehicle schematic in SVG: solar arrays foreshorten as they track, coolant flow runs as animated dashes, nav lights blink, RCS puffs fire occasionally, the high-gain antenna turns toward Earth's computed direction and radiates beam arcs when a downlink arrives, and parts glow when their subsystem is hovered or in caution
+- Caution system: a full-width annunciator strip below the header, part of the layout so it never covers a panel. It reads "All systems nominal" with a cyan lamp, and on a fault switches to amber with a blinking warning triangle and an Acknowledge button. The master caution lamp flashes, the tile light blinks and the schematic part flashes, then all go steady amber after acknowledgement and back to nominal once resolved
+- Condensed display type for titles and tabular monospace for every number
+
+=== INTERACTION MODEL ===
+- Click MASTER CAUTION or Acknowledge to silence and acknowledge the active caution. A random fault (CO₂ scrubber, array string, coolant pump, HGA pointing, RCS heater, distiller) is raised 12–20 s after load (so the first frame is calm and nominal) and again roughly every 30–50 s; some faults change the telemetry (CO₂ climbs, array power drops)
+- The caution tone is a two-note Web Audio chime repeating every 1.8 s until acknowledged, and uplinks and downlinks play authentic Quindar tones (2525 Hz / 2475 Hz). Audio starts only after your first click or key press, and a Sound toggle mutes everything
+- Click any subsystem tile to open a detail drawer (an Esc-closable dialog) with live parameters, limits and a description; hovering a tile highlights its part on the schematic
+- Earth UTC / Mars sol toggle switches the clock between UTC with day-of-year and Mars Coordinated Time with Mars Sol Date and mission sol
+- The SIM ×1 / ×60 / ×3600 rate control speeds up mission time, so the spacecraft visibly advances and light-time delays play out quickly; Replay transfer animates the whole 259-day cruise
+- The comms uplink field sends your message to the crew: it shows in-transit progress for one light time, the crew replies after a short delay, and the reply arrives one light time later. Crew activities (sleep, exercise, lab, galley…) change over time and shift heart rates
+- Responsive grid: three columns on desktop, two on tablets, a single scrolling column on phones (where the annunciator strip stacks its text and gives Acknowledge a full-width button); reduced motion stops the flashing, flows and blinking

@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brush &amp; Ink — Calligraphy Pad</title>
+<meta name="description" content="Brush & Ink, a calligraphy pad on rice paper: speed- and pressure-sensitive brush strokes that taper, bleed and run dry into flying white, with sumi, diluted grey and vermilion ink, a red seal, a trace mode for the character 永 and PNG download.">
+<meta name="theme-color" content="#2b1d14">
+<style>
+:root{
+  --desk:#2b1d14;
+  --desk-2:#1f150e;
+  --paper:#f5f0e1;
+  --paper-dim:rgba(245,240,225,.72);
+  --paper-mute:rgba(245,240,225,.48);
+  --sumi:#15120f;
+  --verm:#d23a22;
+  --verm-2:#b8301b;
+  --line:rgba(245,240,225,.14);
+  --serif:"Cormorant Garamond","EB Garamond",Garamond,"Hoefler Text",Baskerville,"P052",Palatino,Georgia,serif;
+  --kai:"Kaiti SC","STKaiti","KaiTi","BiauKai","AR PL UKai TW","AR PL UKai CN","Noto Serif CJK SC","Songti SC","SimSun",serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+html{overflow-x:hidden}
+body{background:var(--desk);color:var(--paper);font-family:var(--serif);font-size:16px;line-height:1.5;overflow-x:hidden;min-height:100svh}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--verm);outline-offset:3px}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#desk{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block}
+.lamp{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(ellipse 55% 60% at 50% 42%,rgba(255,214,150,.13),rgba(255,214,150,0) 70%),
+  radial-gradient(ellipse 120% 90% at 50% 50%,transparent 55%,rgba(8,4,2,.6))}
+.layout{position:relative;z-index:1;overflow-x:clip;display:grid;grid-template-columns:236px minmax(0,1fr) 240px;gap:clamp(18px,2.4vw,40px);padding:24px clamp(16px,2.4vw,36px);min-height:100svh;align-items:center}
+
+/* ---------- rail (tools) ---------- */
+.rail{align-self:stretch;display:flex;flex-direction:column;gap:18px;padding:22px 18px;border-radius:4px;
+  background:linear-gradient(180deg,rgba(20,13,8,.78),rgba(20,13,8,.62));border:1px solid var(--line);
+  box-shadow:0 20px 40px -20px rgba(0,0,0,.8);position:relative}
+.rail::before{content:"";position:absolute;inset:5px;border:1px solid rgba(245,240,225,.06);pointer-events:none;border-radius:2px}
+.masthead{display:flex;gap:14px;align-items:flex-start}
+.masthead .v{writing-mode:vertical-rl;font-family:var(--kai);font-size:2.6rem;line-height:1;color:var(--paper);letter-spacing:.12em;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.masthead h1{margin:0;font-weight:500;font-size:1.55rem;letter-spacing:.04em;line-height:1.1}
+.masthead h1 i{display:block;font-style:italic;font-weight:400;font-size:1rem;color:var(--paper-mute);letter-spacing:.02em;margin-top:6px}
+.masthead .chop{display:inline-grid;place-items:center;width:22px;height:22px;margin-top:10px;background:var(--verm);color:var(--paper);font-family:var(--kai);font-size:.8rem;border-radius:3px}
+.grp{display:flex;flex-direction:column;gap:10px;position:relative}
+.grp-h{display:flex;align-items:center;gap:8px;font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--paper-mute)}
+.grp-h b{font-family:var(--kai);font-weight:400;font-size:.95rem;letter-spacing:0;color:var(--verm);text-transform:none}
+.grp-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.inks{display:flex;gap:12px}
+.ink{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;cursor:pointer;font-size:.78rem;color:var(--paper-mute);transition:color .2s}
+.ink i{width:40px;height:40px;border-radius:50%;display:block;box-shadow:inset 0 -3px 6px rgba(0,0,0,.45),inset 0 2px 4px rgba(255,255,255,.18),0 0 0 1px rgba(245,240,225,.18);transition:transform .25s,box-shadow .25s;position:relative}
+.ink i::after{content:"";position:absolute;left:9px;top:7px;width:12px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);filter:blur(1px);transform:rotate(-20deg)}
+.ink[data-ink="sumi"] i{background:radial-gradient(circle at 40% 35%,#3a332d,#0d0b09 70%)}
+.ink[data-ink="grey"] i{background:radial-gradient(circle at 40% 35%,#a39c90,#6d665d 70%)}
+.ink[data-ink="verm"] i{background:radial-gradient(circle at 40% 35%,#f06a4a,#b8301b 72%)}
+.ink:hover i{transform:translateY(-2px)}
+.ink[aria-checked="true"]{color:var(--paper)}
+.ink[aria-checked="true"] i{box-shadow:inset 0 -3px 6px rgba(0,0,0,.45),inset 0 2px 4px rgba(255,255,255,.18),0 0 0 2px var(--desk-2),0 0 0 4px var(--paper)}
+.slider{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;font-size:.9rem}
+.slider label{color:var(--paper-dim)}
+.slider output{font-variant-numeric:tabular-nums;color:var(--paper-mute);font-size:.8rem}
+.slider input{grid-column:1/-1}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--paper) var(--fill,50%),rgba(245,240,225,.2) var(--fill,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:22px;margin-top:-10px;border-radius:7px 7px 50% 50%;background:var(--paper);box-shadow:0 2px 4px rgba(0,0,0,.5)}
+input[type=range]::-moz-range-track{height:2px;background:rgba(245,240,225,.25)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--paper)}
+input[type=range]::-moz-range-thumb{width:12px;height:20px;border:0;border-radius:6px 6px 50% 50%;background:var(--paper)}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tool{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border:1px solid var(--line);border-radius:3px;background:rgba(245,240,225,.03);cursor:pointer;font-size:.95rem;color:var(--paper-dim);transition:background-color .2s,color .2s,border-color .2s}
+.tool b{font-family:var(--kai);font-weight:400;font-size:1rem;color:var(--verm);transition:color .2s}
+.tool:hover{background:rgba(245,240,225,.09);color:var(--paper)}
+.tool[aria-pressed="true"]{background:var(--paper);color:var(--sumi);border-color:var(--paper)}
+.tool[aria-pressed="true"] b{color:var(--verm-2)}
+.tool:active{transform:translateY(1px)}
+.tool.wide{grid-column:1/-1}
+.tip{margin:auto 0 0;font-size:.86rem;font-style:italic;color:var(--paper-mute);line-height:1.45}
+.tip b{font-style:normal;font-family:var(--kai);font-weight:400;color:var(--paper-dim)}
+
+/* ---------- sheet ---------- */
+.stage{position:relative;display:grid;place-items:center;min-width:0;height:calc(100svh - 48px);min-height:520px}
+.sheet{position:relative;width:min(540px,100%);height:720px;touch-action:none;transform-origin:50% 60%;filter:drop-shadow(0 26px 30px rgba(0,0,0,.55)) drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+.sheet-in{position:absolute;inset:0;overflow:hidden}
+.sheet canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#bleedCv{filter:blur(2.2px);opacity:.55}
+#traceCv{opacity:0;transition:opacity .5s}
+.sheet.tracing #traceCv{opacity:1}
+#gridCv{opacity:0;transition:opacity .4s}
+.sheet.gridded #gridCv{opacity:1}
+#inkCv{cursor:none}
+.sheet.sealing #inkCv{cursor:none}
+.sheet.out{animation:slideOut .55s cubic-bezier(.55,0,.85,.35) forwards}
+.sheet.in{animation:slideIn .7s cubic-bezier(.15,.75,.25,1) forwards}
+@keyframes slideOut{to{transform:translate(-115vw,40px) rotate(-7deg)}}
+@keyframes slideIn{from{transform:translate(95vw,-30px) rotate(5deg)}to{transform:none}}
+.cursor{position:absolute;left:0;top:0;pointer-events:none;border-radius:50%;border:1px solid rgba(21,18,15,.55);box-shadow:0 0 0 1px rgba(245,240,225,.6);transform:translate(-100px,-100px);opacity:0;transition:opacity .2s;z-index:5}
+.cursor.on{opacity:1}
+.seal-ghost{position:absolute;left:0;top:0;pointer-events:none;opacity:0;z-index:6;transition:opacity .2s}
+.seal-ghost.on{opacity:.75}
+.seal-ghost svg{width:100%;height:100%}
+.side-note{position:absolute;right:-30px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-size:.8rem;letter-spacing:.34em;text-transform:uppercase;color:var(--paper-mute);white-space:nowrap}
+.side-note b{font-family:var(--kai);font-weight:400;letter-spacing:.2em;color:var(--paper-dim);text-transform:none;font-size:1rem}
+.toast{position:absolute;left:50%;bottom:10px;transform:translate(-50%,10px);opacity:0;background:rgba(21,18,15,.88);color:var(--paper);padding:7px 14px;border-radius:3px;font-size:.9rem;font-style:italic;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;z-index:8}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- props ---------- */
+.props{display:flex;flex-direction:column;gap:18px;align-items:center;justify-content:center}
+.prop{position:relative;display:block;padding:0;border:0;background:none;cursor:pointer;color:inherit;text-align:left}
+.prop .cap{position:absolute;writing-mode:vertical-rl;font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--paper-mute)}
+.prop .cap b{font-family:var(--kai);font-weight:400;font-size:.95rem;letter-spacing:.1em;color:var(--paper-dim);text-transform:none}
+.inkstone{width:190px}
+.inkstone svg{width:100%;height:auto;filter:drop-shadow(0 16px 16px rgba(0,0,0,.55))}
+.inkstone .cap{right:-26px;top:10px}
+.inkstone .pool{transform-origin:95px 70px;transition:transform .5s}
+.inkstone.ripple .ring{animation:ripple .9s ease-out}
+@keyframes ripple{from{transform:scale(.2);opacity:.8}to{transform:scale(1.5);opacity:0}}
+.inkstone .ring{transform-origin:95px 66px;opacity:0}
+.brushprop{width:230px}
+.brushprop svg{width:100%;height:auto;filter:drop-shadow(0 12px 10px rgba(0,0,0,.5));transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.brushprop:hover svg{transform:rotate(-3deg) translateY(-3px)}
+.brushprop .cap{left:-22px;top:0}
+.sealbox{display:flex;align-items:center;gap:14px}
+.sealprop{width:84px;height:84px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.5));transition:transform .3s}
+.sealprop svg{width:100%;height:100%}
+.sealprop:hover{transform:translateY(-3px) rotate(-2deg)}
+.sealprop[aria-pressed="true"]{transform:translateY(-4px) scale(1.05)}
+.sealprop[aria-pressed="true"]::after{content:"";position:absolute;inset:-6px;border:1px dashed var(--paper);border-radius:4px}
+.seal-side{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--paper-mute)}
+.linkbtn{padding:0;border:0;background:none;cursor:pointer;color:var(--paper-dim);text-decoration:underline;text-decoration-color:rgba(245,240,225,.3);text-underline-offset:3px;font-style:italic;text-align:left}
+.linkbtn:hover{color:var(--paper)}
+
+.top-mobile{display:none;order:0;align-items:center;justify-content:space-between;gap:12px}
+.top-mobile h2{margin:0;font-weight:500;font-size:1.35rem;letter-spacing:.03em}
+.top-mobile h2 i{font-style:italic;font-weight:400;color:var(--paper-mute);font-size:.95rem}
+.top-mobile span{writing-mode:vertical-rl;font-family:var(--kai);font-size:1.3rem;color:var(--verm);line-height:1}
+@media (max-width:1180px){
+  .layout{grid-template-columns:220px minmax(0,1fr)}
+  .props{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:40px;padding-bottom:10px}
+  .side-note{display:none}
+}
+@media (max-width:760px){
+  .layout{grid-template-columns:minmax(0,1fr);padding:14px 14px 30px;gap:16px;align-items:start}
+  .stage{height:auto;min-height:0;order:1}
+  .rail{order:2}
+  .props{order:3;gap:22px}
+  .masthead{display:none}
+  .rail{padding:18px 14px}
+  .brushprop{width:190px}
+  .inkstone{width:150px}
+  .top-mobile{display:flex}
+}
+@media (prefers-reduced-motion:reduce){
+  .sheet.out,.sheet.in{animation-duration:.01ms!important}
+  *,*::before,*::after{transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<canvas id="desk" aria-hidden="true"></canvas>
+<div class="lamp" aria-hidden="true"></div>
+
+<div class="layout">
+  <div class="top-mobile" aria-hidden="true"><h2>Brush &amp; Ink <i>calligraphy pad</i></h2><span>筆墨</span></div>
+
+  <aside class="rail" aria-label="Brush and ink tools">
+    <div class="masthead">
+      <span class="v" aria-hidden="true">筆墨</span>
+      <div>
+        <h1>Brush &amp; Ink<i>a calligraphy pad</i></h1>
+        <span class="chop" aria-hidden="true">永</span>
+      </div>
+    </div>
+
+    <div class="grp">
+      <div class="grp-h" id="inkHead"><b>墨</b>Ink</div>
+      <div class="inks" role="radiogroup" aria-labelledby="inkHead">
+        <button type="button" class="ink" role="radio" data-ink="sumi" aria-checked="true"><i aria-hidden="true"></i>Sumi</button>
+        <button type="button" class="ink" role="radio" data-ink="grey" aria-checked="false" tabindex="-1"><i aria-hidden="true"></i>Grey</button>
+        <button type="button" class="ink" role="radio" data-ink="verm" aria-checked="false" tabindex="-1"><i aria-hidden="true"></i>Vermilion</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <div class="grp-h"><b>筆</b>Brush</div>
+      <div class="slider"><label for="size">Brush size</label><output id="sizeOut" for="size">18</output><input type="range" id="size" min="4" max="44" value="18"></div>
+      <div class="slider"><label for="wet">Ink wetness</label><output id="wetOut" for="wet">55%</output><input type="range" id="wet" min="0" max="100" value="55"></div>
+    </div>
+
+    <div class="grp">
+      <div class="grp-h"><b>紙</b>Sheet</div>
+      <div class="tools">
+        <button type="button" class="tool" id="bUndo" aria-label="Undo last stroke">Undo <b aria-hidden="true">返</b></button>
+        <button type="button" class="tool" id="bClear" aria-label="Clear: a fresh sheet">Clear <b aria-hidden="true">新</b></button>
+        <button type="button" class="tool" id="bTrace" aria-pressed="false" aria-label="Trace mode: show the model character yong">Trace <b aria-hidden="true">永</b></button>
+        <button type="button" class="tool" id="bGrid" aria-pressed="false" aria-label="Show practice grid">Grid <b aria-hidden="true">格</b></button>
+        <button type="button" class="tool" id="bSeal" aria-pressed="false" aria-label="Place the red seal">Seal <b aria-hidden="true">印</b></button>
+        <button type="button" class="tool" id="bSave" aria-label="Download as PNG">Save <b aria-hidden="true">存</b></button>
+      </div>
+    </div>
+
+    <p class="tip">Slow strokes swell, quick ones thin out; a pen's pressure is felt too. Long strokes run dry into <b>飛白</b>, “flying white”.</p>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="sheet" id="sheet">
+      <div class="sheet-in" id="sheetIn">
+        <canvas id="paperCv" aria-hidden="true"></canvas>
+        <canvas id="gridCv" aria-hidden="true"></canvas>
+        <canvas id="traceCv" aria-hidden="true"></canvas>
+        <canvas id="bleedCv" aria-hidden="true"></canvas>
+        <canvas id="strokeCv" aria-hidden="true"></canvas>
+        <canvas id="inkCv" role="img" aria-label="Rice paper. Draw with a mouse, finger or pen to paint brush strokes."></canvas>
+      </div>
+      <div class="cursor" id="cursor" aria-hidden="true"></div>
+      <div class="seal-ghost" id="sealGhost" aria-hidden="true"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+    <p class="side-note" aria-hidden="true"><b>永字八法</b> · the eight principles of yong</p>
+  </main>
+
+  <aside class="props" aria-label="Desk objects">
+    <button type="button" class="prop inkstone" id="inkstone" aria-label="Inkstone: grind fresh ink">
+      <svg viewBox="0 0 190 250" aria-hidden="true">
+        <defs>
+          <linearGradient id="slab" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3632"/><stop offset=".5" stop-color="#26231f"/><stop offset="1" stop-color="#171513"/></linearGradient>
+          <radialGradient id="poolG" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#2a2622"/><stop offset=".6" stop-color="#0b0a09"/><stop offset="1" stop-color="#000"/></radialGradient>
+          <linearGradient id="grind" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d2a26"/><stop offset="1" stop-color="#1c1a17"/></linearGradient>
+          <linearGradient id="stick" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0e0c0b"/><stop offset=".45" stop-color="#2b2724"/><stop offset="1" stop-color="#0b0a09"/></linearGradient>
+        </defs>
+        <rect x="8" y="8" width="174" height="234" rx="18" fill="url(#slab)"/>
+        <rect x="8" y="8" width="174" height="234" rx="18" fill="none" stroke="#4a453f" stroke-width="1.5"/>
+        <rect x="20" y="20" width="150" height="210" rx="12" fill="none" stroke="#11100e" stroke-width="3"/>
+        <rect x="21" y="21" width="148" height="208" rx="11" fill="none" stroke="#48433d" stroke-width="1"/>
+        <path d="M34 34 C 50 22, 70 30, 72 42 C 80 30, 108 28, 118 42 C 124 30, 150 28, 156 40" fill="none" stroke="#4d4842" stroke-width="2" stroke-linecap="round"/>
+        <path d="M44 34 C 50 30, 58 32, 60 38 M130 36 C 136 32, 144 33, 146 38" fill="none" stroke="#4d4842" stroke-width="1.4" stroke-linecap="round"/>
+        <g class="pool"><ellipse cx="95" cy="70" rx="56" ry="24" fill="#0b0a09"/><ellipse cx="95" cy="68" rx="52" ry="20" fill="url(#poolG)"/></g>
+        <ellipse class="ring" cx="95" cy="66" rx="30" ry="11" fill="none" stroke="#6b645b" stroke-width="1.2"/>
+        <ellipse cx="80" cy="62" rx="16" ry="4" fill="#fff" opacity=".12"/>
+        <path d="M40 96 Q 95 88 150 96 L 150 212 Q 95 222 40 212 Z" fill="url(#grind)"/>
+        <path d="M40 96 Q 95 88 150 96" fill="none" stroke="#4a453f" stroke-width="1"/>
+        <ellipse cx="96" cy="150" rx="34" ry="42" fill="#0e0d0c" opacity=".5"/>
+        <ellipse cx="90" cy="140" rx="12" ry="18" fill="#fff" opacity=".04"/>
+        <g transform="rotate(-24 120 170)">
+          <rect x="100" y="110" width="30" height="120" rx="3" fill="url(#stick)"/>
+          <rect x="104" y="122" width="22" height="70" fill="none" stroke="#b8963e" stroke-width=".8" opacity=".8"/>
+          <path d="M110 134 H120 M115 128 V156 M109 148 L121 160 M110 170 H120 M112 176 H118" stroke="#c9a54a" stroke-width="1.4" opacity=".85"/>
+          <rect x="100" y="222" width="30" height="8" rx="2" fill="#1e1b19"/>
+        </g>
+      </svg>
+      <span class="cap"><b>硯</b> inkstone</span>
+    </button>
+
+    <div class="prop brushprop" aria-hidden="true">
+      <svg viewBox="0 14 240 104">
+        <defs>
+          <linearGradient id="bamboo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3c48e"/><stop offset=".5" stop-color="#c9a36b"/><stop offset="1" stop-color="#8e6a3c"/></linearGradient>
+          <linearGradient id="hair" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#efe6d2"/>
+            <stop id="hairStop" offset=".42" stop-color="#efe6d2"/>
+            <stop id="hairStop2" offset=".62" stop-color="#15120f"/>
+            <stop offset="1" stop-color="#15120f"/>
+          </linearGradient>
+          <linearGradient id="rest" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8e1d2"/><stop offset="1" stop-color="#a9a193"/></linearGradient>
+        </defs>
+        <g transform="translate(-4 -46)"><path d="M150 128 C 156 112, 164 110, 170 118 C 176 104, 186 102, 192 116 C 198 108, 206 110, 210 128 Z" fill="url(#rest)"/>
+        <path d="M150 128 H210" stroke="#8f887b" stroke-width="1"/></g>
+        <g transform="rotate(-14 120 80)">
+          <path d="M14 76 C 8 72, 8 66, 14 64" fill="none" stroke="#b8301b" stroke-width="1.6"/>
+          <rect x="16" y="68" width="150" height="11" rx="5.5" fill="url(#bamboo)"/>
+          <path d="M52 68 V79 M98 68 V79 M140 68 V79" stroke="#8e6a3c" stroke-width="1.6"/>
+          <rect x="16" y="68" width="10" height="11" rx="4" fill="#2a1d14"/>
+          <rect x="162" y="66.5" width="16" height="14" rx="3" fill="#2a1d14"/>
+          <path d="M178 66 C 196 64, 214 68, 236 73.5 C 214 79, 196 83, 178 81 Z" fill="url(#hair)"/>
+          <path d="M184 70 C 200 70, 214 72, 230 73.5" fill="none" stroke="rgba(255,255,255,.25)" stroke-width=".8"/>
+        </g>
+      </svg>
+      <span class="cap"><b>筆</b> brush</span>
+    </div>
+
+    <div class="sealbox">
+      <button type="button" class="prop sealprop" id="sealProp" aria-pressed="false" aria-label="Pick up the seal to stamp it"><span id="sealSvgWrap"></span></button>
+      <div class="seal-side">
+        <span><b style="font-family:var(--kai);font-weight:400;color:var(--paper-dim)">印</b> your seal</span>
+        <button type="button" class="linkbtn" id="bReseal">carve another</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var TAU = Math.PI * 2, REF = 600;
+  function $(id){ return document.getElementById(id); }
+  function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  var INKS = {sumi: {c: "#15120f", a: .95}, grey: {c: "#39342e", a: .42}, verm: {c: "#cf3520", a: .9}};
+
+  var sheet = $("sheet"), stage = $("stage");
+  var cvs = {paper: $("paperCv"), grid: $("gridCv"), trace: $("traceCv"), bleed: $("bleedCv"), stroke: $("strokeCv"), ink: $("inkCv")};
+  var ctx = {};
+  for (var k in cvs) ctx[k] = cvs[k].getContext("2d");
+  var SW = 540, SH = 720, dpr = 1, paperSeed = 1234;
+
+  /* ================= desk ================= */
+  function drawDesk(){
+    var d = $("desk"), c = d.getContext("2d");
+    var w = window.innerWidth, h = window.innerHeight;
+    d.width = w; d.height = h;
+    var R = mulberry(77);
+    c.fillStyle = "#2b1d14"; c.fillRect(0, 0, w, h);
+    var plank = 190, knots = [];
+    for (var kk = 0; kk < 6; kk++) knots.push([R() * w, R() * h, 18 + R() * 30]);
+    for (var py = -20; py < h + plank; py += plank){
+      var tone = R();
+      c.fillStyle = "rgba(" + (tone < .5 ? "20,12,7" : "58,38,24") + "," + (0.12 + R() * 0.12) + ")";
+      c.fillRect(0, py, w, plank);
+      for (var g = 0; g < 70; g++){
+        var gy = py + R() * plank, amp = 1 + R() * 4, fr = 0.002 + R() * 0.006, ph = R() * 10;
+        c.beginPath();
+        for (var x = -10; x <= w + 10; x += 12){
+          var y = gy + Math.sin(x * fr + ph) * amp + Math.sin(x * fr * 3.1 + ph) * amp * 0.3;
+          for (var q = 0; q < knots.length; q++){
+            var kx = knots[q][0], ky = knots[q][1], kr = knots[q][2];
+            var dx = x - kx, dy = y - ky, dd = dx * dx + dy * dy;
+            if (dd < kr * kr * 9){ y += (dy >= 0 ? 1 : -1) * kr * Math.exp(-dd / (kr * kr * 1.6)) * 0.9; }
+          }
+          if (x === -10) c.moveTo(x, y); else c.lineTo(x, y);
+        }
+        var dark = R() < 0.6;
+        c.strokeStyle = dark ? "rgba(14,8,4," + (0.18 + R() * 0.3) + ")" : "rgba(90,62,40," + (0.1 + R() * 0.2) + ")";
+        c.lineWidth = 0.6 + R() * 1.6;
+        c.stroke();
+      }
+      c.fillStyle = "rgba(8,4,2,.55)"; c.fillRect(0, py + plank - 1.5, w, 1.5);
+      c.fillStyle = "rgba(120,86,56,.12)"; c.fillRect(0, py + plank, w, 1);
+    }
+    knots.forEach(function(k2){
+      for (var r = k2[2] * 0.2; r < k2[2]; r += 3){ c.beginPath(); c.ellipse(k2[0], k2[1], r * 1.6, r * 0.55, 0, 0, TAU); c.strokeStyle = "rgba(14,8,4,.25)"; c.lineWidth = 1; c.stroke(); }
+    });
+  }
+
+  /* ================= paper ================= */
+  function drawPaper(){
+    var c = ctx.paper, R = mulberry(paperSeed);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.fillStyle = "#f5f0e1"; c.fillRect(0, 0, SW, SH);
+    for (var m = 0; m < 22; m++){
+      var gx = R() * SW, gy = R() * SH, gr = 60 + R() * 180;
+      var gg = c.createRadialGradient(gx, gy, 0, gx, gy, gr);
+      var warm = R() < 0.5;
+      gg.addColorStop(0, warm ? "rgba(225,212,180,.18)" : "rgba(255,253,245,.35)");
+      gg.addColorStop(1, "rgba(245,240,225,0)");
+      c.fillStyle = gg; c.fillRect(gx - gr, gy - gr, gr * 2, gr * 2);
+    }
+    var nFib = Math.round(SW * SH / 260);
+    c.lineCap = "round";
+    for (var i = 0; i < nFib; i++){
+      var x = R() * SW, y = R() * SH, len = 6 + Math.pow(R(), 2.2) * 70, a = R() * TAU;
+      var bend = (R() - 0.5) * len * 0.6;
+      var x2 = x + Math.cos(a) * len, y2 = y + Math.sin(a) * len;
+      var cx = (x + x2) / 2 + Math.cos(a + 1.57) * bend, cy = (y + y2) / 2 + Math.sin(a + 1.57) * bend;
+      var light = R() < 0.45;
+      c.strokeStyle = light ? "rgba(255,255,250," + (0.35 + R() * 0.4) + ")" : "rgba(170,150,110," + (0.08 + R() * 0.16) + ")";
+      c.lineWidth = light ? 0.5 + R() * 0.9 : 0.3 + R() * 0.6;
+      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(cx, cy, x2, y2); c.stroke();
+    }
+    for (var s = 0; s < SW * SH / 900; s++){
+      c.fillStyle = R() < 0.7 ? "rgba(140,120,90," + (0.08 + R() * 0.2) + ")" : "rgba(90,80,60,.25)";
+      c.fillRect(R() * SW, R() * SH, 0.6 + R() * 1.1, 0.6 + R() * 1.1);
+    }
+    c.fillStyle = "rgba(200,185,150,.035)";
+    for (var ly = 0; ly < SH; ly += 5) c.fillRect(0, ly, SW, 1);
+    var edge = c.createLinearGradient(0, 0, SW, 0);
+    edge.addColorStop(0, "rgba(160,140,100,.12)"); edge.addColorStop(.04, "rgba(160,140,100,0)"); edge.addColorStop(.96, "rgba(160,140,100,0)"); edge.addColorStop(1, "rgba(160,140,100,.12)");
+    c.fillStyle = edge; c.fillRect(0, 0, SW, SH);
+    // deckled edge clip
+    var pts = [], step = 6, j = 0.9;
+    for (var ex = 0; ex <= SW; ex += step) pts.push((ex / SW * 100).toFixed(2) + "% " + (R() * j).toFixed(2) + "%");
+    for (var ey = 0; ey <= SH; ey += step) pts.push((100 - R() * j * 0.75).toFixed(2) + "% " + (ey / SH * 100).toFixed(2) + "%");
+    for (var ex2 = SW; ex2 >= 0; ex2 -= step) pts.push((ex2 / SW * 100).toFixed(2) + "% " + (100 - R() * j).toFixed(2) + "%");
+    for (var ey2 = SH; ey2 >= 0; ey2 -= step) pts.push((R() * j * 0.75).toFixed(2) + "% " + (ey2 / SH * 100).toFixed(2) + "%");
+    $("sheetIn").style.clipPath = "polygon(" + pts.join(",") + ")";
+  }
+
+  /* ================= layout of the model square ================= */
+  function square(){
+    var T = Math.min(SW * 0.78, SH * 0.6);
+    return {x: (SW - T) / 2, y: SH * 0.44 - T / 2, T: T};
+  }
+  function drawGrid(){
+    var c = ctx.grid;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, SW, SH);
+    var boxes = [];
+    if (tracing){ var sq = square(); boxes.push([sq.x, sq.y, sq.T]); }
+    else {
+      var cols = 3, S = Math.min((SW * 0.86) / cols, (SH * 0.86) / 4), ox = (SW - S * cols) / 2, oy = (SH - S * 4) / 2;
+      for (var r = 0; r < 4; r++) for (var q = 0; q < cols; q++) boxes.push([ox + q * S, oy + r * S, S]);
+    }
+    boxes.forEach(function(b){
+      var x = b[0], y = b[1], S2 = b[2];
+      c.setLineDash([]); c.strokeStyle = "rgba(205,60,35,.42)"; c.lineWidth = 1.1;
+      c.strokeRect(x + .5, y + .5, S2, S2);
+      c.setLineDash([4, 5]); c.strokeStyle = "rgba(205,60,35,.26)"; c.lineWidth = .8;
+      c.beginPath(); c.moveTo(x + S2 / 2, y); c.lineTo(x + S2 / 2, y + S2); c.moveTo(x, y + S2 / 2); c.lineTo(x + S2, y + S2 / 2); c.stroke();
+      c.setLineDash([2, 6]); c.strokeStyle = "rgba(205,60,35,.18)";
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x + S2, y + S2); c.moveTo(x + S2, y); c.lineTo(x, y + S2); c.stroke();
+    });
+    c.setLineDash([]);
+  }
+
+  /* ================= the brush engine ================= */
+  function Renderer(item, sctx, bctx, model){
+    var R = mulberry(item.seed), N = 26, br = [];
+    for (var i = 0; i < N; i++) br.push({o: (i / (N - 1)) * 2 - 1 + (R() - 0.5) * 0.07, bias: R() * 0.5, f1: 0.015 + R() * 0.05, f2: 0.09 + R() * 0.22, ph: R() * TAU});
+    var S = SW, k = REF / S;
+    var maxR = item.size * S / 2, wet = item.wet;
+    var ink = item.ink0 !== undefined ? item.ink0 : 1;
+    var L = 260 + 820 * wet;
+    var last = null, wCur = maxR * 0.4, vS = 0, dist = 0, dirX = 1, dirY = 0, moved = false, snx = 0, sny = 0;
+    var col = INKS[item.ink].c;
+    sctx.fillStyle = col; bctx.fillStyle = col;
+    function stamp(x, y, r, nx, ny, ds){
+      if (ink > 0.52 || model){
+        sctx.beginPath(); sctx.arc(x, y, r, 0, TAU); sctx.fill();
+      } else {
+        var core = ink > 0.3 ? r * (ink - 0.3) * 3 : 0;
+        if (core > 0.35){ sctx.beginPath(); sctx.arc(x, y, core, 0, TAU); sctx.fill(); }
+        var rb = Math.max(0.5, r * 2.3 / N), dk = dist * k;
+        for (var b = 0; b < N; b++){
+          var q = br[b];
+          var n = Math.sin(dk * q.f1 + q.ph) * 0.5 + Math.sin(dk * q.f2 + q.ph * 1.7) * 0.5;
+          if (ink * 1.9 - q.bias + n * 0.34 > 0.2){
+            sctx.beginPath(); sctx.arc(x + nx * q.o * r * 0.96, y + ny * q.o * r * 0.96, rb, 0, TAU); sctx.fill();
+          }
+        }
+      }
+      if (!model && ink > 0.36 && wet > 0.02){
+        bctx.globalAlpha = Math.min(0.5, (0.04 + 0.22 * wet) * (ds / Math.max(1, r)) * (item.ink === "grey" ? 0.6 : 1));
+        bctx.beginPath(); bctx.arc(x, y, r * 1.3 + 1.2, 0, TAU); bctx.fill();
+        bctx.globalAlpha = 1;
+      }
+    }
+    function spacing(r){ return Math.max(0.6, r * 0.14); }
+    this.add = function(p){
+      var x = p[0] * S, y = p[1] * S, t = p[2], pr = p[3];
+      if (!last){ last = {x: x, y: y, t: t}; return; }
+      var dx = x - last.x, dy = y - last.y, d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 0.35) return;
+      moved = true;
+      var dt = Math.max(1, t - last.t), v = (d * k) / dt;
+      vS = vS * 0.72 + v * 0.28;
+      var speedF = Math.max(0.2, Math.min(1.2, 1.2 - vS * 0.45));
+      var pF = pr > 0 ? 0.3 + pr * 1.15 : 1;
+      var target = maxR * speedF * pF;
+      var nx = -dy / d, ny = dx / d;
+      if (snx === 0 && sny === 0){ snx = nx; sny = ny; }
+      snx = snx * 0.82 + nx * 0.18; sny = sny * 0.82 + ny * 0.18;
+      var sl = Math.sqrt(snx * snx + sny * sny) || 1; snx /= sl; sny /= sl;
+      nx = snx; ny = sny;
+      var n = Math.max(1, Math.ceil(d / spacing(wCur)));
+      for (var s = 1; s <= n; s++){
+        var entry = Math.min(1, dist / Math.max(2, maxR * 1.4));
+        var em = 0.5 + 0.5 * (1 - (1 - entry) * (1 - entry));
+        wCur += (target - wCur) * 0.07;
+        var r = Math.max(0.45, wCur * em);
+        var ds = d / n;
+        stamp(last.x + dx * s / n, last.y + dy * s / n, r, nx, ny, ds);
+        dist += ds;
+        if (!model){ ink -= (ds * k) * ((r * k) / 12) * (0.5 / L); if (ink < 0) ink = 0; }
+      }
+      dirX = dx / d; dirY = dy / d;
+      last = {x: x, y: y, t: t};
+    };
+    this.finish = function(){
+      if (!last) return;
+      if (!moved){ stamp(last.x, last.y, maxR * 0.62, 0, 1, maxR); return; }
+      var Lt = Math.max(2, Math.min(maxR * 5, wCur * (0.7 + vS * 1.8)));
+      var n = Math.max(2, Math.ceil(Lt / spacing(wCur))), w0 = wCur;
+      for (var s = 1; s <= n; s++){
+        var t = s / n, r = Math.max(0.3, w0 * Math.pow(1 - t, 1.3));
+        stamp(last.x + dirX * Lt * t, last.y + dirY * Lt * t, r, snx || -dirY, sny || dirX, Lt / n);
+      }
+    };
+    this.ink = function(){ return ink; };
+  }
+
+  function compositeStroke(item){
+    var c = ctx.ink;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.globalAlpha = INKS[item.ink].a;
+    c.drawImage(cvs.stroke, 0, 0);
+    c.globalAlpha = 1;
+    ctx.stroke.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.stroke.clearRect(0, 0, cvs.stroke.width, cvs.stroke.height);
+    ctx.stroke.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function renderItem(item){
+    if (item.type === "seal"){ drawSeal(ctx.ink, item); return; }
+    if (item.type === "text"){ drawText(ctx.ink, item); return; }
+    var r = new Renderer(item, ctx.stroke, ctx.bleed, false);
+    for (var i = 0; i < item.pts.length; i++) r.add(item.pts[i]);
+    r.finish();
+    compositeStroke(item);
+  }
+  function clearInk(){
+    ["ink", "bleed", "stroke"].forEach(function(n){ var c = ctx[n]; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cvs[n].width, cvs[n].height); c.setTransform(dpr, 0, 0, dpr, 0, 0); });
+  }
+  function replay(){ clearInk(); history.forEach(renderItem); }
+
+  /* ================= the model character 永 ================= */
+  // points: [x, y, pace] in a 100-unit square; pace = milliseconds per reference pixel (slow = thick)
+  var YONG = [
+    [[46, 9, 2.5], [50, 13, 5], [53.5, 18.5, 8.5]],
+    [[33, 31, 7], [42, 30, 2.6], [52, 28.5, 7.5], [53.5, 33, 7], [53.5, 50, 2.4], [53.5, 70, 2.2], [53.5, 85, 5], [50, 84, 2], [44.5, 79.5, 0.7]],
+    [[18, 47.5, 6], [30, 46.5, 2.6], [38.5, 45, 7], [33, 54, 3], [23, 66, 1.6], [11, 77, 0.8]],
+    [[76, 35, 7], [70, 42, 3], [63, 49, 1.8], [57.5, 53, 1.1]],
+    [[58.5, 52, 4.5], [66, 59.5, 3.2], [75, 69.5, 3.6], [83, 78, 5.5], [90, 83, 8], [97, 85, 1.4]]
+  ];
+  function catmull(p0, p1, p2, p3, t){
+    var t2 = t * t, t3 = t2 * t;
+    return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+  }
+  function yongItems(sizeNorm, wet, inkName, seedBase, dryEnd){
+    var sq = square(), out = [];
+    YONG.forEach(function(cp, si){
+      var pts = [], t = 0, px = null, py = null;
+      for (var i = 0; i < cp.length - 1; i++){
+        var a = cp[Math.max(0, i - 1)], b = cp[i], c = cp[i + 1], d = cp[Math.min(cp.length - 1, i + 2)];
+        var sharp = b[2] >= 7 && i > 0;
+        for (var s = 0; s < 8; s++){
+          var u = s / 8;
+          var x = sharp ? b[0] + (c[0] - b[0]) * u : catmull(a[0], b[0], c[0], d[0], u);
+          var y = sharp ? b[1] + (c[1] - b[1]) * u : catmull(a[1], b[1], c[1], d[1], u);
+          var pace = b[2] + (c[2] - b[2]) * u;
+          var X = sq.x + x / 100 * sq.T, Y = sq.y + y / 100 * sq.T;
+          if (px !== null){ var dl = Math.hypot(X - px, Y - py) * REF / SW; t += dl * pace * 0.55; }
+          pts.push([X / SW, Y / SW, t, 0]);
+          px = X; py = Y;
+        }
+      }
+      var e = cp[cp.length - 1], EX = sq.x + e[0] / 100 * sq.T, EY = sq.y + e[1] / 100 * sq.T;
+      t += Math.hypot(EX - px, EY - py) * REF / SW * e[2] * 0.55;
+      pts.push([EX / SW, EY / SW, t, 0]);
+      out.push({type: "stroke", pts: pts, size: sizeNorm * sq.T / SW, wet: wet, ink: inkName, seed: seedBase + si * 17, ink0: dryEnd ? [1, 1.02, 0.74, 1, 0.72][si] : 1});
+    });
+    return out;
+  }
+  function drawTrace(){
+    var c = ctx.trace;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cvs.trace.width, cvs.trace.height); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!tracing) return;
+    var items = yongItems(0.1, 0.5, "sumi", 900, false);
+    var tmp = document.createElement("canvas"); tmp.width = cvs.trace.width; tmp.height = cvs.trace.height;
+    var tc = tmp.getContext("2d"); tc.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var dummy = document.createElement("canvas").getContext("2d");
+    items.forEach(function(it){ var r = new Renderer(it, tc, dummy, true); it.pts.forEach(function(p){ r.add(p); }); r.finish(); });
+    c.globalAlpha = 0.17; c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(tmp, 0, 0); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.globalAlpha = 1;
+    var sq = square();
+    c.font = "600 " + Math.round(sq.T * 0.038 + 6) + "px " + getComputedStyle(document.body).fontFamily;
+    c.textAlign = "center"; c.textBaseline = "middle";
+    items.forEach(function(it, i){
+      var p = it.pts[0], x = p[0] * SW, y = p[1] * SW, rr = sq.T * 0.022 + 4;
+      var ox = [-1.1, -1.3, -1.3, 1.3, 1.7][i], oy = [-1, 0.2, -0.6, -0.8, -0.3][i];
+      x += ox * rr * 1.5; y += oy * rr * 1.5;
+      c.fillStyle = "rgba(210,58,34,.85)"; c.beginPath(); c.arc(x, y, rr, 0, TAU); c.fill();
+      c.fillStyle = "#f5f0e1"; c.fillText(String(i + 1), x, y + 0.5);
+    });
+  }
+
+  /* ================= the seal ================= */
+  var sealSeed = 20260922;
+  function sealGlyphs(seed){
+    var R = mulberry(seed), chars = [];
+    for (var ch = 0; ch < 4; ch++){
+      var rects = [], th = 0.14;
+      var nh = 2 + (R() * 3 | 0);
+      var rows = [0, 1, 2, 3, 4].sort(function(){ return R() - 0.5; }).slice(0, nh).sort();
+      rows.forEach(function(r){ var x0 = R() < 0.6 ? 0 : (R() * 2 | 0), x1 = R() < 0.6 ? 4 : 2 + (R() * 2 | 0); rects.push([x0 / 4 * (1 - th), r / 4 * (1 - th), (x1 - x0) / 4 * (1 - th) + th, th]); });
+      var nv = 1 + (R() * 3 | 0);
+      var cols = [0, 1, 2, 3, 4].sort(function(){ return R() - 0.5; }).slice(0, nv);
+      cols.forEach(function(q){ var y0 = R() < 0.55 ? 0 : (R() * 2 | 0), y1 = R() < 0.6 ? 4 : 2 + (R() * 2 | 0); rects.push([q / 4 * (1 - th), y0 / 4 * (1 - th), th, (y1 - y0) / 4 * (1 - th) + th]); });
+      if (R() < 0.45){ var bx = R() < 0.5 ? 0 : 0.5; rects.push([bx * (1 - th), 0.5 * (1 - th), 0.5 * (1 - th) + th, th]); rects.push([bx * (1 - th) + 0.5 * (1 - th), 0.5 * (1 - th), th, 0.5 * (1 - th) + th]); }
+      chars.push(rects);
+    }
+    var wear = [];
+    for (var w = 0; w < 70; w++){ var e = R() < 0.6; wear.push([e ? (R() < 0.5 ? R() * 0.06 : 1 - R() * 0.06) : R(), e ? R() : (R() < 0.5 ? R() * 0.06 : 1 - R() * 0.06), 0.004 + R() * 0.012]); }
+    for (var w2 = 0; w2 < 40; w2++) wear.push([0.1 + R() * 0.8, 0.1 + R() * 0.8, 0.002 + R() * 0.006]);
+    return {chars: chars, wear: wear};
+  }
+  function charBox(ci){ var m = 0.12, g = 0.07, cs = (1 - 2 * m - g) / 2; var col = ci < 2 ? 1 : 0, row = ci % 2; return [m + col * (cs + g), m + row * (cs + g), cs]; }
+  function sealSVG(seed){
+    var G = sealGlyphs(seed), s = '<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="2" y="2" width="96" height="96" rx="5" fill="#c8321f"/>';
+    G.chars.forEach(function(rects, ci){
+      var b = charBox(ci);
+      rects.forEach(function(r){ s += '<rect x="' + ((b[0] + r[0] * b[2]) * 100).toFixed(2) + '" y="' + ((b[1] + r[1] * b[2]) * 100).toFixed(2) + '" width="' + (r[2] * b[2] * 100).toFixed(2) + '" height="' + (r[3] * b[2] * 100).toFixed(2) + '" fill="#f5f0e1"/>'; });
+    });
+    G.wear.forEach(function(w){ s += '<circle cx="' + (w[0] * 100).toFixed(1) + '" cy="' + (w[1] * 100).toFixed(1) + '" r="' + (w[2] * 100).toFixed(2) + '" fill="#f5f0e1"/>'; });
+    return s + "</svg>";
+  }
+  function drawSeal(c, item){
+    var G = sealGlyphs(item.seed), size = item.size * SW;
+    var tmp = document.createElement("canvas"), px = Math.ceil(size * dpr) + 2;
+    tmp.width = px; tmp.height = px;
+    var t = tmp.getContext("2d"); t.scale(px / 100, px / 100);
+    t.fillStyle = "#c8321f";
+    t.beginPath(); if (t.roundRect) t.roundRect(2, 2, 96, 96, 5); else t.rect(2, 2, 96, 96); t.fill();
+    t.globalCompositeOperation = "destination-out";
+    G.chars.forEach(function(rects, ci){ var b = charBox(ci); rects.forEach(function(r){ t.fillRect((b[0] + r[0] * b[2]) * 100, (b[1] + r[1] * b[2]) * 100, r[2] * b[2] * 100, r[3] * b[2] * 100); }); });
+    G.wear.forEach(function(w){ t.beginPath(); t.arc(w[0] * 100, w[1] * 100, w[2] * 100, 0, TAU); t.fill(); });
+    var R = mulberry(item.seed + 5);
+    for (var i = 0; i < 260; i++){ t.globalAlpha = 0.25 + R() * 0.5; t.fillRect(R() * 100, R() * 100, 0.6 + R(), 0.6 + R()); }
+    t.globalAlpha = 1;
+    c.save();
+    c.translate(item.x * SW, item.y * SW); c.rotate(item.rot);
+    c.globalAlpha = 0.9;
+    c.drawImage(tmp, -size / 2, -size / 2, size, size);
+    c.restore();
+  }
+  function drawText(c, item){
+    c.save();
+    var fs = item.size * SW;
+    c.font = fs + "px " + getComputedStyle(document.documentElement).getPropertyValue("--kai");
+    c.fillStyle = "rgba(40,35,30,.78)"; c.textAlign = "center"; c.textBaseline = "top";
+    var chars = Array.from(item.text);
+    chars.forEach(function(ch, i){ c.fillText(ch, item.x * SW, item.y * SW + i * fs * 1.12); });
+    c.restore();
+  }
+  function paintSealUI(){
+    $("sealSvgWrap").innerHTML = sealSVG(sealSeed);
+    $("sealGhost").innerHTML = sealSVG(sealSeed);
+  }
+
+  /* ================= state + UI ================= */
+  var history = [], inkName = "sumi", sizeVal = 18, wetVal = 0.55, tracing = false, gridOn = false, sealing = false;
+  var sizeIn = $("size"), wetIn = $("wet");
+  function fillVar(el){ el.style.setProperty("--fill", ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1) + "%"); }
+  sizeIn.addEventListener("input", function(){ sizeVal = +sizeIn.value; $("sizeOut").textContent = sizeVal; fillVar(sizeIn); updateCursor(); save(); });
+  wetIn.addEventListener("input", function(){ wetVal = +wetIn.value / 100; $("wetOut").textContent = wetIn.value + "%"; fillVar(wetIn); save(); });
+  var inkBtns = Array.prototype.slice.call(document.querySelectorAll(".ink"));
+  function pickInk(name, focus){
+    inkName = name;
+    inkBtns.forEach(function(b){ var on = b.getAttribute("data-ink") === name; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+    ctx.stroke.fillStyle = INKS[name].c;
+    cvs.stroke.style.opacity = INKS[name].a;
+    save();
+  }
+  inkBtns.forEach(function(b, i){
+    b.addEventListener("click", function(){ pickInk(b.getAttribute("data-ink")); dip(); });
+    b.addEventListener("keydown", function(e){
+      var d = (e.key === "ArrowRight" || e.key === "ArrowDown") ? 1 : (e.key === "ArrowLeft" || e.key === "ArrowUp") ? -1 : 0;
+      if (d){ e.preventDefault(); pickInk(inkBtns[(i + d + inkBtns.length) % inkBtns.length].getAttribute("data-ink"), true); }
+    });
+  });
+  function setTrace(v){ tracing = v; $("bTrace").setAttribute("aria-pressed", String(v)); sheet.classList.toggle("tracing", v); drawTrace(); drawGrid(); save(); }
+  function setGrid(v){ gridOn = v; $("bGrid").setAttribute("aria-pressed", String(v)); sheet.classList.toggle("gridded", v); drawGrid(); save(); }
+  function setSealing(v){ sealing = v; $("bSeal").setAttribute("aria-pressed", String(v)); $("sealProp").setAttribute("aria-pressed", String(v)); sheet.classList.toggle("sealing", v); $("sealGhost").classList.toggle("on", v && ptrIn); $("cursor").classList.toggle("on", !v && ptrIn && !touchy); if (v) toast("Click the sheet to press the seal"); }
+  $("bTrace").addEventListener("click", function(){ setTrace(!tracing); });
+  $("bGrid").addEventListener("click", function(){ setGrid(!gridOn); });
+  $("bSeal").addEventListener("click", function(){ setSealing(!sealing); });
+  $("sealProp").addEventListener("click", function(){ setSealing(!sealing); });
+  $("bReseal").addEventListener("click", function(){ sealSeed = (Math.random() * 1e9) | 0; paintSealUI(); var sp = $("sealProp"); sp.animate && sp.animate([{transform: "rotate(-8deg) scale(.9)"}, {transform: "none"}], {duration: 400, easing: "cubic-bezier(.3,1.5,.5,1)"}); save(); });
+  $("bUndo").addEventListener("click", undo);
+  function undo(){ if (demoAnim) finishDemo(); if (!history.length){ toast("Nothing left to undo"); return; } history.pop(); replay(); }
+  document.addEventListener("keydown", function(e){
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z"){ e.preventDefault(); undo(); }
+    if (e.key === "Escape" && sealing) setSealing(false);
+  });
+  var toastT = 0;
+  function toast(msg){ var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove("on"); }, 1800); }
+  function dip(){
+    var s = $("inkstone"); s.classList.remove("ripple"); void s.getBoundingClientRect(); s.classList.add("ripple");
+    setHair(1);
+  }
+  $("inkstone").addEventListener("click", function(){ dip(); toast("Fresh ink ground on the stone"); });
+  function setHair(level){
+    var a = 0.62 - (1 - level) * 0.34;
+    $("hairStop").setAttribute("offset", Math.max(0.1, a - 0.2).toFixed(3));
+    $("hairStop2").setAttribute("offset", a.toFixed(3));
+    $("hairStop2").setAttribute("stop-color", inkName === "verm" ? "#cf3520" : inkName === "grey" ? "#5d574f" : "#15120f");
+  }
+
+  /* clear: the sheet slides away and a fresh one slides in */
+  var clearing = false;
+  $("bClear").addEventListener("click", function(){
+    if (clearing) return;
+    if (demoAnim) finishDemo();
+    clearing = true;
+    function fresh(){
+      history = []; paperSeed = (Math.random() * 1e9) | 0; drawPaper(); clearInk();
+      sheet.classList.remove("out");
+      if (!reduced){ sheet.classList.add("in"); setTimeout(function(){ sheet.classList.remove("in"); clearing = false; }, 720); }
+      else clearing = false;
+    }
+    if (reduced){ fresh(); return; }
+    sheet.classList.add("out");
+    setTimeout(fresh, 560);
+  });
+
+  /* download */
+  $("bSave").addEventListener("click", function(){
+    var out = document.createElement("canvas"); out.width = cvs.ink.width; out.height = cvs.ink.height;
+    var o = out.getContext("2d");
+    o.drawImage(cvs.paper, 0, 0);
+    if (gridOn) o.drawImage(cvs.grid, 0, 0);
+    if (tracing) o.drawImage(cvs.trace, 0, 0);
+    o.save(); o.filter = "blur(" + (2.2 * dpr).toFixed(1) + "px)"; o.globalAlpha = 0.55; o.drawImage(cvs.bleed, 0, 0); o.restore();
+    o.drawImage(cvs.ink, 0, 0);
+    function go(url, revoke){
+      var a = document.createElement("a"); a.href = url; a.download = "brush-and-ink.png";
+      document.body.appendChild(a); a.click(); a.remove();
+      if (revoke) setTimeout(function(){ URL.revokeObjectURL (url); }, 1500);
+      toast("Saved brush-and-ink.png");
+    }
+    try {
+      if (out.toBlob) out.toBlob(function(b){ if (b) go(URL.createObjectURL (b), true); else go(out.toDataURL ("image/png"), false); }, "image/png");
+      else go(out.toDataURL ("image/png"), false);
+    } catch (err){ toast("Sorry, this browser blocked the download"); }
+  });
+
+  /* ================= pointer drawing ================= */
+  var inkCv = cvs.ink, cursor = $("cursor"), ghost = $("sealGhost");
+  var live = null, liveItem = null, ptrIn = false, touchy = false, activeId = null;
+  function local(e){ var r = inkCv.getBoundingClientRect(); return [(e.clientX - r.left) * (SW / r.width), (e.clientY - r.top) * (SH / r.height)]; }
+  function updateCursor(){ var d = sizeVal * (SW / REF) * 1.05; cursor.style.width = d + "px"; cursor.style.height = d + "px"; cursor.style.marginLeft = (-d / 2) + "px"; cursor.style.marginTop = (-d / 2) + "px"; var sd = SW * 0.13; ghost.style.width = sd + "px"; ghost.style.height = sd + "px"; ghost.style.marginLeft = (-sd / 2) + "px"; ghost.style.marginTop = (-sd / 2) + "px"; }
+  function moveHud(x, y){ var tr = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px)"; cursor.style.transform = tr; ghost.style.transform = tr + " rotate(-3deg)"; }
+  inkCv.addEventListener("pointerenter", function(e){ ptrIn = true; touchy = e.pointerType === "touch"; cursor.classList.toggle("on", !sealing && !touchy); ghost.classList.toggle("on", sealing && !touchy); });
+  inkCv.addEventListener("pointerleave", function(){ ptrIn = false; cursor.classList.remove("on"); ghost.classList.remove("on"); });
+  inkCv.addEventListener("pointerdown", function(e){
+    if (clearing) return;
+    if (demoAnim) finishDemo();
+    e.preventDefault();
+    touchy = e.pointerType === "touch";
+    var p = local(e);
+    if (sealing){
+      var item = {type: "seal", x: p[0] / SW, y: p[1] / SW, size: 0.13, rot: (Math.random() - 0.5) * 0.08, seed: sealSeed};
+      history.push(item); drawSeal(ctx.ink, item); setSealing(false);
+      if (!reduced && sheet.animate) sheet.animate([{transform: "scale(1)"}, {transform: "scale(.992)"}, {transform: "scale(1)"}], {duration: 260, easing: "ease-out"});
+      return;
+    }
+    if (live) return;
+    try { inkCv.setPointerCapture(e.pointerId); } catch (err){}
+    activeId = e.pointerId;
+    liveItem = {type: "stroke", pts: [], size: sizeVal / REF, wet: wetVal, ink: inkName, seed: (Math.random() * 1e9) | 0};
+    ctx.stroke.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cvs.stroke.style.opacity = INKS[inkName].a;
+    live = new Renderer(liveItem, ctx.stroke, ctx.bleed, false);
+    addPt(e, p);
+  });
+  function addPt(e, p){
+    var pr = e.pointerType === "pen" && e.pressure > 0 ? e.pressure : 0;
+    var pt = [p[0] / SW, p[1] / SW, e.timeStamp || performance.now(), pr];
+    liveItem.pts.push(pt); live.add(pt);
+  }
+  inkCv.addEventListener("pointermove", function(e){
+    var p = local(e);
+    moveHud(p[0], p[1]);
+    if (!live || e.pointerId !== activeId) return;
+    var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+    if (evs && evs.length){ for (var i = 0; i < evs.length; i++) addPt(evs[i], local(evs[i])); }
+    else addPt(e, p);
+    setHair(Math.max(0, live.ink()));
+  });
+  function endStroke(e){
+    if (!live || (e && e.pointerId !== activeId)) return;
+    live.finish();
+    compositeStroke(liveItem);
+    history.push(liveItem);
+    live = null; liveItem = null; activeId = null;
+    setTimeout(function(){ setHair(1); }, 250);
+  }
+  inkCv.addEventListener("pointerup", endStroke);
+  inkCv.addEventListener("pointercancel", endStroke);
+
+  /* ================= demo: the brush writes 永 on load ================= */
+  var demoAnim = null;
+  function demoItems(){
+    var sq = square();
+    var items = yongItems(0.1, 0.45, "sumi", 4242, true);
+    var yr = new Date(), y = yr.getFullYear(), mo = yr.getMonth();
+    if (mo === 0 || (mo === 1 && yr.getDate() < 4)) y -= 1;
+    var stems = "甲乙丙丁戊己庚辛壬癸", branches = "子丑寅卯辰巳午未申酉戌亥";
+    var season = mo >= 2 && mo <= 4 ? "春" : mo >= 5 && mo <= 7 ? "夏" : mo >= 8 && mo <= 10 ? "秋" : "冬";
+    var label = stems[((y - 4) % 10 + 10) % 10] + branches[((y - 4) % 12 + 12) % 12] + season;
+    items.push({type: "text", x: (sq.x + sq.T * 0.05) / SW, y: (sq.y + sq.T * 0.9) / SW, size: sq.T * 0.052 / SW, text: label + "書"});
+    items.push({type: "seal", x: (sq.x + sq.T * 0.05) / SW, y: (sq.y + sq.T * 1.26) / SW, size: 0.075, rot: -0.03, seed: sealSeed});
+    return items;
+  }
+  function startDemo(){
+    var items = demoItems();
+    if (reduced){ items.forEach(function(it){ history.push(it); renderItem(it); }); return; }
+    var idx = 0, ptIdx = 0, r = null, t0 = performance.now(), base = 0, SPEED = 4.2;
+    demoAnim = {items: items};
+    function tick(now){
+      if (!demoAnim) return;
+      var el = (now - t0) * SPEED;
+      while (idx < items.length){
+        var it = items[idx];
+        if (it.type !== "stroke"){ history.push(it); renderItem(it); idx++; continue; }
+        if (!r){ r = new Renderer(it, ctx.stroke, ctx.bleed, false); cvs.stroke.style.opacity = INKS[it.ink].a; ptIdx = 0; base = el; }
+        var local0 = el - base;
+        while (ptIdx < it.pts.length && it.pts[ptIdx][2] <= local0){ r.add(it.pts[ptIdx]); ptIdx++; }
+        setHair(Math.max(0, r.ink()));
+        if (ptIdx >= it.pts.length){ r.finish(); compositeStroke(it); history.push(it); r = null; idx++; base = el + 40 * SPEED; t0 += 55; continue; }
+        break;
+      }
+      if (idx >= items.length){ demoAnim = null; setHair(1); cvs.stroke.style.opacity = INKS[inkName].a; return; }
+      requestAnimationFrame(tick);
+    }
+    demoAnim.finish = function(){
+      demoAnim = null;
+      history = []; clearInk();
+      items.forEach(function(it){ history.push(it); renderItem(it); });
+      cvs.stroke.style.opacity = INKS[inkName].a; setHair(1);
+    };
+    requestAnimationFrame(tick);
+  }
+  function finishDemo(){ if (demoAnim && demoAnim.finish) demoAnim.finish(); }
+
+  /* ================= sizing ================= */
+  function layoutSheet(){
+    var r = stage.getBoundingClientRect();
+    var mobile = window.innerWidth <= 760;
+    var availW = Math.max(240, r.width - (mobile ? 0 : 60)), availH = mobile ? Math.max(360, window.innerHeight * 0.66) : Math.max(420, r.height - 20);
+    var w = Math.min(availW, availH * 0.75);
+    SW = Math.round(w); SH = Math.round(w / 0.75);
+    sheet.style.width = SW + "px"; sheet.style.height = SH + "px";
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    for (var n in cvs){ cvs[n].width = Math.round(SW * dpr); cvs[n].height = Math.round(SH * dpr); ctx[n].setTransform(dpr, 0, 0, dpr, 0, 0); }
+    ctx.stroke.fillStyle = INKS[inkName].c;
+    drawPaper(); drawGrid(); drawTrace();
+    if (demoAnim) finishDemo(); else replay();
+    updateCursor();
+  }
+  var rzT = 0, lastW = window.innerWidth, lastH = window.innerHeight;
+  window.addEventListener("resize", function(){
+    clearTimeout(rzT);
+    if (window.innerWidth !== lastW && !live){ lastW = window.innerWidth; lastH = window.innerHeight; layoutSheet(); }
+    rzT = setTimeout(function(){
+      if (live) return;
+      var wChanged = window.innerWidth !== lastW, hBig = Math.abs(window.innerHeight - lastH) > 120;
+      lastW = window.innerWidth; lastH = window.innerHeight;
+      drawDesk();
+      if (wChanged || hBig || window.innerWidth > 760) layoutSheet();
+    }, 90);
+  });
+
+  /* ================= persistence of settings ================= */
+  function save(){ try { localStorage.setItem("brush-ink-prefs", JSON.stringify({ink: inkName, size: sizeVal, wet: wetVal, trace: tracing, grid: gridOn, seal: sealSeed})); } catch (e){} }
+  var prefs = null;
+  try { prefs = JSON.parse(localStorage.getItem("brush-ink-prefs") || "null"); } catch (e){ prefs = null; }
+  if (prefs){
+    if (INKS[prefs.ink]) inkName = prefs.ink;
+    if (prefs.size) sizeVal = Math.max(4, Math.min(44, prefs.size | 0));
+    if (typeof prefs.wet === "number") wetVal = Math.max(0, Math.min(1, prefs.wet));
+    if (prefs.seal) sealSeed = prefs.seal | 0;
+  }
+  sizeIn.value = sizeVal; $("sizeOut").textContent = sizeVal; fillVar(sizeIn);
+  wetIn.value = Math.round(wetVal * 100); $("wetOut").textContent = Math.round(wetVal * 100) + "%"; fillVar(wetIn);
+  drawDesk();
+  paintSealUI();
+  layoutSheet();
+  pickInk(inkName);
+  if (prefs && prefs.grid) setGrid(true);
+  if (prefs && prefs.trace) setTrace(true);
+
+  startDemo();
+})();
+</script>
+</body>
+</html>

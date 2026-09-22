@@ -1,0 +1,39 @@
+TITLE: Frost Garden — Diffusion-Limited Aggregation
+FILE: 037-frost-garden.html
+
+=== PROMPT (exact prompt used) ===
+Build "Frost Garden — Diffusion-Limited Aggregation", a crystal-growth simulation that produces delicate branching ice and coral structures. A canvas with a deep blue-black gradient (#020617 → #0b1d3a). Random walkers diffuse and stick when they touch the growing cluster; stuck particles are coloured by arrival time (pale ice #e0f7ff through cyan #67e8f9 to violet #a78bfa) with a soft glow, so the structure looks like frost lit from within. Use an efficient approach (spawn walkers near the cluster radius, grid occupancy, many steps per frame) so growth is visibly lively. Modes: "Point seed" (radial frost), "Line seed" (frost growing up from the bottom like on a window) and "Snow" (6-fold symmetric growth). Interaction: click to add seed points; a stickiness slider (branch density); speed; palette (Ice / Coral / Gold filigree); pause; download. A subtle particle count and elapsed time in elegant monospace. Title in thin, widely spaced capitals.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Frost Garden treats diffusion-limited aggregation as a pane of night glass where ice grows in real time. Against a deep blue-black field (#020617 into #0b1d3a, with a faint frosted-glass grain) hundreds of random walkers drift as faint motes, and each one that touches the crystal freezes onto it with a brief flash. Every particle is coloured by when it arrived, from pale ice #e0f7ff through cyan #67e8f9 to violet #a78bfa, and a soft additive glow layer makes the dense heart of the structure look lit from within. Three growth modes give three different pictures: a radial point-seed frost, window frost rising in a forest of fronds from a glowing sill, and six-armed stellar snowflakes with 60° side branches. The title is set in thin, widely spaced capitals, and a slim frosted instrument panel with crystalline corner marks holds the monospace readout and the controls.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Point and line modes: off-lattice random walkers (continuous random directions, so the square grid leaves no four-armed bias) moving over a grid occupancy map with a "near cluster" flag layer
+- Hierarchical safe jumps: 8-cell and 32-cell block maps let a walker far from any ice leap to a uniform point on the rim of its clear disc, the exact Brownian first-passage distribution, so growth stays lively
+- Walkers spawn just outside each seed's current radius and are recycled past a kill radius; the line mode spawns just above the tallest frond with horizontal wrap-around
+- Snow mode is a separate engine: DLA on a hexagonal lattice with noise reduction (a perimeter site freezes only after several walker hits) grown from a tiny hexagonal plate; each frozen site is copied through all 12 symmetries of the hexagon in cube coordinates, so the flake is exactly six-fold with side branches at 60°
+- Arrival-time colouring uses each seed's own growth clock, through a 64-step palette LUT of pre-rendered dot and glow sprites (Ice, Coral, Gold filigree); switching palette re-colours the whole structure from the stored particle list
+- Layered canvases: a static background (radial gradient plus noise grain), a quarter-resolution glow layer accumulated additively and composited with mix-blend-mode: screen, an incrementally drawn crisp frost layer, and a live layer for walkers, freeze flashes, twinkling cross-glints and seed ripples
+- Only new particles are drawn each frame; the full structure is redrawn only on palette change or resize, where the ice is re-centred rather than lost (a large change such as a phone rotation starts fresh)
+
+=== INTERACTION MODEL ===
+- Seed modes Point / Line / Snow (buttons or keys 1 2 3); each restarts the chamber with a small head start so the first frame already shows frost
+- Click or tap the glass to plant another seed; in Snow mode a click starts another snowflake (up to ten)
+- Stickiness slider (0.05–1.00): lower gives dense coral-like growth, higher gives lacy ice; in Snow mode it sets how many hits a site needs, so lower values give smoother, more needle-like arms
+- Speed slider (1–10) sets how many freezing events happen per frame, within a per-frame time budget
+- Palette buttons Ice / Coral / Gold (or P) re-colour everything instantly
+- Pause/Grow (Space), Clear (C), and PNG download (S), which composites background, glow and frost into one image with a small caption
+- Live readout: particle count, elapsed growth time, active walkers, percentage grown, and an arrival-time colour key; a toast announces when the pane is fully frosted
+- prefers-reduced-motion halves the growth rate and hides drifting walkers and glints; animation stops while the tab is hidden

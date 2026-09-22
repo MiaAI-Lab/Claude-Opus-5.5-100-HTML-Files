@@ -1,0 +1,46 @@
+TITLE: Loading, Beautifully
+FILE: 050-loader-atelier.html
+
+=== PROMPT (exact prompt used) ===
+Design "Loading, Beautifully — a Gallery of 16 Loaders & Micro-interactions". A refined grid gallery (4×4 on desktop, two columns on mobile) on warm charcoal (#141414) where each card is a small stage demonstrating an original loading animation or micro-interaction made with CSS/SVG (JS only for toggling): e.g. a morphing blob, orbiting dots with trails, a pen stroke drawing a checkmark, a liquid-fill progress, folding squares, a breathing ring, a DNA ladder, a typewriter ellipsis, a pendulum, a gradient spinner with a comet tail, a pixel wave, a page flip, an elastic heart-like burst, a day/night toggle switch morph, a download button that morphs into a progress ring and then a success tick, and a skeleton-shimmer card. Each card has a title, a "replay" button and a "copy CSS" button that copies that card's CSS to the clipboard with a toast. Harmonised muted accents (#e07a5f, #f2cc8f, #81b29a, #3d405b, #f4f1de). Typography: a crisp sans with monospace labels.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Loading, Beautifully" is a refined specimen gallery of sixteen original loaders and micro-interactions, laid out as a 4×4 grid of small stages on warm charcoal (#141414); it drops to three columns on tablets and two on phones. Each card pairs a stage, a faint dotted cutting-mat texture and a warm accent glow on hover, with a caption strip: a monospace index, the loader's name, the technique it demonstrates, a replay button and a "copy CSS" button. Every piece is drawn with CSS and inline SVG in the harmonised palette #e07a5f, #f2cc8f, #81b29a, #3d405b and #f4f1de. The masthead sets a large, tightly tracked sans title against monospace labels, with three hopping palette dots as its ellipsis, clickable palette swatches, and Pause all / Replay all controls. The sixteen: Tidal Blob, Orbit Trails, Ink Check, Liquid Fill, Origami Tiles, Breathing Ring, Helix, Typewriter, Pendulum, Comet, Pixel Wave, Page Flip, Elastic Heart, Day / Night switch, Download → Done, and Skeleton Shimmer.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- One scoped <style id="css-…"> block per loader, so "copy CSS" copies exactly the code that runs, dedented, with a comment header holding the loader's markup.
+- Tidal Blob: an eight-value border-radius morph with an inset-shadow body, a moving gradient sheen, a specular spot and a floor shadow that breathes with the float.
+- Orbit Trails: three counter-rotating orbits, each dot followed by four ghost copies offset by small negative animation delays on an eased rotation, so the trail stretches as it accelerates.
+- Ink Check: stroke-dashoffset draws a ring, then a tick, with a scale pop and a soft green bloom.
+- Liquid Fill: a registered @property integer drives both the liquid level and a CSS counter showing the percentage; two rotating rounded squares form the wave and foam.
+- Origami Tiles: nine two-faced tiles flip on alternating X and Y axes in spiral order using preserve-3d and backface-visibility.
+- Breathing Ring: scale and border-width inhale/exhale with echo rings and alternating "in" / "out" labels.
+- Helix: twelve phase-shifted columns with per-keyframe easing that approximates sine motion, depth scaling and collapsing rungs.
+- Typewriter: steps() width animation in ch units types, cycles the ellipsis and erases, with a blinking caret.
+- Pendulum: an eased swing about the pivot, a dashed arc drawn exactly on the bob's path, and a floor shadow using the individual translate and scale properties.
+- Comet: a conic-gradient ring cut with a radial mask, a glowing head and a slow counter-rotating dashed inner orbit.
+- Pixel Wave: a diagonal stagger computed with calc() from per-cell --x and --y custom properties, moving through slate, sage, sand and terracotta.
+- Page Flip: three pages turning on rotateY with perspective, shading at mid-turn and a terracotta cover.
+- Elastic Heart: a keyframed elastic overshoot with an eight-spark burst and a shock ring; a one-shot variant plays when you like it.
+- Day / Night: the sun knob slides with a springy cubic-bezier while a sky-coloured disc carves it into a crescent moon; clouds sink away and stars fade in and twinkle.
+- Download → Done: the pill collapses to a circle, a progress ring fills with a realistic stall, then the button turns green and a tick draws in.
+- Skeleton Shimmer: a highlight sweeps across each placeholder block, with delays staggered by position so it reads as one pass.
+
+=== INTERACTION MODEL ===
+- Replay on any card swaps in a fresh clone of its stage, restarting every animation from frame zero and resetting any interactive state. Replay all cascades through the grid.
+- Copy CSS writes that loader's CSS (plus a markup comment) to the clipboard via the async Clipboard API, falling back to execCommand and finally to a modal with the code pre-selected; a toast confirms with a line count, and the button briefly turns into a tick.
+- Elastic Heart toggles liked/unliked (aria-pressed) with a burst. Day / Night is a real role="switch" that demos itself every 2.6 s until you touch it. Download → Done runs its state machine on click and demos itself on load.
+- Pause all freezes every animation (animation-play-state); stages scrolled off-screen are paused automatically with an IntersectionObserver.
+- Fully keyboard-operable native buttons with visible focus rings; with prefers-reduced-motion each loader plays a single cycle, demos stop and hover lifts are removed.

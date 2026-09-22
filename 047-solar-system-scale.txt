@@ -1,0 +1,38 @@
+TITLE: Vast — A Scroll Across the Solar System
+FILE: 047-solar-system-scale.html
+
+=== PROMPT (exact prompt used) ===
+Create "Vast — A Scroll Across the Solar System", a horizontally scrolling journey through the solar system at true relative scale: once the Sun's width is chosen (e.g. ~600px), every distance and diameter follows from real mean values, so Earth is a few pixels across and Neptune lies an enormous scroll away. Vertical wheel/scroll maps to horizontal travel; touch swipes work; a fast-travel control jumps between planets; and a "speed of light" button auto-travels at light speed relative to the scale (Earth arrives after ~8 min 20 s — show a real-time counter). Pure black background (#000) with very minimal white type; planets rendered as small canvas spheres with subtle banding and atmospheric shading. While crossing the emptiness, poetic and factual messages appear in the void ("Most of space is this.") and an odometer shows kilometres travelled and light-time. Typography: thin sans with generous letter-spacing. Keep all facts well established (mean distances in km, diameters).
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Vast" is a horizontal journey from the Sun to Pluto at true relative scale, on a pure black sky with minimal thin, widely tracked white type. The Sun is drawn 600 pixels wide on desktop (240 on phones), and every diameter and mean distance follows from that single choice (1 pixel = 2,319 km on desktop). Earth is a 5.5-pixel dot 64,500 pixels from the Sun, Jupiter is a 60-pixel banded sphere, and Neptune lies almost two million pixels away. The emptiness is the subject. Short factual and poetic lines drift through the void ("Most of space is this."). Planets too small to see get a thin locator ring and a magnifying loupe that states its magnification. A mechanical rolling-digit odometer reports kilometres from the Sun, AU, light-time and current speed, and a light-speed mode carries you at exactly c relative to the scale, so Earth arrives after 8 min 19 s of real time.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Virtual camera measured in kilometres (float64), with world-to-screen mapping at the chosen km-per-pixel; one full-viewport canvas at devicePixelRatio (max 2)
+- Procedural Sun built once per scale: limb-darkened radial gradient, thousands of granulation cells, faint supergranulation, faculae near the limb, two small irregular sunspot groups, and an additive corona glow
+- Procedural planet sprites lit from the Sun's side with a soft day/night terminator and atmospheric rims: banded Jupiter with the Great Red Spot, Saturn with split front/back ring sprites (Cassini division and ring shadow), Uranus with near-vertical rings, blue Neptune with a dark spot, cloud-flecked Earth, cratered Mercury, Mars with a polar cap, Pluto with its pale heart
+- True-scale drawing, plus a loupe for small bodies (a magnified sprite in a circular window, with a leader line and "×N" label)
+- Parallax dust that streaks with speed (the only cue of motion in empty space), million-kilometre ticks along a hairline ecliptic, and sparse asteroid and Kuiper belts whose brightness (never size) is exaggerated and labelled as such
+- World-anchored DOM messages and body tags that fade by distance from the centre and pin at the screen edge so they never clip
+- Rolling-digit odometer: each wheel rolls over as the one below passes 9 while moving, and settles on whole digits at rest
+- A linear map strip under the list of bodies shows how the inner planets huddle near the Sun
+
+=== INTERACTION MODEL ===
+- Vertical wheel/trackpad (or horizontal) travels along the line; sustained scrolling accelerates smoothly, with inertia and friction
+- Drag or swipe in either axis with a fling (touch and mouse); arrow keys push, PageDown/PageUp jump to the next or previous body, Home returns to the Sun, End goes to the edge, number keys 0-9 fast-travel
+- Fast travel via the body list (full names, abbreviations on narrow screens) or by clicking or scrubbing the map strip; smooth, distance-scaled flights
+- "Travel at light speed" moves at exactly 299,792.458 km/s relative to the scale, timed by the real clock; the button shows elapsed real time, and a countdown shows when the next body arrives at c
+- The ending names Proxima Centauri's distance at the current scale and offers "return to the Sun"; an aria-live region announces the body you are passing
+- Resizing near the Sun keeps its framing; elsewhere you keep your exact kilometre. Reduced motion jumps instead of flying and stills the dust streaks

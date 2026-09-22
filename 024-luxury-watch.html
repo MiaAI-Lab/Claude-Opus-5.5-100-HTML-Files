@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maison Varenne — Calibre 01</title>
+<meta name="description" content="Calibre 01 by Maison Varenne, a fictional minimalist luxury watch: a live, gradient-built SVG timepiece showing your local time, three dial variants, an exploded movement and a reservation desk.">
+<style>
+:root{
+  --ivory:#f5f1ea;
+  --ivory-2:#ece6db;
+  --champagne:#d8c3a5;
+  --champagne-deep:#b89c74;
+  --charcoal:#1c1c1c;
+  --midnight:#1b2a41;
+  --ink:#1c1c1c;
+  --ink-soft:rgba(28,28,28,.64);
+  --hair:rgba(28,28,28,.14);
+  --bg:var(--ivory);
+  --display:Didot,"Didot LT STD","Bodoni 72","Bodoni MT","Big Caslon","Hoefler Text","C059","Century Schoolbook",Baskerville,"Times New Roman",serif;
+  --sans:"Helvetica Neue","Avenir Next","Segoe UI","Nimbus Sans","Liberation Sans",Arial,sans-serif;
+  --ease:cubic-bezier(.22,.7,.18,1);
+
+  /* dial variant (ivory default) */
+  --dial-c:#fbf8f2; --dial-e:#e6ddcd; --print:#1c1c1c; --idx:#c9a86a; --hand-hi:#efdcb4; --hand-lo:#a88a55; --sec:#1b2a41; --ray:.03; --date-bg:#fbf8f2;
+}
+body.v-midnight{--dial-c:#2d4769;--dial-e:#101a2a;--print:#ece5d6;--idx:#dfe3e8;--hand-hi:#f4f6f8;--hand-lo:#8f98a3;--sec:#d8c3a5;--ray:.085;--date-bg:#eef0f3}
+body.v-salmon{--dial-c:#f2c3ad;--dial-e:#d0917a;--print:#3a2721;--idx:#e1e5ea;--hand-hi:#f6f7f9;--hand-lo:#8d96a1;--sec:#1b2a41;--ray:.045;--date-bg:#fbf1ec}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--bg)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;color:var(--ink);background:var(--bg);font-family:var(--sans);overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;transition:background-color 1.2s var(--ease),color 1.2s var(--ease);
+}
+body.night{--bg:#0d1119;--ink:#ece6da;--ink-soft:rgba(236,230,218,.62);--hair:rgba(236,230,218,.14)}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:1.5px solid var(--champagne-deep);outline-offset:4px}
+.cap{font-family:var(--sans);font-size:11px;letter-spacing:.34em;text-transform:uppercase}
+.skip{position:absolute;left:-9999px;top:8px;background:var(--charcoal);color:var(--ivory);padding:10px 14px;z-index:99}
+.skip:focus{left:12px}
+
+/* ---------- nav ---------- */
+.nav{
+  position:fixed;inset:0 0 auto 0;z-index:30;height:72px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(18px,4.5vw,72px);transition:background-color .6s,box-shadow .6s,color 1.2s;
+}
+.nav.scrolled{background:color-mix(in srgb,var(--bg) 86%,transparent);box-shadow:0 1px 0 var(--hair);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.brand{display:flex;flex-direction:column;align-items:flex-start;text-decoration:none;line-height:1}
+.brand .m{font-family:var(--sans);font-size:9px;letter-spacing:.62em;margin-left:2px;opacity:.7}
+.brand .v{font-family:var(--display);font-size:25px;letter-spacing:.38em;margin-top:4px}
+.nav ul{display:flex;gap:clamp(18px,2.6vw,38px);list-style:none;margin:0;padding:0}
+.nav ul a{text-decoration:none;position:relative;padding:6px 0}
+.nav ul a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .5s var(--ease)}
+.nav ul a:hover::after{transform:scaleX(1);transform-origin:left}
+.night-toggle{
+  display:inline-flex;align-items:center;gap:10px;background:transparent;border:1px solid var(--hair);border-radius:40px;padding:8px 14px 8px 10px;cursor:pointer;
+  transition:border-color .4s,background-color .4s
+}
+.night-toggle:hover{border-color:var(--champagne-deep)}
+.night-toggle .orb{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffaf0,#d8c3a5);box-shadow:inset -5px -3px 0 0 rgba(28,28,28,0);transition:box-shadow .8s var(--ease),background .8s}
+body.night .night-toggle .orb{background:radial-gradient(circle at 35% 35%,#e8fff0,#9fe9c0);box-shadow:inset -6px -3px 0 0 #0d1119,0 0 12px rgba(150,255,200,.55)}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);align-items:center;
+  padding:72px clamp(18px,5vw,88px) 0;gap:clamp(10px,3vw,48px);
+}
+.hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;
+  background:
+    radial-gradient(ellipse 42% 58% at 71% 52%,rgba(216,195,165,.42),rgba(216,195,165,0) 70%),
+    linear-gradient(90deg,transparent calc(50% - .5px),var(--hair) calc(50% - .5px),var(--hair) calc(50% + .5px),transparent calc(50% + .5px));
+  transition:opacity 1.2s;
+}
+body.night .hero::before{background:radial-gradient(ellipse 42% 58% at 71% 52%,rgba(27,42,65,.9),rgba(27,42,65,0) 72%)}
+.hero-copy{max-width:560px;padding-bottom:40px}
+.eyebrow{margin:0 0 26px;color:var(--ink-soft);display:flex;align-items:center;gap:14px}
+.eyebrow::before{content:"";width:38px;height:1px;background:currentColor}
+h1{
+  margin:0;font-family:var(--display);font-weight:400;font-size:clamp(48px,6.4vw,100px);line-height:.96;letter-spacing:-.012em;
+}
+h1 em{font-style:italic;color:var(--champagne-deep)}
+body.night h1 em{color:var(--champagne)}
+.lede{margin:28px 0 0;max-width:430px;font-size:16px;line-height:1.75;color:var(--ink-soft)}
+.now{margin:26px 0 0;display:flex;align-items:baseline;gap:14px;color:var(--ink-soft)}
+.now output{font-family:var(--display);font-size:26px;letter-spacing:.06em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+.ctas{margin-top:34px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none;
+  padding:17px 30px;border:1px solid var(--charcoal);background:var(--charcoal);color:var(--ivory);
+  font-family:var(--sans);font-size:11px;letter-spacing:.34em;text-transform:uppercase;position:relative;overflow:hidden;
+  transition:color .5s var(--ease),border-color .5s
+}
+.btn::before{content:"";position:absolute;inset:0;background:var(--champagne);transform:translateY(101%);transition:transform .55s var(--ease)}
+.btn:hover::before{transform:none}
+.btn:hover{color:var(--charcoal);border-color:var(--champagne)}
+.btn span,.btn svg{position:relative}
+.btn svg{width:22px;height:8px}
+body.night .btn{background:var(--champagne);border-color:var(--champagne);color:var(--charcoal)}
+body.night .btn::before{background:var(--ivory)}
+.btn.ghost,body.night .btn.ghost{background:transparent;color:var(--ink);border-color:var(--hair)}
+body.night .btn.ghost:hover{color:var(--charcoal)}
+.btn.ghost:hover{border-color:var(--champagne)}
+
+.dials{margin-top:44px;border-top:1px solid var(--hair);padding-top:22px}
+.dials-head{display:flex;justify-content:space-between;align-items:baseline;color:var(--ink-soft)}
+.dials-head output{font-family:var(--display);font-size:19px;letter-spacing:.04em;color:var(--ink);text-transform:none}
+.swatches{display:flex;gap:18px;margin-top:16px}
+.swatch{
+  position:relative;width:54px;height:54px;border-radius:50%;cursor:pointer;border:0;padding:0;background:transparent
+}
+.swatch .disc{position:absolute;inset:7px;border-radius:50%;box-shadow:inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 4px rgba(0,0,0,.2),0 3px 8px rgba(28,28,28,.18)}
+.swatch[data-v="ivory"] .disc{background:repeating-conic-gradient(rgba(255,255,255,.12) 0 2deg,rgba(0,0,0,.02) 2deg 4deg),radial-gradient(circle,#fbf8f2,#e6ddcd)}
+.swatch[data-v="midnight"] .disc{background:repeating-conic-gradient(rgba(255,255,255,.07) 0 2deg,rgba(0,0,0,.08) 2deg 4deg),radial-gradient(circle,#2d4769,#101a2a)}
+.swatch[data-v="salmon"] .disc{background:repeating-conic-gradient(rgba(255,255,255,.1) 0 2deg,rgba(0,0,0,.04) 2deg 4deg),radial-gradient(circle,#f2c3ad,#d0917a)}
+.swatch::after{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid var(--champagne-deep);transform:scale(.8);opacity:0;transition:transform .5s var(--ease),opacity .5s}
+.swatch[aria-checked="true"]::after{transform:scale(1);opacity:1}
+.swatch:hover .disc{transform:scale(1.04)}
+.swatch .disc{transition:transform .4s var(--ease)}
+.dial-note{margin:14px 0 0;font-size:13.5px;line-height:1.6;color:var(--ink-soft);min-height:44px}
+
+/* ---------- the watch ---------- */
+.watch-stage{position:relative;height:min(calc(100vh - 80px),880px);min-height:520px;display:grid;place-items:center;perspective:1400px}
+.watch-tilt{position:relative;height:100%;aspect-ratio:600/800;max-width:100%;transform-style:preserve-3d;will-change:transform}
+#watch{display:block;width:100%;height:100%;overflow:visible;touch-action:pan-y}
+#watch .fade{transition:fill 1.1s var(--ease),stop-color 1.1s var(--ease),opacity 1.1s var(--ease)}
+#watch stop{transition:stop-color 1.1s var(--ease)}
+.dim{transition:filter 1.4s var(--ease)}
+body.night .dim{filter:brightness(.13) saturate(.6)}
+body.night .dim.case{filter:brightness(.22) saturate(.5)}
+#lume{opacity:0;transition:opacity 1.6s var(--ease)}
+body.night #lume{opacity:1}
+#glare{transition:opacity 1.4s}
+body.night #glare{opacity:.14}
+#crown{cursor:pointer}
+#crown .body{transition:transform .35s var(--ease)}
+#crown.pulled .body{transform:translateX(9px)}
+.hint{position:absolute;bottom:22px;left:50%;margin:0;transform:translateX(-50%);background:var(--bg);padding:6px 0 0;transition:background-color 1.2s;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--ink-soft);pointer-events:none}
+.hint i{display:block;width:1px;height:38px;background:linear-gradient(var(--ink-soft),transparent);transform-origin:top;animation:drop 2.6s var(--ease) infinite}
+@keyframes drop{0%{transform:scaleY(0)}45%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+
+/* ---------- sections ---------- */
+section{position:relative}
+.sec-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:end;padding:0 clamp(18px,5vw,88px)}
+.sec-head h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(36px,4.4vw,64px);line-height:1.02}
+.sec-head p{margin:0;max-width:440px;font-size:15.5px;line-height:1.75;color:var(--ink-soft)}
+.num{color:var(--champagne-deep);display:block;margin-bottom:18px}
+
+/* ---------- exploded movement ---------- */
+.movement{height:380vh;margin-top:12vh}
+.mv-sticky{position:sticky;top:0;height:100vh;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);align-items:center;padding:72px clamp(18px,5vw,88px) 20px;overflow:hidden}
+.mv-copy h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(34px,4vw,58px);line-height:1.03}
+.mv-copy p{margin:22px 0 0;max-width:400px;font-size:15.5px;line-height:1.75;color:var(--ink-soft)}
+.mv-meter{margin-top:30px;display:flex;align-items:center;gap:14px;color:var(--ink-soft)}
+.mv-meter .bar{position:relative;width:160px;height:1px;background:var(--hair)}
+.mv-meter .bar i{position:absolute;inset:0;background:var(--champagne-deep);transform-origin:left;transform:scaleX(0)}
+.mv-stage{position:relative;height:100%;min-height:480px;perspective:2200px;perspective-origin:38% 50%}
+.mv-stage::before{content:"";position:absolute;left:38%;top:50%;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;background:radial-gradient(circle,rgba(216,195,165,.32),rgba(216,195,165,0) 68%);pointer-events:none}
+body.night .mv-stage::before{background:radial-gradient(circle,rgba(27,42,65,.9),rgba(27,42,65,0) 68%)}
+.mv-stack{--disc:300px;position:absolute;left:38%;top:50%;width:var(--disc);height:var(--disc);margin:calc(var(--disc) / -2) 0 0 calc(var(--disc) / -2);transform-style:preserve-3d;transform:rotateX(62deg) rotateZ(-24deg)}
+.layer{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.layer svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.layer.solid::before{content:"";position:absolute;inset:1.5%;border-radius:50%;background:rgba(28,28,28,.35);transform:translateZ(-5px);filter:blur(1px)}
+.mv-labels{position:absolute;inset:0;pointer-events:none}
+.mv-label{position:absolute;left:0;top:0;display:flex;align-items:center;gap:12px;opacity:0;will-change:transform,opacity}
+.mv-label .lead{width:var(--lead,90px);height:1px;background:linear-gradient(90deg,var(--champagne-deep),var(--hair))}
+.mv-label .lead::before{content:"";display:block;width:5px;height:5px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--champagne-deep)}
+.mv-label .txt{display:flex;flex-direction:column;gap:3px;max-width:240px}
+.mv-label .t{font-family:var(--display);font-size:19px;line-height:1.1}
+.mv-label .d{font-size:12.5px;line-height:1.45;color:var(--ink-soft)}
+@keyframes balance{0%{transform:rotate(-190deg)}100%{transform:rotate(190deg)}}
+@keyframes rotor{0%{transform:rotate(-38deg)}100%{transform:rotate(52deg)}}
+.bal{transform-box:fill-box;transform-origin:center;animation:balance .125s ease-in-out infinite alternate}
+.rotor{transform-box:view-box;transform-origin:0 0;animation:rotor 7s ease-in-out infinite alternate}
+
+/* ---------- specs ---------- */
+.specs{padding:14vh 0 12vh}
+.spec-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;padding:56px clamp(18px,5vw,88px) 0}
+.spec-figure{position:relative;margin:0;border:1px solid var(--hair);min-height:420px;display:grid;place-items:center;overflow:hidden;padding:36px 0 56px;
+  background:linear-gradient(var(--hair) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,var(--hair) 1px,transparent 1px) 0 0/28px 28px;background-blend-mode:normal}
+.spec-figure::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,var(--bg) 35%,color-mix(in srgb,var(--bg) 60%,transparent) 100%);pointer-events:none}
+.spec-figure svg{position:relative;width:min(88%,400px);height:auto}
+.spec-figure figcaption{position:absolute;left:22px;bottom:18px;color:var(--ink-soft)}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:15px 0;border-bottom:1px solid var(--hair);vertical-align:baseline}
+th{font-weight:400;width:42%;color:var(--ink-soft)}
+td{font-family:var(--display);font-size:18px;letter-spacing:.01em}
+tr{transition:background-color .3s}
+tbody tr:hover{background:linear-gradient(90deg,rgba(216,195,165,.18),transparent)}
+.price td{font-size:24px}
+
+/* ---------- reserve ---------- */
+.reserve{background:var(--charcoal);color:var(--ivory);padding:14vh clamp(18px,5vw,88px);overflow:hidden}
+body.night .reserve{background:#070a10}
+.reserve::before{content:"";position:absolute;right:-18vw;top:8vh;width:60vw;height:60vw;border-radius:50%;background:radial-gradient(circle,rgba(216,195,165,.16),rgba(216,195,165,0) 65%);pointer-events:none}
+.reserve-grid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:start}
+.reserve h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(40px,5vw,76px);line-height:1}
+.reserve h2 em{color:var(--champagne)}
+.reserve p{color:rgba(245,241,234,.66);font-size:15.5px;line-height:1.75;max-width:430px}
+form{display:grid;gap:26px}
+fieldset{border:0;margin:0;padding:0}
+legend{padding:0;margin-bottom:12px;color:rgba(245,241,234,.6)}
+.opts{display:flex;flex-wrap:wrap;gap:10px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;width:1px;height:1px}
+.opt label{display:inline-flex;align-items:center;gap:10px;padding:11px 16px;border:1px solid rgba(245,241,234,.2);cursor:pointer;font-size:13px;letter-spacing:.06em;transition:border-color .4s,background-color .4s}
+.opt label .chip{width:14px;height:14px;border-radius:50%}
+.opt input:checked + label{border-color:var(--champagne);background:rgba(216,195,165,.1)}
+.opt input:focus-visible + label{outline:1.5px solid var(--champagne);outline-offset:3px}
+.opt label:hover{border-color:rgba(216,195,165,.6)}
+select{appearance:none;-webkit-appearance:none;width:100%;max-width:360px;background:transparent;color:var(--ivory);border:0;border-bottom:1px solid rgba(245,241,234,.3);padding:12px 28px 12px 0;font:inherit;font-family:var(--display);font-size:20px;
+  background-image:linear-gradient(45deg,transparent 50%,#d8c3a5 50%),linear-gradient(-45deg,transparent 50%,#d8c3a5 50%);background-position:calc(100% - 12px) 55%,calc(100% - 7px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+select option{color:#1c1c1c}
+.reserve .btn{background:var(--champagne);border-color:var(--champagne);color:var(--charcoal);justify-self:start}
+.reserve .btn::before{background:var(--ivory)}
+.confirm{border:1px solid rgba(216,195,165,.35);padding:22px 24px;display:none}
+.confirm.show{display:block;animation:rise .8s var(--ease)}
+.confirm .ref{font-family:var(--display);font-size:28px;color:var(--champagne);letter-spacing:.06em}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+footer{padding:36px clamp(18px,5vw,88px);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:var(--ink-soft);border-top:1px solid var(--hair)}
+footer p{margin:0;font-size:12.5px;line-height:1.6;max-width:640px}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .nav ul{display:none}
+  .hero{grid-template-columns:minmax(0,1fr);padding-top:84px;gap:0}
+  .hero::before{background:radial-gradient(ellipse 80% 40% at 50% 42%,rgba(216,195,165,.4),rgba(216,195,165,0) 70%)}
+  .hero-copy{order:2;max-width:none;padding-bottom:70px}
+  .watch-stage{order:1;height:min(122vw,640px);min-height:0;margin-top:-10px}
+  .hint{display:none}
+  .sec-head,.spec-wrap,.reserve-grid{grid-template-columns:minmax(0,1fr)}
+  .mv-sticky{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr;padding-top:84px}
+  .mv-copy p{display:none}
+  .mv-stage{min-height:0}
+  .mv-stack{--disc:190px;left:32%}
+  .mv-label .t{font-size:14px}
+  .mv-label .d{display:none}
+  .mv-label .txt{max-width:118px}
+}
+@media (max-width:560px){
+  .brand .v{font-size:20px;letter-spacing:.3em}
+  .night-toggle .lbl{display:none}
+  .night-toggle{padding:8px}
+  h1{font-size:44px}
+  .ctas .btn{padding:15px 22px}
+  .mv-stack{--disc:170px;left:30%}
+  td{font-size:16px}
+  th{width:46%}
+}
+@media (prefers-reduced-motion:reduce){
+  .bal,.rotor,.hint i{animation:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="Maison Varenne, back to top"><span class="m">Maison</span><span class="v">VARENNE</span></a>
+  <nav aria-label="Primary">
+    <ul class="cap">
+      <li><a href="#dial">Calibre 01</a></li>
+      <li><a href="#movement">Movement</a></li>
+      <li><a href="#specs">Specifications</a></li>
+      <li><a href="#reserve">Reserve</a></li>
+    </ul>
+  </nav>
+  <button type="button" class="night-toggle cap" id="nightBtn" aria-pressed="false" aria-label="Night mode: show the luminescence"><span class="orb" aria-hidden="true"></span><span class="lbl">Night</span></button>
+</header>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="heroTitle">
+  <div class="hero-copy" id="dial">
+    <p class="eyebrow cap">Calibre 01 &mdash; Automatique</p>
+    <h1 id="heroTitle">Time,<br>rendered <em>quietly.</em></h1>
+    <p class="lede">A thirty-nine millimetre study in restraint: a brushed-steel case, a domed sapphire, and faceted dauphine hands that are, at this moment, telling your time.</p>
+    <p class="now cap">Now showing <output id="nowOut" aria-live="off">--:--:--</output></p>
+    <div class="ctas">
+      <a class="btn" href="#reserve"><span>Reserve</span><svg viewBox="0 0 22 8" aria-hidden="true"><path d="M0 4h20M17 1l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1"/></svg></a>
+      <a class="btn ghost" href="#movement"><span>The movement</span></a>
+    </div>
+    <div class="dials">
+      <div class="dials-head"><span class="cap">Dial</span><output id="dialName" class="cap">Ivoire</output></div>
+      <div class="swatches" role="radiogroup" aria-label="Dial variant">
+        <button type="button" class="swatch" role="radio" aria-checked="true" data-v="ivory" aria-label="Ivoire opaline dial"><span class="disc"></span></button>
+        <button type="button" class="swatch" role="radio" aria-checked="false" data-v="midnight" aria-label="Minuit sunray blue dial" tabindex="-1"><span class="disc"></span></button>
+        <button type="button" class="swatch" role="radio" aria-checked="false" data-v="salmon" aria-label="Saumon opaline dial" tabindex="-1"><span class="disc"></span></button>
+      </div>
+      <p class="dial-note" id="dialNote">Ivoire: a warm opaline dial with gilt applied indices and a blued-steel seconds hand.</p>
+    </div>
+  </div>
+
+  <div class="watch-stage" id="watchStage">
+    <div class="watch-tilt" id="tilt">
+      <svg id="watch" viewBox="0 0 600 800" role="img" aria-labelledby="watchTitle">
+        <title id="watchTitle">Calibre 01 wristwatch showing the current local time</title>
+        <defs>
+          <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="16"/></filter>
+          <filter id="tiny" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="1.1"/></filter>
+          <filter id="hsh" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.4"/></filter>
+          <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="3.2" result="b1"/><feGaussianBlur in="SourceGraphic" stdDeviation="9" result="b2"/>
+            <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="leatherG" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#141312"/><stop offset=".12" stop-color="#2d2a27"/><stop offset=".5" stop-color="#34302c"/><stop offset=".88" stop-color="#252220"/><stop offset="1" stop-color="#121110"/>
+          </linearGradient>
+          <pattern id="grain" width="7" height="7" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="2" r=".7" fill="#000" opacity=".35"/><circle cx="4.5" cy="5" r=".6" fill="#fff" opacity=".06"/><circle cx="5.5" cy="1.2" r=".5" fill="#000" opacity=".3"/><circle cx="2.6" cy="6" r=".45" fill="#000" opacity=".25"/>
+          </pattern>
+          <linearGradient id="fadeTop" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity="1"/></linearGradient>
+          <linearGradient id="fadeBot" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity="1"/></linearGradient>
+          <mask id="mTop" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="240"><rect x="0" y="0" width="600" height="240" fill="url(#fadeTop)"/></mask>
+          <mask id="mBot" maskUnits="userSpaceOnUse" x="0" y="560" width="600" height="240"><rect x="0" y="560" width="600" height="240" fill="url(#fadeBot)"/></mask>
+          <linearGradient id="lugG" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#6c727a"/><stop offset=".22" stop-color="#f4f6f8"/><stop offset=".38" stop-color="#c3c8ce"/><stop offset=".7" stop-color="#8a9098"/><stop offset=".86" stop-color="#e3e6ea"/><stop offset="1" stop-color="#5d636b"/>
+          </linearGradient>
+          <radialGradient id="dialG" cx=".46" cy=".42" r=".62">
+            <stop offset="0" style="stop-color:var(--dial-c)"/><stop offset="1" style="stop-color:var(--dial-e)"/>
+          </radialGradient>
+          <radialGradient id="rehautG" cx=".5" cy=".5" r=".5">
+            <stop offset=".93" stop-color="#000" stop-opacity="0"/><stop offset=".985" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity=".55"/>
+          </radialGradient>
+          <linearGradient id="crownG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#5d636b"/><stop offset=".25" stop-color="#f4f6f8"/><stop offset=".5" stop-color="#a9afb6"/><stop offset=".78" stop-color="#e0e3e7"/><stop offset="1" stop-color="#4d535a"/>
+          </linearGradient>
+          <radialGradient id="capG" cx=".4" cy=".35" r=".7">
+            <stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#c8cdd3"/><stop offset="1" stop-color="#5d636b"/>
+          </radialGradient>
+          <linearGradient id="glareG" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity=".62"/><stop offset=".45" stop-color="#fff" stop-opacity=".1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <radialGradient id="domeG" cx=".5" cy=".5" r=".5">
+            <stop offset=".7" stop-color="#fff" stop-opacity="0"/><stop offset=".96" stop-color="#dfeaf5" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity=".4"/>
+          </radialGradient>
+          <clipPath id="dialClip"><circle cx="300" cy="400" r="176"/></clipPath>
+        </defs>
+
+        <!-- floor shadow -->
+        <ellipse id="floorShadow" cx="316" cy="424" rx="214" ry="218" fill="#2a2016" opacity=".32" filter="url(#soft)"/>
+
+        <!-- strap -->
+        <g class="dim">
+          <g mask="url(#mTop)">
+            <path d="M206 226L222 0H378L394 226Z" fill="url(#leatherG)"/>
+            <path d="M206 226L222 0H378L394 226Z" fill="url(#grain)"/>
+            <path d="M217 212L232 0M383 212L368 0" stroke="#d8c3a5" stroke-width="1.3" stroke-dasharray="5 4" opacity=".75"/>
+            <path d="M206 226L222 0M394 226L378 0" stroke="#0b0a09" stroke-width="2"/>
+          </g>
+          <g mask="url(#mBot)">
+            <path d="M206 574L222 800H378L394 574Z" fill="url(#leatherG)"/>
+            <path d="M206 574L222 800H378L394 574Z" fill="url(#grain)"/>
+            <path d="M217 588L232 800M383 588L368 800" stroke="#d8c3a5" stroke-width="1.3" stroke-dasharray="5 4" opacity=".75"/>
+            <path d="M206 574L222 800M394 574L378 800" stroke="#0b0a09" stroke-width="2"/>
+            <rect x="214" y="700" width="172" height="20" rx="3" fill="#1d1b19" opacity=".9"/>
+            <rect x="214" y="700" width="172" height="20" rx="3" fill="url(#grain)"/>
+          </g>
+        </g>
+
+        <!-- lugs, case, bezel (built in script) -->
+        <g class="dim case" id="caseG">
+          <g id="lugs">
+            <path id="lugTL" d="M180 262C177 226 180 196 185 170Q188 158 198 158H208Q216 160 216 170C216 196 222 222 240 246Z" fill="url(#lugG)" stroke="#50565d" stroke-width=".8"/>
+            <use href="#lugTL" transform="translate(600 0) scale(-1 1)"/>
+            <use href="#lugTL" transform="translate(0 800) scale(1 -1)"/>
+            <use href="#lugTL" transform="translate(600 800) scale(-1 -1)"/>
+          </g>
+          <g id="crown" role="button" tabindex="0" aria-label="Crown: pull out to stop the seconds hand">
+            <rect x="500" y="391" width="14" height="18" fill="url(#crownG)" stroke="#50565d" stroke-width=".6"/>
+            <g class="body">
+              <rect x="511" y="378" width="24" height="44" rx="5" fill="url(#crownG)" stroke="#4d535a" stroke-width=".8"/>
+              <g id="flutes" stroke="#4d535a" stroke-width=".7" opacity=".55"></g>
+              <rect x="532" y="380" width="4" height="40" rx="2" fill="#c8cdd3" stroke="#4d535a" stroke-width=".5"/>
+            </g>
+          </g>
+          <g id="caseFan"></g>
+          <circle cx="300" cy="400" r="205" fill="none" stroke="#3f444a" stroke-width="1.2"/>
+          <circle cx="300" cy="400" r="199" fill="none" stroke="#fdfdfe" stroke-width=".9" opacity=".7"/>
+          <g id="bezelFan"></g>
+          <path d="M112.9 367A190 190 0 0 1 267 212.9" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".42" filter="url(#tiny)"/>
+          <path d="M478.5 465A190 190 0 0 1 365 578.5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".2" filter="url(#tiny)"/>
+          <circle cx="300" cy="400" r="181" fill="none" stroke="#fff" stroke-width="1" opacity=".75"/>
+          <circle cx="300" cy="400" r="179" fill="#6f757c"/>
+          <circle cx="300" cy="400" r="179" fill="none" stroke="#2c3035" stroke-width="3" opacity=".6"/>
+        </g>
+
+        <!-- dial -->
+        <g class="dim" id="dialG_">
+          <circle cx="300" cy="400" r="176" class="fade" fill="url(#dialG)"/>
+          <g id="rays" class="fade" clip-path="url(#dialClip)" style="opacity:var(--ray)"></g>
+          <circle cx="300" cy="400" r="176" fill="url(#rehautG)"/>
+          <g id="track" class="fade" style="stroke:var(--print)"></g>
+          <g id="idxShadows" filter="url(#tiny)" opacity=".42"></g>
+          <g id="indices"></g>
+          <g class="fade" style="fill:var(--print)" id="print">
+            <text x="300" y="296" text-anchor="middle" font-family="Helvetica Neue,Nimbus Sans,Arial,sans-serif" font-size="7" letter-spacing="4.2">MAISON</text>
+            <text x="300" y="318" text-anchor="middle" font-family="Didot,Bodoni 72,C059,Georgia,serif" font-size="21" letter-spacing="7.5">VARENNE</text>
+            <text x="300" y="496" text-anchor="middle" font-family="Helvetica Neue,Nimbus Sans,Arial,sans-serif" font-size="7" letter-spacing="3.6">CALIBRE 01</text>
+            <text x="300" y="510" text-anchor="middle" font-family="Didot,Bodoni 72,C059,Georgia,serif" font-size="9.5" font-style="italic" letter-spacing="1.2">Automatique</text>
+          </g>
+          <!-- date window at 3 -->
+          <g id="date">
+            <rect x="424" y="387" width="34" height="26" rx="2" fill="#8d939a"/>
+            <rect x="425.5" y="388.5" width="31" height="23" rx="1.5" class="fade" style="fill:var(--date-bg)"/>
+            <rect x="425.5" y="388.5" width="31" height="6" fill="#000" opacity=".08"/>
+            <text id="dateTxt" x="441" y="406.5" text-anchor="middle" font-family="Didot,Bodoni 72,C059,Georgia,serif" font-size="16" fill="#1c1c1c">22</text>
+            <rect x="424" y="387" width="34" height="26" rx="2" fill="none" stroke="#f6f7f9" stroke-width="1.2"/>
+          </g>
+        </g>
+
+        <!-- hand shadows -->
+        <g id="handShadows" filter="url(#hsh)" opacity=".3" fill="#000">
+          <path id="shHour" d="M0 18L-8.5 -22L0 -112L8.5 -22Z"/>
+          <path id="shMin" d="M0 20L-6.8 -26L0 -162L6.8 -26Z"/>
+          <g id="shSec"><rect x="-1" y="-168" width="2" height="206"/><circle cy="28" r="6.5"/></g>
+        </g>
+
+        <!-- hands -->
+        <g class="dim">
+          <g id="hourH">
+            <path d="M0 18L-8.5 -22L0 -112Z" class="fade" style="fill:var(--hand-hi)"/>
+            <path d="M0 18L8.5 -22L0 -112Z" class="fade" style="fill:var(--hand-lo)"/>
+            <path d="M0 -34L-3.6 -46L0 -98L3.6 -46Z" fill="#efe9d8" stroke="rgba(0,0,0,.25)" stroke-width=".5"/>
+          </g>
+          <g id="minH">
+            <path d="M0 20L-6.8 -26L0 -162Z" class="fade" style="fill:var(--hand-hi)"/>
+            <path d="M0 20L6.8 -26L0 -162Z" class="fade" style="fill:var(--hand-lo)"/>
+            <path d="M0 -38L-2.9 -50L0 -148L2.9 -50Z" fill="#efe9d8" stroke="rgba(0,0,0,.25)" stroke-width=".5"/>
+          </g>
+          <circle cx="300" cy="400" r="9" fill="url(#capG)" stroke="#4d535a" stroke-width=".6"/>
+          <g id="secH" class="fade" style="fill:var(--sec)">
+            <rect x="-.9" y="-170" width="1.8" height="208"/>
+            <path d="M0 -170L-1.6 -150H1.6Z"/>
+            <circle cy="28" r="6.6"/>
+            <circle cy="28" r="2.8" fill="#6f757c"/>
+            <circle r="4.6"/>
+          </g>
+          <circle cx="300" cy="400" r="2" fill="#e9ecef"/>
+        </g>
+
+        <!-- luminescence -->
+        <g id="lume" filter="url(#glow)" fill="#c9ffdd">
+          <g id="lumeIdx"></g>
+          <path id="lumeHour" d="M0 -34L-3.6 -46L0 -98L3.6 -46Z"/>
+          <path id="lumeMin" d="M0 -38L-2.9 -50L0 -148L2.9 -50Z"/>
+        </g>
+
+        <!-- sapphire -->
+        <circle cx="300" cy="400" r="181" fill="url(#domeG)" pointer-events="none"/>
+        <g id="glare" pointer-events="none">
+          <path d="M162 318C182 242 250 212 318 222C262 238 210 282 196 356C188 396 180 410 170 400C160 388 158 350 162 318Z" fill="url(#glareG)"/>
+          <path d="M132 400A168 168 0 0 1 300 232" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".38"/>
+          <ellipse cx="398" cy="520" rx="56" ry="18" transform="rotate(-38 398 520)" fill="#fff" opacity=".07"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <p class="hint cap" aria-hidden="true">Scroll<i></i></p>
+</section>
+
+<section class="movement" id="movement" aria-labelledby="mvTitle">
+  <div class="mv-sticky">
+    <div class="mv-copy">
+      <span class="num cap">02 &mdash; The Movement</span>
+      <h2 id="mvTitle">Eight layers,<br>one heartbeat.</h2>
+      <p>Scroll, and Calibre 01 opens like a book. From the domed sapphire to the screwed caseback, every layer is finished whether or not it will ever be seen.</p>
+      <div class="mv-meter cap"><span>Closed</span><span class="bar"><i id="mvBar"></i></span><span>Open</span></div>
+    </div>
+    <div class="mv-stage" id="mvStage">
+      <div class="mv-stack" id="stack">
+
+        <div class="layer solid" data-i="7">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <defs>
+              <radialGradient id="backG" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#f1f3f5"/><stop offset=".6" stop-color="#b7bcc2"/><stop offset="1" stop-color="#6f757c"/></radialGradient>
+              <path id="backPath" d="M-124 0A124 124 0 1 1 124 0A124 124 0 1 1 -124 0"/>
+            </defs>
+            <circle r="148" fill="url(#backG)" stroke="#4d535a"/>
+            <circle r="136" fill="none" stroke="#fff" stroke-width=".8" opacity=".6"/>
+            <circle r="112" fill="#1b2a41" opacity=".35" stroke="#4d535a" stroke-width="2"/>
+            <text font-size="8.2" letter-spacing="3.2" fill="#3a3f45" font-family="Helvetica Neue,Nimbus Sans,Arial,sans-serif"><textPath href="#backPath">CALIBRE 01 · SAPPHIRE CASEBACK · WATER RESISTANT 5 BAR · Nº 0001 / 0180 ·</textPath></text>
+          </svg>
+        </div>
+
+        <div class="layer" data-i="6">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <defs>
+              <linearGradient id="rotorG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e6bd"/><stop offset=".5" stop-color="#cfae6c"/><stop offset="1" stop-color="#8e7040"/></linearGradient>
+              <path id="rotorArc" d="M-112 0A112 112 0 0 1 112 0"/>
+            </defs>
+            <g class="rotor">
+              <path d="M-134 0A134 134 0 0 1 134 0L96 0A96 96 0 0 0 -96 0Z" fill="url(#rotorG)" stroke="#7a5d30"/>
+              <path d="M-96 0A96 96 0 0 1 96 0L20 0A20 20 0 0 0 -20 0Z" fill="url(#rotorG)" opacity=".85" stroke="#7a5d30"/>
+              <path d="M-60 -10A62 62 0 0 1 60 -10" fill="none" stroke="#7a5d30" stroke-width=".6" opacity=".7"/>
+              <text font-size="10" letter-spacing="4.6" fill="#5d4520" font-family="Didot,Bodoni 72,C059,Georgia,serif" text-anchor="middle"><textPath href="#rotorArc" startOffset="50%">MAISON VARENNE</textPath></text>
+            </g>
+            <circle r="20" fill="#c8cdd3" stroke="#4d535a"/>
+            <circle r="13" fill="#8a9098"/>
+            <g fill="#f4f6f8" stroke="#6f757c" stroke-width=".5" id="bearings"></g>
+            <circle r="5" fill="url(#backG)"/>
+          </svg>
+        </div>
+
+        <div class="layer solid" data-i="5">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <defs>
+              <pattern id="cotes" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
+                <rect width="18" height="18" fill="#c9ced4"/>
+                <rect width="9" height="18" fill="#e9ecef"/>
+                <rect x="8" width="2" height="18" fill="#f8f9fa"/>
+              </pattern>
+              <radialGradient id="jewel" cx=".4" cy=".35" r=".6"><stop offset="0" stop-color="#ff9aa0"/><stop offset=".5" stop-color="#b3122a"/><stop offset="1" stop-color="#5a0714"/></radialGradient>
+              <linearGradient id="balG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e6bd"/><stop offset="1" stop-color="#a88a55"/></linearGradient>
+            </defs>
+            <circle r="146" fill="#a7adb4" stroke="#50565d"/>
+            <path d="M-142 -30A145 145 0 0 1 60 -132L40 -40C10 -20 -40 10 -86 40L-142 30Z" fill="url(#cotes)" stroke="#50565d"/>
+            <path d="M-130 64A145 145 0 0 0 30 142L44 60C10 44 -40 40 -92 50Z" fill="url(#cotes)" stroke="#50565d"/>
+            <path d="M70 -126A145 145 0 0 1 142 -24L70 0Z" fill="url(#cotes)" stroke="#50565d"/>
+            <g id="jewels"></g>
+            <g transform="translate(78 70)">
+              <circle r="44" fill="#6f757c" opacity=".5"/>
+              <g class="bal">
+                <circle r="38" fill="none" stroke="url(#balG)" stroke-width="6"/>
+                <path d="M-36 0H36M0 -36V36" stroke="url(#balG)" stroke-width="3"/>
+                <g fill="#d8c3a5" id="balScrews"></g>
+              </g>
+              <path id="hairspring" fill="none" stroke="#1b2a41" stroke-width=".7" d=""/>
+              <path d="M-50 -30L0 -4L6 4L-44 -22Z" fill="url(#cotes)" stroke="#50565d"/>
+              <circle r="5" fill="url(#jewel)" stroke="#d8c3a5" stroke-width="1.5"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="layer" data-i="4">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <g id="train"></g>
+          </svg>
+        </div>
+
+        <div class="layer solid" data-i="3">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <defs>
+              <radialGradient id="perlDot" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#eef0f2"/><stop offset=".7" stop-color="#c3c8ce"/><stop offset="1" stop-color="#9aa0a7"/></radialGradient>
+              <pattern id="perlage" width="12" height="12" patternUnits="userSpaceOnUse">
+                <rect width="12" height="12" fill="#b3b9c0"/>
+                <circle cx="6" cy="6" r="6.6" fill="url(#perlDot)" stroke="#8f959c" stroke-width=".3"/>
+                <circle cx="0" cy="0" r="6.6" fill="url(#perlDot)" stroke="#8f959c" stroke-width=".3"/>
+                <circle cx="12" cy="12" r="6.6" fill="url(#perlDot)" stroke="#8f959c" stroke-width=".3"/>
+              </pattern>
+            </defs>
+            <path fill-rule="evenodd" fill="url(#perlage)" stroke="#50565d" d="M-146 0A146 146 0 1 0 146 0A146 146 0 1 0 -146 0ZM-16 -56A46 46 0 1 0 -108 -56A46 46 0 1 0 -16 -56ZM-18 50A48 48 0 1 0 -114 50A48 48 0 1 0 -18 50ZM78 -70A26 26 0 1 0 26 -70A26 26 0 1 0 78 -70Z"/>
+            <circle r="146" fill="none" stroke="#fff" stroke-width="1" opacity=".5"/>
+            <g fill="none" stroke="#fff" stroke-width="1.2" opacity=".55"><circle cx="-62" cy="-56" r="46"/><circle cx="-66" cy="50" r="48"/><circle cx="52" cy="-70" r="26"/></g>
+            <circle r="18" fill="#8a9098" stroke="#50565d"/>
+            <circle cx="60" cy="72" r="40" fill="#9aa0a7" stroke="#50565d" opacity=".9"/>
+            <circle cx="60" cy="72" r="6" fill="url(#jewel)"/>
+            <circle r="5" fill="url(#jewel)"/>
+          </svg>
+        </div>
+
+        <div class="layer solid" data-i="2">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <defs>
+              <radialGradient id="dialG2" cx=".46" cy=".42" r=".62"><stop offset="0" style="stop-color:var(--dial-c)"/><stop offset="1" style="stop-color:var(--dial-e)"/></radialGradient>
+            </defs>
+            <circle r="146" fill="url(#dialG2)"/>
+            <circle r="146" fill="none" stroke="#6f757c" stroke-width="2"/>
+            <g id="miniIdx"></g>
+            <text y="-68" text-anchor="middle" font-family="Didot,Bodoni 72,C059,Georgia,serif" font-size="15" letter-spacing="5" style="fill:var(--print)">VARENNE</text>
+            <rect x="96" y="-10" width="26" height="20" fill="#1c1c1c" opacity=".8"/>
+          </svg>
+        </div>
+
+        <div class="layer" data-i="1">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <g transform="rotate(-60)">
+              <path d="M0 15L-7 -18L0 -92Z" style="fill:var(--hand-hi)"/><path d="M0 15L7 -18L0 -92Z" style="fill:var(--hand-lo)"/>
+            </g>
+            <g transform="rotate(62)">
+              <path d="M0 16L-5.6 -22L0 -134Z" style="fill:var(--hand-hi)"/><path d="M0 16L5.6 -22L0 -134Z" style="fill:var(--hand-lo)"/>
+            </g>
+            <g transform="rotate(200)" style="fill:var(--sec)"><rect x="-.8" y="-140" width="1.6" height="172"/><circle cy="23" r="5.5"/></g>
+            <circle r="7" fill="url(#capG)"/>
+          </svg>
+        </div>
+
+        <div class="layer" data-i="0">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <defs>
+              <radialGradient id="saphG" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#cfe2f5" stop-opacity=".08"/><stop offset=".85" stop-color="#9fbde0" stop-opacity=".18"/><stop offset="1" stop-color="#fff" stop-opacity=".55"/></radialGradient>
+            </defs>
+            <circle r="148" fill="url(#saphG)" stroke="#fff" stroke-opacity=".8"/>
+            <path d="M-118 -40C-100 -96 -40 -124 20 -120C-40 -104 -84 -70 -100 -20Z" fill="#fff" opacity=".45"/>
+            <circle r="140" fill="none" stroke="#fff" stroke-width=".6" opacity=".6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="mv-labels" id="labels">
+        <div class="mv-label" data-i="0"><span class="lead"></span><span class="txt"><span class="t">Domed sapphire</span><span class="d">Anti-reflective on both faces; its curve carries light across the dial.</span></span></div>
+        <div class="mv-label" data-i="1"><span class="lead"></span><span class="txt"><span class="t">Dauphine hands</span><span class="d">Hand-faceted, with luminescent inserts.</span></span></div>
+        <div class="mv-label" data-i="2"><span class="lead"></span><span class="txt"><span class="t">Opaline dial</span><span class="d">Applied indices, each casting its own shadow.</span></span></div>
+        <div class="mv-label" data-i="3"><span class="lead"></span><span class="txt"><span class="t">Mainplate</span><span class="d">Perlage, applied circle by circle beneath the dial.</span></span></div>
+        <div class="mv-label" data-i="4"><span class="lead"></span><span class="txt"><span class="t">Going train</span><span class="d">Twin barrels hold seventy-two hours of reserve.</span></span></div>
+        <div class="mv-label" data-i="5"><span class="lead"></span><span class="txt"><span class="t">Balance &amp; bridges</span><span class="d">Four hertz: eight beats every second, under striped bridges.</span></span></div>
+        <div class="mv-label" data-i="6"><span class="lead"></span><span class="txt"><span class="t">Oscillating rotor</span><span class="d">Winds the mainsprings with each turn of the wrist.</span></span></div>
+        <div class="mv-label" data-i="7"><span class="lead"></span><span class="txt"><span class="t">Sapphire caseback</span><span class="d">Screwed down, water resistant to five bar.</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="specs" id="specs" aria-labelledby="specTitle">
+  <div class="sec-head">
+    <div><span class="num cap">03 &mdash; Specifications</span><h2 id="specTitle">Measured in<br>tenths of a millimetre.</h2></div>
+    <p>Everything you would ask the watchmaker, set down plainly. Calibre 01 is made in a single steel reference with three dials.</p>
+  </div>
+  <div class="spec-wrap">
+    <figure class="spec-figure">
+      <svg viewBox="0 0 420 560" role="img" aria-label="Technical drawing of the case in plan and profile: 39 millimetres across, 20 millimetre lugs, 9.6 millimetres thick">
+        <g fill="none" stroke="currentColor" stroke-width="1">
+          <!-- plan view -->
+          <path d="M121 132V60Q121 52 129 52H146Q152 52 152 60V124M268 124V60Q268 52 274 52H291Q299 52 299 60V132" stroke-width="1.1"/>
+          <path d="M121 268V340Q121 348 129 348H146Q152 348 152 340V276M268 276V340Q268 348 274 348H291Q299 348 299 340V268" stroke-width="1.1"/>
+          <circle cx="210" cy="200" r="112" style="fill:var(--bg)" stroke-width="1.3"/>
+          <circle cx="210" cy="200" r="103"/>
+          <circle cx="210" cy="200" r="94" opacity=".55"/>
+          <g id="planTicks" opacity=".6"></g>
+          <path d="M322 190H336V210H322M336 192H340V208H336" stroke-width="1.1"/>
+          <path d="M210 214L205 196L210 142L215 196Z" transform="rotate(-55 210 200)"/>
+          <path d="M210 214L206 194L210 118L214 194Z" transform="rotate(60 210 200)"/>
+          <circle cx="210" cy="200" r="3.5"/>
+          <path d="M150 200H270M210 140V260" opacity=".18" stroke-dasharray="6 3 1 3"/>
+          <!-- dimensions -->
+          <g style="stroke:var(--champagne-deep)">
+            <path d="M98 206V374M322 206V374" opacity=".6" stroke-dasharray="3 3"/>
+            <path d="M98 366H322M104 362L98 366L104 370M316 362L322 366L316 370"/>
+            <path d="M152 44V24M268 44V24" opacity=".6" stroke-dasharray="3 3"/>
+            <path d="M152 30H268M158 26L152 30L158 34M262 26L268 30L262 34"/>
+          </g>
+          <!-- profile view -->
+          <g transform="translate(10.7 316) scale(.95)">
+            <path d="M70 176H350" opacity=".3"/>
+            <path d="M92 176C92 150 104 136 130 132H290C316 136 328 150 328 176C328 190 322 198 306 200H114C98 198 92 190 92 176Z" stroke-width="1.3"/>
+            <path d="M128 132C150 112 270 112 292 132" stroke-width="1.1"/>
+            <path d="M140 124C170 110 250 110 280 124" opacity=".4"/>
+            <path d="M328 168H344V184H328" stroke-width="1.1"/>
+            <g style="stroke:var(--champagne-deep)">
+              <path d="M366 116V200M362 122L366 116L370 122M362 194L366 200L370 194"/>
+              <path d="M296 116H372M308 200H372" opacity=".6" stroke-dasharray="3 3"/>
+            </g>
+          </g>
+        </g>
+        <g fill="currentColor" font-family="Helvetica Neue,Nimbus Sans,Arial,sans-serif" font-size="11" letter-spacing="2.4">
+          <text x="210" y="386" text-anchor="middle">Ø 39.0</text>
+          <text x="210" y="18" text-anchor="middle">20.0</text>
+          <text x="370" y="472">9.6</text>
+        </g>
+        <g fill="currentColor" opacity=".62" font-family="Didot,Bodoni 72,C059,Georgia,serif" font-size="14" font-style="italic">
+          <text x="18" y="200">plan</text>
+          <text x="18" y="470">profile</text>
+        </g>
+      </svg>
+      <figcaption class="cap">Fig. 1 &mdash; Case, plan &amp; profile, in millimetres</figcaption>
+    </figure>
+    <table>
+      <caption class="cap" style="text-align:left;padding-bottom:10px;color:var(--ink-soft)">Reference MV-C01</caption>
+      <tbody>
+        <tr><th scope="row" class="cap">Movement</th><td>Calibre VR-01, self-winding</td></tr>
+        <tr><th scope="row" class="cap">Frequency</th><td>28,800 vph &middot; 4 Hz</td></tr>
+        <tr><th scope="row" class="cap">Power reserve</th><td>72 hours, twin barrels</td></tr>
+        <tr><th scope="row" class="cap">Jewels</th><td>27</td></tr>
+        <tr><th scope="row" class="cap">Functions</th><td>Hours, minutes, central seconds, date</td></tr>
+        <tr><th scope="row" class="cap">Case</th><td>39 mm, brushed &amp; polished 316L steel</td></tr>
+        <tr><th scope="row" class="cap">Thickness</th><td>9.6 mm</td></tr>
+        <tr><th scope="row" class="cap">Crystal</th><td>Domed sapphire, anti-reflective</td></tr>
+        <tr><th scope="row" class="cap">Water resistance</th><td>5 bar &middot; 50 m</td></tr>
+        <tr><th scope="row" class="cap">Strap</th><td>Hand-stitched calfskin, pin buckle</td></tr>
+        <tr class="price"><th scope="row" class="cap">Price</th><td>&euro;&thinsp;6,800</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="reserve" id="reserve" aria-labelledby="resTitle">
+  <div class="reserve-grid">
+    <div>
+      <span class="num cap">04 &mdash; Reserve</span>
+      <h2 id="resTitle">One hundred and eighty,<br><em>each year.</em></h2>
+      <p>Calibre 01 is assembled by a small atelier, and each year’s pieces are allotted in the order they are reserved. Choose your dial and strap; your reservation is held for thirty days.</p>
+      <div class="confirm" id="confirm" role="status" aria-live="polite">
+        <p class="cap" style="margin:0 0 8px;color:rgba(245,241,234,.6)">Reservation noted</p>
+        <div class="ref" id="refOut">MV-0000</div>
+        <p id="confirmTxt" style="margin:10px 0 0"></p>
+      </div>
+    </div>
+    <form id="resForm" novalidate>
+      <fieldset>
+        <legend class="cap">Dial</legend>
+        <div class="opts">
+          <span class="opt"><input type="radio" name="dial" id="rd-ivory" value="ivory" checked><label for="rd-ivory"><span class="chip" style="background:radial-gradient(circle,#fbf8f2,#e6ddcd)"></span>Ivoire</label></span>
+          <span class="opt"><input type="radio" name="dial" id="rd-midnight" value="midnight"><label for="rd-midnight"><span class="chip" style="background:radial-gradient(circle,#2d4769,#101a2a)"></span>Minuit</label></span>
+          <span class="opt"><input type="radio" name="dial" id="rd-salmon" value="salmon"><label for="rd-salmon"><span class="chip" style="background:radial-gradient(circle,#f2c3ad,#d0917a)"></span>Saumon</label></span>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend class="cap">Strap</legend>
+        <div class="opts">
+          <span class="opt"><input type="radio" name="strap" id="rs-char" value="Charcoal calfskin" checked><label for="rs-char">Charcoal calfskin</label></span>
+          <span class="opt"><input type="radio" name="strap" id="rs-suede" value="Champagne suede"><label for="rs-suede">Champagne suede</label></span>
+          <span class="opt"><input type="radio" name="strap" id="rs-steel" value="Brushed steel mesh"><label for="rs-steel">Steel mesh</label></span>
+        </div>
+      </fieldset>
+      <div>
+        <label class="cap" for="boutique" style="display:block;margin-bottom:6px;color:rgba(245,241,234,.6)">Collect at</label>
+        <select id="boutique" name="boutique">
+          <option>Paris, rue de Varenne</option>
+          <option>Genève, Quai du Rhône</option>
+          <option>Tokyo, Ginza</option>
+          <option>New York, Madison Avenue</option>
+        </select>
+      </div>
+      <button type="submit" class="btn"><span>Reserve</span><svg viewBox="0 0 22 8" aria-hidden="true"><path d="M0 4h20M17 1l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1"/></svg></button>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <p>Maison Varenne and Calibre 01 are fictional, a design study. Nothing is sold and no reservation is transmitted; your choice stays in this browser.</p>
+  <p class="cap">Rue de Varenne &middot; Paris &middot; MMXXVI</p>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduce = mq.matches;
+  const CX = 300, CY = 400, RAD = Math.PI / 180;
+  const make = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+  const pt = (r, a) => [CX + r * Math.sin(a * RAD), CY - r * Math.cos(a * RAD)];
+  const f2 = v => v.toFixed(2);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} }
+  };
+
+  /* ---------- brushed steel: conical fans ---------- */
+  let seed = 39;
+  const rnd = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
+  function fan(parent, r0, r1, n, light) {
+    const step = 360 / n;
+    for (let i = 0; i < n; i++) {
+      const a0 = i * step - 0.18, a1 = (i + 1) * step + 0.18, mid = (i + 0.5) * step;
+      const L = Math.max(0, Math.min(1, light(mid) + (rnd() - 0.5) * 0.07));
+      const g = Math.round(96 + L * 150);
+      const [x0, y0] = pt(r1, a0), [x1, y1] = pt(r1, a1), [x2, y2] = pt(r0, a1), [x3, y3] = pt(r0, a0);
+      make('path', { d:'M' + f2(x0) + ' ' + f2(y0) + 'A' + r1 + ' ' + r1 + ' 0 0 1 ' + f2(x1) + ' ' + f2(y1) + 'L' + f2(x2) + ' ' + f2(y2) + 'A' + r0 + ' ' + r0 + ' 0 0 0 ' + f2(x3) + ' ' + f2(y3) + 'Z',
+        fill:'rgb(' + (g - 3) + ',' + (g) + ',' + Math.min(255, g + 5) + ')' }, parent);
+    }
+  }
+  const lobes = (a, peak, k) => 0.5 + 0.34 * Math.cos(2 * (a - peak) * RAD) + k * Math.cos(6 * (a - peak - 12) * RAD);
+  fan($('#caseFan'), 199, 205, 180, a => lobes(a, 318, 0.04) * 0.78);
+  fan($('#bezelFan'), 181, 199, 320, a => lobes(a, 312, 0.07));
+
+  // crown flutes
+  for (let y = 382; y <= 418; y += 3.4) make('line', { x1:512, x2:534, y1:f2(y), y2:f2(y) }, $('#flutes'));
+
+  /* ---------- dial: sunray, track, indices ---------- */
+  (function dial() {
+    const rays = $('#rays');
+    for (let i = 0; i < 180; i++) {
+      const a0 = i * 2, a1 = a0 + 1;
+      const [x0, y0] = pt(180, a0), [x1, y1] = pt(180, a1);
+      make('path', { d:'M' + CX + ' ' + CY + 'L' + f2(x0) + ' ' + f2(y0) + 'L' + f2(x1) + ' ' + f2(y1) + 'Z', fill: i % 2 ? '#000' : '#fff' }, rays);
+    }
+    const track = $('#track');
+    let fine = '', bold = '';
+    for (let m = 0; m < 60; m++) {
+      const five = m % 5 === 0;
+      const [x0, y0] = pt(five ? 163 : 166, m * 6), [x1, y1] = pt(172, m * 6);
+      const seg = 'M' + f2(x0) + ' ' + f2(y0) + 'L' + f2(x1) + ' ' + f2(y1);
+      if (five) bold += seg; else fine += seg;
+    }
+    make('path', { d:fine, 'stroke-width':'.8', fill:'none' }, track);
+    make('path', { d:bold, 'stroke-width':'1.6', fill:'none' }, track);
+    make('circle', { cx:CX, cy:CY, r:172, fill:'none', 'stroke-width':'.6' }, track);
+    make('circle', { cx:CX, cy:CY, r:166, fill:'none', 'stroke-width':'.4', opacity:'.6' }, track);
+
+    const idx = $('#indices'), shadows = $('#idxShadows'), lume = $('#lumeIdx');
+    const light = [-0.6, -0.8];
+    for (let h = 0; h < 12; h++) {
+      if (h === 3) continue;
+      const a = h * 30;
+      const bars = h === 0 ? [-5.2, 5.2] : [0];
+      const w = h === 0 ? 3.8 : 4.4;
+      bars.forEach(off => {
+        const g = make('g', { transform:'rotate(' + a + ' ' + CX + ' ' + CY + ') translate(' + off + ' 0)' }, idx);
+        const x = CX, y0 = CY - 160, y1 = CY - 124;
+        // shadow (fixed toward lower right, drawn in rotated space by inverse offset)
+        const sx = 2.2, sy = 3.2, ca = Math.cos(-a * RAD), sa = Math.sin(-a * RAD);
+        const lx = sx * ca - sy * sa, ly = sx * sa + sy * ca;
+        make('rect', { x:f2(x - w + lx), y:f2(y0 + ly), width:f2(w * 2), height:y1 - y0, rx:1.2, transform:'rotate(' + a + ' ' + CX + ' ' + CY + ') translate(' + off + ' 0)', fill:'#000' }, shadows);
+        // two facets: shading depends on how each facet faces the light
+        const tx = Math.cos(a * RAD), ty = Math.sin(a * RAD);
+        const kL = (-tx * light[0] - ty * light[1]), kR = -kL;
+        [[-1, kL], [1, kR]].forEach(([side, k]) => {
+          const px = side < 0 ? x - w : x;
+          make('rect', { x:f2(px), y:y0, width:f2(w), height:y1 - y0, class:'fade', style:'fill:var(--idx)' }, g);
+          make('rect', { x:f2(px), y:y0, width:f2(w), height:y1 - y0, fill: k > 0 ? '#fff' : '#000', opacity:f2(Math.abs(k) * (k > 0 ? 0.55 : 0.32)) }, g);
+        });
+        make('rect', { x:f2(x - w), y:y0, width:f2(w * 2), height:y1 - y0, fill:'none', stroke:'rgba(0,0,0,.28)', 'stroke-width':'.5' }, g);
+        make('rect', { x:f2(x - 1.5), y:y0 + 3, width:3, height:11, rx:1, fill:'#efe9d8' }, g);
+        make('rect', { x:f2(x - 1.5), y:y0 + 3, width:3, height:11, rx:1, transform:'rotate(' + a + ' ' + CX + ' ' + CY + ') translate(' + off + ' 0)' }, lume);
+      });
+    }
+  })();
+
+  /* ---------- time ---------- */
+  const hourH = $('#hourH'), minH = $('#minH'), secH = $('#secH');
+  const shHour = $('#shHour'), shMin = $('#shMin'), shSec = $('#shSec');
+  const lumeHour = $('#lumeHour'), lumeMin = $('#lumeMin');
+  const nowOut = $('#nowOut'), dateTxt = $('#dateTxt');
+  const pad = n => String(n).padStart(2, '0');
+  function angles(d) {
+    const ms = d.getMilliseconds(), s = d.getSeconds() + Math.floor(ms / 125) * 0.125;
+    const m = d.getMinutes() + s / 60, h = (d.getHours() % 12) + m / 60;
+    return [h * 30, m * 6, s * 6];
+  }
+  const POSE = [10 * 30 + 10 / 2, 10 * 6 + 0.35, 35 * 6]; // the 10:10:35 product pose
+  let shown = POSE.slice(), introStart = performance.now() + 450, INTRO = reduce ? 0 : 1500;
+  let hacked = false, hackOffset = 0, hackFrozen = null;
+  function setHands(h, m, s) {
+    hourH.setAttribute('transform', 'translate(300 400) rotate(' + f2(h) + ')');
+    minH.setAttribute('transform', 'translate(300 400) rotate(' + f2(m) + ')');
+    secH.setAttribute('transform', 'translate(300 400) rotate(' + f2(s) + ')');
+    shHour.setAttribute('transform', 'translate(302.5 404) rotate(' + f2(h) + ')');
+    shMin.setAttribute('transform', 'translate(303.5 405.5) rotate(' + f2(m) + ')');
+    shSec.setAttribute('transform', 'translate(305 407.5) rotate(' + f2(s) + ')');
+    lumeHour.setAttribute('transform', 'translate(300 400) rotate(' + f2(h) + ')');
+    lumeMin.setAttribute('transform', 'translate(300 400) rotate(' + f2(m) + ')');
+  }
+  const shortest = (from, to) => { let d = ((to - from) % 360 + 540) % 360 - 180; return from + d; };
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  let lastBeat = -1, lastText = '';
+  function tickClock(now) {
+    const real = new Date(Date.now() - hackOffset);
+    const d = hacked && hackFrozen ? hackFrozen : real;
+    const [h, m, s] = angles(d);
+    const t = INTRO ? Math.min(1, Math.max(0, (now - introStart) / INTRO)) : 1;
+    if (t < 1) {
+      const k = ease(t);
+      setHands(POSE[0] + (shortest(POSE[0], h) - POSE[0]) * k, POSE[1] + (shortest(POSE[1], m) - POSE[1]) * k, POSE[2] + (shortest(POSE[2], s) - POSE[2]) * k);
+    } else {
+      const beat = Math.floor(d.getTime() / 125);
+      if (beat !== lastBeat) { lastBeat = beat; setHands(h, m, s); }
+    }
+    const txt = pad(real.getHours()) + ':' + pad(real.getMinutes()) + ':' + pad(real.getSeconds());
+    if (txt !== lastText) {
+      lastText = txt; nowOut.textContent = txt;
+      dateTxt.textContent = real.getDate();
+    }
+  }
+  setHands(POSE[0], POSE[1], POSE[2]);
+
+  /* ---------- crown: hacking seconds ---------- */
+  const crown = $('#crown');
+  function toggleCrown() {
+    hacked = !hacked;
+    crown.classList.toggle('pulled', hacked);
+    crown.setAttribute('aria-pressed', String(hacked));
+    if (hacked) hackFrozen = new Date(Date.now() - hackOffset);
+    else { hackOffset = 0; hackFrozen = null; lastBeat = -1; }
+  }
+  crown.setAttribute('aria-pressed', 'false');
+  crown.addEventListener('click', e => { e.stopPropagation(); toggleCrown(); });
+  crown.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCrown(); } });
+
+  /* ---------- tilt + moving reflection ---------- */
+  const stage = $('#watchStage'), tilt = $('#tilt'), glare = $('#glare'), floor = $('#floorShadow');
+  let tx = 0, ty = 0, cx = 0, cy = 0;
+  stage.addEventListener('pointermove', e => {
+    if (reduce || e.pointerType === 'touch') return;
+    const b = tilt.getBoundingClientRect();
+    tx = Math.max(-1, Math.min(1, (e.clientX - (b.left + b.width / 2)) / (b.width / 2)));
+    ty = Math.max(-1, Math.min(1, (e.clientY - (b.top + b.height / 2)) / (b.height / 2)));
+  });
+  stage.addEventListener('pointerleave', () => { tx = 0; ty = 0; });
+  function applyTilt(dt) {
+    const k = 1 - Math.exp(-dt * 5);
+    cx += (tx - cx) * k; cy += (ty - cy) * k;
+    if (Math.abs(cx) < 1e-4 && Math.abs(cy) < 1e-4 && tx === 0 && ty === 0) return;
+    tilt.style.transform = 'rotateX(' + f2(-cy * 7) + 'deg) rotateY(' + f2(cx * 9) + 'deg)';
+    glare.setAttribute('transform', 'translate(' + f2(-cx * 34) + ' ' + f2(-cy * 30) + ')');
+    floor.setAttribute('transform', 'translate(' + f2(-cx * 14) + ' ' + f2(-cy * 10) + ')');
+  }
+
+  /* ---------- dial variants ---------- */
+  const NOTES = {
+    ivory:['Ivoire', 'Ivoire: a warm opaline dial with gilt applied indices and a blued-steel seconds hand.'],
+    midnight:['Minuit', 'Minuit: a sunray midnight-blue dial that turns from ink to indigo as it meets the light, with rhodium indices.'],
+    salmon:['Saumon', 'Saumon: a soft salmon opaline, the colour of 1940s chronographs, with rhodium hands and a blued seconds hand.']
+  };
+  const swatches = $$('.swatch');
+  function setVariant(v, focus, fromForm) {
+    document.body.classList.remove('v-midnight', 'v-salmon');
+    if (v !== 'ivory') document.body.classList.add('v-' + v);
+    swatches.forEach(s => { const on = s.dataset.v === v; s.setAttribute('aria-checked', String(on)); s.tabIndex = on ? 0 : -1; if (on && focus) s.focus(); });
+    $('#dialName').textContent = NOTES[v][0];
+    $('#dialNote').textContent = NOTES[v][1];
+    if (!fromForm) { const r = $('#rd-' + v); if (r) r.checked = true; }
+    store.set('mv-dial', v);
+  }
+  swatches.forEach((s, i) => {
+    s.addEventListener('click', () => setVariant(s.dataset.v));
+    s.addEventListener('keydown', e => {
+      const d = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 0;
+      if (d) { e.preventDefault(); setVariant(swatches[(i + d + 3) % 3].dataset.v, true); }
+    });
+  });
+  $$('input[name="dial"]').forEach(r => r.addEventListener('change', () => setVariant(r.value, false, true)));
+  const saved = store.get('mv-dial');
+  if (saved && NOTES[saved]) setVariant(saved);
+
+  /* ---------- night ---------- */
+  const nightBtn = $('#nightBtn');
+  nightBtn.addEventListener('click', () => {
+    const on = !document.body.classList.contains('night');
+    document.body.classList.toggle('night', on);
+    nightBtn.setAttribute('aria-pressed', String(on));
+    nightBtn.querySelector('.lbl').textContent = on ? 'Day' : 'Night';
+  });
+
+  /* ---------- nav state ---------- */
+  const nav = $('#nav');
+  const onScrollNav = () => nav.classList.toggle('scrolled', scrollY > 40);
+
+  /* ---------- exploded movement ---------- */
+  (function buildMovement() {
+    // bearings on the rotor
+    const bg = $('#bearings');
+    for (let i = 0; i < 12; i++) { const a = i * 30 * RAD; make('circle', { cx:f2(16.5 * Math.cos(a)), cy:f2(16.5 * Math.sin(a)), r:2.6 }, bg); }
+    // jewels on the bridges
+    const jw = $('#jewels');
+    [[-60, -60], [-20, -88], [20, -30], [-96, 6], [-40, 90], [110, -40]].forEach(([x, y]) => {
+      make('circle', { cx:x, cy:y, r:7, fill:'#d8c3a5', stroke:'#8e7040', 'stroke-width':'.6' }, jw);
+      make('circle', { cx:x, cy:y, r:3.8, fill:'url(#jewel)' }, jw);
+      make('circle', { cx:x + 12, cy:y + 6, r:3.4, fill:'#1b2a41', stroke:'#8f98a3', 'stroke-width':'.6' }, jw);
+      make('path', { d:'M' + (x + 10) + ' ' + (y + 6) + 'h4', stroke:'#8f98a3', 'stroke-width':'.8' }, jw);
+    });
+    const sc = $('#balScrews');
+    for (let i = 0; i < 12; i++) { const a = i * 30 * RAD; make('circle', { cx:f2(38 * Math.cos(a)), cy:f2(38 * Math.sin(a)), r:2.1 }, sc); }
+    let sp = 'M0 0';
+    for (let t = 0; t < 7 * Math.PI; t += 0.18) { const r = 3 + t * 1.2; sp += 'L' + f2(r * Math.cos(t)) + ' ' + f2(r * Math.sin(t)); }
+    $('#hairspring').setAttribute('d', sp);
+    // going train: wheels drawn with dashed teeth
+    const tr = $('#train');
+    const wheels = [[-62, -56, 40, '#d9b76c'], [-66, 50, 42, '#d9b76c'], [8, -16, 30, '#e3c787'], [52, -70, 22, '#e3c787'], [58, 20, 18, '#c9a660'], [88, 70, 14, '#e8d09a']];
+    wheels.forEach(([x, y, r, c], i) => {
+      const g = make('g', { transform:'translate(' + x + ' ' + y + ')' }, tr);
+      const circ = 2 * Math.PI * r, teeth = Math.round(r * 1.6);
+      make('circle', { r:r + 1.8, fill:'none', stroke:c, 'stroke-width':'3.6', 'stroke-dasharray':f2(circ / teeth / 2) + ' ' + f2(circ / teeth / 2) }, g);
+      make('circle', { r:r, fill:c, stroke:'#7a5d30', 'stroke-width':'.6' }, g);
+      make('circle', { r:r * 0.78, fill:'#b89a5c', opacity:'.45' }, g);
+      for (let k = 0; k < 4; k++) make('path', { d:'M0 0L' + f2(r * .78 * Math.cos(k * Math.PI / 2 + .6)) + ' ' + f2(r * .78 * Math.sin(k * Math.PI / 2 + .6)), stroke:c, 'stroke-width':f2(Math.max(2, r / 8)) }, g);
+      make('circle', { r:Math.max(3, r / 5), fill:'#8e7040' }, g);
+      make('circle', { r:2, fill:'url(#jewel)' }, g);
+      if (i < 2) make('circle', { r:r * 0.5, fill:'none', stroke:'#7a5d30', 'stroke-width':'.8', opacity:'.6' }, g);
+    });
+    // plan-view minute ticks on the technical drawing
+    const pt2 = $('#planTicks');
+    let pd = '';
+    for (let m = 0; m < 60; m++) { const a = m * 6 * RAD, r0 = m % 5 ? 89 : 84; pd += 'M' + f2(210 + r0 * Math.sin(a)) + ' ' + f2(200 - r0 * Math.cos(a)) + 'L' + f2(210 + 93 * Math.sin(a)) + ' ' + f2(200 - 93 * Math.cos(a)); }
+    make('path', { d:pd, 'stroke-width':'.7' }, pt2);
+    // mini dial indices
+    const mi = $('#miniIdx');
+    for (let h = 0; h < 12; h++) { if (h === 3) continue; make('rect', { x:-2.6, y:-132, width:5.2, height:26, rx:1, transform:'rotate(' + h * 30 + ')', class:'fade', style:'fill:var(--idx)', stroke:'rgba(0,0,0,.25)', 'stroke-width':'.5' }, mi); }
+  })();
+
+  const layers = $$('.layer'), labels = $$('.mv-label'), mvSection = $('#movement'), mvStage = $('#mvStage'), stack = $('#stack'), bar = $('#mvBar');
+  const N = layers.length;
+  let mvP = -1;
+  function layoutMovement(force) {
+    const r = mvSection.getBoundingClientRect();
+    const total = mvSection.offsetHeight - innerHeight;
+    let p = total > 0 ? Math.min(1, Math.max(0, -r.top / (total * 0.78))) : 1;
+    if (reduce) p = 1;
+    if (!force && Math.abs(p - mvP) < 0.0005) return;
+    mvP = p;
+    const e = ease(p);
+    const disc = stack.offsetWidth;
+    const gap = disc * 0.3 * e;
+    const TILT = 62 * RAD, PERS = 2200;
+    const st = mvStage.getBoundingClientRect();
+    const ox = stack.offsetLeft + disc / 2, oy = stack.offsetTop + disc / 2;
+    stack.style.transform = 'rotateX(62deg) rotateZ(' + f2(-24 + e * 30) + 'deg)';
+    const narrow = st.width < 560;
+    layers.forEach(L => {
+      const i = +L.dataset.i;
+      const z = ((N - 1) / 2 - i) * gap;
+      L.style.transform = 'translateZ(' + f2(z) + 'px)';
+    });
+    labels.forEach(lb => {
+      const i = +lb.dataset.i;
+      const z = ((N - 1) / 2 - i) * gap;
+      const s = PERS / (PERS - z * Math.cos(TILT));
+      const y = oy - z * Math.sin(TILT) * s;
+      const x = ox + disc / 2 * s + 6;
+      const labelX = Math.max(x + 18, ox + disc / 2 + (narrow ? 22 : 70));
+      lb.style.setProperty('--lead', f2(labelX - x) + 'px');
+      lb.style.transform = 'translate(' + f2(x) + 'px,' + f2(y - lb.offsetHeight / 2) + 'px)';
+      const o = Math.min(1, Math.max(0, (p - 0.18 - i * 0.05) / 0.22));
+      lb.style.opacity = f2(o);
+    });
+    bar.style.transform = 'scaleX(' + f2(p) + ')';
+  }
+
+  /* ---------- reserve ---------- */
+  const form = $('#resForm');
+  function showConfirm(ref, txt) {
+    $('#refOut').textContent = ref;
+    $('#confirmTxt').textContent = txt;
+    $('#confirm').classList.add('show');
+  }
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const dial = form.dial.value, strap = form.strap.value, where = form.boutique.value;
+    const ref = 'MV-' + String(Math.floor(1000 + Math.random() * 8999));
+    const when = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+    const txt = 'Calibre 01, ' + NOTES[dial][0] + ' dial on ' + strap.toLowerCase() + ', to collect at ' + where + '. Held for thirty days from ' + when + '. (A design study: nothing has been sent.)';
+    showConfirm(ref, txt);
+    store.set('mv-reservation', JSON.stringify({ ref, txt }));
+  });
+  try { const prev = JSON.parse(store.get('mv-reservation') || 'null'); if (prev && prev.ref) showConfirm(prev.ref, prev.txt); } catch (_) {}
+
+  /* ---------- loop ---------- */
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    tickClock(now);
+    applyTilt(dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  let scheduled = false;
+  function onScroll() {
+    onScrollNav();
+    if (scheduled) return; scheduled = true;
+    requestAnimationFrame(() => { scheduled = false; layoutMovement(); });
+  }
+  addEventListener('scroll', onScroll, { passive:true });
+  addEventListener('resize', () => layoutMovement(true));
+  onScrollNav();
+  layoutMovement(true);
+  mq.addEventListener && mq.addEventListener('change', e => { reduce = e.matches; layoutMovement(true); });
+})();
+</script>
+</body>
+</html>

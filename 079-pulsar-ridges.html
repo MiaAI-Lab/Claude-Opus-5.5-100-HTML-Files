@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pulsar Ridges — Stacked Signal Lines</title>
+<meta name="description" content="Pulsar Ridges: sixty stacked, occluding signal lines that roll like a landscape. Steer the peaks with your pointer and click through Pulsar, Terrain, Audio and Heartbeat signals.">
+<meta name="theme-color" content="#000000">
+<style>
+:root{
+  --ink:#f5f5f5; --dim:rgba(245,245,245,.5); --faint:rgba(245,245,245,.16);
+  --mono:"SF Mono","IBM Plex Mono",Menlo,Consolas,"Roboto Mono","DejaVu Sans Mono","Liberation Mono","Nimbus Mono PS",monospace;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+[hidden]{ display:none !important; }
+html,body{ margin:0; height:100%; background:#000; overflow:hidden; }
+body{ color:var(--ink); font-family:var(--mono); -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent; }
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+#plot{ position:fixed; left:0; top:0; display:block; touch-action:none; cursor:crosshair; outline:none; }
+#plot:focus-visible{ box-shadow:inset 0 0 0 1px rgba(245,245,245,.35); }
+
+.credit{
+  position:fixed; left:0; right:0; bottom:clamp(18px, 4.2vh, 44px); text-align:center; pointer-events:none;
+  text-transform:uppercase; transition:color .6s ease;
+}
+.credit p{ margin:0; }
+.c1{ font-size:11px; letter-spacing:.62em; padding-left:.62em; color:var(--ink); opacity:.9; }
+.c2{ margin-top:10px !important; font-size:9.5px; letter-spacing:.42em; padding-left:.42em; color:var(--dim); }
+.c2 b{ font-weight:400; color:var(--ink); opacity:.85; }
+.c2 b.flash{ animation:flash .9s ease-out; }
+@keyframes flash{ 0%{ opacity:1; text-shadow:0 0 12px rgba(245,245,245,.9); } 100%{ opacity:.85; text-shadow:none; } }
+body.amber .credit .c1, body.amber .c2 b{ color:#ffb000; }
+
+.corner{
+  position:fixed; bottom:clamp(14px, 3.6vh, 38px); z-index:3;
+  font:inherit; font-size:9.5px; letter-spacing:.34em; text-transform:uppercase; color:var(--dim);
+  background:transparent; border:0; padding:10px 6px 10px 10px; cursor:pointer; transition:color .25s;
+}
+.corner:hover, .corner[aria-expanded="true"]{ color:var(--ink); }
+.corner:focus-visible, .panel button:focus-visible, .panel input:focus-visible{ outline:1px solid var(--ink); outline-offset:3px; }
+#setBtn{ right:clamp(12px, 3vw, 40px); }
+#sndBtn{ left:clamp(12px, 3vw, 40px); }
+#sndBtn i{ display:inline-block; width:6px; height:6px; margin-right:10px; border:1px solid currentColor; vertical-align:1px; }
+#sndBtn[aria-pressed="true"] i{ background:currentColor; }
+
+.panel{
+  position:fixed; z-index:4; right:clamp(12px, 3vw, 40px); bottom:calc(clamp(14px, 3.6vh, 38px) + 44px); width:312px;
+  padding:20px 20px 16px; background:rgba(0,0,0,.94); border:1px solid #262626;
+  font-size:9.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim);
+  opacity:0; transform:translateY(8px); transition:opacity .25s ease, transform .25s ease; pointer-events:none;
+}
+.panel.open{ opacity:1; transform:none; pointer-events:auto; }
+.row{ margin-bottom:16px; }
+.row > .lab{ display:flex; justify-content:space-between; margin-bottom:9px; }
+.row output{ color:var(--ink); letter-spacing:.12em; }
+.chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.chips button{
+  font:inherit; letter-spacing:.2em; text-transform:uppercase; color:var(--dim); background:transparent;
+  border:1px solid #2c2c2c; padding:7px 8px 6px 9px; cursor:pointer; transition:all .2s;
+}
+.chips button:hover{ color:var(--ink); border-color:#555; }
+.chips button[aria-pressed="true"]{ color:#000; background:var(--ink); border-color:var(--ink); }
+input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:18px; background:transparent; margin:0; cursor:pointer; }
+input[type=range]::-webkit-slider-runnable-track{ height:1px; background:#3a3a3a; }
+input[type=range]::-moz-range-track{ height:1px; background:#3a3a3a; }
+input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:9px; height:9px; margin-top:-4px; background:var(--ink); border:0; border-radius:0; }
+input[type=range]::-moz-range-thumb{ width:9px; height:9px; background:var(--ink); border:0; border-radius:0; }
+.actions{ display:flex; gap:6px; margin-top:4px; }
+.actions button{ flex:1; }
+.note{ margin:14px 0 0; padding-top:12px; border-top:1px solid #1e1e1e; font-size:8.5px; line-height:1.9; letter-spacing:.16em; color:rgba(245,245,245,.38); text-transform:none; }
+.keys{ margin:8px 0 0; font-size:8.5px; letter-spacing:.16em; color:rgba(245,245,245,.3); line-height:1.9; text-transform:none; }
+
+.toast{
+  position:fixed; left:50%; top:clamp(18px, 4vh, 40px); transform:translateX(-50%); pointer-events:none;
+  font-size:9.5px; letter-spacing:.5em; padding-left:.5em; text-transform:uppercase; color:var(--ink);
+  opacity:0; transition:opacity .5s ease;
+}
+.toast.show{ opacity:.85; }
+
+@media (max-width: 640px){
+  .c1{ font-size:10px; letter-spacing:.5em; padding-left:.5em; }
+  .c2{ font-size:8.5px; letter-spacing:.3em; padding-left:.3em; line-height:1.9; }
+  .c2 .hint{ display:block; }
+  .c2 .dot{ display:none; }
+  .credit{ bottom:calc(58px + env(safe-area-inset-bottom)); }
+  .corner{ bottom:calc(10px + env(safe-area-inset-bottom)); }
+  .panel{ left:10px; right:10px; width:auto; bottom:calc(56px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce){
+  .panel, .toast, .credit{ transition:none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <h1 class="sr">Pulsar Ridges</h1>
+  <canvas id="plot" tabindex="0" role="img" aria-label="Sixty stacked ridge lines drawn in white on black, animating like rolling signals. Click or press Space to change the signal mode."></canvas>
+  <div class="toast" id="toast" aria-live="polite"></div>
+  <footer class="credit" id="credit">
+    <p class="c1">Pulsar Ridges</p>
+    <p class="c2"><b id="cLines">60</b> lines · signal <b id="cMode">01 / pulsar</b> <span class="hint"><span class="dot">· </span><span id="cHint">click to change</span></span></p>
+  </footer>
+  <button type="button" class="corner" id="sndBtn" aria-pressed="true" hidden><i></i>Sound</button>
+  <button type="button" class="corner" id="setBtn" aria-expanded="false" aria-controls="panel">Settings</button>
+  <section class="panel" id="panel" aria-label="Settings" aria-hidden="true">
+    <div class="row">
+      <div class="lab"><span>Signal</span></div>
+      <div class="chips" id="modeChips" role="group" aria-label="Signal mode">
+        <button type="button" data-mode="pulsar" aria-pressed="true">Pulsar</button>
+        <button type="button" data-mode="terrain" aria-pressed="false">Terrain</button>
+        <button type="button" data-mode="audio" aria-pressed="false">Audio</button>
+        <button type="button" data-mode="heartbeat" aria-pressed="false">Heartbeat</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="lab"><label for="rLines">Lines</label><output id="oLines" for="rLines">60</output></div>
+      <input type="range" id="rLines" min="20" max="100" step="1" value="60">
+    </div>
+    <div class="row">
+      <div class="lab"><label for="rAmp">Amplitude</label><output id="oAmp" for="rAmp">1.00</output></div>
+      <input type="range" id="rAmp" min="0.2" max="2" step="0.01" value="1">
+    </div>
+    <div class="row">
+      <div class="lab"><label for="rSpeed">Speed</label><output id="oSpeed" for="rSpeed">1.00</output></div>
+      <input type="range" id="rSpeed" min="0" max="2.5" step="0.01" value="1">
+    </div>
+    <div class="row">
+      <div class="lab"><span>Colour</span></div>
+      <div class="chips" id="colChips" role="group" aria-label="Colour mode">
+        <button type="button" data-col="white" aria-pressed="true">White</button>
+        <button type="button" data-col="amber" aria-pressed="false">Amber</button>
+        <button type="button" data-col="spectrum" aria-pressed="false">Spectrum</button>
+      </div>
+    </div>
+    <div class="chips actions">
+      <button type="button" id="saveBtn">Save PNG</button>
+      <button type="button" id="freezeBtn" aria-pressed="false">Freeze</button>
+    </div>
+    <p class="note">The first pulsar found, PSR B1919+21 (1967), flashes every 1.337 seconds. Plots of its successive pulses, stacked like these ridges, became one of the most recognisable images in astronomy. Every signal here is synthesised live; the audio mode even ticks at that 1.337 s period.</p>
+    <p class="keys">1–4 signal · space next · C colour · [ ] lines · ↑↓ amplitude · ←→ speed · F freeze · S save · M sound</p>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const cv = $('#plot'), ctx = cv.getContext('2d');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+const MODES = ['pulsar', 'terrain', 'audio', 'heartbeat'];
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+
+/* ------------------------------------------------------------ settings (persisted, guarded) */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem('pulsar-ridges.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v){ try { localStorage.setItem('pulsar-ridges.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const S = {
+  mode: 'pulsar',
+  lines: clamp(+store.get('lines', 60) || 60, 20, 100),
+  amp: clamp(+store.get('amp', 1) || 1, .2, 2),
+  speed: clamp(+store.get('speed', 1), 0, 2.5),
+  color: ['white', 'amber', 'spectrum'].includes(store.get('color', 'white')) ? store.get('color', 'white') : 'white',
+  frozen: false
+};
+if (!isFinite(S.speed)) S.speed = 1;
+
+/* ------------------------------------------------------------ noise */
+function mulberry32(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const perm = new Uint8Array(512);
+(() => { const R = mulberry32(1919), b = []; for (let i = 0; i < 256; i++) b.push(i); for (let i = 255; i > 0; i--){ const j = Math.floor(R() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } for (let i = 0; i < 512; i++) perm[i] = b[i & 255]; })();
+const grad = (h, x, y) => { switch (h & 7){ case 0: return x + y; case 1: return -x + y; case 2: return x - y; case 3: return -x - y; case 4: return x; case 5: return -x; case 6: return y; default: return -y; } };
+function N2(x, y){
+  const xf = Math.floor(x), yf = Math.floor(y), X = xf & 255, Y = yf & 255; x -= xf; y -= yf;
+  const u = x * x * x * (x * (x * 6 - 15) + 10), v = y * y * y * (y * (y * 6 - 15) + 10);
+  const g1 = grad(perm[perm[X] + Y], x, y), g2 = grad(perm[perm[X + 1] + Y], x - 1, y);
+  const g3 = grad(perm[perm[X] + Y + 1], x, y - 1), g4 = grad(perm[perm[X + 1] + Y + 1], x - 1, y - 1);
+  const l1 = g1 + u * (g2 - g1), l2 = g3 + u * (g4 - g3);
+  return (l1 + v * (l2 - l1)) * .7;
+}
+const gauss = (x, m, s) => { const d = (x - m) / s; return Math.exp(-d * d); };
+const PK0 = new Float32Array(6), PKP = new Float32Array(6), PKS = new Float32Array(6);
+
+/* ------------------------------------------------------------ layout */
+let W = 0, H = 0, DPR = 1, box = { x: 0, y: 0, w: 0, h: 0 }, SAMPLES = 240;
+function layout(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = Math.round(window.innerWidth); H = Math.round(window.innerHeight);
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  const phone = W < 640;
+  const creditSpace = phone ? 118 : clamp(H * .16, 96, 150);
+  const top = phone ? 30 : clamp(H * .07, 36, 80);
+  let h = H - creditSpace - top;
+  let w = phone ? W - 28 : Math.min(W * .62, h * 1.02, 860);
+  if (!phone) h = Math.min(h, w * 1.18);
+  box = { x: Math.round((W - w) / 2), y: Math.round(top + (H - creditSpace - top - h) / 2), w: Math.round(w), h: Math.round(h) };
+  SAMPLES = clamp(Math.round(box.w / 2.6), 120, 340);
+  buf = new Float32Array(SAMPLES); bufB = new Float32Array(SAMPLES);
+  hist = null;
+}
+
+/* ------------------------------------------------------------ pointer (the source of the peaks) */
+const P = { tx: .5, ty: .5, x: .5, y: .5, on: 0, onT: 0, inside: false, down: null };
+function pointerTo(e){
+  const u = (e.clientX - box.x) / box.w, v = (e.clientY - box.y) / box.h;
+  P.tx = clamp(u, .08, .92); P.ty = clamp(v, 0, 1);
+  P.inside = u > -.15 && u < 1.15 && v > -.2 && v < 1.15;
+  P.onT = P.inside ? 1 : 0;
+  if (audio.ctx && S.mode === 'audio') audio.steer(P.tx, P.ty);
+}
+cv.addEventListener('pointermove', pointerTo);
+cv.addEventListener('pointerdown', e => {
+  pointerTo(e);
+  P.down = { x: e.clientX, y: e.clientY, t: performance.now() };
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+});
+cv.addEventListener('pointerup', e => {
+  const d = P.down; P.down = null;
+  if (e.pointerType === 'touch'){ P.onT = 0; }
+  if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10 && performance.now() - d.t < 600) nextMode();
+});
+cv.addEventListener('pointerleave', () => { if (!P.down) P.onT = 0; });
+cv.addEventListener('pointercancel', () => { P.down = null; P.onT = 0; });
+
+/* ------------------------------------------------------------ the four signals */
+let buf = null, bufB = null, hist = null, histHead = 0, histAcc = 0, histFrac = 0;
+function genPulsar(out, i, N, t, c){
+  const n = i * .92 - t * .7;
+  const k0 = PK0, kp = PKP, ks = PKS;
+  for (let k = 0; k < 6; k++){
+    kp[k] = c + .105 * N2(n * .3, k * 5.1 + 1.3) + (k - 2.5) * .021;
+    k0[k] = clamp(.18 + 1.2 * N2(n * .43 + 11, k * 2.7 + 9), 0, 1.3) * (k === 2 || k === 3 ? 1 : .78);
+    ks[k] = .011 + .026 * Math.abs(N2(n * .27 + 4, k * 1.9 + 3));
+  }
+  const L = out.length;
+  for (let s = 0; s < L; s++){
+    const u = s / (L - 1);
+    const env = gauss(u, c, .17);
+    let v = 0;
+    for (let k = 0; k < 6; k++) v += k0[k] * gauss(u, kp[k], ks[k]);
+    const hiss = N2(u * 46 + n * 1.7, n * .9 + t * 1.8) * .05 + N2(u * 140, n * 3.1) * .018;
+    out[s] = v * .92 + env * .22 * (N2(u * 6 + 3, n * .31) + .7) + hiss * (.35 + env);
+  }
+}
+function genTerrain(out, i, N, t, c){
+  const n = i * .3 - t * .55;
+  const L = out.length, fx = clamp(box.w / 720, .55, 1.2) * 3.2;
+  for (let s = 0; s < L; s++){
+    const u = s / (L - 1), x = (u - .5) * fx + (c - .5) * 1.4;
+    let r = 1 - Math.abs(N2(x * 1.1 + 7, n * .7)); r = r * r * r;
+    let r2 = 1 - Math.abs(N2(x * 2.5 - 3, n * 1.3 + 5)); r2 = r2 * r2 * r2;
+    const base = N2(x * .5 + 20, n * .26) * .5 + .5;
+    const env = .15 + .85 * gauss(u, c, .34);
+    out[s] = env * (r * .66 + r2 * .14 + base * .45 - .26) + N2(u * 90, n * 4) * .01;
+  }
+}
+function genHeart(out, i, N, t, c){
+  const L = out.length, Pd = .5;
+  const hrv = N2(i * .07, 3.3) * .05;
+  for (let s = 0; s < L; s++){
+    const u = s / (L - 1);
+    const ph = (u + i * .0205 - t * .24) / (Pd * (1 + hrv));
+    const beat = Math.floor(ph), f = ph - beat;
+    const bv = 1 + .12 * N2(beat * .71, i * .13);
+    let e = gauss(f, .2, .035) * .13 - gauss(f, .455, .011) * .12 + gauss(f, .48, .011) * 1.05 - gauss(f, .507, .012) * .3 + gauss(f, .7, .055) * .27;
+    const env = .32 + .68 * gauss(u, c, .3);
+    out[s] = e * bv * env + N2(u * 55, i * .8 + t * 2) * .018 + N2(u * 3 + i * .1, t * .2) * .03;
+  }
+}
+function genAudio(out, i, N){
+  if (!hist){ out.fill(0); return; }
+  const idx = (histHead - (N - 1 - i) + hist.length * 4) % hist.length;
+  out.set(hist[idx]);
+}
+const GENS = { pulsar: genPulsar, terrain: genTerrain, heartbeat: genHeart, audio: genAudio };
+
+/* audio waterfall: every tick the newest spectrum becomes the front line */
+function pushSpectrum(){
+  const L = SAMPLES;
+  if (!hist || hist.length !== 104 || hist[0].length !== L){ hist = []; for (let k = 0; k < 104; k++) hist.push(new Float32Array(L)); histHead = 0; }
+  histHead = (histHead + 1) % hist.length;
+  const row = hist[histHead];
+  const d = audio.data, c = P.x;
+  if (!d){ row.fill(0); return; }
+  const bins = d.length, hz = audio.ctx.sampleRate / 2 / bins, fLo = 30, fHi = 9000;
+  for (let s = 0; s < L; s++){
+    const u = s / (L - 1);
+    const q = clamp(Math.abs(u - c) / Math.max(c, 1 - c), 0, 1);
+    const fi = clamp(fLo * Math.pow(fHi / fLo, q) / hz, 1, bins - 2);
+    const f0 = Math.floor(fi), ft = fi - f0;
+    const v = clamp((lerp(d[f0], d[Math.min(bins - 1, f0 + 1)], ft) / 255 - .4) / .6, 0, 1);
+    row[s] = Math.pow(v, 1.5) * 1.35 * (1 - q * .3) + N2(u * 80, histHead * .5) * .012;
+  }
+}
+
+/* ------------------------------------------------------------ colour */
+function lineColor(i, N){
+  if (S.color === 'amber') return '#ffb000';
+  if (S.color === 'spectrum'){
+    const k = i / (N - 1);
+    const h = 250 + k * 170;
+    return `hsl(${(h % 360).toFixed(1)},${(78 + k * 10).toFixed(0)}%,${(56 + k * 8).toFixed(0)}%)`;
+  }
+  return '#f5f5f5';
+}
+
+/* ------------------------------------------------------------ drawing (shared by screen + PNG export) */
+let prevMode = null, blend = 1;
+function drawPlot(g, bx, t, scale){
+  const N = S.lines, amp = S.amp;
+  const sp = bx.h / (N - 1 + 7.4 * amp);
+  const A = sp * 7 * amp;
+  const top = bx.y + A * 1.06;
+  const lw = clamp(sp * .27, 1, 1.7) * scale;
+  const L = SAMPLES, dx = bx.w / (L - 1);
+  const c = P.x, pu = P.x, pv = P.y * (N - 1), on = P.on;
+  const roll = S.mode === 'audio' ? histFrac : 0;
+  g.lineJoin = 'round'; g.lineCap = 'round'; g.lineWidth = lw;
+  const fillBottom = sp * 1.05;
+  for (let i = 0; i < N; i++){
+    const gen = GENS[S.mode];
+    gen(buf, i, N, t, c);
+    if (blend < 1 && prevMode && GENS[prevMode]){
+      GENS[prevMode](bufB, i, N, t, c);
+      for (let s = 0; s < L; s++) buf[s] = lerp(bufB[s], buf[s], blend);
+    }
+    const di = i - pv, gi = Math.exp(-(di * di) / 60) * on;
+    const gain = 1 + gi * .75;
+    const y = top + (i + roll) * sp;
+    let alpha = 1;
+    if (S.mode === 'audio'){ if (i === 0) alpha = 1 - roll; if (i === N - 1) alpha = clamp(roll * 4 + .15, 0, 1); }
+    g.beginPath();
+    for (let s = 0; s < L; s++){
+      const u = s / (L - 1);
+      let v = buf[s] * gain;
+      if (on > .001){ const du = (u - pu) / .075; v += on * Math.exp(-du * du - (di * di) / 26) * .95; }
+      const x = bx.x + s * dx, yy = y - v * A;
+      if (s === 0) g.moveTo(x, yy); else g.lineTo(x, yy);
+    }
+    g.lineTo(bx.x + bx.w, y + fillBottom); g.lineTo(bx.x, y + fillBottom); g.closePath();
+    g.fillStyle = '#000'; g.fill();
+    g.beginPath();
+    for (let s = 0; s < L; s++){
+      const u = s / (L - 1);
+      let v = buf[s] * gain;
+      if (on > .001){ const du = (u - pu) / .075; v += on * Math.exp(-du * du - (di * di) / 26) * .95; }
+      const x = bx.x + s * dx, yy = y - v * A;
+      if (s === 0) g.moveTo(x, yy); else g.lineTo(x, yy);
+    }
+    g.globalAlpha = alpha;
+    g.strokeStyle = lineColor(i, N); g.stroke();
+    g.globalAlpha = 1;
+  }
+}
+function frame(t){
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  drawPlot(ctx, box, t, 1);
+}
+
+/* ------------------------------------------------------------ audio: a synthesised drone analysed live */
+const audio = {
+  ctx: null, an: null, data: null, out: null, filt: null, voices: [], muted: false, timer: 0, chordTimer: 0,
+  start(){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    if (!this.ctx){
+      try { this.ctx = new AC(); } catch (e) { return false; }
+      const a = this.ctx;
+      this.an = a.createAnalyser(); this.an.fftSize = 2048; this.an.smoothingTimeConstant = .5; this.an.minDecibels = -96; this.an.maxDecibels = -16;
+      this.data = new Uint8Array(this.an.frequencyBinCount);
+      this.bus = a.createGain(); this.bus.gain.value = 0;
+      this.out = a.createGain(); this.out.gain.value = this.muted ? 0 : 1;
+      this.filt = a.createBiquadFilter(); this.filt.type = 'lowpass'; this.filt.frequency.value = 900; this.filt.Q.value = 6;
+      const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = .06; lg.gain.value = 520;
+      lfo.connect(lg).connect(this.filt.frequency); lfo.start();
+      this.filt.connect(this.bus);
+      this.bus.connect(this.an);
+      this.bus.connect(this.out).connect(a.destination);
+      const mk = (type, f, g, det) => { const o = a.createOscillator(), gn = a.createGain(); o.type = type; o.frequency.value = f; if (det) o.detune.value = det; gn.gain.value = g; o.connect(gn).connect(this.filt); o.start(); this.voices.push(o); return o; };
+      mk('sawtooth', 55, .22, -6); mk('sawtooth', 55, .22, 7); mk('sine', 110, .2);
+      this.fifth = mk('triangle', 164.81, .12); this.top = mk('sine', 329.63, .04);
+      mk('square', 27.5, .05);
+      this.pulseAt = a.currentTime + .3;
+      this.timer = setInterval(() => this.schedule(), 200);
+      this.chordTimer = setInterval(() => this.chord(), 11000);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    const now = this.ctx.currentTime;
+    this.bus.gain.cancelScheduledValues(now); this.bus.gain.setTargetAtTime(.22, now, .6);
+    return true;
+  },
+  schedule(){
+    const a = this.ctx; if (!a || S.mode !== 'audio') return;
+    while (this.pulseAt < a.currentTime + .5){
+      const t = this.pulseAt;
+      const len = Math.floor(a.sampleRate * .09), b = a.createBuffer(1, len, a.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 5);
+      const src = a.createBufferSource(); src.buffer = b;
+      const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 700 + Math.random() * 900; bp.Q.value = 1.3;
+      const g = a.createGain(); g.gain.value = .9;
+      src.connect(bp).connect(g).connect(this.bus); src.start(t);
+      const o = a.createOscillator(), og = a.createGain(); o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(440, t + .12);
+      og.gain.setValueAtTime(.0001, t); og.gain.exponentialRampToValueAtTime(.25, t + .004); og.gain.exponentialRampToValueAtTime(.0001, t + .16);
+      o.connect(og).connect(this.bus); o.start(t); o.stop(t + .18);
+      this.pulseAt += 1.3373;
+    }
+  },
+  chord(){
+    const a = this.ctx; if (!a || S.mode !== 'audio') return;
+    const opts = [[164.81, 329.63], [146.83, 293.66], [196.0, 392.0], [130.81, 261.63]];
+    const [f1, f2] = opts[Math.floor(Math.random() * opts.length)];
+    this.fifth.frequency.setTargetAtTime(f1, a.currentTime, 1.2);
+    this.top.frequency.setTargetAtTime(f2, a.currentTime, 1.6);
+  },
+  steer(u, v){
+    if (!this.ctx) return;
+    const f = 180 * Math.pow(18, 1 - v);
+    this.filt.frequency.setTargetAtTime(f, this.ctx.currentTime, .12);
+  },
+  stop(){
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    this.bus.gain.cancelScheduledValues(now); this.bus.gain.setTargetAtTime(0, now, .25);
+    setTimeout(() => { if (S.mode !== 'audio' && this.ctx && this.ctx.state === 'running') this.ctx.suspend().catch(() => {}); }, 1400);
+  },
+  setMuted(m){
+    this.muted = m;
+    if (this.out) this.out.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, .05);
+    $('#sndBtn').setAttribute('aria-pressed', String(!m));
+  },
+  read(){ if (this.an) this.an.getByteFrequencyData(this.data); }
+};
+
+/* ------------------------------------------------------------ modes + UI */
+const toastEl = $('#toast'); let toastT = 0;
+function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 1600); }
+function setMode(m, silent){
+  if (m === S.mode && !silent) return;
+  if (!silent){ prevMode = S.mode; blend = 0; }
+  S.mode = m;
+  if (m === 'audio'){
+    const ok = audio.start();
+    $('#sndBtn').hidden = false;
+    if (!ok){ toast('audio unavailable'); }
+  } else {
+    audio.stop();
+    $('#sndBtn').hidden = true;
+  }
+  document.querySelectorAll('#modeChips button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  $('#cMode').textContent = String(MODES.indexOf(m) + 1).padStart(2, '0') + ' / ' + m;
+  if (!silent){ const cm = $("#cMode"); cm.classList.remove("flash"); void cm.offsetWidth; cm.classList.add("flash"); }
+}
+function nextMode(){ setMode(MODES[(MODES.indexOf(S.mode) + 1) % MODES.length]); }
+function setColor(c){
+  S.color = c; store.set('color', c);
+  document.body.classList.toggle('amber', c === 'amber');
+  document.querySelectorAll('#colChips button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.col === c)));
+}
+function syncRanges(){
+  $('#rLines').value = S.lines; $('#oLines').textContent = S.lines; $('#cLines').textContent = S.lines;
+  $('#rAmp').value = S.amp; $('#oAmp').textContent = S.amp.toFixed(2);
+  $('#rSpeed').value = S.speed; $('#oSpeed').textContent = S.speed.toFixed(2);
+}
+$('#rLines').addEventListener('input', e => { S.lines = +e.target.value; store.set('lines', S.lines); syncRanges(); });
+$('#rAmp').addEventListener('input', e => { S.amp = +e.target.value; store.set('amp', S.amp); syncRanges(); });
+$('#rSpeed').addEventListener('input', e => { S.speed = +e.target.value; store.set('speed', S.speed); syncRanges(); });
+document.querySelectorAll('#modeChips button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+document.querySelectorAll('#colChips button').forEach(b => b.addEventListener('click', () => setColor(b.dataset.col)));
+const panel = $('#panel'), setBtn = $('#setBtn');
+function togglePanel(open){
+  const o = open == null ? !panel.classList.contains('open') : open;
+  panel.classList.toggle('open', o); panel.setAttribute('aria-hidden', String(!o));
+  setBtn.setAttribute('aria-expanded', String(o));
+  setBtn.textContent = o ? 'Close' : 'Settings';
+}
+setBtn.addEventListener('click', () => togglePanel());
+$('#sndBtn').addEventListener('click', () => audio.setMuted(!audio.muted));
+$('#freezeBtn').addEventListener('click', () => { S.frozen = !S.frozen; $('#freezeBtn').setAttribute('aria-pressed', String(S.frozen)); toast(S.frozen ? 'frozen' : 'running'); });
+$('#saveBtn').addEventListener('click', savePNG);
+
+window.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = e.target && e.target.tagName;
+  if (tag === 'INPUT') return;
+  const k = e.key;
+  if (/^[1-4]$/.test(k)){ setMode(MODES[+k - 1]); return; }
+  if ((k === ' ' || k === 'Enter') && tag !== 'BUTTON'){ e.preventDefault(); nextMode(); return; }
+  const low = k.toLowerCase();
+  if (low === 'c'){ const cs = ['white', 'amber', 'spectrum']; setColor(cs[(cs.indexOf(S.color) + 1) % 3]); toast(S.color); }
+  else if (k === '['){ S.lines = clamp(S.lines - 4, 20, 100); store.set('lines', S.lines); syncRanges(); }
+  else if (k === ']'){ S.lines = clamp(S.lines + 4, 20, 100); store.set('lines', S.lines); syncRanges(); }
+  else if (k === 'ArrowUp'){ e.preventDefault(); S.amp = clamp(+(S.amp + .1).toFixed(2), .2, 2); store.set('amp', S.amp); syncRanges(); }
+  else if (k === 'ArrowDown'){ e.preventDefault(); S.amp = clamp(+(S.amp - .1).toFixed(2), .2, 2); store.set('amp', S.amp); syncRanges(); }
+  else if (k === 'ArrowRight'){ e.preventDefault(); S.speed = clamp(+(S.speed + .1).toFixed(2), 0, 2.5); store.set('speed', S.speed); syncRanges(); }
+  else if (k === 'ArrowLeft'){ e.preventDefault(); S.speed = clamp(+(S.speed - .1).toFixed(2), 0, 2.5); store.set('speed', S.speed); syncRanges(); }
+  else if (low === 'f'){ $('#freezeBtn').click(); }
+  else if (low === 's'){ savePNG(); }
+  else if (low === 'm'){ if (S.mode === 'audio') audio.setMuted(!audio.muted); }
+  else if (k === 'Escape'){ togglePanel(false); }
+  else if (k === ','){ togglePanel(); }
+});
+
+/* ------------------------------------------------------------ PNG export (poster with credit line) */
+function tracked(g, text, cx, y, spacing){
+  let w = 0; const ws = [];
+  for (const ch of text){ const m = g.measureText(ch).width; ws.push(m); w += m + spacing; }
+  w -= spacing;
+  let x = cx - w / 2, i = 0;
+  for (const ch of text){ g.fillText(ch, x, y); x += ws[i++] + spacing; }
+}
+function savePNG(){
+  const PW = 2400, PH = 3000;
+  const c = document.createElement('canvas'); c.width = PW; c.height = PH;
+  const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0, 0, PW, PH);
+  const bx = { x: 330, y: 320, w: PW - 660, h: 2080 };
+  const oldBox = box, oldSamples = SAMPLES, oldBuf = buf, oldB = bufB;
+  SAMPLES = 520; buf = new Float32Array(SAMPLES); bufB = new Float32Array(SAMPLES);
+  const keepHist = hist; if (S.mode === 'audio') hist = null;
+  if (S.mode === 'audio' && keepHist){
+    hist = keepHist.map(r => { const o = new Float32Array(SAMPLES); for (let s = 0; s < SAMPLES; s++){ const f = s / (SAMPLES - 1) * (r.length - 1), i0 = Math.floor(f); o[s] = lerp(r[i0], r[Math.min(r.length - 1, i0 + 1)], f - i0); } return o; });
+  }
+  drawPlot(g, bx, time, 3.2);
+  hist = keepHist; SAMPLES = oldSamples; buf = oldBuf; bufB = oldB; box = oldBox;
+  g.fillStyle = S.color === 'amber' ? '#ffb000' : '#f5f5f5';
+  g.textBaseline = 'alphabetic';
+  g.font = '34px "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace';
+  tracked(g, 'PULSAR RIDGES', PW / 2, 2640, 22);
+  g.globalAlpha = .55; g.font = '24px "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace';
+  tracked(g, `${S.lines} LINES · SIGNAL ${String(MODES.indexOf(S.mode) + 1).padStart(2, '0')} / ${S.mode.toUpperCase()}`, PW / 2, 2720, 11);
+  g.globalAlpha = 1;
+  const name = `pulsar-ridges-${S.mode}.png`;
+  const U = window.URL, mk = U.createObjectURL.bind(U), rm = U.revokeObjectURL.bind(U);
+  const go = href => { const a = document.createElement('a'); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
+  try { c.toBlob(b => { if (!b) return; const u = mk(b); go(u); setTimeout(() => rm(u), 5000); toast('saved png'); }); }
+  catch (err) { try { go(c.toDataURL()); } catch (e2) { toast('export blocked'); } }
+}
+
+/* ------------------------------------------------------------ loop */
+let time = 0, last = performance.now();
+function loop(now){
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (!document.hidden){
+    const sp = reduced.matches ? S.speed * .35 : S.speed;
+    if (!S.frozen) time += dt * sp;
+    if (blend < 1) blend = Math.min(1, blend + dt / .7);
+    const ease = 1 - Math.exp(-dt * 6);
+    P.x += (((P.onT && P.inside) ? P.tx : .5) - P.x) * ease * .8;
+    P.y += (P.ty - P.y) * ease;
+    P.on += (P.onT - P.on) * (1 - Math.exp(-dt * 3.5));
+    if (S.mode === 'audio' || (prevMode === 'audio' && blend < 1)){
+      audio.read();
+      if (!S.frozen){
+        histAcc += dt * (sp || .0001) / .075;
+        while (histAcc >= 1){ histAcc -= 1; pushSpectrum(); }
+        histFrac = histAcc;
+      }
+    }
+    frame(time);
+  }
+  requestAnimationFrame(loop);
+}
+
+let rz = 0;
+window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { layout(); frame(time); }, 60); });
+layout();
+syncRanges();
+if (window.matchMedia("(pointer: coarse)").matches) $("#cHint").textContent = "tap to change";
+setColor(S.color);
+setMode('pulsar', true);
+if (!reduced.matches) time = 4.2;
+requestAnimationFrame(t => { last = t; loop(t); });
+})();
+</script>
+</body>
+</html>

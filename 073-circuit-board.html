@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silicon — Living Circuit Board</title>
+<meta name="description" content="Silicon: a living printed circuit board in SVG. Power it up, watch cyan and warm-white signals race along gold traces between chips, overclock a processor and read voltages with a logic probe.">
+<meta name="theme-color" content="#0b1315">
+<style>
+:root{
+  --mat:#0b1315; --mat-line:rgba(120,190,180,.06); --mask:#0a4d2e; --gold:#d4a537; --gold-hi:#f6dc92;
+  --cyan:#3cf2ff; --warm:#fff1d0; --ink:#d7e6e0; --soft:#8fa9a1; --dim:#5d7470; --hot:#ff7a3c;
+  --mono:"SF Mono","JetBrains Mono","Menlo","Consolas","Liberation Mono","DejaVu Sans Mono",monospace;
+  --narrow:"DIN Alternate","Bahnschrift","Roboto Condensed","Arial Narrow","Nimbus Sans Narrow","Liberation Sans Narrow",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{
+  margin:0;min-height:100vh;color:var(--ink);font-family:var(--mono);
+  background-color:var(--mat);
+  background-image:
+    radial-gradient(1200px 800px at 38% 45%,rgba(40,90,80,.28),transparent 70%),
+    linear-gradient(var(--mat-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--mat-line) 1px,transparent 1px),
+    linear-gradient(rgba(120,190,180,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(120,190,180,.03) 1px,transparent 1px);
+  background-size:auto,80px 80px,80px 80px,16px 16px,16px 16px;
+}
+.skip{position:absolute;left:-999px;top:8px;z-index:30;background:var(--cyan);color:#021013;padding:8px 14px}
+.skip:focus{left:12px}
+.shell{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:26px;max-width:1420px;margin:0 auto;padding:18px 24px 26px;align-items:start}
+.bench{min-width:0;display:flex;justify-content:center}
+.boardwrap{position:relative;width:min(100%,calc((100vh - 36px) * 1000 / 920));aspect-ratio:1000/920;touch-action:manipulation;overflow:hidden;border-radius:2.8%}
+.boardwrap.probing{cursor:none;touch-action:none}
+#board{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#probeSvg{position:absolute;left:0;top:0;width:150px;height:150px;pointer-events:none;opacity:0;transition:opacity .2s;overflow:visible}
+.probing #probeSvg{opacity:1}
+.readout{position:absolute;left:0;top:0;pointer-events:none;opacity:0;padding:7px 10px 8px;min-width:150px;background:rgba(3,14,16,.92);border:1px solid rgba(60,242,255,.5);box-shadow:0 0 18px rgba(60,242,255,.18);font-size:12px;line-height:1.45;color:#bff9ff;white-space:nowrap}
+.probing .readout{opacity:1}
+.readout b{display:block;font-size:17px;color:#fff;letter-spacing:.02em}
+.readout i{font-style:normal;color:#78a9a8}
+.tip{position:absolute;left:0;top:0;z-index:5;pointer-events:none;width:240px;padding:11px 13px 12px;background:rgba(4,16,14,.94);border:1px solid rgba(212,165,55,.55);box-shadow:0 12px 30px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.03);color:var(--ink);font-size:12px;line-height:1.5;opacity:0;transform:translateY(6px);transition:opacity .18s,transform .18s}
+.tip.show{opacity:1;transform:none}
+.tip .ref{font-family:var(--narrow);font-size:20px;letter-spacing:.06em;color:var(--gold-hi)}
+.tip .ref small{font-family:var(--mono);font-size:11px;color:var(--soft);margin-left:8px;letter-spacing:0}
+.tip .part{color:#fff;margin:2px 0 6px}
+.tip ul{margin:0;padding:0;list-style:none;color:#a9c4bd}
+.tip li::before{content:"› ";color:var(--cyan)}
+.tip .live{margin-top:7px;padding-top:6px;border-top:1px dashed rgba(143,169,161,.3);color:var(--cyan)}
+.tip .live.warn{color:var(--hot)}
+
+/* ---------- board styling ---------- */
+.halo{fill:none;stroke:#0b5232;stroke-linecap:round;stroke-linejoin:round}
+.net path{fill:none;stroke-linecap:round;stroke-linejoin:round;transition:stroke .25s,opacity .25s}
+.tb{stroke:#8e6a1f}
+.tf{stroke:#d4a537}
+.th{stroke:#f8e3a4;opacity:.55}
+.net.hot .tb{stroke:#e8b94a}
+.net.hot .tf{stroke:#ffe7a0}
+.net.hot .th{stroke:#fff;opacity:1}
+.board-dim .net:not(.hot){opacity:.55}
+.silk{fill:none;stroke:#eef2ea;stroke-width:1.6;opacity:.88}
+.silkt{fill:#eef2ea;font-family:var(--mono);opacity:.9}
+.mark{fill:#9ea3a7;font-family:var(--mono);opacity:.85}
+.comp{cursor:pointer;outline:none}
+.comp .hit{fill:transparent;stroke:transparent;stroke-width:2;transition:stroke .2s}
+.comp:hover .hit,.comp.sel .hit{stroke:rgba(60,242,255,.55);stroke-dasharray:5 4}
+.comp:focus-visible .hit{stroke:#3cf2ff;stroke-width:3;stroke-dasharray:none}
+.oc .chipbody{filter:url(#heat)}
+.oc .epoxy{stroke:#ff7a3c;stroke-width:2}
+.lens{transition:fill .35s}
+.oled-t{font-family:var(--mono);fill:#a8f0ff;font-size:11.5px}
+.oled-dim{fill:#3c6b73}
+#oledGlass{transition:fill .5s}
+#knob{transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+.pwr-on #knob{transform:translateX(28px)}
+
+/* ---------- panel ---------- */
+.panel{position:sticky;top:18px;padding:22px 22px 20px;background:linear-gradient(180deg,rgba(9,24,24,.92),rgba(6,16,17,.92));border:1px solid rgba(143,169,161,.18);box-shadow:0 30px 60px -30px rgba(0,0,0,.8)}
+.panel::before{content:"";position:absolute;left:-1px;top:-1px;width:34px;height:34px;border-left:2px solid var(--gold);border-top:2px solid var(--gold)}
+.panel::after{content:"";position:absolute;right:-1px;bottom:-1px;width:34px;height:34px;border-right:2px solid var(--gold);border-bottom:2px solid var(--gold)}
+.kicker{margin:0;font-size:10.5px;letter-spacing:.28em;color:var(--dim)}
+h1{margin:6px 0 0;font-family:var(--narrow);font-weight:700;font-size:58px;line-height:.95;letter-spacing:.12em;color:#f3f7f2;text-shadow:0 0 22px rgba(60,242,255,.25)}
+h1 span{color:var(--gold)}
+.sub{margin:6px 0 0;font-family:var(--narrow);font-size:17px;letter-spacing:.3em;text-transform:uppercase;color:var(--cyan)}
+.intro{margin:14px 0 0;font-family:var(--narrow);font-size:15.5px;line-height:1.5;color:#a8c0b9}
+.ctrl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.rocker{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:12px 14px;cursor:pointer;border:1px solid rgba(143,169,161,.3);background:#071112;color:var(--ink);font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-align:left;transition:border-color .2s,background .2s}
+.rocker .sw{position:relative;flex:none;width:58px;height:30px;border-radius:5px;background:#1a2224;box-shadow:inset 0 2px 5px rgba(0,0,0,.7)}
+.rocker .sw::after{content:"";position:absolute;left:3px;top:3px;width:26px;height:24px;border-radius:3px;background:linear-gradient(180deg,#3a4446,#23292b);box-shadow:0 2px 3px rgba(0,0,0,.6);transition:transform .3s cubic-bezier(.3,1.4,.5,1),background .3s}
+.rocker[aria-pressed="true"]{border-color:rgba(60,242,255,.6);background:#062024}
+.rocker[aria-pressed="true"] .sw::after{transform:translateX(26px);background:linear-gradient(180deg,#5ef6ff,#1db4c4)}
+.rocker .dot{width:9px;height:9px;border-radius:50%;background:#16302a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);margin-left:auto;transition:background .3s,box-shadow .3s}
+.rocker[aria-pressed="true"] .dot{background:#6dff9a;box-shadow:0 0 10px #6dff9a}
+.rocker span.lbl b{display:block;font-size:17px;letter-spacing:.2em;color:#fff}
+.tbtn{padding:11px 10px;cursor:pointer;border:1px solid rgba(143,169,161,.3);background:#071112;color:var(--ink);font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;transition:border-color .2s,background .2s,color .2s}
+.tbtn:hover,.rocker:hover{border-color:rgba(212,165,55,.7)}
+.tbtn[aria-pressed="true"]{border-color:var(--cyan);color:var(--cyan);background:#062024}
+.rocker:focus-visible,.tbtn:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.meters{margin:18px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(143,169,161,.14);border:1px solid rgba(143,169,161,.14)}
+.meters div{background:#061213;padding:9px 10px 8px}
+.meters dt{font-size:9.5px;letter-spacing:.22em;color:var(--dim)}
+.meters dd{margin:3px 0 0;font-size:18px;color:#e9f6f2;font-variant-numeric:tabular-nums;white-space:nowrap}
+.meters dd.hot{color:var(--hot)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:16px 0 0;padding:0;list-style:none;font-size:11px;letter-spacing:.1em;color:var(--soft)}
+.legend li{display:flex;align-items:center;gap:7px}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px}
+.keys{margin:14px 0 0;font-size:11px;line-height:1.8;color:var(--dim)}
+kbd{font-family:var(--mono);font-size:10.5px;padding:1px 5px;border:1px solid rgba(143,169,161,.35);color:var(--ink)}
+.foot{max-width:1420px;margin:0 auto;padding:0 24px 30px;font-family:var(--narrow);font-size:13.5px;color:var(--dim);letter-spacing:.04em}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:1100px){
+  .shell{grid-template-columns:1fr;max-width:860px}
+  .boardwrap{width:100%}
+  .panel{position:relative;top:0}
+}
+@media (max-width:700px){
+  .shell{padding:12px 16px 20px;gap:16px}
+  h1{font-size:44px}
+  .sub{font-size:14px;letter-spacing:.22em}
+  .panel{padding:18px 16px 16px}
+  .tip{width:210px}
+}
+@media (prefers-reduced-motion:reduce){ #knob,.rocker .sw::after{transition:none} }
+</style>
+</head>
+<body>
+<a class="skip" href="#controls">Skip to the controls</a>
+<div class="shell">
+  <main class="bench" aria-label="The circuit board">
+    <div class="boardwrap" id="wrap">
+      <svg id="board" viewBox="0 0 1000 920" role="img" aria-label="An illustrated printed circuit board, Silicon revision 2.1, with a processor, memory, logic chip, regulator, crystal, capacitors, resistors, LEDs and a small OLED display.">
+        <defs>
+          <linearGradient id="maskG" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#0d5a36"/><stop offset=".5" stop-color="#0a4d2e"/><stop offset="1" stop-color="#073d24"/>
+          </linearGradient>
+          <radialGradient id="maskSheen" cx=".3" cy=".25" r=".8">
+            <stop offset="0" stop-color="#6fe0a8" stop-opacity=".12"/><stop offset="1" stop-color="#6fe0a8" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".42" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".05"/><stop offset=".58" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="epoxy" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#2a2c2e"/><stop offset=".45" stop-color="#16181a"/><stop offset="1" stop-color="#0b0c0d"/>
+          </linearGradient>
+          <linearGradient id="padG" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f7de8f"/><stop offset=".45" stop-color="#d4a537"/><stop offset="1" stop-color="#9a7322"/>
+          </linearGradient>
+          <linearGradient id="tin" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#eef0f2"/><stop offset=".5" stop-color="#a9adb2"/><stop offset="1" stop-color="#6d7277"/>
+          </linearGradient>
+          <radialGradient id="alu" cx=".38" cy=".34" r=".75">
+            <stop offset="0" stop-color="#f1f4f7"/><stop offset=".55" stop-color="#aab1ba"/><stop offset="1" stop-color="#5e6570"/>
+          </radialGradient>
+          <linearGradient id="can" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#7b8189"/><stop offset=".3" stop-color="#eef1f4"/><stop offset=".55" stop-color="#b3b9c1"/><stop offset="1" stop-color="#666c74"/>
+          </linearGradient>
+          <linearGradient id="resBody" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f1dfbf"/><stop offset=".5" stop-color="#d7bf95"/><stop offset="1" stop-color="#a88e64"/>
+          </linearGradient>
+          <linearGradient id="resBodyH" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#a88e64"/><stop offset=".5" stop-color="#f1dfbf"/><stop offset="1" stop-color="#a88e64"/>
+          </linearGradient>
+          <linearGradient id="oledG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1b2f55"/><stop offset="1" stop-color="#101d38"/>
+          </linearGradient>
+          <linearGradient id="glassSheen" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity=".12"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/>
+          </linearGradient>
+          <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="9" height="9" fill="#0c5634"/><path d="M0 0 V9" stroke="#13683f" stroke-width="2"/>
+          </pattern>
+          <filter id="noise" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11"/>
+            <feColorMatrix values="0 0 0 0 .55  0 0 0 0 .95  0 0 0 0 .7  .55 0 0 0 -.18"/>
+          </filter>
+          <filter id="boardShadow" x="-10%" y="-10%" width="120%" height="125%">
+            <feGaussianBlur stdDeviation="14"/>
+          </filter>
+          <filter id="heat" x="-25%" y="-25%" width="150%" height="150%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.018 0.07" numOctaves="2" seed="4" result="n">
+              <animate attributeName="baseFrequency" dur="1.3s" values="0.018 0.07;0.022 0.1;0.018 0.07" repeatCount="indefinite"/>
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+        </defs>
+
+        <!-- the bare board -->
+        <rect x="34" y="40" width="960" height="880" rx="30" fill="rgba(0,0,0,.6)" filter="url(#boardShadow)"/>
+        <rect x="20" y="20" width="960" height="880" rx="28" fill="url(#maskG)"/>
+        <rect x="20" y="20" width="960" height="880" rx="28" fill="#fff" filter="url(#noise)" opacity=".5"/>
+        <rect x="20" y="20" width="960" height="880" rx="28" fill="url(#maskSheen)"/>
+        <rect x="21" y="21" width="958" height="878" rx="27" fill="none" stroke="#c8a24a" stroke-opacity=".55" stroke-width="2"/>
+        <!-- copper pours under the mask -->
+        <g id="pours">
+          <rect x="36" y="236" width="160" height="206" rx="10" fill="url(#hatch)"/>
+          <rect x="430" y="690" width="150" height="116" rx="10" fill="url(#hatch)"/>
+          <rect x="800" y="540" width="166" height="186" rx="10" fill="url(#hatch)"/>
+        </g>
+        <g id="halos"></g>
+        <g id="traces"></g>
+        <g id="vias"></g>
+        <g id="silkLayer"></g>
+        <g id="parts"></g>
+        <rect x="20" y="20" width="960" height="880" rx="28" fill="url(#gloss)" pointer-events="none"/>
+      </svg>
+      <canvas id="fx" aria-hidden="true"></canvas>
+      <svg id="probeSvg" viewBox="0 0 150 150" aria-hidden="true">
+        <g transform="rotate(-38 14 136)">
+          <line x1="14" y1="136" x2="14" y2="108" stroke="#d9dde2" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M9 108 L19 108 L21 96 L7 96 Z" fill="#c9312a"/>
+          <rect x="6" y="20" width="16" height="76" rx="7" fill="#1d2326" stroke="#3a4448" stroke-width="1.2"/>
+          <rect x="6" y="40" width="16" height="6" fill="#c9312a"/>
+          <rect x="9" y="52" width="10" height="30" rx="3" fill="#0b1012"/>
+          <circle cx="14" cy="60" r="3" fill="#3cf2ff" id="probeLed"/>
+          <path d="M14 20 C14 6, 30 -4, 44 -10" fill="none" stroke="#c9312a" stroke-width="3"/>
+        </g>
+        <circle cx="14" cy="136" r="7" fill="none" stroke="#3cf2ff" stroke-width="1.4" id="probeRing"/>
+      </svg>
+      <div class="readout" id="readout" aria-live="off"><b id="roV">— V</b><span id="roS">NO CONTACT</span><br><i id="roN">move over a trace</i></div>
+      <div class="tip" id="tip" role="tooltip"></div>
+    </div>
+  </main>
+
+  <aside class="panel" id="controls" aria-label="Board controls">
+    <p class="kicker">DEV BOARD · REV 2.1 · FICTIONAL</p>
+    <h1>SILI<span>C</span>ON</h1>
+    <p class="sub">Living circuit board</p>
+    <p class="intro">Pulses of light carry the signals from chip to chip along gold traces. Hover a part to trace its nets, click a chip to overclock it, and pick up the logic probe to read the voltages.</p>
+    <div class="ctrl">
+      <button type="button" class="rocker" id="pwrBtn" aria-pressed="false"><span class="sw" aria-hidden="true"></span><span class="lbl"><b id="pwrLbl">POWER OFF</b>12 V in · SW1</span><span class="dot" aria-hidden="true"></span></button>
+      <button type="button" class="tbtn" id="probeBtn" aria-pressed="false">LOGIC PROBE</button>
+      <button type="button" class="tbtn" id="coolBtn">COOL ALL CHIPS</button>
+    </div>
+    <dl class="meters">
+      <div><dt>SUPPLY IN</dt><dd id="mIn">0.0 V</dd></div>
+      <div><dt>3V3 RAIL</dt><dd id="mRail">0.00 V</dd></div>
+      <div><dt>CURRENT</dt><dd id="mAmp">0.00 A</dd></div>
+      <div><dt>U1 CORE</dt><dd id="mClk">0.0 GHz</dd></div>
+      <div><dt>U1 TEMP</dt><dd id="mTemp">24 °C</dd></div>
+      <div><dt>PACKETS</dt><dd id="mPkt">0</dd></div>
+    </dl>
+    <ul class="legend">
+      <li><i style="background:#3cf2ff;box-shadow:0 0 8px #3cf2ff"></i>data</li>
+      <li><i style="background:#fff1d0;box-shadow:0 0 8px #ffe2a0"></i>power</li>
+      <li><i style="background:#d4a537"></i>trace</li>
+      <li><i style="background:#ff7a3c;box-shadow:0 0 8px #ff7a3c"></i>overclocked</li>
+    </ul>
+    <p class="keys"><kbd>P</kbd> power · <kbd>L</kbd> logic probe · <kbd>Tab</kbd> to walk the parts · <kbd>Enter</kbd> overclocks a focused chip · <kbd>Esc</kbd> clears</p>
+    <p class="vh" id="announce" aria-live="polite"></p>
+  </aside>
+</div>
+<footer class="foot">Silicon, its parts, markings and specifications are invented for this illustration. The resistor colour bands follow the standard four-band code.</footer>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduce = mq.matches;
+
+  /* ================= routing helpers ================= */
+  function route(a, b, mode, D) {
+    const [x1, y1] = a, [x2, y2] = b, dx = x2 - x1, dy = y2 - y1;
+    const sx = Math.sign(dx) || 1, sy = Math.sign(dy) || 1, ax = Math.abs(dx), ay = Math.abs(dy);
+    if (mode === 'z') {
+      if (ax >= ay) { const r = (ax - ay) / 2; return [a, [x1 + sx * r, y1], [x2 - sx * r, y2], b]; }
+      const r = (ay - ax) / 2; return [a, [x1, y1 + sy * r], [x2, y2 - sy * r], b];
+    }
+    const d = Math.min(ax, ay, D === undefined ? Infinity : D);
+    if (mode === 'h') return [a, [x1 + sx * (ax - d), y1], [x2, y1 + sy * d], b];
+    return [a, [x1, y1 + sy * (ay - d)], [x1 + sx * d, y2], b];
+  }
+  const clean = (pts) => pts.filter((p, i) => i === 0 || Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) > 0.01);
+  const dstr = (pts) => 'M' + pts.map((p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L');
+
+  /* ================= nets ================= */
+  const NETS = [];
+  function net(a, b, pts, kind, w, name) { pts = clean(pts); NETS.push({ a, b, pts, kind, w: w || (kind === 'gnd' ? 4 : 3.2), name: name || '' }); }
+  // USB-C into the bridge
+  ['VBUS', 'USB D-', 'USB D+', 'GND'].forEach((nm, k) => net('J2', 'U5', [[74, 174.5 + 7 * k], [136, 174.5 + 7 * k]], ['pwr5', 'sig', 'sig', 'gnd'][k], k === 0 ? 4.2 : 3, nm));
+  for (let k = 0; k < 4; k++) net('U5', 'U1', route([194, 174.5 + 7 * k], [293, 255 + 10 * k], 'h'), 'sig', 3, 'UART ' + ['TX', 'RX', 'RTS', 'CTS'][k]);
+  // crystal and its load capacitors
+  net('Y1', 'U1', route([247, 290], [293, 295], 'h'), 'clk', 3, 'OSC IN');
+  net('Y1', 'U1', route([247, 370], [293, 365], 'h'), 'clk', 3, 'OSC OUT');
+  net('C1', 'Y1', [[213, 290], [233, 290]], 'clk', 3, 'OSC IN');
+  net('C2', 'Y1', [[213, 370], [233, 370]], 'clk', 3, 'OSC OUT');
+  net('C1', 'GND', [[197, 290], [180, 290]], 'gnd', 3.4, 'GND');
+  net('C2', 'GND', [[197, 370], [180, 370]], 'gnd', 3.4, 'GND');
+  // processor to memory: the data and address bus
+  for (let i = 2; i <= 13; i++) net('U1', 'U2', route([507, 255 + 10 * i], [635, 232.5 + 13 * i], 'z'), 'sig', 3, (i < 8 ? 'DATA ' + (i - 2) : 'ADDR ' + (i - 8)));
+  // memory to the GPIO header
+  for (let j = 0; j < 10; j++) net('U2', 'J1', route([745, 245.5 + 13 * j], [900, 262 + 26 * j], 'h'), 'sig', 3, 'GPIO ' + j);
+  net('U2', 'TP2', route([745, 401.5], [840, 517], 'h'), 'sig', 3, 'MEM READY');
+  net('TP2', 'C12', [[840, 531], [840, 570], [860, 590]], 'sig', 3, 'MEM READY');
+  net('U2', 'R10', route([745, 414.5], [760, 770], 'h', 15), 'sig', 3, 'LED HOT');
+  // display
+  for (let k = 0; k < 4; k++) net('U1', 'OLED', route([445 + 10 * k, 223], [758, 110 + 16 * k], 'v', 30), ['gnd', 'pwr3', 'sig', 'sig'][k], 3, ['OLED GND', 'OLED VCC', 'I2C SCL', 'I2C SDA'][k]);
+  net('U1', 'TP1', [[335, 223], [335, 180]], 'sig', 3, 'DEBUG');
+  // processor to the logic chip, and the logic chip to the status LEDs
+  for (let k = 0; k < 4; k++) net('U1', 'U3', route([445 + 10 * k, 437], [520, 659.5 - 13 * k], 'v', 40), 'sig', 3, 'GATE IN ' + (3 - k));
+  for (let k = 0; k < 4; k++) net('U3', 'R' + (9 - k), route([600, 620.5 + 13 * k], [720 - 40 * k, 770], 'h', 20), 'sig', 3, 'LED ' + ['I/O', 'BUS', 'CLK', 'RUN'][k] + ' DRIVE');
+  for (let k = 0; k < 5; k++) net('R' + (6 + k), 'D' + (1 + k), [[600 + 40 * k, 790], [600 + 40 * k, 826]], 'led', 3, 'LED D' + (1 + k));
+  // pull-ups from three processor pins to the 3V3 rail
+  [1, 3, 5].forEach((p, k) => { const x = 325 + 10 * p; net('U1', 'R' + (1 + k), [[x, 437], [x, 460]], 'sig', 3, 'RESET · BOOT · WAKE'.split(' · ')[k]); net('R' + (1 + k), 'RAIL', [[x, 562], [x, 580]], 'pwr3', 3, '3V3'); });
+  net('RAIL', 'U4', [[335, 580], [400, 580]], 'pwr3', 4, '3V3');
+  net('U1', 'R4', route([293, 395], [208, 470], 'h'), 'sig', 3, 'ADC 0');
+  net('U1', 'R5', route([293, 405], [208, 510], 'h'), 'sig', 3, 'ADC 1');
+  net('R4', 'GND', [[112, 470], [92, 470]], 'gnd', 3.4, 'GND');
+  net('R5', 'GND', [[112, 510], [92, 510]], 'gnd', 3.4, 'GND');
+  // power: jack, switch, regulator, trunk
+  net('J3', 'SW1', [[104, 800], [116, 800]], 'pwr12', 7, '12 V IN');
+  net('SW1', 'U4', [[196, 800], [206, 800], [216, 790], [222, 790]], 'pwr12', 7, '12 V SWITCHED');
+  net('C10', 'U4', [[205, 756], [205, 796]], 'pwr12', 5, '12 V SWITCHED');
+  net('U4', 'GND', [[222, 810], [206, 826]], 'gnd', 5, 'GND');
+  net('U4', 'U1', [[312, 800], [372, 800], [400, 772], [400, 486]], 'pwr3', 9, '3V3 TRUNK');
+  net('U1', 'U4', [[395, 437], [395, 462], [400, 474]], 'pwr3', 4, '3V3');
+  net('U1', 'U4', [[405, 437], [405, 462], [400, 474]], 'pwr3', 4, '3V3');
+  net('C11', 'U4', [[340, 826], [340, 800]], 'pwr3', 6, '3V3');
+  net('D0', 'U4', [[378, 760], [400, 760]], 'pwr3', 4, 'PWR LED');
+
+  NETS.forEach((n) => {
+    n.len = [0];
+    for (let i = 1; i < n.pts.length; i++) n.len.push(n.len[i - 1] + Math.hypot(n.pts[i][0] - n.pts[i - 1][0], n.pts[i][1] - n.pts[i - 1][1]));
+    n.total = n.len[n.len.length - 1];
+  });
+  function posAt(n, s) {
+    s = Math.max(0, Math.min(n.total, s));
+    let i = 1; while (i < n.len.length - 1 && n.len[i] < s) i++;
+    const a = n.pts[i - 1], b = n.pts[i], seg = n.len[i] - n.len[i - 1] || 1, f = (s - n.len[i - 1]) / seg;
+    return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+  }
+
+  /* ================= parts ================= */
+  const PARTS = {
+    U1: { box: [284, 214, 232, 232], chip: true, part: 'SX-7 application processor', specs: ['64-pin QFP, 32-bit core', 'Nominal clock 2.1 GHz', 'I/O at 3.3 V'] },
+    U2: { box: [626, 222, 128, 216], chip: true, part: '512 KiB static RAM', specs: ['44-pin TSOP', '10 ns access time', 'Bus: 6 data + 6 address shown'] },
+    U3: { box: [512, 602, 96, 76], chip: true, part: 'Quad 2-input AND gate', specs: ['SOIC-8', 'Gates the status LEDs', 'Propagation 7 ns'] },
+    U4: { box: [206, 772, 114, 58], chip: true, part: '3.3 V linear regulator', specs: ['DPAK package', '12 V in, 1 A max', 'Tab is the output'] },
+    U5: { box: [130, 156, 70, 60], chip: true, part: 'USB-to-UART bridge', specs: ['QFN-24', 'Full speed, 12 Mbit/s', 'Feeds UART into U1'] },
+    Y1: { box: [226, 280, 28, 100], part: '25.000 MHz quartz crystal', specs: ['HC-49 metal can', '±20 ppm', '18 pF load'] },
+    C1: { box: [190, 282, 30, 16], part: '18 pF C0G ceramic', specs: ['0805 SMD', 'Crystal load capacitor'] },
+    C2: { box: [190, 362, 30, 16], part: '18 pF C0G ceramic', specs: ['0805 SMD', 'Crystal load capacitor'] },
+    C10: { box: [176, 700, 58, 58], part: '470 µF 25 V electrolytic', specs: ['Bulk input capacitor', 'Stripe marks the negative lead'] },
+    C11: { box: [312, 822, 56, 56], part: '220 µF 10 V electrolytic', specs: ['3.3 V rail reservoir'] },
+    C12: { box: [846, 578, 68, 68], part: '100 µF 16 V electrolytic', specs: ['Local reservoir near the header'] },
+    R1: { box: [326, 458, 18, 110], part: '10 kΩ ±5% carbon film', specs: ['Bands: brown, black, orange, gold', 'Pull-up on RESET'] },
+    R2: { box: [346, 458, 18, 110], part: '10 kΩ ±5% carbon film', specs: ['Bands: brown, black, orange, gold', 'Pull-up on BOOT'] },
+    R3: { box: [366, 458, 18, 110], part: '10 kΩ ±5% carbon film', specs: ['Bands: brown, black, orange, gold', 'Pull-up on WAKE'] },
+    R4: { box: [104, 461, 112, 18], part: '4.7 kΩ ±5% carbon film', specs: ['Bands: yellow, violet, red, gold', 'ADC divider'] },
+    R5: { box: [104, 501, 112, 18], part: '1 kΩ ±5% carbon film', specs: ['Bands: brown, black, red, gold', 'ADC divider'] },
+    D0: { box: [326, 746, 28, 28], led: '#62ff8f', part: 'Power LED, green', specs: ['Lights as soon as 3.3 V is present'] },
+    J1: { box: [882, 244, 66, 270], part: '2 × 10 pin header', specs: ['2.54 mm pitch', 'GPIO breakout'] },
+    J2: { box: [10, 154, 70, 60], part: 'USB-C receptacle', specs: ['5 V and data', 'Routed to U5'] },
+    J3: { box: [10, 766, 100, 70], part: 'DC barrel jack', specs: ['5.5 / 2.1 mm', '12 V input'] },
+    SW1: { box: [110, 782, 94, 36], part: 'Slide switch, main power', specs: ['Click it to switch the board on or off'] },
+    OLED: { box: [744, 72, 192, 166], part: '0.96-inch OLED, 128 × 64', specs: ['I²C at address 0x3C', 'Shows boot log and live stats'] },
+    TP1: { box: [325, 162, 20, 20], part: 'Test point TP1', specs: ['Debug output from U1'] },
+    TP2: { box: [830, 514, 20, 20], part: 'Test point TP2', specs: ['Memory ready strobe'] }
+  };
+  const LEDS = [['D1', 600, '#62ff8f', 'RUN'], ['D2', 640, '#4fd8ff', 'CLK'], ['D3', 680, '#ffb13c', 'BUS'], ['D4', 720, '#ffffff', 'I/O'], ['D5', 760, '#ff4a3c', 'HOT']];
+  const LEDSPEC = { D1: 'Status LED, green: RUN heartbeat', D2: 'Status LED, blue: clock activity', D3: 'Status LED, amber: bus traffic', D4: 'Status LED, white: I/O traffic', D5: 'Status LED, red: overheating warning' };
+  LEDS.forEach(([ref, x, col]) => { PARTS[ref] = { box: [x - 16, 824, 32, 32], led: col, part: LEDSPEC[ref], specs: ['5 mm through-hole', 'Driven through a 330 Ω resistor'] }; });
+  for (let k = 0; k < 5; k++) PARTS['R' + (6 + k)] = { box: [592 + 40 * k, 762, 16, 36], part: '330 Ω thick film', specs: ['0805 SMD, marked 331', 'LED current limit, about 4 mA'] };
+  PARTS.R11 = { box: [358, 752, 24, 16], part: '1 kΩ thick film', specs: ['0805 SMD, marked 102', 'Power LED resistor'] };
+
+  /* ================= drawing the board ================= */
+  const R = (x, y, w, h, fill, extra) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"${extra ? ' ' + extra : ''}/>`;
+  const T = (x, y, s, txt, cls, extra) => `<text x="${x}" y="${y}" font-size="${s}" class="${cls || 'silkt'}"${extra ? ' ' + extra : ''}>${txt}</text>`;
+  function padsLR(cx, y0, n, pitch, xL, xR, padL, padW, legs, bodyL, bodyR) {
+    let s = '';
+    for (let i = 0; i < n; i++) {
+      const y = y0 + i * pitch;
+      if (xL !== null) { s += R(xL, y - padW / 2, padL, padW, 'url(#padG)', 'rx="1"'); if (legs) s += R(xL + padL * 0.35, y - padW * 0.32, bodyL - xL - padL * 0.35, padW * 0.64, 'url(#tin)'); }
+      if (xR !== null) { s += R(xR - padL, y - padW / 2, padL, padW, 'url(#padG)', 'rx="1"'); if (legs) s += R(bodyR, y - padW * 0.32, xR - padL * 0.35 - bodyR, padW * 0.64, 'url(#tin)'); }
+    }
+    return s;
+  }
+  function padsTB(x0, n, pitch, yT, yB, padL, padW, legs, bodyT, bodyB) {
+    let s = '';
+    for (let i = 0; i < n; i++) {
+      const x = x0 + i * pitch;
+      if (yT !== null) { s += R(x - padW / 2, yT, padW, padL, 'url(#padG)', 'rx="1"'); if (legs) s += R(x - padW * 0.32, yT + padL * 0.35, padW * 0.64, bodyT - yT - padL * 0.35, 'url(#tin)'); }
+      if (yB !== null) { s += R(x - padW / 2, yB - padL, padW, padL, 'url(#padG)', 'rx="1"'); if (legs) s += R(x - padW * 0.32, bodyB, padW * 0.64, yB - padL * 0.35 - bodyB, 'url(#tin)'); }
+    }
+    return s;
+  }
+  const ring = (x, y, r, hole) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#padG)"/><circle cx="${x}" cy="${y}" r="${hole}" fill="#071a10"/><circle cx="${x - r * 0.35}" cy="${y - r * 0.35}" r="${r * 0.18}" fill="#fff6d6" opacity=".6"/>`;
+  function epoxy(x, y, w, h, rx) { return `<rect x="${x + 4}" y="${y + 6}" width="${w}" height="${h}" rx="${rx}" fill="rgba(0,0,0,.4)"/><rect class="epoxy" x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="url(#epoxy)"/><rect x="${x + 3}" y="${y + 3}" width="${w - 6}" height="${h - 6}" rx="${Math.max(1, rx - 2)}" fill="none" stroke="rgba(255,255,255,.05)"/>`; }
+  function comp(ref, inner, label) {
+    const b = PARTS[ref].box;
+    return `<g class="comp" data-ref="${ref}" tabindex="0" role="button" aria-label="${ref}: ${PARTS[ref].part}${PARTS[ref].chip ? '. Press Enter to overclock' : ''}">${inner}<rect class="hit" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="6"/></g>`;
+  }
+  const BAND = { black: '#141414', brown: '#6e3a1c', red: '#c42a1f', orange: '#e2701b', yellow: '#eac21f', violet: '#7a3fb0', gold: '#c9a13b' };
+  function axialV(x, y1, y2, bands) {
+    let s = ring(x, y1, 6, 2.4) + ring(x, y2, 6, 2.4) + R(x - 1.2, y1 + 5, 2.4, y2 - y1 - 10, 'url(#tin)');
+    const bt = y1 + 14, bb = y2 - 14;
+    s += `<rect x="${x - 6.5}" y="${bt}" width="13" height="${bb - bt}" rx="6" fill="url(#resBodyH)"/>`;
+    bands.forEach((c, i) => { const yy = bt + 12 + i * 11 + (i === 3 ? 8 : 0); s += R(x - 6.5, yy, 13, 5.5, BAND[c]); });
+    return s;
+  }
+  function axialH(x1, x2, y, bands) {
+    let s = ring(x1, y, 6, 2.4) + ring(x2, y, 6, 2.4) + R(x1 + 5, y - 1.2, x2 - x1 - 10, 2.4, 'url(#tin)');
+    const bl = x1 + 14, br = x2 - 14;
+    s += `<rect x="${bl}" y="${y - 6.5}" width="${br - bl}" height="13" rx="6" fill="url(#resBody)"/>`;
+    bands.forEach((c, i) => { const xx = bl + 12 + i * 11 + (i === 3 ? 8 : 0); s += R(xx, y - 6.5, 5.5, 13, BAND[c]); });
+    return s;
+  }
+  function smdV(x, y1, y2, body, mark) {
+    return R(x - 5, y1 - 4, 10, 8, 'url(#padG)', 'rx="1"') + R(x - 5, y2 - 4, 10, 8, 'url(#padG)', 'rx="1"') + R(x - 4.5, y1 + 3, 9, y2 - y1 - 6, body) + (mark ? T(x + 0.2, (y1 + y2) / 2 + 2, 4.6, mark, 'mark', 'text-anchor="middle" transform="rotate(90 ' + x + ' ' + (y1 + y2) / 2 + ')"') : '');
+  }
+  function smdH(x1, x2, y, body, mark) {
+    return R(x1 - 4, y - 5, 8, 10, 'url(#padG)', 'rx="1"') + R(x2 - 4, y - 5, 8, 10, 'url(#padG)', 'rx="1"') + R(x1 + 3, y - 4.5, x2 - x1 - 6, 9, body) + (mark ? T((x1 + x2) / 2, y + 2, 4.6, mark, 'mark', 'text-anchor="middle"') : '');
+  }
+  function electro(cx, cy, r, sleeve) {
+    let s = `<circle cx="${cx + 3}" cy="${cy + 5}" r="${r}" fill="rgba(0,0,0,.45)"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${sleeve}"/>`;
+    s += `<path d="M${cx + r * Math.cos(-1.1)} ${cy + r * Math.sin(-1.1)} A${r} ${r} 0 0 1 ${cx + r * Math.cos(0.3)} ${cy + r * Math.sin(0.3)} L${cx + r * 0.8 * Math.cos(0.3)} ${cy + r * 0.8 * Math.sin(0.3)} A${r * 0.8} ${r * 0.8} 0 0 0 ${cx + r * 0.8 * Math.cos(-1.1)} ${cy + r * 0.8 * Math.sin(-1.1)} Z" fill="#d8dde3" opacity=".75"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${r * 0.8}" fill="url(#alu)"/>`;
+    s += `<path d="M${cx - r * 0.5} ${cy} H${cx + r * 0.5} M${cx} ${cy - r * 0.5} V${cy + r * 0.5}" stroke="#6b737c" stroke-width="1.6"/>`;
+    s += `<path d="M${cx - r * 0.5} ${cy + 1} H${cx + r * 0.5} M${cx + 1} ${cy - r * 0.5} V${cy + r * 0.5}" stroke="#f3f6f8" stroke-width=".6" opacity=".7"/>`;
+    return s;
+  }
+  function led(ref, cx, cy, r, col) {
+    return `<circle cx="${cx + 2}" cy="${cy + 4}" r="${r + 1}" fill="rgba(0,0,0,.4)"/>` +
+      `<path d="M${cx - r * 0.55} ${cy - r * 0.9} A${r + 1.5} ${r + 1.5} 0 1 0 ${cx + r * 0.55} ${cy - r * 0.9} Z" fill="#dfe7e3" opacity=".35"/>` +
+      `<circle cx="${cx}" cy="${cy}" r="${r}" class="lens" id="lens${ref}" fill="${shade(col, 0.72)}"/>` +
+      `<circle cx="${cx}" cy="${cy}" r="${r * 0.55}" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1"/>` +
+      `<ellipse cx="${cx - r * 0.35}" cy="${cy - r * 0.38}" rx="${r * 0.3}" ry="${r * 0.2}" fill="#fff" opacity=".55" transform="rotate(-35 ${cx - r * 0.35} ${cy - r * 0.38})"/>`;
+  }
+  function shade(hex, k) { const n = parseInt(hex.slice(1), 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; return `rgb(${Math.round(r * (1 - k) + 12 * k)},${Math.round(g * (1 - k) + 28 * k)},${Math.round(b * (1 - k) + 22 * k)})`; }
+
+  function buildBoard() {
+    // traces with a mask clearance halo, then the copper itself in three strokes
+    let halos = '', traces = '';
+    NETS.forEach((n, i) => {
+      const d = dstr(n.pts);
+      halos += `<path class="halo" d="${d}" stroke-width="${n.w + 8}"/>`;
+      traces += `<g class="net" data-n="${i}"><path class="tb" d="${d}" stroke-width="${n.w}"/><path class="tf" d="${d}" stroke-width="${(n.w * 0.64).toFixed(2)}"/><path class="th" d="${d}" stroke-width="${Math.max(0.7, n.w * 0.2).toFixed(2)}" transform="translate(-.5 -.5)"/></g>`;
+    });
+    $('#halos').innerHTML = halos;
+    $('#traces').innerHTML = traces;
+
+    // vias: ground stitches, test points and pour stitching
+    let v = '';
+    [[180, 290], [180, 370], [92, 470], [92, 510], [206, 830], [400, 480]].forEach(([x, y]) => { v += ring(x, y, 6.5, 2.6); });
+    for (let y = 256; y <= 426; y += 34) for (let x = 56; x <= 176; x += 30) if (!(y > 270 && y < 390 && x > 160)) v += ring(x, y, 4.2, 1.7);
+    for (let y = 708; y <= 792; y += 28) for (let x = 448; x <= 564; x += 29) v += ring(x, y, 4.2, 1.7);
+    for (let y = 560; y <= 712; y += 30) for (let x = 816; x <= 956; x += 28) if (Math.hypot(x - 880, y - 612) > 44 && !(x < 860 && y < 600)) v += ring(x, y, 4.2, 1.7);
+    [[58, 58], [942, 58], [58, 862], [942, 862]].forEach(([x, y]) => { v += `<circle cx="${x}" cy="${y}" r="21" fill="#0b5232"/><circle cx="${x}" cy="${y}" r="17" fill="url(#padG)"/><circle cx="${x}" cy="${y}" r="10.5" fill="#0b1315"/><circle cx="${x}" cy="${y}" r="10.5" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="2"/>`; });
+    [[110, 38], [890, 890], [610, 38]].forEach(([x, y]) => { v += `<circle cx="${x}" cy="${y}" r="7" fill="#0b5232" stroke="#eef2ea" stroke-width=".8" opacity=".9"/><circle cx="${x}" cy="${y}" r="3.2" fill="url(#padG)"/>`; });
+    $('#vias').innerHTML = v;
+
+    // silkscreen
+    let s = '';
+    s += T(88, 104, 50, 'SILICON', 'silkt', 'font-weight="700" letter-spacing="7"');
+    s += T(92, 124, 10.5, 'LIVING CIRCUIT BOARD · REV 2.1', 'silkt', 'letter-spacing="1.6"');
+    s += `<path class="silk" d="M88 132 H352"/>`;
+    s += `<rect class="silk" x="278" y="208" width="244" height="244" rx="3"/>` + `<circle cx="296" cy="226" r="3" fill="#eef2ea"/>` + T(286, 204, 13, 'U1');
+    s += `<rect class="silk" x="620" y="216" width="140" height="228" rx="3"/>` + T(626, 212, 13, 'U2') + `<circle cx="634" cy="232" r="2.6" fill="#eef2ea"/>`;
+    s += `<rect class="silk" x="508" y="600" width="104" height="80" rx="3"/>` + T(512, 596, 12, 'U3');
+    s += T(236, 770, 12, 'U4') + T(126, 150, 12, 'U5') + `<rect class="silk" x="124" y="154" width="82" height="64" rx="3"/>`;
+    s += T(258, 300, 12, 'Y1') + `<rect class="silk" x="222" y="278" width="36" height="104" rx="18"/>`;
+    s += T(184, 280, 10, 'C1') + T(184, 392, 10, 'C2');
+    s += `<circle class="silk" cx="205" cy="728" r="31"/>` + T(160, 700, 12, 'C10') + T(222, 712, 12, '+');
+    s += `<circle class="silk" cx="340" cy="850" r="29"/>` + T(376, 872, 12, 'C11') + T(333, 818, 12, '+');
+    s += `<circle class="silk" cx="880" cy="612" r="35"/>` + T(916, 650, 12, 'C12') + T(852, 586, 12, '+');
+    [1, 2, 3].forEach((k) => { s += T(329 + 20 * (k - 1), 598, 8, 'R' + k); });
+    s += T(112, 458, 10, 'R4') + T(112, 532, 10, 'R5');
+    for (let k = 0; k < 5; k++) { s += T(592 + 40 * k, 760, 8.5, 'R' + (6 + k)); s += T(600 + 40 * k, 872, 9, LEDS[k][3], 'silkt', 'text-anchor="middle"'); s += `<path class="silk" d="M${600 + 40 * k - 16} 828 A17 17 0 1 0 ${600 + 40 * k + 16} 828"/>`; }
+    s += T(596, 890, 8, 'D1 · D2 · D3 · D4 · D5', 'silkt', 'letter-spacing="1"');
+    s += T(324, 738, 10, 'D0 PWR') + T(356, 748, 8, 'R11');
+    s += `<rect class="silk" x="880" y="242" width="70" height="274" rx="2"/>` + T(884, 236, 13, 'J1') + T(955, 268, 8, '1', 'silkt') + T(954, 500, 8, '20', 'silkt');
+    s += T(24, 146, 11, 'J2 USB-C') + T(22, 760, 11, 'J3 12V') + T(112, 780, 10, 'SW1') + T(116, 838, 8.5, 'OFF   ON', 'silkt', 'letter-spacing="1"');
+    s += T(326, 160, 9, 'TP1') + T(852, 522, 9, 'TP2');
+    ['GND', 'VCC', 'SCL', 'SDA'].forEach((l, k) => { s += T(748, 113 + 16 * k, 7.5, l, 'silkt', 'text-anchor="end"'); });
+    s += T(746, 64, 10, 'DISP1 · OLED');
+    s += T(258, 568, 8.5, '3V3', 'silkt') + T(290, 868, 8.5, '3V3', 'silkt') + T(128, 868, 8.5, '12V', 'silkt') + T(60, 544, 8.5, 'GND', 'silkt');
+    s += T(560, 470, 9, 'SYSCLK 25 MHZ', 'silkt', 'opacity=".7" letter-spacing="1"');
+    // title block, bottom right
+    s += `<rect class="silk" x="790" y="742" width="130" height="146"/><path class="silk" d="M790 790 H920 M790 818 H920 M790 846 H920 M855 818 V888" stroke-width="1.1"/>`;
+    s += T(798, 760, 11.5, 'SILICON', 'silkt', 'font-weight="700" letter-spacing="2"') + T(798, 776, 7.4, 'LIVING CIRCUIT BOARD', 'silkt') + T(798, 786, 6.6, 'ONE BOARD · MANY SIGNALS', 'silkt', 'opacity=".75"');
+    s += T(798, 808, 9, 'PCB 073-SLC') + T(798, 836, 7.5, '4 LAYER') + T(862, 836, 7.5, '1.6 MM ENIG') + T(798, 864, 7.5, 'SHEET 1/1') + T(862, 864, 7.5, '2026-09') + T(798, 880, 7, 'DRW  A.OHM') + T(862, 880, 8.5, 'REV 2.1', 'silkt', 'font-weight="700"');
+    s += T(862, 808, 7.5, 'SCALE 4:1');
+    $('#silkLayer').innerHTML = s;
+
+    // parts
+    let p = '';
+    // U1: QFP-64
+    p += comp('U1', padsLR(400, 255, 16, 10, 293, 507, 14, 5.4, true, 310, 490) + padsTB(325, 16, 10, 223, 437, 14, 5.4, true, 240, 420) +
+      `<g class="chipbody">${epoxy(310, 240, 180, 180, 5)}<circle cx="330" cy="260" r="6" fill="#070808" stroke="rgba(255,255,255,.07)"/>` +
+      `<path d="M376 300 h28 a10 10 0 0 1 0 20 h-8 a10 10 0 0 0 0 20 h28" fill="none" stroke="#8e9398" stroke-width="3" opacity=".7"/>` +
+      T(400, 372, 17, 'SILICON', 'mark', 'text-anchor="middle" font-weight="700" letter-spacing="2"') + T(400, 390, 10.5, 'SX-7 · 2.1 GHz', 'mark', 'text-anchor="middle"') + T(400, 404, 9, 'LOT 7C21 · 2609', 'mark', 'text-anchor="middle" opacity=".7"') + `</g>`);
+    // U2: TSOP
+    p += comp('U2', padsLR(690, 245.5, 14, 13, 635, 745, 14, 5.6, true, 652, 728) +
+      `<g class="chipbody">${epoxy(652, 232, 76, 196, 4)}<circle cx="666" cy="246" r="4.4" fill="#070808"/>` +
+      T(690, 318, 10, 'SLC-RAM', 'mark', 'text-anchor="middle" transform="rotate(-90 690 330)" font-weight="700"') + T(708, 330, 8, '512K × 8 · 10NS', 'mark', 'text-anchor="middle" transform="rotate(-90 708 330)"') + `</g>`);
+    // U3: SOIC-8
+    p += comp('U3', padsLR(560, 620.5, 4, 13, 520, 600, 14, 5.4, true, 537, 583) +
+      `<g class="chipbody">${epoxy(537, 610, 46, 60, 3)}<circle cx="545" cy="618" r="3" fill="#070808"/>` + T(560, 642, 7.6, 'SLX08', 'mark', 'text-anchor="middle" font-weight="700"') + T(560, 653, 6, 'QUAD AND', 'mark', 'text-anchor="middle"') + `</g>`);
+    // U4: DPAK regulator
+    p += comp('U4', R(222 - 4, 786, 16, 8, 'url(#padG)') + R(222 - 4, 806, 16, 8, 'url(#padG)') + R(222, 788, 10, 4, 'url(#tin)') + R(222, 808, 10, 4, 'url(#tin)') +
+      R(280, 780, 34, 40, 'url(#padG)', 'rx="2"') + R(284, 784, 26, 32, 'url(#tin)', 'rx="2" opacity=".85"') +
+      `<g class="chipbody">${epoxy(230, 780, 56, 40, 3)}` + T(258, 798, 8, 'SLR-33', 'mark', 'text-anchor="middle" font-weight="700"') + T(258, 810, 6.5, '3.3V 1A', 'mark', 'text-anchor="middle"') + `</g>`);
+    // U5: QFN bridge
+    let q = '';
+    for (let i = 0; i < 6; i++) { const o = -17.5 + 7 * i; q += R(134, 185 + o - 2, 8, 4, 'url(#padG)') + R(188, 185 + o - 2, 8, 4, 'url(#padG)') + R(165 + o - 2, 157, 4, 8, 'url(#padG)') + R(165 + o - 2, 205, 4, 8, 'url(#padG)'); }
+    p += comp('U5', q + `<g class="chipbody">${epoxy(141, 161, 48, 48, 3)}<circle cx="148" cy="168" r="2.4" fill="#070808"/>` + T(165, 188, 7, 'SL-UART', 'mark', 'text-anchor="middle" font-weight="700"') + T(165, 198, 5.6, 'USB·FS', 'mark', 'text-anchor="middle"') + `</g>`);
+    // Y1 crystal
+    p += comp('Y1', ring(240, 290, 7, 2.6) + ring(240, 370, 7, 2.6) + `<rect x="229" y="300" width="26" height="66" rx="13" fill="rgba(0,0,0,.4)"/><rect x="227" y="296" width="26" height="68" rx="13" fill="url(#can)"/><rect x="231" y="300" width="18" height="60" rx="9" fill="none" stroke="rgba(255,255,255,.35)"/>` + T(240, 334, 7, '25.000', 'mark', 'text-anchor="middle" transform="rotate(-90 240 330)" style="fill:#3d4248"'));
+    p += comp('C1', smdH(197, 213, 290, '#b9956a'));
+    p += comp('C2', smdH(197, 213, 370, '#b9956a'));
+    // electrolytics
+    p += comp('C10', electro(205, 728, 26, '#1d2a6b')) + comp('C11', electro(340, 850, 24, '#1a1a1c')) + comp('C12', electro(880, 612, 30, '#1d2a6b'));
+    // resistors
+    p += comp('R1', axialV(335, 466, 556, ['brown', 'black', 'orange', 'gold'])) + comp('R2', axialV(355, 466, 556, ['brown', 'black', 'orange', 'gold'])) + comp('R3', axialV(375, 466, 556, ['brown', 'black', 'orange', 'gold']));
+    p += comp('R4', axialH(112, 208, 470, ['yellow', 'violet', 'red', 'gold'])) + comp('R5', axialH(112, 208, 510, ['brown', 'black', 'red', 'gold']));
+    for (let k = 0; k < 5; k++) p += comp('R' + (6 + k), smdV(600 + 40 * k, 770, 790, '#161819', '331'));
+    p += comp('R11', smdH(362, 378, 760, '#161819', '102'));
+    // LEDs
+    p += comp('D0', led('D0', 340, 760, 10, '#62ff8f'));
+    LEDS.forEach(([ref, x, col]) => { p += comp(ref, led(ref, x, 840, 12, col)); });
+    // header J1
+    let h = `<rect x="886" y="248" width="58" height="262" rx="3" fill="#121416"/><rect x="886" y="248" width="58" height="262" rx="3" fill="none" stroke="rgba(255,255,255,.06)"/>`;
+    for (let j = 0; j < 10; j++) for (const x of [900, 930]) { const y = 262 + 26 * j; h += R(x - 8, y - 8, 16, 16, (j === 0 && x === 900) ? '#1d2124' : '#191c1e', 'rx="' + (j === 0 && x === 900 ? 1 : 3) + '"') + R(x - 3.5, y - 3.5, 7, 7, 'url(#padG)') + R(x - 3.5, y - 3.5, 3, 3, '#fff3c8', 'opacity=".7"'); }
+    p += comp('J1', h);
+    // USB-C, barrel jack, switch
+    p += comp('J2', `<rect x="12" y="160" width="56" height="50" rx="12" fill="rgba(0,0,0,.4)"/><rect x="10" y="156" width="56" height="50" rx="12" fill="url(#can)"/><rect x="20" y="168" width="36" height="26" rx="8" fill="#161a1d"/><rect x="26" y="178" width="24" height="6" rx="2" fill="#2d3338"/>` + [0, 1, 2, 3].map((k) => R(68, 172 + 7 * k, 10, 5, 'url(#padG)')).join(''));
+    p += comp('J3', `<rect x="14" y="774" width="86" height="60" rx="4" fill="rgba(0,0,0,.4)"/><rect x="10" y="770" width="86" height="60" rx="4" fill="#141618"/><rect x="10" y="780" width="18" height="40" rx="3" fill="#07090a"/><circle cx="19" cy="800" r="6" fill="#2a3035"/><circle cx="19" cy="800" r="2" fill="url(#padG)"/>` + R(96, 794, 14, 12, 'url(#padG)', 'rx="2"'));
+    p += comp('SW1', `<g id="sw1">` + R(110, 795, 12, 10, 'url(#padG)', 'rx="1"') + R(190, 795, 12, 10, 'url(#padG)', 'rx="1"') + `<rect x="124" y="788" width="64" height="26" rx="3" fill="url(#can)"/><rect x="129" y="794" width="54" height="14" rx="3" fill="#15191c"/><g id="knob"><rect x="131" y="791" width="22" height="20" rx="3" fill="#f2f2ee" stroke="#9aa0a4"/><path d="M138 795 V807 M142 795 V807 M146 795 V807" stroke="#b4b9bc" stroke-width="1"/></g></g>`);
+    // OLED module
+    p += comp('OLED', `<rect x="774" y="80" width="160" height="152" rx="6" fill="rgba(0,0,0,.45)"/><rect x="770" y="76" width="160" height="152" rx="6" fill="url(#oledG)"/>` +
+      [[780, 86], [920, 86], [780, 218], [920, 218]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#0b1315" stroke="url(#padG)" stroke-width="1.6"/>`).join('') +
+      [0, 1, 2, 3].map((k) => R(752, 106 + 16 * k, 14, 8, 'url(#padG)', 'rx="1"') + R(766, 108 + 16 * k, 8, 4, 'url(#tin)')).join('') +
+      `<rect x="782" y="92" width="136" height="110" rx="3" fill="#050809" stroke="#2d3c4c" stroke-width="1.5"/><rect id="oledGlass" x="786" y="96" width="128" height="98" fill="#02050a"/>` +
+      `<g id="oledText"></g><polyline id="oledScope" points="" fill="none" stroke="#a8f0ff" stroke-width="1.2" opacity="0"/>` +
+      `<rect x="782" y="92" width="136" height="110" rx="3" fill="url(#glassSheen)"/>` + T(850, 214, 6.5, '128×64 · I2C 0x3C', 'mark', 'text-anchor="middle" style="fill:#7f93b0"'));
+    // test points
+    p += comp('TP1', ring(335, 172, 7, 2.2)) + comp('TP2', ring(840, 524, 7, 2.2));
+    $('#parts').innerHTML = p;
+  }
+  buildBoard();
+
+  // net membership of each part, for highlighting
+  const partNets = {};
+  NETS.forEach((n, i) => { [n.a, n.b].forEach((r) => { (partNets[r] = partNets[r] || []).push(i); }); });
+  const netEls = [...document.querySelectorAll('#traces .net')];
+
+  /* ================= OLED ================= */
+  const oledText = $('#oledText'), oledScope = $('#oledScope'), oledGlass = $('#oledGlass');
+  let oledLines = [];
+  function oledRender(lines, dimFrom) {
+    oledText.innerHTML = lines.map((l, i) => `<text x="791" y="${109 + i * 14}" class="oled-t${dimFrom !== undefined && i >= dimFrom ? ' oled-dim' : ''}" xml:space="preserve">${l}</text>`).join('');
+  }
+
+  /* ================= state ================= */
+  let powered = false, bootT0 = 0, probe = false, selected = null, packets = 0;
+  const oc = new Set();
+  let temp = 24, amps = 0, clkShown = 0;
+  const pulses = [];
+  const MAXP = 70;
+  for (let i = 0; i < MAXP; i++) pulses.push({ on: false, n: 0, s: 0, dir: 1, v: 0, warm: false, life: 0 });
+  const flashes = [];
+  for (let i = 0; i < 30; i++) flashes.push({ on: false, x: 0, y: 0, t: 0, warm: false });
+  const ledLevel = { D0: 0, D1: 0, D2: 0, D3: 0, D4: 0, D5: 0 };
+  const ledTarget = { D0: 0, D1: 0, D2: 0, D3: 0, D4: 0, D5: 0 };
+  const ledColor = { D0: '#62ff8f', D1: '#62ff8f', D2: '#4fd8ff', D3: '#ffb13c', D4: '#ffffff', D5: '#ff4a3c' };
+  const sigNets = NETS.map((n, i) => i).filter((i) => NETS[i].kind === 'sig' || NETS[i].kind === 'clk' || NETS[i].kind === 'led');
+  const pwrNets = NETS.map((n, i) => i).filter((i) => NETS[i].kind.startsWith('pwr'));
+  const TERMINAL = new Set(['GND', 'RAIL', 'C1', 'C2', 'TP1', 'C12', 'R4', 'R5']);
+
+  function spawn(ni, fromRef, warm) {
+    const p = pulses.find((q) => !q.on); if (!p) return;
+    const n = NETS[ni];
+    p.on = true; p.n = ni; p.warm = !!warm;
+    p.dir = fromRef ? (n.a === fromRef ? 1 : -1) : (Math.random() < 0.5 ? 1 : -1);
+    p.s = p.dir > 0 ? 0 : n.total;
+    const hotNet = oc.has(n.a) || oc.has(n.b);
+    p.v = (warm ? 150 : 250 + Math.random() * 90) * (hotNet ? 2.4 : 1);
+    p.life = 1;
+  }
+  function arrive(p) {
+    const n = NETS[p.n], end = p.dir > 0 ? n.b : n.a, pt = p.dir > 0 ? n.pts[n.pts.length - 1] : n.pts[0];
+    const f = flashes.find((q) => !q.on); if (f) { f.on = true; f.x = pt[0]; f.y = pt[1]; f.t = 0; f.warm = p.warm; }
+    packets++;
+    // status LEDs react to traffic
+    if (end === 'U3' || end.startsWith('R')) ledLevel.D4 = Math.max(ledLevel.D4, 1);
+    if (end === 'U2' || end === 'J1') ledLevel.D3 = Math.max(ledLevel.D3, 1);
+    p.on = false;
+    if (!powered || TERMINAL.has(end)) return;
+    const opts = (partNets[end] || []).filter((i) => i !== p.n && (p.warm ? NETS[i].kind.startsWith('pwr') : !NETS[i].kind.startsWith('pwr') && NETS[i].kind !== 'gnd'));
+    const chance = oc.has(end) ? 0.95 : 0.72;
+    if (opts.length && Math.random() < chance) spawn(opts[(Math.random() * opts.length) | 0], end, p.warm);
+  }
+
+  /* ================= power ================= */
+  const wrap = $('#wrap'), announce = (t) => { $('#announce').textContent = t; };
+  const BOOT = ['SILICON BIOS v2.1', 'CPU  SX-7 2.1GHz  OK', 'RAM  512 KiB      OK', 'CLK  25.000 MHz   OK', 'BUS  I2C / SPI    OK', '> hello, world_'];
+  function setPower(on) {
+    powered = on;
+    wrap.classList.toggle('pwr-on', on);
+    $('#board').classList.toggle('pwr-on', on);
+    const b = $('#pwrBtn'); b.setAttribute('aria-pressed', String(on)); $('#pwrLbl').textContent = on ? 'POWER ON' : 'POWER OFF';
+    bootT0 = performance.now();
+    bootDone = false; oledLines = []; hbT = 0; seeded.pwr = false; seeded.sig = false;
+    if (on) { announce('Power on. The board is booting.'); }
+    else { announce('Power off.'); for (const k in ledTarget) ledTarget[k] = 0; oc.clear(); updateOC(); }
+    if (!on) { oledScope.setAttribute('opacity', '0'); }
+    if (soundOn) blip(on);
+  }
+  function bootStep(now) {
+    if (!powered) {
+      const t = (now - bootT0) / 1000;
+      if (t < 0.35 && !reduce) { const k = 1 - t / 0.35; oledText.setAttribute('transform', `translate(0 ${145 * (1 - k)}) scale(1 ${Math.max(0.02, k)})`); oledGlass.setAttribute('fill', '#07131a'); }
+      else { oledText.innerHTML = ''; oledText.removeAttribute('transform'); oledGlass.setAttribute('fill', '#02050a'); }
+      return;
+    }
+    const t = reduce ? 9 : (now - bootT0) / 1000;
+    oledText.removeAttribute('transform');
+    ledTarget.D0 = 1;
+    oledGlass.setAttribute('fill', t > 0.25 ? '#030a10' : '#02050a');
+    ['D1', 'D2', 'D3', 'D4', 'D5'].forEach((k, i) => { if (t > 0.45 + i * 0.12 && t < 1.3) ledTarget[k] = 1; });
+    if (t < 2.2) {
+      const n = Math.min(BOOT.length, Math.floor((t - 0.25) / 0.22) + 1);
+      if (t > 0.25 && n !== oledLines.length) { oledLines = BOOT.slice(0, n); oledRender(oledLines); }
+    } else if (!bootDone) { bootDone = true; oledScope.setAttribute('opacity', '1'); }
+  }
+  let bootDone = false;
+
+  /* ================= fx canvas ================= */
+  const fx = $('#fx'), fctx = fx.getContext('2d');
+  let dpr = 1, scale = 1, W = 0, H = 0;
+  function sprite(rgb, size) {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    const x = c.getContext('2d'), g = x.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    g.addColorStop(0, `rgba(255,255,255,1)`); g.addColorStop(0.12, `rgba(${rgb},0.95)`); g.addColorStop(0.4, `rgba(${rgb},0.28)`); g.addColorStop(1, `rgba(${rgb},0)`);
+    x.fillStyle = g; x.fillRect(0, 0, size, size); return c;
+  }
+  const SPR = { cyan: sprite('60,242,255', 96), warm: sprite('255,226,170', 96), hot: sprite('255,122,60', 128) };
+  const hexRgb = (h) => { const n = parseInt(h.slice(1), 16); return ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255); };
+  const LEDSPR = {}; for (const k in ledColor) LEDSPR[k] = sprite(hexRgb(ledColor[k]), 128);
+  function sizeFx() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    const r = wrap.getBoundingClientRect(); W = r.width; H = r.height; scale = W / 1000;
+    fx.width = Math.round(W * dpr); fx.height = Math.round(H * dpr);
+  }
+
+  const LEDPOS = { D0: [340, 760], D1: [600, 840], D2: [640, 840], D3: [680, 840], D4: [720, 840], D5: [760, 840] };
+  const CHIPC = { U1: [400, 330, 110], U2: [690, 330, 90], U3: [560, 640, 50], U4: [258, 800, 50], U5: [165, 185, 45] };
+  const wisps = [];
+  for (let i = 0; i < 40; i++) wisps.push({ on: false, x: 0, y: 0, vy: 0, life: 0, r: 0 });
+
+  let lastT = 0, spawnAcc = 0, hbT = 0;
+  const seeded = { pwr: false, sig: false };
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (document.hidden) { lastT = now; return; }
+    const dt = Math.min(0.05, lastT ? (now - lastT) / 1000 : 0.016); lastT = now;
+    bootStep(now);
+    const t = (now - bootT0) / 1000;
+    const live = powered && (reduce || t > 0.6);
+
+    // power flows first, then the first burst of data as the processor comes out of reset
+    if (powered && !seeded.pwr && (reduce || t > 0.12)) { seeded.pwr = true; pwrNets.forEach((i) => spawn(i, 'U4', true)); }
+    if (live && !seeded.sig) { seeded.sig = true; for (let k = 0; k < 16; k++) spawn(sigNets[(Math.random() * sigNets.length) | 0], null, false); }
+    // spawn pulses
+    if (live) {
+      const want = (window.innerWidth < 700 ? 22 : 36) + oc.size * 10;
+      spawnAcc += dt * (reduce ? 4 : 14 + oc.size * 10);
+      while (spawnAcc > 1) {
+        spawnAcc -= 1;
+        if (pulses.filter((p) => p.on).length < want) {
+          if (Math.random() < 0.16) spawn(pwrNets[(Math.random() * pwrNets.length) | 0], 'U4', true);
+          else {
+            const pool = oc.size && Math.random() < 0.55 ? sigNets.filter((i) => oc.has(NETS[i].a) || oc.has(NETS[i].b)) : sigNets;
+            spawn(pool[(Math.random() * pool.length) | 0], null, false);
+          }
+        }
+      }
+    }
+    // LEDs: heartbeat, clock, overheating
+    if (powered && t > 1.35) {
+      hbT += dt;
+      const hb = (hbT % 1.1);
+      ledTarget.D1 = hb < 0.12 || (hb > 0.24 && hb < 0.34) ? 1 : 0.12;
+      ledTarget.D2 = 0.55 + 0.45 * Math.sin(now / (oc.has('U1') ? 60 : 160));
+      ledTarget.D5 = oc.size ? (Math.sin(now / 120) > 0 ? 1 : 0.15) : 0;
+      ledTarget.D3 = Math.max(0.1, ledLevel.D3 * 0.9); ledTarget.D4 = Math.max(0.1, ledLevel.D4 * 0.9);
+      ledLevel.D3 *= Math.pow(0.02, dt); ledLevel.D4 *= Math.pow(0.02, dt);
+    }
+    for (const k in ledLevel) {
+      if (k === 'D3' || k === 'D4') { if (!powered || t < 1.35) ledLevel[k] += (ledTarget[k] - ledLevel[k]) * Math.min(1, dt * 18); }
+      else ledLevel[k] += (ledTarget[k] - ledLevel[k]) * Math.min(1, dt * 18);
+    }
+    for (const k in ledLevel) {
+      const el = document.getElementById('lens' + k); if (!el) continue;
+      const lv = k === 'D3' || k === 'D4' ? (powered && t > 1.35 ? ledTarget[k] : ledLevel[k]) : ledLevel[k];
+      el.setAttribute('fill', lv > 0.2 ? mix(ledColor[k], lv) : shade(ledColor[k], 0.72));
+      el._lv = lv;
+    }
+
+    // meters
+    const target = powered ? 38 + oc.size * 16 + (oc.has('U1') ? 18 : 0) : 24;
+    temp += (target - temp) * Math.min(1, dt * 0.6);
+    const aT = powered ? 0.42 + oc.size * 0.21 + (Math.random() - 0.5) * 0.02 : 0;
+    amps += (aT - amps) * Math.min(1, dt * 4);
+    const cT = powered ? (oc.has('U1') ? 3.4 : 2.1) : 0;
+    clkShown += (cT - clkShown) * Math.min(1, dt * 3);
+    meters(now);
+
+    // OLED dashboard once booted
+    if (powered && bootDone) {
+      if (now - oledTick > 250) {
+        oledTick = now;
+        oledRender([`PKT ${String(packets).padStart(7, '0')}`, `CLK ${clkShown.toFixed(2)} GHz`, `T   ${temp.toFixed(1)} C${oc.size ? '  HOT' : ''}`, `I   ${amps.toFixed(2)} A`], 9);
+      }
+      let pts = '';
+      for (let i = 0; i <= 60; i++) {
+        const x = 792 + i * 2, ph = now / (oc.has('U1') ? 70 : 160) + i * 0.35;
+        const sq = Math.sin(ph) > 0 ? 1 : -1;
+        const y = 180 - sq * 6 - Math.sin(ph * 3.1) * 1.2 * (oc.size ? 2 : 1);
+        pts += x + ',' + y.toFixed(1) + ' ';
+      }
+      oledScope.setAttribute('points', pts);
+    }
+
+    draw(now, dt);
+  }
+  let oledTick = 0;
+  function mix(hex, lv) { const n = parseInt(hex.slice(1), 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; const k = 0.35 + 0.65 * Math.min(1, lv); return `rgb(${Math.round(r * k + 255 * (1 - k) * 0.35)},${Math.round(g * k + 255 * (1 - k) * 0.35)},${Math.round(b * k + 255 * (1 - k) * 0.35)})`; }
+
+  function draw(now, dt) {
+    const x = fctx;
+    x.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+    x.clearRect(0, 0, 1000, 920);
+    x.globalCompositeOperation = 'lighter';
+    // highlighted nets glow
+    if (selected && partNets[selected]) {
+      x.lineCap = 'round'; x.lineJoin = 'round';
+      for (const i of partNets[selected]) {
+        const n = NETS[i];
+        x.beginPath(); n.pts.forEach((p, k) => (k ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1])));
+        x.strokeStyle = 'rgba(255,214,120,.16)'; x.lineWidth = n.w + 12; x.stroke();
+        x.strokeStyle = 'rgba(255,230,160,.22)'; x.lineWidth = n.w + 4; x.stroke();
+      }
+    }
+    // pulses
+    for (const p of pulses) {
+      if (!p.on) continue;
+      const n = NETS[p.n];
+      if (!powered) p.life -= dt * 3;
+      if (p.life <= 0) { p.on = false; continue; }
+      p.s += p.dir * p.v * (reduce ? 0.5 : 1) * dt;
+      if (p.s < 0 || p.s > n.total) { arrive(p); continue; }
+      const col = p.warm ? '255,236,200' : '80,245,255';
+      const tailLen = p.warm ? 70 : 46 + p.v * 0.06, steps = 7;
+      let prev = posAt(n, p.s);
+      for (let k = 1; k <= steps; k++) {
+        const q = posAt(n, p.s - p.dir * tailLen * k / steps);
+        x.strokeStyle = `rgba(${col},${(0.75 * (1 - k / (steps + 1)) * p.life).toFixed(3)})`;
+        x.lineWidth = (p.warm ? 5 : 3.2) * (1 - k / (steps + 2));
+        x.beginPath(); x.moveTo(prev[0], prev[1]); x.lineTo(q[0], q[1]); x.stroke();
+        prev = q;
+      }
+      const h = posAt(n, p.s), sz = p.warm ? 34 : 26;
+      x.globalAlpha = p.life; x.drawImage(p.warm ? SPR.warm : SPR.cyan, h[0] - sz / 2, h[1] - sz / 2, sz, sz); x.globalAlpha = 1;
+    }
+    // pad flashes
+    for (const f of flashes) {
+      if (!f.on) continue;
+      f.t += dt; if (f.t > 0.35) { f.on = false; continue; }
+      const a = 1 - f.t / 0.35, sz = 18 + f.t * 90;
+      x.globalAlpha = a * 0.8; x.drawImage(f.warm ? SPR.warm : SPR.cyan, f.x - sz / 2, f.y - sz / 2, sz, sz); x.globalAlpha = 1;
+    }
+    // LED glows
+    for (const k in LEDPOS) {
+      const el = document.getElementById('lens' + k), lv = el ? el._lv || 0 : 0;
+      if (lv < 0.05) continue;
+      const [lx, ly] = LEDPOS[k], sz = (k === 'D0' ? 70 : 90) * (0.6 + 0.4 * lv);
+      x.globalAlpha = Math.min(1, lv) * 0.85; x.drawImage(LEDSPR[k], lx - sz / 2, ly - sz / 2, sz, sz); x.globalAlpha = 1;
+    }
+    // OLED glow
+    if (powered) { x.globalAlpha = 0.18; x.drawImage(SPR.cyan, 760, 60, 180, 170); x.globalAlpha = 1; }
+    // overclocked chips: heat bloom and rising haze
+    for (const ref of oc) {
+      const [cx, cy, r] = CHIPC[ref];
+      const pulse = 0.75 + 0.25 * Math.sin(now / 200);
+      x.globalAlpha = 0.55 * pulse; x.drawImage(SPR.hot, cx - r * 1.8, cy - r * 1.8, r * 3.6, r * 3.6); x.globalAlpha = 1;
+      if (!reduce && Math.random() < dt * 22) { const w = wisps.find((q) => !q.on); if (w) { w.on = true; w.x = cx + (Math.random() - 0.5) * r * 1.4; w.y = cy + (Math.random() - 0.3) * r; w.vy = -30 - Math.random() * 40; w.life = 1; w.r = 6 + Math.random() * 10; } }
+    }
+    for (const w of wisps) {
+      if (!w.on) continue;
+      w.life -= dt * 0.9; if (w.life <= 0) { w.on = false; continue; }
+      w.y += w.vy * dt; w.x += Math.sin(now / 300 + w.y * 0.05) * 12 * dt;
+      x.globalAlpha = w.life * 0.25; x.drawImage(SPR.hot, w.x - w.r, w.y - w.r, w.r * 2, w.r * 2); x.globalAlpha = 1;
+    }
+    x.globalCompositeOperation = 'source-over';
+  }
+
+  /* ================= meters ================= */
+  const mEls = { in: $('#mIn'), rail: $('#mRail'), amp: $('#mAmp'), clk: $('#mClk'), temp: $('#mTemp'), pkt: $('#mPkt') };
+  let meterT = 0;
+  function meters(now) {
+    if (now - meterT < 120) return; meterT = now;
+    const t = (now - bootT0) / 1000;
+    mEls.in.textContent = powered ? (12 - amps * 0.04 + (Math.random() - 0.5) * 0.02).toFixed(2) + ' V' : '0.00 V';
+    const rail = powered ? Math.min(3.3, (reduce ? 1 : Math.min(1, t / 0.25)) * 3.3) - oc.size * 0.01 : 0;
+    mEls.rail.textContent = rail.toFixed(2) + ' V';
+    mEls.amp.textContent = amps.toFixed(2) + ' A';
+    mEls.clk.textContent = clkShown.toFixed(1) + ' GHz';
+    mEls.temp.textContent = Math.round(temp) + ' °C';
+    mEls.temp.classList.toggle('hot', temp > 60);
+    mEls.clk.classList.toggle('hot', oc.has('U1'));
+    mEls.pkt.textContent = packets.toLocaleString('en-US');
+  }
+
+  /* ================= hover, tooltip, overclock ================= */
+  const tip = $('#tip');
+  function select(ref) {
+    selected = ref;
+    document.querySelectorAll('.comp.sel').forEach((e) => e.classList.remove('sel'));
+    netEls.forEach((e) => e.classList.remove('hot'));
+    $('#board').classList.toggle('board-dim', !!ref);
+    if (!ref) { tip.classList.remove('show'); return; }
+    const g = document.querySelector(`.comp[data-ref="${ref}"]`); if (g) g.classList.add('sel');
+    (partNets[ref] || []).forEach((i) => netEls[i].classList.add('hot'));
+    showTip(ref);
+  }
+  function liveLine(ref) {
+    const P = PARTS[ref];
+    if (!powered) return '<div class="live">Board is unpowered</div>';
+    if (P.chip) {
+      const hot = oc.has(ref);
+      if (ref === 'U1') return `<div class="live${hot ? ' warn' : ''}">${hot ? 'OVERCLOCKED · ' : ''}${clkShown.toFixed(2)} GHz · ${Math.round(temp)} °C · click to ${hot ? 'cool' : 'overclock'}</div>`;
+      return `<div class="live${hot ? ' warn' : ''}">${hot ? 'OVERCLOCKED · pulses ×2.4' : 'Nominal · click to overclock'}</div>`;
+    }
+    if (P.led) return `<div class="live">${(document.getElementById('lens' + ref)._lv || 0) > 0.3 ? 'Lit' : 'Dark'}</div>`;
+    return `<div class="live">${(partNets[ref] || []).length} net${(partNets[ref] || []).length === 1 ? '' : 's'} connected</div>`;
+  }
+  function showTip(ref) {
+    const P = PARTS[ref];
+    tip.innerHTML = `<div class="ref">${ref}<small>${P.chip ? 'IC' : P.led ? 'LED' : ref[0] === 'R' ? 'RESISTOR' : ref[0] === 'C' ? 'CAPACITOR' : ref[0] === 'J' ? 'CONNECTOR' : 'PART'}</small></div><div class="part">${P.part}</div><ul>${P.specs.map((s) => '<li>' + s + '</li>').join('')}</ul>${liveLine(ref)}`;
+    const b = P.box, s = W / 1000;
+    const tw = tip.offsetWidth || 240, th = tip.offsetHeight || 120;
+    let left = (b[0] + b[2] / 2) * s - tw / 2, top = b[1] * s - th - 10;
+    if (top < 4) top = (b[1] + b[3]) * s + 10;
+    left = Math.max(4, Math.min(W - tw - 4, left)); top = Math.max(4, Math.min(H - th - 4, top));
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+    tip.classList.add('show');
+  }
+  setInterval(() => { if (selected && !probe) showTip(selected); }, 500);
+  function updateOC() {
+    document.querySelectorAll('.comp').forEach((g) => g.classList.toggle('oc', oc.has(g.dataset.ref)));
+  }
+  function toggleOC(ref) {
+    if (!PARTS[ref] || !PARTS[ref].chip) return;
+    if (!powered) { announce('Power the board first, then overclock ' + ref + '.'); showTip(ref); return; }
+    if (oc.has(ref)) { oc.delete(ref); announce(ref + ' back to its nominal clock.'); }
+    else { oc.add(ref); announce(ref + ' overclocked. Watch the heat.'); if (soundOn) whine(); }
+    updateOC(); showTip(ref);
+    // a burst of traffic out of the chip
+    (partNets[ref] || []).forEach((i) => { if (!NETS[i].kind.startsWith('pwr') && NETS[i].kind !== 'gnd' && Math.random() < 0.8) spawn(i, ref, false); });
+  }
+
+  const parts = $('#parts');
+  parts.addEventListener('pointerover', (e) => { if (probe) return; const g = e.target.closest('.comp'); if (g && e.pointerType === 'mouse') select(g.dataset.ref); });
+  parts.addEventListener('pointerout', (e) => { if (probe || e.pointerType !== 'mouse') return; const g = e.target.closest('.comp'); if (g && !(e.relatedTarget && g.contains(e.relatedTarget))) select(null); });
+  parts.addEventListener('click', (e) => {
+    if (probe) return;
+    const g = e.target.closest('.comp'); if (!g) return;
+    const ref = g.dataset.ref;
+    if (ref === 'SW1') { setPower(!powered); return; }
+    if (e.pointerType === 'touch' || (e.detail && selected !== ref && window.matchMedia('(hover: none)').matches)) {
+      if (selected !== ref) { select(ref); return; }
+    }
+    if (PARTS[ref].chip) toggleOC(ref); else select(ref);
+  });
+  parts.addEventListener('focusin', (e) => { const g = e.target.closest('.comp'); if (g) select(g.dataset.ref); });
+  parts.addEventListener('focusout', () => { setTimeout(() => { if (!parts.contains(document.activeElement)) select(null); }, 0); });
+  parts.addEventListener('keydown', (e) => {
+    const g = e.target.closest('.comp'); if (!g) return;
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const ref = g.dataset.ref; if (ref === 'SW1') setPower(!powered); else if (PARTS[ref].chip) toggleOC(ref); }
+  });
+  $('#board').addEventListener('click', (e) => { if (!e.target.closest('.comp') && !probe) select(null); });
+
+  /* ================= logic probe ================= */
+  const probeSvg = $('#probeSvg'), readout = $('#readout');
+  let probePt = null;
+  function nearest(bx, by) {
+    let best = null, bd = 14;
+    NETS.forEach((n, i) => {
+      for (let k = 1; k < n.pts.length; k++) {
+        const a = n.pts[k - 1], b = n.pts[k], vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy || 1;
+        let t = ((bx - a[0]) * vx + (by - a[1]) * vy) / L; t = Math.max(0, Math.min(1, t));
+        const px = a[0] + vx * t, py = a[1] + vy * t, d = Math.hypot(bx - px, by - py);
+        if (d < bd) { bd = d; best = { i, x: px, y: py, s: n.len[k - 1] + Math.sqrt(L) * t }; }
+      }
+    });
+    return best;
+  }
+  let logicT = 0, logicHigh = true;
+  function probeAt(clientX, clientY) {
+    const r = wrap.getBoundingClientRect(), s = r.width / 1000;
+    const mx = clientX - r.left, my = clientY - r.top;
+    const hit = nearest(mx / s, my / s);
+    const tipX = hit ? hit.x * s : mx, tipY = hit ? hit.y * s : my;
+    probeSvg.style.transform = `translate(${(tipX - 14).toFixed(1)}px, ${(tipY - 136).toFixed(1)}px)`;
+    const rw = readout.offsetWidth || 160;
+    readout.style.transform = `translate(${Math.min(r.width - rw - 4, Math.max(4, tipX + 18)).toFixed(1)}px, ${Math.max(4, tipY + 14).toFixed(1)}px)`;
+    probePt = hit;
+    const V = $('#roV'), S = $('#roS'), Nn = $('#roN');
+    $('#probeRing').setAttribute('stroke', hit ? '#3cf2ff' : '#5d7470');
+    if (!hit) { V.textContent = '— V'; S.textContent = 'NO CONTACT'; Nn.textContent = 'touch a trace'; $('#probeLed').setAttribute('fill', '#2b3a3a'); return; }
+    const n = NETS[hit.i];
+    Nn.textContent = n.name + ' · ' + n.a + ' ↔ ' + n.b;
+    if (!powered) { V.textContent = '0.00 V'; S.textContent = 'BOARD OFF'; $('#probeLed').setAttribute('fill', '#2b3a3a'); return; }
+    const jit = (Math.random() - 0.5) * 0.02;
+    let v, st, led = '#3cf2ff';
+    switch (n.kind) {
+      case 'pwr12': v = 12 + jit * 3; st = 'SUPPLY · 12 V'; led = '#ffd27a'; break;
+      case 'pwr5': v = 5.02 + jit; st = 'USB VBUS'; led = '#ffd27a'; break;
+      case 'pwr3': v = 3.3 - oc.size * 0.01 + jit; st = 'RAIL · 3V3'; led = '#ffd27a'; break;
+      case 'gnd': v = 0 + Math.abs(jit) * 0.2; st = 'GROUND'; led = '#2b3a3a'; break;
+      case 'clk': v = 1.65 + jit; st = 'CLOCK · 25.000 MHz'; break;
+      case 'led': v = 2.02 + jit; st = 'LED FORWARD'; led = '#62ff8f'; break;
+      default: {
+        const near = pulses.some((p) => p.on && p.n === hit.i && Math.abs(p.s - hit.s) < 40);
+        if (performance.now() - logicT > 180) { logicT = performance.now(); logicHigh = Math.random() < 0.55; }
+        if (near) { v = 3.29 + jit; st = 'PULSE ↑ HIGH'; led = '#ffffff'; }
+        else { v = logicHigh ? 3.28 + jit : 0.02 + Math.abs(jit); st = logicHigh ? 'LOGIC HIGH' : 'LOGIC LOW'; led = logicHigh ? '#3cf2ff' : '#1a4a50'; }
+      }
+    }
+    V.textContent = v.toFixed(2) + ' V'; S.textContent = st; $('#probeLed').setAttribute('fill', led);
+  }
+  let lastProbeEvt = null;
+  wrap.addEventListener('pointermove', (e) => { if (!probe) return; lastProbeEvt = e; probeAt(e.clientX, e.clientY); });
+  wrap.addEventListener('pointerdown', (e) => { if (!probe) return; lastProbeEvt = e; probeAt(e.clientX, e.clientY); });
+  setInterval(() => { if (probe && lastProbeEvt) probeAt(lastProbeEvt.clientX, lastProbeEvt.clientY); }, 200);
+  function setProbe(on) {
+    probe = on;
+    wrap.classList.toggle('probing', on);
+    $('#probeBtn').setAttribute('aria-pressed', String(on));
+    if (on) { select(null); const r = wrap.getBoundingClientRect(); probeAt(r.left + r.width * 0.52, r.top + r.height * 0.33); announce('Logic probe in hand. Move over a trace to read its voltage.'); }
+    else announce('Logic probe put away.');
+  }
+
+  /* ================= sound ================= */
+  let actx = null, soundOn = false;
+  function blip(on) {
+    if (!actx) return;
+    const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(on ? 440 : 660, t); o.frequency.exponentialRampToValueAtTime(on ? 1320 : 180, t + 0.25);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.4);
+  }
+  function whine() {
+    if (!actx) return;
+    const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(900, t); o.frequency.exponentialRampToValueAtTime(3200, t + 0.6);
+    const f = actx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2400; f.Q.value = 3;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.08); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+    o.connect(f); f.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.75);
+  }
+  const soundBtn = document.createElement('button');
+  soundBtn.type = 'button'; soundBtn.className = 'tbtn'; soundBtn.id = 'soundBtn'; soundBtn.setAttribute('aria-pressed', 'false'); soundBtn.textContent = 'SOUND · OFF';
+  soundBtn.style.gridColumn = '1 / -1';
+  $('.ctrl').appendChild(soundBtn);
+  soundBtn.addEventListener('click', () => {
+    if (!soundOn) { try { const AC = window.AudioContext || window.webkitAudioContext; if (!actx && AC) actx = new AC(); if (actx && actx.state === 'suspended') actx.resume(); } catch (e) { actx = null; } if (!actx) return; }
+    soundOn = !soundOn; soundBtn.setAttribute('aria-pressed', String(soundOn)); soundBtn.textContent = soundOn ? 'SOUND · ON' : 'SOUND · OFF';
+    if (soundOn) blip(true);
+  });
+
+  /* ================= controls ================= */
+  $('#pwrBtn').addEventListener('click', () => setPower(!powered));
+  $('#probeBtn').addEventListener('click', () => setProbe(!probe));
+  $('#coolBtn').addEventListener('click', () => { oc.clear(); updateOC(); announce('All chips back to nominal clocks.'); if (selected) showTip(selected); });
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key === 'p' || e.key === 'P') setPower(!powered);
+    else if (e.key === 'l' || e.key === 'L') setProbe(!probe);
+    else if (e.key === 'Escape') { if (probe) setProbe(false); select(null); }
+  });
+
+  let rt = 0;
+  const ro = new ResizeObserver(() => {
+    const r = wrap.getBoundingClientRect(); W = r.width; H = r.height;
+    if (selected) showTip(selected);
+    clearTimeout(rt); rt = setTimeout(() => { sizeFx(); if (selected) showTip(selected); }, 40);
+  });
+  ro.observe(wrap);
+  if (mq.addEventListener) mq.addEventListener('change', (e) => { reduce = e.matches; });
+
+  sizeFx();
+  requestAnimationFrame(frame);
+  setTimeout(() => setPower(true), reduce ? 0 : 380);
+})();
+</script>
+</body>
+</html>

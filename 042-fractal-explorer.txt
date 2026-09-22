@@ -1,0 +1,39 @@
+TITLE: Infinite Coastline — Mandelbrot & Julia Explorer
+FILE: 042-fractal-explorer.html
+
+=== PROMPT (exact prompt used) ===
+Build "Infinite Coastline — Mandelbrot & Julia Explorer". A full-screen canvas rendering the Mandelbrot set with smooth (continuous) colouring and a choice of cyclic palettes: "Aurum" (black → deep blue → gold → white), "Abyss" (navy → cyan → white), "Magma" and "Pastel Dream". Render progressively (low-resolution preview, then refinement in chunks scheduled with requestAnimationFrame, optionally in a Web Worker created from an inline Blob) so the UI never freezes. Interaction: click/tap to zoom in on a point (animated); right-click or a button to zoom out; drag to pan; mouse-wheel zoom; and a live mini Julia-set window that follows the cursor showing the Julia set for the hovered c — press J to make it the main view. HUD: coordinates, zoom level and iteration count (rising automatically with zoom); bookmarks of famous locations (Seahorse Valley, Elephant Valley, a triple spiral, a mini-brot). Palette-cycling animation toggle. Download PNG. A sleek dark UI with thin gold typography.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A full-screen, black-and-gold instrument for exploring the Mandelbrot set and its Julia sets. The fractal fills the window with smooth, continuous colouring, and the palette is mapped relative to the lowest escape value in view, so the far exterior falls to black and the coastline glows. Thin gold typography and hairline panels with corner ticks frame the image: a spaced-caps "Infinite Coastline" title, a position readout (real, imaginary, zoom in scientific notation, auto-rising iteration count, cursor or seed c, render progress and time), a bookmark panel whose live thumbnails are rendered by the page itself, and a toolbar with zoom, reset, four palette swatches (Aurum, Abyss, Magma, Pastel Dream), colour cycling, the Julia toggle and PNG export. A circular gold-ringed lens trails the cursor and shows, live, the Julia set for the point beneath it.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Escape-time kernel with smooth (continuous) iteration count, bailout radius 256, cardioid and period-2 bulb rejection and Brent-style periodicity checking
+- Multi-threaded progressive rendering: the kernel's own source is packed into an inline Blob and run in a pool of Web Workers (main-thread time-sliced fallback). An 8× preview pass is followed by full-resolution strips scheduled from the centre outwards, each painted as it arrives with dirty-rect putImageData
+- A float field of smooth iteration values is kept, so palette changes and palette cycling only recolour through a 2,048-entry cyclic LUT, with no recomputation
+- Palette mapping t = sqrt(mu − mu_min) × density, with mu_min taken from the preview pass, so every zoom depth keeps a dark exterior and a banded, glowing boundary
+- Animated zooms, pans, wheel zoom and pinch show a scaled and translated snapshot of the last frame, eased on a logarithmic scale path, until the new progressive render replaces it
+- Auto iterations rising with log zoom; precision guard at the limit of 64-bit floats, with a toast
+- Julia lens: a 160 × 160 live render on each pointer frame, eased to follow the cursor and flipping at screen edges; on touch screens it docks and shows the Julia set of the view centre
+- Hairline gold UI: thin sans in spaced caps, italic serif accents, monospaced tabular numerals, corner-tick panels, conic-gradient palette swatches and soft corner vignettes for legibility
+
+=== INTERACTION MODEL ===
+- Click or tap to dive ×3 toward the point (animated); right-click to rise; drag to pan; mouse wheel zooms about the cursor; two-finger pinch zooms on touch screens
+- Hover to see the live Julia set for that c in the lens; press J (or the J button) to make that Julia set the main view, and press J or M to return to the saved Mandelbrot view
+- Bookmarks (buttons or keys 1–5): Seahorse Valley, Elephant Valley, Triple Spiral Valley, the period-3 mini-brot at about −1.7549, and the whole set; each flies there with an animated zoom
+- Palette swatches form a radio group (arrow keys supported); the cycle button or C animates the colours; [ and ] change detail (iteration multiplier); + and − zoom, arrow keys pan, H or 0 resets
+- Save exports the current render as a PNG through canvas.toBlob and a temporary download link, with a data-URL fallback
+- A hint strip explains the gestures and fades out; toasts and a polite live region announce palette, mode and precision changes; rendering pauses while the tab is hidden; reduced motion makes zoom jumps instant

@@ -1,0 +1,42 @@
+TITLE: Rosette — Symmetry Painter
+FILE: 023-symmetry-painter.html
+
+=== PROMPT (exact prompt used) ===
+Build "Rosette — Symmetry Painter", a radial-symmetry drawing instrument. A black canvas (#070707) where every stroke is mirrored across N rotational segments (selectable 3–24, plus mirror on/off) around the centre, producing mandala-like jewel artwork. Brushes: glowing neon line (additive blending), ink line with velocity-based width, dotted stardust, and ribbon. Palette presets: "Jewels" (#ff006e #fb5607 #ffbe0b #8338ec #3a86ff), "Byzantine" (golds and deep blues), "Porcelain" (cobalt on white — switches the background to white), plus a hue-cycling rainbow mode. A faint guide shows the segment lines while drawing and fades out afterwards. UI: a floating, elegant control dock (glass on dark) with segment slider, brush picker, palette swatches, undo, clear (with a dissolve animation) and PNG download. Delight: an idle "autodraw" that paints slowly on its own until the user touches the canvas, and a gentle rotation mode that spins the artwork. Touch-friendly with pointer capture.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Rosette is a radial-symmetry drawing instrument on a near-black #070707 canvas. Every stroke is copied across 3 to 24 rotational folds, and each fold can also be mirrored, so the copies form a dihedral rosette. With mirror on, the mirrored copies take the next colour in the palette, which interleaves two colours into a jewel-like pattern. The page opens on a finished mandala that the instrument painted itself and keeps painting slowly until someone touches the canvas. The title "Rosette" is set in an italic old-style serif with a slowly turning ✺. A frosted glass dock floats at the bottom and holds the controls. Four palettes change the mood. Jewels uses #ff006e, #fb5607, #ffbe0b, #8338ec and #3a86ff. Byzantine uses golds with lapis and deep blues. Porcelain turns the ground to white and paints in cobalt glaze. Rainbow cycles the hue along the stroke.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Strokes are stored in unit space (radius = 1) with per-point distance, velocity-derived width, smoothed normal and twist phase. The artwork therefore rescales with the viewport and can be replayed deterministically for undo and resize.
+- The artwork lives on an offscreen square canvas big enough to cover the rotated viewport, capped at 2600 px, at DPR up to 2. The view canvas composites it each frame with a rotation for spin mode.
+- The symmetry engine draws every copy with a canvas transform: rotate(k·2π/N), then scale(1,−1) for the mirrored copy.
+- Neon is one quadratic-smoothed Path2D stroked in four passes (wide halo, glow, body, white-hot core) with additive 'lighter' blending. While drawing it is re-stroked each frame on a live layer so the joints never bead. On Porcelain it uses multiply instead.
+- Ink draws tapered quads plus round joints, with width driven by pen velocity: faster strokes are thinner.
+- Stardust is a seeded scatter of glints with soft halos and occasional four-point sparkles, so replays match exactly.
+- Ribbon is a twisting band of silk. Its half-width follows sin(phase) along the stroke, and translucent face shading plus hairline edges show which side is turned toward the viewer.
+- Colour interpolates smoothly through the palette along the stroke's length. Rainbow uses computed HSL.
+- Segment guides (solid fold lines, dashed mirror axes and the unit circle) fade in while drawing and ease out afterwards.
+- On mouse devices, symmetric ghost cursors show where every copy will land.
+- The clear dissolve samples the artwork's pixels into about 2,600 coloured particles that spiral outward, drift and fade. Meanwhile the old layer swells slightly and fades.
+- The dock uses glass (backdrop blur and saturation, hairline border, inset highlight) and switches to a light theme on Porcelain. The range sliders use gradient-filled tracks. Palette swatches are conic gradients and the brush icons are inline SVG.
+
+=== INTERACTION MODEL ===
+- Draw with mouse, pen or touch. Pointer capture and coalesced events give smooth strokes, and the drawing continues even while the rosette is spinning.
+- Dock controls: the Folds slider (3–24), the mirror toggle, four brushes (neon, ink, stardust, ribbon), four palette swatches, a brush size slider, undo, clear (with the particle dissolve), spin, autodraw and PNG download.
+- Autodraw runs on load and yields as soon as the canvas is touched. It resumes after 30 s of idleness while enabled, and the Auto button toggles it. Undo after a clear restores the whole drawing.
+- Keyboard: 1–4 choose a brush, ↑/↓ change folds, [ ] change size, M mirror, R spin, A autodraw, Z or Ctrl/Cmd+Z undo, C clear, S save, P cycles the palette.
+- Save composes the background and the rotated artwork into a PNG with toBlob, falling back to a data URL.
+- Settings persist in guarded localStorage. On phones the dock wraps into three rows and can be collapsed with the chevron, which re-centres and enlarges the canvas. A status toast confirms actions, and reduced motion disables spin and the decorative animation.

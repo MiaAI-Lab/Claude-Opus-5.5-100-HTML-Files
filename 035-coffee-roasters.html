@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember &amp; Oak Coffee Roasters — Small-Batch Coffee</title>
+<meta name="description" content="Ember & Oak, a fictional small-batch coffee roastery: origin cards from Ethiopia to Costa Rica, an interactive tasting-notes flavour wheel, a roast-level slider with first crack, brew timers and a subscription.">
+<meta name="theme-color" content="#2b1a12">
+<style>
+:root{
+  --espresso:#2b1a12;
+  --espresso-2:#20130d;
+  --roast:#5c3a21;
+  --crema:#c8a27a;
+  --oat:#efe5d6;
+  --oat-2:#e6d8c3;
+  --oat-3:#f7f1e7;
+  --copper:#b87333;
+  --copper-hi:#d18a45;
+  --ink:#2b1a12;
+  --ink-soft:rgba(43,26,18,.72);
+  --ink-mute:rgba(43,26,18,.52);
+  --display:"Cooper Black","Cooper Std",Cooper,Rockwell,"Rockwell Nova","URW Bookman","Bookman Old Style",Georgia,serif;
+  --sans:"Avenir Next",Avenir,"Segoe UI","Helvetica Neue","Nimbus Sans",Arial,sans-serif;
+  --radius:18px;
+  --bounce:cubic-bezier(.34,1.56,.64,1);
+  --soft:cubic-bezier(.22,.8,.26,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--oat);color:var(--ink);font-family:var(--sans);font-size:clamp(15.5px,.5vw + 13px,17.5px);line-height:1.6;overflow-x:hidden}
+svg{display:block}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+::selection{background:var(--copper);color:var(--oat-3)}
+:focus-visible{outline:3px solid var(--copper);outline-offset:3px;border-radius:6px}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.grain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90;opacity:.16;mix-blend-mode:multiply}
+.wrap{max-width:1240px;margin:0 auto;padding:0 clamp(18px,4vw,48px)}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.02;margin:0;letter-spacing:-.01em}
+.kicker{display:inline-flex;align-items:center;gap:10px;margin:0 0 16px;font-size:.78rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--copper)}
+.kicker::before{content:"";width:26px;height:2px;background:currentColor;border-radius:2px}
+.h2{font-size:clamp(2.2rem,4.6vw,3.9rem)}
+.lede{max-width:36rem;color:var(--ink-soft);font-size:1.08em;margin:18px 0 0}
+
+/* ---------- buttons: tactile ---------- */
+.btn{
+  --bg:var(--copper);--fg:var(--oat-3);--edge:#8c5423;
+  display:inline-flex;align-items:center;gap:10px;padding:14px 24px 15px;border-radius:999px;border:0;cursor:pointer;
+  background:var(--bg);color:var(--fg);font-weight:700;font-size:.95rem;letter-spacing:.02em;text-decoration:none;
+  box-shadow:0 4px 0 var(--edge),0 10px 22px -8px rgba(43,26,18,.55),inset 0 1px 0 rgba(255,255,255,.25);
+  transform:translateY(0);transition:transform .18s var(--soft),box-shadow .18s var(--soft),background-color .3s;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--edge),0 16px 28px -10px rgba(43,26,18,.6),inset 0 1px 0 rgba(255,255,255,.25);background:var(--copper-hi)}
+.btn:active{transform:translateY(4px);box-shadow:0 0 0 var(--edge),0 4px 10px -6px rgba(43,26,18,.6),inset 0 2px 6px rgba(0,0,0,.25)}
+.btn.ghost{--bg:transparent;--fg:var(--espresso);--edge:var(--espresso);box-shadow:inset 0 0 0 2px var(--espresso),0 4px 0 var(--espresso)}
+.btn.ghost:hover{background:var(--oat-3);box-shadow:inset 0 0 0 2px var(--espresso),0 6px 0 var(--espresso)}
+.btn.ghost:active{box-shadow:inset 0 0 0 2px var(--espresso),0 0 0 var(--espresso)}
+.btn.dark{--bg:var(--espresso);--fg:var(--oat);--edge:#120a06}
+.btn.dark:hover{background:#3a2419}
+.btn svg{width:18px;height:18px}
+.icon-btn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;border:2px solid var(--espresso);background:var(--oat-3);color:var(--espresso);box-shadow:0 3px 0 var(--espresso);transition:transform .15s,box-shadow .15s,background-color .3s}
+.icon-btn:hover{background:#fff8ee;transform:translateY(-1px);box-shadow:0 4px 0 var(--espresso)}
+.icon-btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--espresso)}
+.icon-btn svg{width:18px;height:18px}
+
+/* ---------- nav ---------- */
+.nav{position:absolute;top:0;left:0;right:0;z-index:20}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:22px;padding-bottom:22px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand svg{width:48px;height:48px}
+.brand b{display:block;font-family:var(--display);font-size:1.35rem;line-height:1;letter-spacing:-.01em}
+.brand small{display:block;font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--copper);font-weight:700;margin-top:4px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:block;padding:9px 14px;border-radius:999px;text-decoration:none;font-weight:600;font-size:.92rem;color:var(--ink-soft);transition:background-color .25s,color .25s}
+.nav ul a:hover{background:rgba(92,58,33,.1);color:var(--espresso)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.sound{display:flex;align-items:center;gap:8px;padding:8px 14px 8px 10px;border-radius:999px;border:2px solid var(--espresso);background:transparent;cursor:pointer;font-weight:700;font-size:.8rem;letter-spacing:.06em;transition:background-color .25s,color .25s}
+.sound svg{width:18px;height:18px}
+.sound[aria-pressed="true"]{background:var(--espresso);color:var(--oat)}
+.sound .wave{opacity:0;transition:opacity .25s}
+.sound[aria-pressed="true"] .wave{opacity:1}
+
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:max(100svh,700px);overflow:hidden;
+  background:
+    radial-gradient(ellipse 50% 60% at 78% 55%,rgba(200,162,122,.55),rgba(200,162,122,0) 70%),
+    radial-gradient(ellipse 60% 50% at 10% 100%,rgba(184,115,51,.14),transparent 70%),
+    var(--oat)}
+.hero .wrap{display:grid;grid-template-columns:1.02fr .98fr;align-items:center;gap:clamp(16px,3vw,40px);min-height:max(100svh,700px);padding-top:110px;padding-bottom:60px}
+.hero h1{font-size:clamp(2.9rem,6.4vw,5.9rem);letter-spacing:-.025em;line-height:.96}
+.hero h1 em{font-style:normal;color:var(--copper);position:relative;display:inline-block}
+.hero h1 em svg{position:absolute;left:-4%;bottom:-.12em;width:108%;height:.34em;overflow:visible}
+.hero h1 em path{stroke-dasharray:1;stroke-dashoffset:1;animation:ink 1s .8s var(--soft) forwards}
+@keyframes ink{to{stroke-dashoffset:0}}
+.hero .lede{font-size:1.15em}
+.hero-cta{display:flex;flex-wrap:wrap;gap:16px;margin-top:32px}
+.facts{display:flex;flex-wrap:wrap;gap:0;margin:40px 0 0;padding:0;list-style:none}
+.facts li{padding:0 22px 0 0;margin-right:22px;border-right:2px dotted rgba(92,58,33,.3)}
+.facts li:last-child{border:0;margin:0}
+.facts b{display:block;font-family:var(--display);font-size:1.7rem;line-height:1.1;color:var(--roast)}
+.facts span{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);font-weight:600}
+.hero-in{opacity:0;transform:translateY(16px);animation:up .9s var(--soft) forwards}
+.hero-in:nth-child(2){animation-delay:.1s}.hero-in:nth-child(3){animation-delay:.2s}.hero-in:nth-child(4){animation-delay:.3s}.hero-in:nth-child(5){animation-delay:.4s}
+@keyframes up{to{opacity:1;transform:none}}
+.cup-stage{position:relative;aspect-ratio:1;width:100%;max-width:640px;justify-self:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cup-stage > svg{width:100%;height:100%;overflow:visible}
+.ring-text{transform-origin:300px 300px;animation:turn 60s linear infinite}
+@keyframes turn{to{transform:rotate(360deg)}}
+.cup-float{animation:bobcup 6s ease-in-out infinite;transform-origin:300px 440px}
+@keyframes bobcup{50%{transform:translateY(-6px)}}
+.steam path{fill:none;stroke:#fffaf2;stroke-linecap:round;opacity:0;animation:steam 5.4s ease-in-out infinite}
+.steam path:nth-child(2){animation-delay:1.8s}
+.steam path:nth-child(3){animation-delay:3.6s}
+.steam path:nth-child(4){animation-delay:.9s}
+@keyframes steam{0%{opacity:0;transform:translateY(24px) scaleX(.9)}25%{opacity:.62}70%{opacity:.3}100%{opacity:0;transform:translateY(-70px) scaleX(1.15)}}
+.rosetta path{stroke-dasharray:1;stroke-dashoffset:1}
+.rosetta.pour path{animation:ink .55s var(--soft) forwards}
+.hint{position:absolute;left:50%;bottom:4%;transform:translateX(-50%);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--roast);opacity:.7;white-space:nowrap}
+
+/* ---------- ticker ---------- */
+.ticker{background:var(--espresso);color:var(--crema);overflow:hidden;border-block:3px solid var(--copper)}
+.ticker-track{display:flex;width:max-content;animation:tick 42s linear infinite}
+.ticker-track span{display:flex;align-items:center;gap:26px;padding:16px 13px;font-family:var(--display);font-size:1.25rem;white-space:nowrap}
+.ticker-track span i{font-style:normal;color:var(--copper);font-size:.9em}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ---------- beans carousel ---------- */
+.beans{padding:clamp(80px,10vw,130px) 0 clamp(60px,8vw,100px)}
+.beans-head{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;flex-wrap:wrap}
+.car-ctl{display:flex;align-items:center;gap:12px}
+.car-progress{width:120px;height:4px;border-radius:4px;background:rgba(92,58,33,.18);overflow:hidden}
+.car-progress i{display:block;height:100%;width:30%;background:var(--copper);border-radius:4px;transform-origin:0 50%;transition:transform .2s}
+.track{
+  display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:max(18px,calc((100vw - 1240px)/2 + 48px));
+  padding:40px max(18px,calc((100vw - 1240px)/2 + 48px)) 40px;margin-top:6px;scrollbar-width:none;cursor:grab;
+  overscroll-behavior-x:contain;
+}
+.track::-webkit-scrollbar{display:none}
+.track.dragging{cursor:grabbing;scroll-snap-type:none}
+.track.dragging *{pointer-events:none}
+.origin{
+  flex:0 0 clamp(270px,26vw,330px);scroll-snap-align:start;position:relative;
+  background:var(--oat-3);border-radius:22px;padding:12px 12px 22px;
+  box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 0 0 1px rgba(92,58,33,.12),0 18px 30px -22px rgba(43,26,18,.55);
+  transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--lift,0px));
+  transition:transform .35s var(--soft),box-shadow .35s var(--soft);will-change:transform;
+}
+.origin:hover,.origin:focus-within,.origin.flash{--lift:-8px;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 0 0 2px var(--copper),0 30px 40px -24px rgba(43,26,18,.65)}
+.origin.flash{animation:flash 1.4s var(--soft)}
+@keyframes flash{0%,100%{box-shadow:0 0 0 2px var(--copper),0 30px 40px -24px rgba(43,26,18,.65)}40%{box-shadow:0 0 0 6px rgba(184,115,51,.55),0 30px 40px -24px rgba(43,26,18,.65)}}
+.origin figure{margin:0;border-radius:14px;overflow:hidden;aspect-ratio:300/180;background:var(--oat-2)}
+.origin figure svg{width:100%;height:100%;transition:transform .6s var(--soft)}
+.origin:hover figure svg{transform:scale(1.06)}
+.origin .place{margin:18px 8px 0;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--copper);display:flex;justify-content:space-between;gap:10px}
+.origin h3{margin:6px 8px 0;font-size:1.5rem;line-height:1.08}
+.origin dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:14px 8px 0;font-size:.86rem}
+.origin dt{color:var(--ink-mute);font-weight:600}
+.origin dd{margin:0;text-align:right;font-weight:600}
+.notes{display:flex;flex-wrap:wrap;gap:6px;margin:16px 8px 0;padding:0;list-style:none}
+.notes li{font-size:.76rem;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--c,#ccc);color:#fff8ee}
+.notes li.lt{color:var(--espresso)}
+
+/* ---------- flavour wheel ---------- */
+.flavour{padding:clamp(80px,10vw,130px) 0;background:
+  radial-gradient(circle at 30% 50%,rgba(247,241,231,.9),rgba(247,241,231,0) 55%),
+  var(--oat-2);border-top:1px solid rgba(92,58,33,.12)}
+.flavour-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:clamp(30px,5vw,80px);align-items:center}
+.wheel-box{position:relative;max-width:560px;width:100%;justify-self:center}
+.wheel{width:100%;height:auto;overflow:visible;touch-action:manipulation}
+.wheel .seg{cursor:pointer;transition:transform .35s var(--bounce),filter .3s;outline:none}
+.wheel .seg path{stroke:var(--oat-2);stroke-width:2.5;transition:filter .3s}
+.wheel .seg:hover,.wheel .seg.hot{transform:translate(var(--dx),var(--dy))}
+.wheel .seg:hover path,.wheel .seg.hot path{filter:brightness(1.08) saturate(1.1)}
+.wheel .seg.dim{opacity:.38}
+.wheel .seg:focus-visible path{stroke:var(--espresso);stroke-width:3}
+.wheel text{pointer-events:none;font-family:var(--sans);font-weight:700}
+.wheel .cat-lbl{font-size:13px;letter-spacing:.08em;text-transform:uppercase;fill:#fff8ee}
+.wheel .sub-lbl{font-size:10.5px;fill:#fff8ee}
+.wheel .sub-lbl.dk{fill:var(--espresso)}
+.wheel-center{font-family:var(--display)}
+.panel{background:var(--oat-3);border-radius:24px;padding:28px clamp(20px,3vw,34px);box-shadow:0 0 0 1px rgba(92,58,33,.12),0 30px 50px -36px rgba(43,26,18,.6);min-height:300px}
+.panel h3{font-size:1.8rem;display:flex;align-items:center;gap:12px}
+.panel h3 i{width:16px;height:16px;border-radius:50%;background:var(--c,var(--copper));flex:none;box-shadow:0 0 0 4px rgba(0,0,0,.06)}
+.panel p{color:var(--ink-soft);margin:10px 0 0}
+.matches{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:10px}
+.matches button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:14px;border:0;cursor:pointer;background:var(--oat);text-align:left;box-shadow:inset 0 0 0 1px rgba(92,58,33,.14),0 3px 0 rgba(92,58,33,.2);transition:transform .15s,box-shadow .15s,background-color .2s}
+.matches button:hover{background:#fff8ee;transform:translateY(-1px)}
+.matches button:active{transform:translateY(3px);box-shadow:inset 0 0 0 1px rgba(92,58,33,.14),0 0 0 rgba(92,58,33,.2)}
+.matches b{font-family:var(--display);font-size:1.1rem;font-weight:700}
+.matches small{display:block;font-size:.76rem;color:var(--ink-mute);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.matches .go{font-size:.8rem;font-weight:700;color:var(--copper);white-space:nowrap}
+
+/* ---------- roast ---------- */
+.roast{position:relative;padding:clamp(80px,10vw,130px) 0;color:var(--oat);overflow:hidden;
+  background:
+    radial-gradient(ellipse 45% 60% at 28% 50%,rgba(184,115,51,.28),transparent 70%),
+    linear-gradient(180deg,var(--espresso),var(--espresso-2));
+}
+.roast .kicker{color:var(--copper-hi)}
+.roast .lede{color:rgba(239,229,214,.75)}
+.roast-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(30px,5vw,80px);align-items:center;margin-top:40px}
+.bean-stage{position:relative;aspect-ratio:1;max-width:470px;width:100%;justify-self:center}
+.bean-stage svg{width:100%;height:100%;overflow:visible}
+.bean-stage canvas{position:absolute;inset:-15%;width:130%;height:130%;pointer-events:none}
+#beanG{transform-origin:0 0;transition:transform .5s var(--bounce)}
+.bean-stage.pop #beanWrap{animation:pop .28s ease-out}
+@keyframes pop{30%{transform:scale(1.035) rotate(-1.5deg)}70%{transform:scale(.99) rotate(.6deg)}}
+.stage-name{font-size:clamp(2rem,4vw,3.2rem);color:var(--oat-3);min-height:1.1em}
+.stage-temp{font-family:var(--sans);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem;color:var(--copper-hi);margin:8px 0 0}
+.stage-note{min-height:3.4em;margin:14px 0 0;color:rgba(239,229,214,.78);max-width:34rem}
+.slider-wrap{margin-top:30px}
+.slider-wrap label{display:block;font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:rgba(239,229,214,.7);margin-bottom:12px}
+input[type=range].roast-range{
+  -webkit-appearance:none;appearance:none;width:100%;height:18px;border-radius:999px;cursor:pointer;
+  background:linear-gradient(90deg,#8f9a62 0%,#c9b56d 16%,#c49a5c 30%,#9a6536 44%,#7a4a28 58%,#5c3a21 72%,#3f2716 86%,#1c100a 100%);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.08);
+}
+input[type=range].roast-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8ee,#e3c9a4 45%,#b87333);border:3px solid var(--oat-3);box-shadow:0 4px 12px rgba(0,0,0,.6);transition:transform .15s}
+input[type=range].roast-range:active::-webkit-slider-thumb{transform:scale(1.12)}
+input[type=range].roast-range::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff8ee,#e3c9a4 45%,#b87333);border:3px solid var(--oat-3);box-shadow:0 4px 12px rgba(0,0,0,.6)}
+.marks{position:relative;height:40px;margin-top:10px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(239,229,214,.6)}
+.marks span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;padding-top:12px}
+.marks span::before{content:"";position:absolute;left:50%;top:0;width:2px;height:8px;background:currentColor;border-radius:2px}
+.marks span.crack{color:var(--copper-hi)}
+.curve{margin-top:26px;background:rgba(239,229,214,.05);border:1px solid rgba(239,229,214,.12);border-radius:18px;padding:14px 16px 8px}
+.curve svg{width:100%;height:auto}
+.curve p{margin:6px 0 4px;font-size:.74rem;color:rgba(239,229,214,.5)}
+
+/* ---------- brew ---------- */
+.brew{padding:clamp(80px,10vw,130px) 0}
+.tabs{display:inline-flex;gap:6px;padding:6px;border-radius:999px;background:var(--oat-2);box-shadow:inset 0 2px 4px rgba(43,26,18,.12);margin-top:30px;flex-wrap:wrap}
+.tabs button{padding:10px 20px;border-radius:999px;border:0;background:transparent;cursor:pointer;font-weight:700;font-size:.92rem;color:var(--ink-soft);transition:background-color .25s,color .25s,box-shadow .25s}
+.tabs button[aria-selected="true"]{background:var(--espresso);color:var(--oat);box-shadow:0 3px 0 #120a06}
+.brew-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(24px,4vw,60px);margin-top:34px;align-items:start}
+.recipe{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 20px;padding:0;list-style:none}
+.recipe li{padding:8px 14px;border-radius:12px;background:var(--oat-3);box-shadow:inset 0 0 0 1px rgba(92,58,33,.14);font-size:.85rem;font-weight:600}
+.recipe li b{color:var(--copper)}
+.steps{list-style:none;margin:0;padding:0;counter-reset:st;display:grid;gap:12px}
+.steps li{position:relative;display:grid;grid-template-columns:48px 1fr auto;gap:16px;align-items:center;padding:16px 18px;border-radius:18px;background:var(--oat-3);box-shadow:inset 0 0 0 1px rgba(92,58,33,.12);overflow:hidden;transition:box-shadow .3s,transform .3s var(--soft)}
+.steps li::before{counter-increment:st;content:counter(st);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--oat-2);font-family:var(--display);font-size:1.25rem;color:var(--roast);transition:background-color .3s,color .3s}
+.steps li .bar{position:absolute;left:0;bottom:0;height:4px;width:100%;background:var(--copper);transform:scaleX(var(--p,0));transform-origin:0 50%}
+.steps li h3{font-size:1.15rem}
+.steps li p{margin:2px 0 0;font-size:.9rem;color:var(--ink-soft)}
+.steps li time{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink-mute);font-size:.9rem}
+.steps li.now{box-shadow:inset 0 0 0 2px var(--copper),0 14px 26px -18px rgba(43,26,18,.6);transform:translateX(6px)}
+.steps li.now::before{background:var(--copper);color:#fff8ee}
+.steps li.done::before{content:"✓";background:var(--roast);color:var(--oat)}
+.timer{background:var(--espresso);color:var(--oat);border-radius:28px;padding:30px 26px;text-align:center;box-shadow:0 30px 50px -30px rgba(43,26,18,.8);position:sticky;top:24px}
+.timer > svg{width:min(280px,100%);height:auto;margin:0 auto}
+.timer .clock{font-family:var(--display);font-size:3.4rem;fill:var(--oat)}
+.timer .clock-sub{font-family:var(--sans);font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;fill:var(--crema)}
+.timer-ctl{display:flex;justify-content:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.timer-ctl .btn.ghost{--fg:var(--oat);box-shadow:inset 0 0 0 2px var(--oat),0 4px 0 #120a06}
+.timer-ctl .btn.ghost:hover{background:rgba(239,229,214,.08)}
+.timer-note{margin:16px 0 0;font-size:.82rem;color:rgba(239,229,214,.6)}
+
+/* ---------- subscribe ---------- */
+.club{position:relative;padding:clamp(80px,10vw,130px) 0;background:
+  radial-gradient(ellipse 60% 80% at 85% 20%,rgba(209,138,69,.45),transparent 60%),
+  linear-gradient(135deg,var(--roast),#4a2e1a);color:var(--oat);overflow:hidden}
+.club::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,rgba(255,255,255,.025) 0 2px,transparent 2px 14px);pointer-events:none}
+.club .wrap{position:relative;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(30px,5vw,80px);align-items:center}
+.club .kicker{color:#f0c08c}
+.club .lede{color:rgba(239,229,214,.8)}
+.bag{width:100%;max-width:380px;justify-self:center;filter:drop-shadow(0 30px 30px rgba(0,0,0,.35));transform:rotate(-4deg);transition:transform .6s var(--bounce)}
+.bag:hover{transform:rotate(1deg) translateY(-6px)}
+.sub-form{background:var(--oat-3);color:var(--ink);border-radius:26px;padding:clamp(22px,3vw,36px);box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
+.sub-form fieldset{border:0;margin:0 0 20px;padding:0;min-width:0}
+.sub-form legend{font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--ink-mute);margin-bottom:10px;padding:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{position:relative;cursor:pointer}
+.chips input{position:absolute;opacity:0;width:1px;height:1px}
+.chips span{display:block;padding:10px 16px;border-radius:14px;background:var(--oat);font-weight:700;font-size:.92rem;box-shadow:inset 0 0 0 2px rgba(92,58,33,.16),0 3px 0 rgba(92,58,33,.22);transition:transform .15s,box-shadow .15s,background-color .2s,color .2s}
+.chips span small{display:block;font-weight:600;font-size:.72rem;color:var(--ink-mute)}
+.chips label:hover span{transform:translateY(-1px)}
+.chips input:checked + span{background:var(--espresso);color:var(--oat);box-shadow:inset 0 0 0 2px var(--espresso),0 3px 0 #120a06}
+.chips input:checked + span small{color:var(--crema)}
+.chips input:focus-visible + span{outline:3px solid var(--copper);outline-offset:2px}
+.sub-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.sub-row .email{flex:1 1 220px;display:flex;flex-direction:column;gap:8px}
+.sub-row label.lbl{font-size:.76rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--ink-mute)}
+.sub-row input[type=email],.sub-row select{padding:13px 16px;border-radius:14px;border:0;background:var(--oat);box-shadow:inset 0 0 0 2px rgba(92,58,33,.2);outline:none;transition:box-shadow .2s}
+.sub-row input[type=email]:focus,.sub-row select:focus{box-shadow:inset 0 0 0 2px var(--copper),0 0 0 4px rgba(184,115,51,.2)}
+.sub-row .grind{display:flex;flex-direction:column;gap:8px;flex:0 1 200px}
+.price-line{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:22px 0 18px;padding-top:18px;border-top:2px dashed rgba(92,58,33,.2);flex-wrap:wrap}
+.price-line b{font-family:var(--display);font-size:2.3rem;color:var(--roast)}
+.price-line span{color:var(--ink-mute);font-size:.9rem;font-weight:600}
+.sub-msg{margin:14px 0 0;min-height:1.5em;font-weight:600;color:var(--roast)}
+.sub-msg.err{color:#a23a22}
+
+footer{background:var(--espresso-2);color:rgba(239,229,214,.7);padding:60px 0 50px;font-size:.9rem}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:center}
+footer .brand b{color:var(--oat)}
+footer p{margin:0}
+
+/* ---------- responsive ---------- */
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .flavour-grid,.roast-grid,.brew-grid,.club .wrap{grid-template-columns:1fr}
+  .timer{position:static}
+  .bag{max-width:280px}
+  .bean-stage{max-width:330px}
+}
+@media (max-width:820px){
+  .hero .wrap{grid-template-columns:minmax(0,1fr);padding-top:100px;gap:0;min-height:0}
+  .hero{min-height:0}
+  .hero-copy{display:contents}
+  .hero-copy .kicker{order:1}
+  .hero h1{order:2}
+  .cup-stage{order:3;max-width:400px;margin:-6px auto -18px}
+  .hero .lede{order:4}
+  .hero-cta{order:5;margin-top:24px}
+  .facts{order:6;margin-top:28px;display:grid;grid-template-columns:repeat(3,auto);justify-content:start}
+}
+@media (max-width:520px){
+  .brand small{letter-spacing:.2em}
+  .sound span{display:none}
+  .sound{padding:8px}
+  .hero h1{font-size:clamp(2.55rem,12vw,3.4rem)}
+  .facts li{padding-right:14px;margin-right:14px}
+  .facts b{font-size:1.35rem}
+  .steps li{grid-template-columns:40px 1fr;gap:12px;padding:14px}
+  .steps li::before{width:38px;height:38px;font-size:1.05rem}
+  .steps li time{grid-column:2}
+  .marks span{font-size:.6rem;letter-spacing:0}
+  .marks span.hide-sm{display:none}
+  .tabs{display:flex;flex-wrap:nowrap;width:100%}
+  .tabs button{flex:1 1 0;padding:10px 6px;white-space:nowrap;font-size:.86rem}
+  .origin{flex-basis:82vw}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.01ms!important}
+  .steam path{opacity:.45;animation:none!important}
+  .ticker-track{animation:none!important}
+}
+</style>
+</head>
+<body>
+<svg class="grain" aria-hidden="true" focusable="false">
+  <filter id="grainFx"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .17  0 0 0 0 .1  0 0 0 0 .07  0 0 0 .55 0"/></filter>
+  <rect width="100%" height="100%" filter="url(#grainFx)"/>
+</svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Ember and Oak Coffee Roasters, home">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="22.5" fill="#2b1a12"/>
+        <circle cx="24" cy="24" r="19" fill="none" stroke="#b87333" stroke-width="1.2" stroke-dasharray="2 2.4"/>
+        <path d="M24 10 C29 16 32 19 32 25 C32 30 28.5 34 24 34 C19.5 34 16 30 16 25 C16 21 18.5 18.5 20 16 C20.5 19 22 20.5 23.5 21 C23 17 23 13 24 10 Z" fill="#b87333"/>
+        <path d="M24 34 C21 31 20.5 27 22.5 24 C23.5 26.5 25.5 27 26 29 C26.8 31.2 25.8 33.2 24 34 Z" fill="#efe5d6"/>
+        <path d="M17 37 H31" stroke="#c8a27a" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span><b>Ember &amp; Oak</b><small>Coffee Roasters</small></span>
+    </a>
+    <nav aria-label="Primary">
+      <ul>
+        <li><a href="#beans">Our Beans</a></li>
+        <li><a href="#flavour">Flavour</a></li>
+        <li><a href="#roast">Roast</a></li>
+        <li><a href="#brew">Brew</a></li>
+        <li><a href="#club">Subscribe</a></li>
+      </ul>
+    </nav>
+    <div class="nav-right">
+      <button type="button" class="sound" id="soundBtn" aria-pressed="false" aria-label="Sound effects">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7.5 H6 L10.5 4 V16 L6 12.5 H3 Z" fill="currentColor"/><path class="wave" d="M13 7 C14.3 8.3 14.3 11.7 13 13 M15.3 5 C17.8 7.5 17.8 12.5 15.3 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span id="soundLbl">Sound off</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="heroTitle">
+    <div class="wrap">
+      <div class="hero-copy">
+        <p class="kicker hero-in">Small-batch roasters</p>
+        <h1 id="heroTitle" class="hero-in">Roasted slow, over <em>ember<svg viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C 22 2, 48 3, 60 6 S 88 10, 98 4" fill="none" stroke="#b87333" stroke-width="3" stroke-linecap="round" pathLength="1"/></svg></em> &amp;&nbsp;oak.</h1>
+        <p class="lede hero-in">We roast twelve kilos at a time in a cast-iron drum, listening for the first crack, and ship every bag within two days of the fire.</p>
+        <div class="hero-cta hero-in">
+          <a class="btn" href="#beans">Shop the beans <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9 H14 M10 5 L14 9 L10 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <a class="btn ghost" href="#flavour">Take the tasting tour</a>
+        </div>
+        <ul class="facts hero-in">
+          <li><b>12 kg</b><span>drum batches</span></li>
+          <li><b>48 h</b><span>roast to door</span></li>
+          <li><b>7</b><span>origins in season</span></li>
+        </ul>
+      </div>
+
+      <div class="cup-stage" id="cupStage" role="img" aria-label="A stoneware cup of coffee seen from a three-quarter angle, steam curling up, a rosetta drawn in the crema. Hover or tap to pour the rosetta again.">
+        <svg viewBox="0 0 600 600" aria-hidden="true">
+          <defs>
+            <radialGradient id="disc" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#6e4629"/><stop offset=".7" stop-color="#5c3a21"/><stop offset="1" stop-color="#4a2e1a"/></radialGradient>
+            <linearGradient id="cupBody" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#d8c7ae"/><stop offset=".18" stop-color="#f7efe2"/><stop offset=".42" stop-color="#efe5d6"/><stop offset=".78" stop-color="#cdb99c"/><stop offset="1" stop-color="#a88d6c"/>
+            </linearGradient>
+            <linearGradient id="glaze" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#6b4127"/><stop offset=".25" stop-color="#9a6238"/><stop offset=".5" stop-color="#7c4a2a"/><stop offset="1" stop-color="#4a2c19"/>
+            </linearGradient>
+            <radialGradient id="crema" cx=".48" cy=".45" r=".6">
+              <stop offset="0" stop-color="#d9b58a"/><stop offset=".55" stop-color="#c8a27a"/><stop offset=".85" stop-color="#9a6a40"/><stop offset="1" stop-color="#6b4127"/>
+            </radialGradient>
+            <linearGradient id="saucer" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7efe2"/><stop offset="1" stop-color="#d4c1a4"/></linearGradient>
+            <linearGradient id="saucerEdge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a88d6c"/><stop offset=".3" stop-color="#e6d8c3"/><stop offset="1" stop-color="#8f7456"/></linearGradient>
+            <filter id="steamFx" x="-60%" y="-40%" width="220%" height="180%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.011 0.028" numOctaves="2" seed="7" result="n">
+                <animate attributeName="baseFrequency" dur="10s" values="0.011 0.028;0.015 0.04;0.011 0.028" repeatCount="indefinite"/>
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="34" xChannelSelector="R" yChannelSelector="G"/>
+              <feGaussianBlur stdDeviation="6"/>
+            </filter>
+            <path id="ringPath" d="M300 300 m-252 0 a252 252 0 1 1 504 0 a252 252 0 1 1 -504 0"/>
+            <clipPath id="surfaceClip"><ellipse cx="292" cy="262" rx="132" ry="40"/></clipPath>
+          </defs>
+          <circle cx="300" cy="300" r="238" fill="url(#disc)"/>
+          <circle cx="300" cy="300" r="226" fill="none" stroke="#b87333" stroke-width="1.5" stroke-dasharray="3 6" opacity=".6"/>
+          <g class="ring-text">
+            <text font-family="Avenir Next, Segoe UI, Nimbus Sans, Arial, sans-serif" font-weight="700" font-size="14" fill="#5c3a21"><textPath href="#ringPath" textLength="1570" lengthAdjust="spacing">FRESHLY ROASTED ✦ SMALL BATCH ✦ EMBER &amp; OAK ✦ HOVER OR TAP TO POUR ✦ HOLLOW CREEK ROASTERY ✦ </textPath></text>
+          </g>
+          <g class="steam" filter="url(#steamFx)">
+            <path d="M258 214 C 232 180, 290 160, 266 126 S 234 76, 260 36" stroke-width="24"/>
+            <path d="M306 210 C 332 176, 280 150, 310 114 S 340 68, 312 28" stroke-width="30"/>
+            <path d="M338 218 C 360 190, 322 170, 346 138 S 370 98, 350 66" stroke-width="18"/>
+            <path d="M284 212 C 302 184, 266 162, 290 130 S 314 88, 292 56" stroke-width="16"/>
+          </g>
+          <g class="cup-float" id="cupG">
+            <ellipse cx="300" cy="468" rx="226" ry="56" fill="rgba(20,10,5,.22)" transform="translate(4 12)"/>
+            <ellipse cx="300" cy="470" rx="226" ry="58" fill="url(#saucerEdge)"/>
+            <ellipse cx="300" cy="462" rx="224" ry="54" fill="url(#saucer)"/>
+            <ellipse cx="300" cy="464" rx="150" ry="34" fill="none" stroke="#c9b495" stroke-width="2"/>
+            <ellipse cx="302" cy="462" rx="118" ry="26" fill="rgba(92,58,33,.28)"/>
+            <path d="M428 300 C 492 286, 520 330, 500 372 C 484 404, 446 414, 414 404 L 418 382 C 444 390, 470 382, 480 362 C 494 334, 474 314, 436 322 Z" fill="url(#glaze)"/>
+            <path d="M436 322 C 474 314, 494 334, 480 362" fill="none" stroke="#b07a4d" stroke-width="2" opacity=".6"/>
+            <path d="M152 262 C 154 350, 180 420, 226 444 Q 296 470, 364 444 C 410 420, 432 350, 434 262 Z" fill="url(#cupBody)"/>
+            <path d="M152 262 C 152 290, 154 304, 157 318 C 176 330, 196 318, 214 330 C 232 342, 250 322, 272 334 C 296 346, 314 326, 338 336 C 360 346, 378 326, 398 334 C 414 340, 424 330, 430 318 C 432 300, 434 284, 434 262 Z" fill="url(#glaze)"/>
+            <path d="M196 424 Q 296 460, 392 424" fill="none" stroke="rgba(92,58,33,.18)" stroke-width="3"/>
+            <g fill="#8a6a4a" opacity=".45"><circle cx="210" cy="380" r="1.6"/><circle cx="250" cy="402" r="1.2"/><circle cx="232" cy="356" r="1"/><circle cx="330" cy="396" r="1.4"/><circle cx="366" cy="372" r="1.1"/><circle cx="290" cy="420" r="1.3"/><circle cx="196" cy="350" r="1"/><circle cx="386" cy="352" r="1.2"/><circle cx="270" cy="370" r=".9"/></g>
+            <ellipse cx="293" cy="262" rx="141" ry="46" fill="#5a3620"/>
+            <ellipse cx="293" cy="260" rx="141" ry="45" fill="none" stroke="#c48c58" stroke-width="3"/>
+            <ellipse cx="292" cy="262" rx="132" ry="40" fill="url(#crema)"/>
+            <g clip-path="url(#surfaceClip)">
+              <ellipse cx="292" cy="266" rx="132" ry="40" fill="none" stroke="#5c3a21" stroke-width="10" opacity=".45"/>
+              <g transform="translate(296 264) scale(1 .3)">
+                <g class="rosetta pour" id="rosetta" fill="none" stroke="#f8efe0" stroke-linecap="round">
+                  <path pathLength="1" stroke-width="15" d="M-92 70 Q -46 132, 0 104 Q 46 132, 92 70"/>
+                  <path pathLength="1" stroke-width="14" d="M-84 44 Q -42 102, 0 78 Q 42 102, 84 44"/>
+                  <path pathLength="1" stroke-width="13" d="M-76 18 Q -38 72, 0 52 Q 38 72, 76 18"/>
+                  <path pathLength="1" stroke-width="12" d="M-67 -8 Q -33 42, 0 26 Q 33 42, 67 -8"/>
+                  <path pathLength="1" stroke-width="11" d="M-57 -34 Q -28 12, 0 0 Q 28 12, 57 -34"/>
+                  <path pathLength="1" stroke-width="10" d="M-46 -58 Q -22 -16, 0 -26 Q 22 -16, 46 -58"/>
+                  <path pathLength="1" stroke-width="9" d="M-34 -80 Q -16 -44, 0 -50 Q 16 -44, 34 -80"/>
+                  <path pathLength="1" stroke-width="0" fill="#f8efe0" d="M0 -74 C -16 -100, -40 -86, -24 -70 L 0 -52 L 24 -70 C 40 -86, 16 -100, 0 -74 Z"/>
+                  <path pathLength="1" stroke-width="4" d="M0 -104 L 0 118"/>
+                </g>
+              </g>
+              <ellipse cx="250" cy="248" rx="46" ry="8" fill="#fff" opacity=".12"/>
+            </g>
+            <path d="M160 272 C 166 330, 182 380, 206 410" fill="none" stroke="#fffaf2" stroke-width="5" stroke-linecap="round" opacity=".45"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>Roasted Tuesdays &amp; Fridays <i>✦</i> Guji, Ethiopia <i>✦</i> Huila, Colombia <i>✦</i> Huehuetenango, Guatemala <i>✦</i> Nyeri, Kenya <i>✦</i> Sul de Minas, Brazil <i>✦</i> Gayo Highlands, Sumatra <i>✦</i> Tarrazú, Costa Rica <i>✦</i></span>
+      <span>Roasted Tuesdays &amp; Fridays <i>✦</i> Guji, Ethiopia <i>✦</i> Huila, Colombia <i>✦</i> Huehuetenango, Guatemala <i>✦</i> Nyeri, Kenya <i>✦</i> Sul de Minas, Brazil <i>✦</i> Gayo Highlands, Sumatra <i>✦</i> Tarrazú, Costa Rica <i>✦</i></span>
+    </div>
+  </div>
+
+  <section class="beans" id="beans" aria-labelledby="beansTitle">
+    <div class="wrap beans-head">
+      <div>
+        <p class="kicker">Our Beans</p>
+        <h2 class="h2" id="beansTitle">Seven farms, one fire.</h2>
+        <p class="lede">Each lot is bought from a single (fictional) estate, cupped on the roastery bench, and roasted to show the place it came from. Drag, swipe or use the arrows.</p>
+      </div>
+      <div class="car-ctl">
+        <button type="button" class="icon-btn" id="prevBean" aria-label="Previous origin"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M11 3 L5 9 L11 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="car-progress" aria-hidden="true"><i id="carBar"></i></div>
+        <button type="button" class="icon-btn" id="nextBean" aria-label="Next origin"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M7 3 L13 9 L7 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+
+    <div class="track" id="track" tabindex="0" aria-label="Origin cards, scroll horizontally" role="region">
+      <article class="origin" id="bean-eth" data-tags="floral fruity" data-name="Aba Sora" data-country="Ethiopia">
+        <figure>
+          <svg viewBox="0 0 300 180" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs><linearGradient id="skyEth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6e7cf"/><stop offset="1" stop-color="#e2bb8c"/></linearGradient></defs>
+            <rect width="300" height="180" fill="url(#skyEth)"/>
+            <circle cx="210" cy="84" r="26" fill="#d18a45" opacity=".85"/>
+            <path d="M0 110 C40 92 70 100 104 88 C140 74 170 92 206 84 C240 76 270 90 300 82 V180 H0 Z" fill="#c79a6b"/>
+            <path d="M0 132 C50 116 80 128 130 112 C170 100 210 122 260 110 C280 106 292 108 300 106 V180 H0 Z" fill="#8a5a34"/>
+            <path d="M0 158 C60 142 110 156 170 142 C220 132 260 148 300 140 V180 H0 Z" fill="#5c3a21"/>
+            <g transform="translate(66 124)"><path d="M0 0 V-40 M0 -40 C-20 -44 -34 -40 -40 -36 M0 -40 C18 -46 32 -42 40 -38" stroke="#3a2416" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-48 -38 C-30 -52 30 -54 50 -40 C30 -34 -30 -32 -48 -38 Z" fill="#4a3a1e"/></g>
+            <g transform="translate(236 170) rotate(-28)"><path d="M0 0 C-10 -30 -6 -60 4 -88" stroke="#4b3a22" stroke-width="3" fill="none"/><path d="M2 -40 C 22 -52 34 -44 38 -34 C 22 -30 10 -32 2 -40 Z M0 -62 C -22 -74 -32 -64 -36 -56 C -20 -52 -8 -54 0 -62 Z M4 -84 C 20 -96 30 -92 34 -84 C 22 -78 12 -78 4 -84 Z" fill="#6b7a3a"/><circle cx="-6" cy="-30" r="5" fill="#b5443a"/><circle cx="3" cy="-26" r="5" fill="#9e3328"/><circle cx="-2" cy="-20" r="4.5" fill="#c4553f"/><circle cx="8" cy="-52" r="4.5" fill="#b5443a"/><circle cx="-3" cy="-54" r="4" fill="#d18a45"/></g>
+          </svg>
+        </figure>
+        <p class="place"><span>Ethiopia</span><span>Guji zone</span></p>
+        <h3>Aba Sora Washing Station</h3>
+        <dl><dt>Altitude</dt><dd>1,950 – 2,200 m</dd><dt>Process</dt><dd>Washed</dd><dt>Variety</dt><dd>Ethiopian landraces</dd></dl>
+        <ul class="notes"><li style="--c:#c7849a">Jasmine</li><li style="--c:#b87333">Bergamot</li><li style="--c:#b5443a">White peach</li></ul>
+      </article>
+
+      <article class="origin" id="bean-col" data-tags="sweet fruity nutty" data-name="Finca El Mirlo" data-country="Colombia">
+        <figure>
+          <svg viewBox="0 0 300 180" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs><linearGradient id="skyCol" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef0e2"/><stop offset="1" stop-color="#d9d0ae"/></linearGradient></defs>
+            <rect width="300" height="180" fill="url(#skyCol)"/>
+            <path d="M0 70 L60 40 L120 76 L180 30 L240 64 L300 44 V180 H0 Z" fill="#9aa27a" opacity=".7"/>
+            <path d="M0 180 V96 L150 40 L300 110 V180 Z" fill="#6b7a3a"/>
+            <g stroke="#4c5a28" stroke-width="2.4" stroke-dasharray="3 5" fill="none"><path d="M20 120 L150 68 L290 128"/><path d="M10 140 L150 88 L300 146"/><path d="M0 160 L150 108 L300 164"/><path d="M40 176 L150 128 L270 180"/></g>
+            <g stroke="#5c3a21" stroke-width="2" fill="none"><path d="M226 180 V70"/><path d="M254 180 V86"/></g>
+            <g fill="#4c5a28"><path d="M226 70 C210 60 204 66 200 72 C212 70 220 72 226 70 C238 58 248 62 252 68 C240 68 232 70 226 70 C222 56 228 50 232 48 C230 58 228 64 226 70 Z"/><path d="M254 86 C240 78 234 82 230 88 C242 86 248 88 254 86 C264 74 274 78 278 84 C268 84 260 86 254 86 Z"/></g>
+            <circle cx="70" cy="46" r="14" fill="#f3d9a0" opacity=".9"/>
+          </svg>
+        </figure>
+        <p class="place"><span>Colombia</span><span>Huila</span></p>
+        <h3>Finca El Mirlo</h3>
+        <dl><dt>Altitude</dt><dd>1,650 – 1,850 m</dd><dt>Process</dt><dd>Washed</dd><dt>Variety</dt><dd>Caturra, Castillo</dd></dl>
+        <ul class="notes"><li style="--c:#b5443a">Red apple</li><li style="--c:#d9a24e" class="lt">Panela</li><li style="--c:#8b5e3c">Milk chocolate</li></ul>
+      </article>
+
+      <article class="origin" id="bean-gua" data-tags="nutty sweet fruity" data-name="Finca Piedra Azul" data-country="Guatemala">
+        <figure>
+          <svg viewBox="0 0 300 180" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs><linearGradient id="skyGua" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9dfd2"/><stop offset="1" stop-color="#d7b894"/></linearGradient></defs>
+            <rect width="300" height="180" fill="url(#skyGua)"/>
+            <path d="M140 26 C120 18 128 6 146 8 C150 -2 172 2 170 12 C186 10 188 26 172 28" fill="#fffaf2" opacity=".85"/>
+            <path d="M40 124 L128 40 H152 L240 124 Z" fill="#7c4a2a"/>
+            <path d="M128 40 H152 L166 54 C156 50 148 58 140 52 C132 58 122 52 116 52 Z" fill="#efe5d6"/>
+            <path d="M0 124 C60 110 100 122 150 116 C200 110 250 124 300 116 V180 H0 Z" fill="#8f9a8a"/>
+            <path d="M0 140 H300" stroke="#b9c1b0" stroke-width="2"/><path d="M40 150 H130 M170 156 H270" stroke="#b9c1b0" stroke-width="1.6"/>
+            <path d="M0 164 C70 150 120 164 190 154 C230 148 270 158 300 152 V180 H0 Z" fill="#5c3a21"/>
+          </svg>
+        </figure>
+        <p class="place"><span>Guatemala</span><span>Huehuetenango</span></p>
+        <h3>Finca Piedra Azul</h3>
+        <dl><dt>Altitude</dt><dd>1,700 – 1,900 m</dd><dt>Process</dt><dd>Washed</dd><dt>Variety</dt><dd>Bourbon, Caturra</dd></dl>
+        <ul class="notes"><li style="--c:#8b5e3c">Cocoa</li><li style="--c:#b5443a">Red grape</li><li style="--c:#d9a24e" class="lt">Brown sugar</li></ul>
+      </article>
+
+      <article class="origin" id="bean-ken" data-tags="fruity sweet" data-name="Mwirio Hill Factory" data-country="Kenya">
+        <figure>
+          <svg viewBox="0 0 300 180" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs><linearGradient id="skyKen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3dcc0"/><stop offset="1" stop-color="#e3a879"/></linearGradient></defs>
+            <rect width="300" height="180" fill="url(#skyKen)"/>
+            <circle cx="150" cy="104" r="54" fill="#d18a45" opacity=".75"/>
+            <path d="M0 110 C80 96 120 104 170 96 C220 88 260 100 300 94 V180 H0 Z" fill="#a0522d"/>
+            <g fill="none" stroke="#7a3a1e" stroke-width="2.4"><path d="M0 128 C80 116 150 124 300 112"/><path d="M0 144 C90 132 170 140 300 128"/><path d="M0 160 C100 150 180 156 300 146"/></g>
+            <g fill="#6b7a3a"><circle cx="30" cy="122" r="4"/><circle cx="54" cy="119" r="4"/><circle cx="78" cy="117" r="4"/><circle cx="210" cy="112" r="4"/><circle cx="234" cy="110" r="4"/><circle cx="258" cy="108" r="4"/><circle cx="44" cy="138" r="4"/><circle cx="70" cy="135" r="4"/><circle cx="196" cy="128" r="4"/><circle cx="222" cy="126" r="4"/></g>
+            <path d="M92 104 V72" stroke="#2b1a12" stroke-width="3"/><path d="M92 76 L80 66 M92 80 L104 68" stroke="#2b1a12" stroke-width="2"/>
+            <path d="M58 66 C70 54 120 52 128 64 C112 70 72 72 58 66 Z" fill="#2b1a12"/>
+          </svg>
+        </figure>
+        <p class="place"><span>Kenya</span><span>Nyeri</span></p>
+        <h3>Mwirio Hill Factory</h3>
+        <dl><dt>Altitude</dt><dd>1,750 – 1,900 m</dd><dt>Process</dt><dd>Washed</dd><dt>Variety</dt><dd>SL28, SL34</dd></dl>
+        <ul class="notes"><li style="--c:#7a2f3a">Blackcurrant</li><li style="--c:#b87333">Grapefruit</li><li style="--c:#d9a24e" class="lt">Cane sugar</li></ul>
+      </article>
+
+      <article class="origin" id="bean-bra" data-tags="nutty sweet roasted" data-name="Fazenda Serra Dourada" data-country="Brazil">
+        <figure>
+          <svg viewBox="0 0 300 180" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs><linearGradient id="skyBra" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7edd6"/><stop offset="1" stop-color="#ead2a4"/></linearGradient></defs>
+            <rect width="300" height="180" fill="url(#skyBra)"/>
+            <circle cx="60" cy="50" r="18" fill="#d9a24e"/>
+            <path d="M0 96 C60 70 110 72 160 90 C210 108 250 84 300 78 V180 H0 Z" fill="#8a9a5b"/>
+            <g fill="none" stroke="#5f6e36" stroke-width="2.2"><path d="M0 108 C60 84 110 86 160 102 C210 118 250 96 300 90"/><path d="M0 120 C60 98 110 100 160 114 C210 128 250 108 300 102"/><path d="M0 132 C60 112 110 114 160 126 C210 138 250 120 300 114"/></g>
+            <path d="M40 150 L260 150 L286 176 L14 176 Z" fill="#d9c4a0"/>
+            <g stroke="#8a5a34" stroke-width="1.6"><path d="M50 156 H250 M42 162 H258 M34 168 H266"/></g>
+            <g fill="#5c3a21"><ellipse cx="80" cy="159" rx="3" ry="2"/><ellipse cx="120" cy="165" rx="3" ry="2"/><ellipse cx="170" cy="159" rx="3" ry="2"/><ellipse cx="210" cy="167" rx="3" ry="2"/><ellipse cx="150" cy="171" rx="3" ry="2"/></g>
+          </svg>
+        </figure>
+        <p class="place"><span>Brazil</span><span>Sul de Minas</span></p>
+        <h3>Fazenda Serra Dourada</h3>
+        <dl><dt>Altitude</dt><dd>1,100 – 1,250 m</dd><dt>Process</dt><dd>Natural</dd><dt>Variety</dt><dd>Yellow Catuaí</dd></dl>
+        <ul class="notes"><li style="--c:#8b5e3c">Hazelnut</li><li style="--c:#4a2e1f">Cocoa nib</li><li style="--c:#d9a24e" class="lt">Caramel</li></ul>
+      </article>
+
+      <article class="origin" id="bean-sum" data-tags="spices roasted" data-name="Gayo Mist Cooperative" data-country="Indonesia">
+        <figure>
+          <svg viewBox="0 0 300 180" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs><linearGradient id="skySum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe0d4"/><stop offset="1" stop-color="#b9b49c"/></linearGradient></defs>
+            <rect width="300" height="180" fill="url(#skySum)"/>
+            <path d="M0 96 L50 56 L90 84 L150 34 L210 80 L250 60 L300 90 V130 H0 Z" fill="#5f6a4e"/>
+            <rect x="0" y="74" width="300" height="10" fill="#efeee6" opacity=".6"/><rect x="0" y="92" width="300" height="7" fill="#efeee6" opacity=".45"/>
+            <path d="M0 120 H300 V180 H0 Z" fill="#7d8a86"/>
+            <g stroke="#a9b3ad" stroke-width="1.6"><path d="M20 132 H90 M120 140 H220 M60 152 H160 M200 160 H280"/></g>
+            <path d="M0 150 C40 140 80 150 100 146 C120 142 130 152 150 150 L150 180 H0 Z" fill="#3e4632"/>
+            <path d="M230 120 C240 110 256 110 266 120 Z" fill="#3e4632"/>
+          </svg>
+        </figure>
+        <p class="place"><span>Sumatra, Indonesia</span><span>Aceh</span></p>
+        <h3>Gayo Mist Cooperative</h3>
+        <dl><dt>Altitude</dt><dd>1,300 – 1,600 m</dd><dt>Process</dt><dd>Wet-hulled</dd><dt>Variety</dt><dd>Typica, Ateng</dd></dl>
+        <ul class="notes"><li style="--c:#6d4a2f">Cedar</li><li style="--c:#a0522d">Clove</li><li style="--c:#4a2e1f">Dark chocolate</li></ul>
+      </article>
+
+      <article class="origin" id="bean-cos" data-tags="sweet fruity spices" data-name="Finca Quebrada Alta" data-country="Costa Rica">
+        <figure>
+          <svg viewBox="0 0 300 180" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+            <defs><linearGradient id="skyCos" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1e6d4"/><stop offset="1" stop-color="#d8c6a5"/></linearGradient></defs>
+            <rect width="300" height="180" fill="url(#skyCos)"/>
+            <path d="M0 90 L40 60 L80 80 L130 40 L180 76 L230 50 L300 86 V180 H0 Z" fill="#8a9a6b"/>
+            <g fill="#fffaf2" opacity=".9"><ellipse cx="90" cy="70" rx="40" ry="10"/><ellipse cx="200" cy="64" rx="46" ry="11"/><ellipse cx="150" cy="82" rx="60" ry="8"/></g>
+            <path d="M0 116 L60 84 L120 110 L190 78 L250 104 L300 90 V180 H0 Z" fill="#5f6e36"/>
+            <path d="M0 150 C60 132 120 148 180 136 C230 126 270 140 300 134 V180 H0 Z" fill="#4a3a22"/>
+            <g transform="translate(246 128)"><path d="M0 0 C-8 -10 -8 -18 0 -26 C8 -18 8 -10 0 0 Z" fill="#d9a24e"/><path d="M-2 -18 C-4 -14 -4 -10 -2 -7" stroke="#fff4d6" stroke-width="1.6" fill="none"/></g>
+          </svg>
+        </figure>
+        <p class="place"><span>Costa Rica</span><span>Tarrazú</span></p>
+        <h3>Finca Quebrada Alta</h3>
+        <dl><dt>Altitude</dt><dd>1,600 – 1,900 m</dd><dt>Process</dt><dd>Honey</dd><dt>Variety</dt><dd>Catuaí, Caturra</dd></dl>
+        <ul class="notes"><li style="--c:#b87333">Apricot</li><li style="--c:#d9a24e" class="lt">Honey</li><li style="--c:#a0522d">Cinnamon</li></ul>
+      </article>
+    </div>
+    <p class="wrap" style="font-size:.8rem;color:var(--ink-mute);margin-top:4px">Estates and cooperatives named here are fictional; regions, altitudes and processes are typical of each origin.</p>
+  </section>
+
+  <section class="flavour" id="flavour" aria-labelledby="flavourTitle">
+    <div class="wrap flavour-grid">
+      <div class="wheel-box">
+        <svg class="wheel" id="wheel" viewBox="0 0 440 440" role="group" aria-label="Tasting notes flavour wheel"></svg>
+      </div>
+      <div>
+        <p class="kicker">Tasting Notes</p>
+        <h2 class="h2" id="flavourTitle">Follow your nose.</h2>
+        <p class="lede">Hover the wheel to open a family of flavours; choose one to see which of this season's beans carry it.</p>
+        <div class="panel" id="panel" aria-live="polite" style="margin-top:28px">
+          <h3><i></i>Six families</h3>
+          <p>Fruity, floral, sweet, nutty, spices and roasted: the six we reach for most on the cupping table. Pick one on the wheel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="roast" id="roast" aria-labelledby="roastTitle">
+    <div class="wrap">
+      <p class="kicker">Roast Level</p>
+      <h2 class="h2" id="roastTitle" style="color:var(--oat-3)">From green seed to glossy dark.</h2>
+      <p class="lede">Drag the slider through a roast. Listen for first crack, when trapped steam splits the bean with a pop.</p>
+      <div class="roast-grid">
+        <div class="bean-stage" id="beanStage">
+          <svg viewBox="-150 -150 300 300" aria-hidden="true">
+            <defs>
+              <radialGradient id="beanShade" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient>
+              <radialGradient id="beanGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#d18a45" stop-opacity=".45"/><stop offset="1" stop-color="#d18a45" stop-opacity="0"/></radialGradient>
+              <filter id="beanTex" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+            </defs>
+            <circle r="150" fill="url(#beanGlow)" id="glowC"/>
+            <ellipse cx="10" cy="118" rx="80" ry="14" fill="rgba(0,0,0,.4)"/>
+            <g id="beanWrap">
+              <g id="beanG">
+                <g transform="rotate(-22)">
+                  <ellipse id="beanBody" rx="80" ry="112" fill="#8f9a62"/>
+                  <ellipse rx="80" ry="112" fill="#000" filter="url(#beanTex)"/>
+                  <ellipse rx="80" ry="112" fill="url(#beanShade)"/>
+                  <path id="crease" d="M-4 -98 C 24 -58, -26 -18, 6 22 C 30 52, -12 80, 2 100" fill="none" stroke="#4c5230" stroke-width="7" stroke-linecap="round"/>
+                  <path d="M-8 -96 C 20 -58, -30 -18, 2 22 C 26 52, -16 80, -2 100" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2" stroke-linecap="round"/>
+                  <ellipse id="sheen" cx="-34" cy="-46" rx="16" ry="40" fill="#fff" opacity="0" transform="rotate(14 -34 -46)"/>
+                  <ellipse id="sheen2" cx="44" cy="30" rx="6" ry="22" fill="#fff" opacity="0"/>
+                </g>
+              </g>
+            </g>
+          </svg>
+          <canvas id="chaff" aria-hidden="true"></canvas>
+        </div>
+        <div>
+          <h3 class="stage-name" id="stageName">Full City</h3>
+          <p class="stage-temp" id="stageTemp">Bean temperature ~218 °C</p>
+          <p class="stage-note" id="stageNote">Balanced: sweetness and body have caught up with acidity.</p>
+          <div class="slider-wrap">
+            <label for="roastRange">Roast development</label>
+            <input type="range" class="roast-range" id="roastRange" min="0" max="100" value="64" step="1" aria-describedby="stageName">
+            <div class="marks" aria-hidden="true">
+              <span style="left:0%;transform:none">Green</span>
+              <span style="left:22%" class="hide-sm">Drying</span>
+              <span style="left:42%" class="crack">1st crack</span>
+              <span style="left:64%" class="hide-sm">Full city</span>
+              <span style="left:80%" class="crack">2nd crack</span>
+              <span style="left:100%;transform:translateX(-100%)">French</span>
+            </div>
+          </div>
+          <div class="curve">
+            <svg viewBox="0 0 520 150" aria-hidden="true">
+              <g stroke="rgba(239,229,214,.12)"><path d="M40 20 H510 M40 60 H510 M40 100 H510 M40 130 H510"/></g>
+              <g font-family="Avenir Next, Segoe UI, Nimbus Sans, Arial, sans-serif" font-size="10" fill="rgba(239,229,214,.5)" font-weight="700">
+                <text x="34" y="24" text-anchor="end">240°</text><text x="34" y="64" text-anchor="end">200°</text><text x="34" y="104" text-anchor="end">150°</text><text x="34" y="134" text-anchor="end">100°</text>
+                <text x="90" y="146">Drying</text><text x="236" y="146">Maillard</text><text x="400" y="146">Development</text>
+              </g>
+              <path d="M198 16 V136 M378 16 V136" stroke="rgba(209,138,69,.35)" stroke-dasharray="4 5"/>
+              <path id="rorCurve" d="M40 70 C 52 132, 70 138, 96 132 C 160 118, 250 86, 330 66 C 400 50, 460 34, 510 24" fill="none" stroke="#d18a45" stroke-width="3" stroke-linecap="round"/>
+              <circle id="rorDot" r="7" fill="#efe5d6" stroke="#b87333" stroke-width="3" cx="0" cy="0"/>
+            </svg>
+            <p>An illustrative bean-temperature curve for a roast of about twelve minutes. Stages and temperatures are approximate.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="brew" id="brew" aria-labelledby="brewTitle">
+    <div class="wrap">
+      <p class="kicker">Brew Guide</p>
+      <h2 class="h2" id="brewTitle">Brew it like we do.</h2>
+      <p class="lede">Three methods from the tasting-room bar. Start the timer and we will walk you through every pour.</p>
+      <div class="tabs" role="tablist" aria-label="Brewing method">
+        <button type="button" role="tab" id="tab-pour" aria-selected="true" aria-controls="brewPanel" data-m="pour">Pour-over</button>
+        <button type="button" role="tab" id="tab-press" aria-selected="false" aria-controls="brewPanel" data-m="press" tabindex="-1">French press</button>
+        <button type="button" role="tab" id="tab-moka" aria-selected="false" aria-controls="brewPanel" data-m="moka" tabindex="-1">Moka pot</button>
+      </div>
+      <div class="brew-grid" id="brewPanel" role="tabpanel" aria-labelledby="tab-pour">
+        <div>
+          <ul class="recipe" id="recipe"></ul>
+          <ol class="steps" id="steps"></ol>
+        </div>
+        <div class="timer">
+          <svg viewBox="0 0 280 280" aria-hidden="true">
+            <circle cx="140" cy="140" r="118" fill="none" stroke="rgba(239,229,214,.1)" stroke-width="16"/>
+            <g id="ringSegs"></g>
+            <circle id="ringProg" cx="140" cy="140" r="118" fill="none" stroke="#d18a45" stroke-width="16" stroke-linecap="round" pathLength="1" stroke-dasharray="0 1" transform="rotate(-90 140 140)"/>
+            <circle id="ringDot" cx="140" cy="22" r="11" fill="#efe5d6" stroke="#2b1a12" stroke-width="3"/>
+            <text class="clock" id="clock" x="140" y="150" text-anchor="middle">0:00</text>
+            <text class="clock-sub" id="clockSub" x="140" y="182" text-anchor="middle">Ready</text>
+          </svg>
+          <div class="timer-ctl">
+            <button type="button" class="btn" id="tStart"><svg viewBox="0 0 18 18" aria-hidden="true"><path id="tIcon" d="M5 3 L15 9 L5 15 Z" fill="currentColor"/></svg><span id="tStartLbl">Start</span></button>
+            <button type="button" class="btn ghost" id="tReset">Reset</button>
+          </div>
+          <p class="timer-note" id="timerNote" aria-live="polite">Total brew time 3:15</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="club" id="club" aria-labelledby="clubTitle">
+    <div class="wrap">
+      <svg class="bag" viewBox="0 0 300 380" role="img" aria-label="A kraft coffee bag with an Ember and Oak label">
+        <defs>
+          <linearGradient id="kraft" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b98f62"/><stop offset=".3" stop-color="#d6b58b"/><stop offset=".7" stop-color="#c9a476"/><stop offset="1" stop-color="#9c7650"/></linearGradient>
+          <pattern id="fibre" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 2 L6 1 M2 6 L8 5" stroke="#8a6a44" stroke-width=".5" opacity=".35"/></pattern>
+        </defs>
+        <path d="M44 40 L256 40 L268 356 Q150 372 32 356 Z" fill="url(#kraft)"/>
+        <path d="M44 40 L256 40 L268 356 Q150 372 32 356 Z" fill="url(#fibre)"/>
+        <path d="M44 40 L256 40 L252 62 L48 62 Z" fill="#9c7650"/>
+        <g stroke="#7a5a38" stroke-width="1.2"><path d="M48 50 H252"/><path d="M48 56 H252" stroke-dasharray="4 3"/></g>
+        <path d="M150 62 L150 356" stroke="#a88258" stroke-opacity=".35" stroke-width="2"/>
+        <rect x="70" y="120" width="160" height="176" rx="10" fill="#efe5d6"/>
+        <rect x="78" y="128" width="144" height="160" rx="6" fill="none" stroke="#2b1a12" stroke-width="1.5"/>
+        <circle cx="150" cy="170" r="24" fill="#2b1a12"/>
+        <path d="M150 154 C156 161 159 164 159 170 C159 176 155 180 150 180 C145 180 141 176 141 170 C141 166 143.5 163.5 145 161 C145.5 164 147 165.5 148.5 166 C148 162 148.5 158 150 154 Z" fill="#b87333"/>
+        <text x="150" y="222" text-anchor="middle" font-family="Cooper Black, Rockwell, URW Bookman, Georgia, serif" font-weight="700" font-size="20" fill="#2b1a12" textLength="128" lengthAdjust="spacingAndGlyphs">Ember &amp; Oak</text>
+        <text x="150" y="242" text-anchor="middle" font-family="Avenir Next, Segoe UI, Nimbus Sans, Arial, sans-serif" font-weight="700" font-size="8.5" fill="#b87333" textLength="118" lengthAdjust="spacing">HOUSE BLEND · 250 G</text>
+        <path d="M100 256 H200" stroke="#2b1a12" stroke-width="1"/>
+        <text x="150" y="274" text-anchor="middle" font-family="Avenir Next, Segoe UI, Nimbus Sans, Arial, sans-serif" font-size="9" fill="#5c3a21">roasted on · <tspan id="bagDate">Tuesday</tspan></text>
+        <circle cx="150" cy="92" r="8" fill="none" stroke="#7a5a38" stroke-width="2"/>
+      </svg>
+      <div>
+        <p class="kicker">The Ember Club</p>
+        <h2 class="h2" id="clubTitle" style="color:var(--oat-3)">Fresh coffee, on a schedule.</h2>
+        <p class="lede">A rotating single origin or the house blend, roasted to order and posted the same week. Pause, skip or cancel whenever you like.</p>
+        <form class="sub-form" id="subForm" novalidate style="margin-top:28px">
+          <fieldset>
+            <legend>Bag size</legend>
+            <div class="chips">
+              <label><input type="radio" name="size" value="250" data-price="16" checked><span>250 g<small>$16</small></span></label>
+              <label><input type="radio" name="size" value="500" data-price="29"><span>500 g<small>$29</small></span></label>
+              <label><input type="radio" name="size" value="1000" data-price="52"><span>1 kg<small>$52</small></span></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>How often</legend>
+            <div class="chips">
+              <label><input type="radio" name="freq" value="weekly" data-off="15" data-per="4.33"><span>Weekly<small>save 15%</small></span></label>
+              <label><input type="radio" name="freq" value="fortnightly" data-off="10" data-per="2.17" checked><span>Fortnightly<small>save 10%</small></span></label>
+              <label><input type="radio" name="freq" value="monthly" data-off="0" data-per="1"><span>Monthly<small>no minimum</small></span></label>
+            </div>
+          </fieldset>
+          <div class="sub-row">
+            <div class="grind">
+              <label class="lbl" for="grind">Grind</label>
+              <select id="grind" name="grind"><option>Whole bean</option><option>Filter</option><option>Espresso</option><option>French press</option><option>Moka pot</option></select>
+            </div>
+            <div class="email">
+              <label class="lbl" for="subEmail">Email</label>
+              <input type="email" id="subEmail" name="email" placeholder="you@yourkitchen" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="price-line">
+            <span id="perBag">$14.40 per bag · about $31 a month</span>
+            <b id="priceBig">$14.40</b>
+          </div>
+          <button type="submit" class="btn dark">Start my subscription</button>
+          <p class="sub-msg" id="subMsg" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Back to top">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22.5" fill="#b87333"/><path d="M24 10 C29 16 32 19 32 25 C32 30 28.5 34 24 34 C19.5 34 16 30 16 25 C16 21 18.5 18.5 20 16 C20.5 19 22 20.5 23.5 21 C23 17 23 13 24 10 Z" fill="#2b1a12"/></svg>
+      <span><b>Ember &amp; Oak</b><small>Coffee Roasters</small></span>
+    </a>
+    <p>Roastery &amp; tasting room · 14 Kiln Lane, Hollow Creek</p>
+    <p>A fictional roastery. No coffee will be posted, sadly.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function $(id){ return document.getElementById(id); }
+  function el(tag, attrs, parent){ var n = document.createElementNS(NS, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; }
+  function r1(n){ return Math.round(n * 100) / 100; }
+
+  /* ---------- sound (opt-in) ---------- */
+  var actx = null, soundOn = false, noiseBuf = null;
+  var soundBtn = $("soundBtn"), soundLbl = $("soundLbl");
+  soundBtn.addEventListener("click", function(){
+    soundOn = !soundOn;
+    soundBtn.setAttribute("aria-pressed", String(soundOn));
+    soundLbl.textContent = soundOn ? "Sound on" : "Sound off";
+    if (soundOn){
+      try {
+        if (!actx){ var AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); }
+        if (actx && actx.state === "suspended") actx.resume();
+      } catch (e){ actx = null; }
+      tone(660, 0.12, 0.06);
+    }
+  });
+  function getNoise(){
+    if (noiseBuf || !actx) return noiseBuf;
+    noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.06), actx.sampleRate);
+    var d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+    return noiseBuf;
+  }
+  function crackle(strength){
+    if (!soundOn || !actx) return;
+    var now = actx.currentTime, n = strength > 1 ? 7 : 3;
+    for (var i = 0; i < n; i++){
+      var src = actx.createBufferSource(); src.buffer = getNoise();
+      var bp = actx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = (strength > 1 ? 1800 : 3200) + Math.random() * 1600; bp.Q.value = 1.4;
+      var g = actx.createGain(); g.gain.value = (strength > 1 ? 0.35 : 0.22) * (0.5 + Math.random() * 0.6);
+      src.connect(bp); bp.connect(g); g.connect(actx.destination);
+      src.start(now + i * (0.04 + Math.random() * 0.09));
+    }
+  }
+  function tone(freq, dur, vol){
+    if (!soundOn || !actx) return;
+    var now = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+    o.type = "triangle"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(vol || 0.12, now + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    o.connect(g); g.connect(actx.destination); o.start(now); o.stop(now + dur + 0.05);
+  }
+
+  /* ---------- hero: rosetta pour on hover / tap ---------- */
+  var ros = $("rosetta"), cupStage = $("cupStage");
+  (function stagger(){
+    var ps = ros.querySelectorAll("path");
+    for (var i = 0; i < ps.length; i++){
+      var d = i === ps.length - 1 ? 0.25 + (ps.length - 1) * 0.13 : 0.25 + i * 0.13;
+      ps[i].style.animationDelay = d + "s";
+      if (i === ps.length - 1) ps[i].style.animationDuration = ".45s";
+    }
+  })();
+  var lastPour = 0;
+  function pour(){
+    var t = performance.now();
+    if (t - lastPour < 1400) return;
+    lastPour = t;
+    ros.classList.remove("pour"); void ros.getBoundingClientRect(); ros.classList.add("pour");
+  }
+  if (reduced){ Array.prototype.forEach.call(ros.querySelectorAll("path"), function(p){ p.style.strokeDashoffset = "0"; }); }
+  cupStage.addEventListener("pointerenter", function(e){ if (e.pointerType === "mouse") pour(); });
+  cupStage.addEventListener("click", pour);
+  // gentle parallax of the cup toward the pointer
+  var cupG = $("cupG");
+  cupStage.addEventListener("pointermove", function(e){
+    if (reduced) return;
+    var r = cupStage.getBoundingClientRect();
+    var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+    cupG.style.translate = r1(x * 10) + "px " + r1(y * 6) + "px";
+  });
+  cupStage.addEventListener("pointerleave", function(){ cupG.style.translate = "0 0"; });
+
+  /* ---------- carousel ---------- */
+  var track = $("track"), bar = $("carBar");
+  var cards = Array.prototype.slice.call(track.querySelectorAll(".origin"));
+  function cardStep(){ return cards[0].getBoundingClientRect().width + 24; }
+  $("prevBean").addEventListener("click", function(){ track.scrollBy({left: -cardStep(), behavior: reduced ? "auto" : "smooth"}); });
+  $("nextBean").addEventListener("click", function(){ track.scrollBy({left: cardStep(), behavior: reduced ? "auto" : "smooth"}); });
+  function updBar(){
+    var max = track.scrollWidth - track.clientWidth;
+    var vis = track.clientWidth / track.scrollWidth;
+    var p = max > 0 ? track.scrollLeft / max : 0;
+    bar.style.width = (vis * 100).toFixed(1) + "%";
+    bar.style.transform = "translateX(" + (p * (1 / Math.max(vis, 0.01) - 1) * 100).toFixed(1) + "%)";
+  }
+  track.addEventListener("scroll", function(){ requestAnimationFrame(updBar); }, {passive: true});
+  track.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight"){ e.preventDefault(); track.scrollBy({left: cardStep(), behavior: reduced ? "auto" : "smooth"}); }
+    if (e.key === "ArrowLeft"){ e.preventDefault(); track.scrollBy({left: -cardStep(), behavior: reduced ? "auto" : "smooth"}); }
+  });
+  var drag = null;
+  track.addEventListener("pointerdown", function(e){
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    drag = {x: e.clientX, left: track.scrollLeft, moved: false, id: e.pointerId};
+  });
+  window.addEventListener("pointermove", function(e){
+    if (!drag) return;
+    var dx = e.clientX - drag.x;
+    if (!drag.moved && Math.abs(dx) > 5){ drag.moved = true; track.classList.add("dragging"); try { track.setPointerCapture(drag.id); } catch (err){} }
+    if (drag.moved) track.scrollLeft = drag.left - dx;
+  });
+  window.addEventListener("pointerup", function(){
+    if (!drag) return;
+    var moved = drag.moved; drag = null;
+    if (moved){
+      var step = cardStep(), target = Math.round(track.scrollLeft / step) * step;
+      track.classList.remove("dragging");
+      track.scrollTo({left: target, behavior: reduced ? "auto" : "smooth"});
+    }
+  });
+  // tactile tilt
+  cards.forEach(function(c){
+    c.addEventListener("pointermove", function(e){
+      if (e.pointerType !== "mouse" || reduced || track.classList.contains("dragging")) return;
+      var r = c.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      c.style.setProperty("--ry", (x * 8).toFixed(2) + "deg");
+      c.style.setProperty("--rx", (-y * 6).toFixed(2) + "deg");
+    });
+    c.addEventListener("pointerleave", function(){ c.style.setProperty("--ry", "0deg"); c.style.setProperty("--rx", "0deg"); });
+  });
+
+  /* ---------- flavour wheel ---------- */
+  var FAM = [
+    {k: "fruity", n: "Fruity", c: "#b5443a", subs: ["Berry", "Citrus", "Stone fruit"], blurb: "Bright and juicy: berries, citrus peel and ripe stone fruit, usually from high-grown washed and natural lots."},
+    {k: "floral", n: "Floral", c: "#c7849a", subs: ["Jasmine", "Rose", "Black tea"], blurb: "Perfumed and delicate, like jasmine or bergamot-scented tea. Best at lighter roasts."},
+    {k: "sweet", n: "Sweet", c: "#d9a24e", subs: ["Honey", "Caramel", "Brown sugar"], blurb: "Caramelised sugars: honey, panela and toffee, the backbone of a good cup."},
+    {k: "nutty", n: "Nutty", c: "#8b5e3c", subs: ["Hazelnut", "Almond", "Cocoa"], blurb: "Round and comforting: toasted nuts and cocoa, lovely with milk."},
+    {k: "spices", n: "Spices", c: "#a0522d", subs: ["Clove", "Cinnamon", "Pepper"], blurb: "Warm baking spice and a peppery edge, often from wet-hulled and honey-processed coffees."},
+    {k: "roasted", n: "Roasted", c: "#4a2e1f", subs: ["Toast", "Cedar", "Smoke"], blurb: "Toast, cedar and a whisper of smoke, from the drum as much as the farm."}
+  ];
+  var wheel = $("wheel"), panel = $("panel");
+  var CX = 220, CY = 220, R0 = 62, R1 = 136, R2 = 140, R3 = 206;
+  function pol(r, a){ return [CX + r * Math.cos(a), CY + r * Math.sin(a)]; }
+  function arcPath(ra, rb, a0, a1){
+    var p0 = pol(rb, a0), p1 = pol(rb, a1), p2 = pol(ra, a1), p3 = pol(ra, a0);
+    var large = (a1 - a0) > Math.PI ? 1 : 0;
+    return "M" + r1(p0[0]) + " " + r1(p0[1]) + " A" + rb + " " + rb + " 0 " + large + " 1 " + r1(p1[0]) + " " + r1(p1[1]) +
+      " L" + r1(p2[0]) + " " + r1(p2[1]) + " A" + ra + " " + ra + " 0 " + large + " 0 " + r1(p3[0]) + " " + r1(p3[1]) + " Z";
+  }
+  function mix(hex, amt){
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    r = Math.round(r + (255 - r) * amt); g = Math.round(g + (245 - g) * amt); b = Math.round(b + (230 - b) * amt);
+    return "rgb(" + r + "," + g + "," + b + ")";
+  }
+  function label(parent, text, r, a, cls){
+    var p = pol(r, a), deg = a * 180 / Math.PI;
+    var flip = deg > 90 && deg < 270;
+    var rot = flip ? deg + 180 : deg;
+    if (cls === "cat-lbl"){ rot = deg + 90; if (deg > 0 && deg < 180) rot = deg - 90; }
+    var t = el("text", {x: r1(p[0]), y: r1(p[1]), "text-anchor": "middle", "dominant-baseline": "middle", class: cls, transform: "rotate(" + r1(rot) + " " + r1(p[0]) + " " + r1(p[1]) + ")"}, parent);
+    t.textContent = text;
+    return t;
+  }
+  var segs = [];
+  var START = -Math.PI / 2 - Math.PI / 6;
+  FAM.forEach(function(f, i){
+    var a0 = START + i * Math.PI / 3, a1 = a0 + Math.PI / 3, mid = (a0 + a1) / 2;
+    var g = el("g", {class: "seg", tabindex: "0", role: "button", "aria-label": f.n + ": " + f.subs.join(", "), "data-k": f.k}, wheel);
+    g.style.setProperty("--dx", r1(Math.cos(mid) * 12) + "px");
+    g.style.setProperty("--dy", r1(Math.sin(mid) * 12) + "px");
+    el("path", {d: arcPath(R0, R1, a0, a1), fill: f.c}, g);
+    f.subs.forEach(function(s, j){
+      var b0 = a0 + j * Math.PI / 9, b1 = b0 + Math.PI / 9;
+      el("path", {d: arcPath(R2, R3, b0, b1), fill: mix(f.c, 0.18 + j * 0.16)}, g);
+      label(g, s, (R2 + R3) / 2, (b0 + b1) / 2, "sub-lbl" + (f.k === "sweet" || f.k === "floral" && j === 2 ? " dk" : ""));
+    });
+    label(g, f.n, (R0 + R1) / 2 + 4, mid, "cat-lbl");
+    segs.push({g: g, f: f});
+    g.addEventListener("click", function(){ pick(i); });
+    g.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(i); } });
+  });
+  el("circle", {cx: CX, cy: CY, r: R0 - 4, fill: "#f7f1e7", stroke: "#e6d8c3", "stroke-width": "3"}, wheel);
+  var cTitle = el("text", {x: CX, y: CY - 4, "text-anchor": "middle", class: "wheel-center", "font-size": "19", fill: "#2b1a12"}, wheel);
+  cTitle.textContent = "Taste";
+  var cSub = el("text", {x: CX, y: CY + 18, "text-anchor": "middle", "font-size": "10", "font-weight": "700", fill: "#b87333", "letter-spacing": "1.5"}, wheel);
+  cSub.textContent = "CHOOSE A FAMILY";
+  // little bean glyph above
+  el("path", {d: "M" + CX + " " + (CY - 50) + " c 8 0 11 6 11 11 s -3 11 -11 11 s -11 -6 -11 -11 s 3 -11 11 -11 z", fill: "none", stroke: "#b87333", "stroke-width": "2"}, wheel);
+  el("path", {d: "M" + (CX - 2) + " " + (CY - 49) + " c 4 6 -3 10 3 20", fill: "none", stroke: "#b87333", "stroke-width": "1.6"}, wheel);
+  var picked = -1;
+  function pick(i){
+    picked = i;
+    var f = FAM[i];
+    segs.forEach(function(s, k){ s.g.classList.toggle("hot", k === i); s.g.classList.toggle("dim", k !== i); s.g.setAttribute("aria-pressed", String(k === i)); });
+    var matches = cards.filter(function(c){ return c.getAttribute("data-tags").split(" ").indexOf(f.k) !== -1; });
+    cTitle.textContent = f.n;
+    cSub.textContent = matches.length + (matches.length === 1 ? " BEAN" : " BEANS");
+    panel.innerHTML = "";
+    var h = document.createElement("h3"); var dot = document.createElement("i"); dot.style.setProperty("--c", f.c); h.appendChild(dot); h.appendChild(document.createTextNode(f.n));
+    var p = document.createElement("p"); p.textContent = f.blurb;
+    var ul = document.createElement("ul"); ul.className = "matches";
+    matches.forEach(function(c){
+      var li = document.createElement("li"), b = document.createElement("button"); b.type = "button";
+      var left = document.createElement("span"); var nm = document.createElement("b"); nm.textContent = c.getAttribute("data-name");
+      var sm = document.createElement("small"); sm.textContent = c.getAttribute("data-country") + " · " + c.querySelector("dd:nth-of-type(2)").textContent;
+      left.appendChild(nm); left.appendChild(sm);
+      var go = document.createElement("span"); go.className = "go"; go.textContent = "See bean →";
+      b.appendChild(left); b.appendChild(go);
+      b.addEventListener("click", function(){ showCard(c); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    panel.appendChild(h); panel.appendChild(p); panel.appendChild(ul);
+    tone(420 + i * 60, 0.18, 0.08);
+  }
+  function showCard(c){
+    $("beans").scrollIntoView({behavior: reduced ? "auto" : "smooth", block: "start"});
+    var left = c.offsetLeft - track.offsetLeft - parseFloat(getComputedStyle(track).paddingLeft);
+    setTimeout(function(){
+      track.scrollTo({left: left, behavior: reduced ? "auto" : "smooth"});
+      c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash");
+      setTimeout(function(){ c.classList.remove("flash"); }, 1500);
+    }, reduced ? 0 : 500);
+  }
+
+  /* ---------- roast slider ---------- */
+  var STOPS = [[0, "#8f9a62"], [14, "#b3ad72"], [24, "#cdb66b"], [34, "#c49a5c"], [44, "#9a6536"], [58, "#7a4a28"], [70, "#5c3a21"], [84, "#3a2415"], [100, "#1e110b"]];
+  var STAGES = [
+    [0, "Green", "~25 °C", "Raw seed: grassy, dense and hard, with no coffee aroma yet."],
+    [12, "Drying", "~150 °C", "Water steams out of the seed and it fades to a straw-yellow that smells like hay and bread."],
+    [28, "Browning", "~175 °C", "Maillard reactions and caramelisation begin; the bean turns tan and the drum smells of toast."],
+    [40, "First crack", "~196 °C", "Trapped steam and gas split the bean with an audible pop, much like popcorn. Chaff flies."],
+    [50, "Light roast", "~205 °C", "Bright acidity and the clearest sense of origin: florals, citrus, fruit."],
+    [60, "Full City", "~218 °C", "Balanced: sweetness and body have caught up with acidity."],
+    [78, "Second crack", "~226 °C", "A quicker, quieter crackle as the bean's structure fractures; oils begin to surface."],
+    [90, "French roast", "~238 °C", "Glossy, smoky and bittersweet; the roast now speaks louder than the farm."]
+  ];
+  function hexToRgb(h){ var n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+  function colAt(v){
+    for (var i = 0; i < STOPS.length - 1; i++){
+      if (v <= STOPS[i + 1][0]){
+        var t = (v - STOPS[i][0]) / (STOPS[i + 1][0] - STOPS[i][0]);
+        var a = hexToRgb(STOPS[i][1]), b = hexToRgb(STOPS[i + 1][1]);
+        return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)];
+      }
+    }
+    return hexToRgb(STOPS[STOPS.length - 1][1]);
+  }
+  var range = $("roastRange"), beanBody = $("beanBody"), crease = $("crease"), beanG = $("beanG");
+  var sheen = $("sheen"), sheen2 = $("sheen2"), glowC = $("glowC");
+  var stageName = $("stageName"), stageTemp = $("stageTemp"), stageNote = $("stageNote");
+  var curve = $("rorCurve"), dot = $("rorDot"), curveLen = curve.getTotalLength();
+  var lastV = +range.value, lastStage = -1;
+  function applyRoast(v, fromUser){
+    var c = colAt(v);
+    beanBody.setAttribute("fill", "rgb(" + c.join(",") + ")");
+    var dk = [Math.round(c[0] * 0.5), Math.round(c[1] * 0.45), Math.round(c[2] * 0.4)];
+    crease.setAttribute("stroke", "rgb(" + dk.join(",") + ")");
+    crease.setAttribute("stroke-width", (6 + v / 100 * 5).toFixed(1));
+    var s = 1 + Math.min(v, 85) / 85 * 0.16;
+    beanG.style.transform = "scale(" + s.toFixed(3) + ")";
+    var oil = v > 70 ? Math.min(1, (v - 70) / 25) : 0;
+    sheen.setAttribute("opacity", (oil * 0.55).toFixed(2));
+    sheen2.setAttribute("opacity", (oil * 0.35).toFixed(2));
+    glowC.setAttribute("opacity", (0.35 + v / 100 * 0.65).toFixed(2));
+    var st = 0;
+    for (var i = 0; i < STAGES.length; i++) if (v >= STAGES[i][0]) st = i;
+    if (st !== lastStage){
+      lastStage = st;
+      stageName.textContent = STAGES[st][1];
+      stageTemp.textContent = "Bean temperature " + STAGES[st][2];
+      stageNote.textContent = STAGES[st][3];
+    }
+    range.setAttribute("aria-valuetext", STAGES[st][1] + ", " + STAGES[st][2]);
+    var p = curve.getPointAtLength(curveLen * (0.06 + v / 100 * 0.94));
+    dot.setAttribute("cx", r1(p.x)); dot.setAttribute("cy", r1(p.y));
+    if (fromUser){
+      if ((lastV < 40 && v >= 40) || (v >= 40 && v <= 50 && Math.random() < 0.35 && v !== lastV)) crack(1);
+      if ((lastV < 78 && v >= 78) || (v >= 78 && v <= 88 && Math.random() < 0.3 && v !== lastV)) crack(2);
+    }
+    lastV = v;
+  }
+  range.addEventListener("input", function(){ applyRoast(+range.value, true); });
+
+  /* chaff + spark particles */
+  var cv = $("chaff"), cx2 = cv.getContext("2d"), stage = $("beanStage");
+  var P = [], MAXP = 160, running = false, cw = 0, ch = 0;
+  for (var pi = 0; pi < MAXP; pi++) P.push({on: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, s: 1, rot: 0, vr: 0, kind: 0});
+  function sizeCanvas(){
+    var r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    cw = r.width; ch = r.height;
+    cv.width = Math.max(1, Math.round(cw * dpr)); cv.height = Math.max(1, Math.round(ch * dpr));
+    cx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function crack(level){
+    if (!reduced){
+      stage.classList.remove("pop"); void stage.offsetWidth; stage.classList.add("pop");
+      var n = level > 1 ? 26 : 40, spawned = 0;
+      for (var i = 0; i < MAXP && spawned < n; i++){
+        var p = P[i];
+        if (p.on) continue;
+        var a = Math.random() * Math.PI * 2, sp = 1.5 + Math.random() * (level > 1 ? 3 : 4.5);
+        p.on = true; p.kind = Math.random() < (level > 1 ? 0.7 : 0.35) ? 1 : 0;
+        p.x = cw / 2 + Math.cos(a) * cw * 0.12; p.y = ch / 2 + Math.sin(a) * ch * 0.16;
+        p.vx = Math.cos(a) * sp; p.vy = Math.sin(a) * sp - 2.2;
+        p.life = 0; p.max = 40 + Math.random() * 50; p.s = p.kind ? 1 + Math.random() * 1.8 : 2.5 + Math.random() * 4;
+        p.rot = Math.random() * 6; p.vr = (Math.random() - 0.5) * 0.3;
+        spawned++;
+      }
+      if (!running){ running = true; requestAnimationFrame(tick); }
+    }
+    crackle(level);
+  }
+  function tick(){
+    if (document.hidden){ running = false; return; }
+    cx2.clearRect(0, 0, cw, ch);
+    var alive = 0;
+    for (var i = 0; i < MAXP; i++){
+      var p = P[i];
+      if (!p.on) continue;
+      p.life++;
+      if (p.life > p.max){ p.on = false; continue; }
+      alive++;
+      p.vy += p.kind ? 0.05 : 0.09; p.vx *= 0.985; p.vy *= 0.985;
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      var a = 1 - p.life / p.max;
+      if (p.kind){
+        cx2.fillStyle = "rgba(255," + (170 + Math.round(60 * a)) + ",90," + a.toFixed(2) + ")";
+        cx2.beginPath(); cx2.arc(p.x, p.y, p.s, 0, 6.283); cx2.fill();
+      } else {
+        cx2.save(); cx2.translate(p.x, p.y); cx2.rotate(p.rot);
+        cx2.fillStyle = "rgba(226,201,160," + (a * 0.9).toFixed(2) + ")";
+        cx2.beginPath(); cx2.ellipse(0, 0, p.s, p.s * 0.45, 0, 0, 6.283); cx2.fill();
+        cx2.restore();
+      }
+    }
+    if (alive) requestAnimationFrame(tick); else { running = false; cx2.clearRect(0, 0, cw, ch); }
+  }
+
+  /* ---------- brew guide + timer ---------- */
+  var METHODS = {
+    pour: {recipe: [["Coffee", "15 g, medium-fine"], ["Water", "250 g"], ["Temp", "93–96 °C"], ["Ratio", "1:16.7"]],
+      steps: [["Bloom", "Pour 40 g in a slow spiral, then give the cone a gentle swirl.", 45], ["First pour", "Spiral out from the centre up to 150 g.", 30], ["Second pour", "Pour steadily up to 250 g, keeping the level even.", 30], ["Drawdown", "Let the bed drain flat; aim to finish near 3:15.", 90]]},
+    press: {recipe: [["Coffee", "30 g, coarse"], ["Water", "500 g"], ["Temp", "~94 °C"], ["Ratio", "1:16.7"]],
+      steps: [["Pour", "Add all the water, making sure every ground is wet.", 30], ["Steep", "Lid on, plunger up. Leave it alone.", 210], ["Break the crust", "Stir the crust gently and skim off the foam.", 45], ["Press & pour", "Press slowly, then pour it all out so it stops brewing.", 30]]},
+    moka: {recipe: [["Coffee", "~18 g, fine-medium"], ["Water", "hot, to the valve"], ["Heat", "medium"], ["Yield", "~100 ml"]],
+      steps: [["Fill & assemble", "Hot water just under the valve; level the basket without tamping.", 60], ["Heat, lid open", "Medium heat; wait for the first honey-coloured flow.", 90], ["Watch the stream", "Steady and syrupy. If it spits, lower the heat.", 60], ["Off at the gurgle", "Lift it off and cool the base under the tap to stop extraction.", 20]]}
+  };
+  var method = "pour", steps = [], total = 0, elapsed = 0, runningT = false, t0 = 0, curStep = -1, timerRAF = 0;
+  var stepsEl = $("steps"), recipeEl = $("recipe"), clock = $("clock"), clockSub = $("clockSub");
+  var ringProg = $("ringProg"), ringDot = $("ringDot"), ringSegs = $("ringSegs");
+  function fmt(s){ s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+  function buildMethod(m){
+    method = m; var M = METHODS[m];
+    steps = M.steps; total = steps.reduce(function(a, s){ return a + s[2]; }, 0);
+    recipeEl.innerHTML = ""; stepsEl.innerHTML = ""; ringSegs.innerHTML = "";
+    M.recipe.forEach(function(r){ var li = document.createElement("li"); var b = document.createElement("b"); b.textContent = r[0] + " "; li.appendChild(b); li.appendChild(document.createTextNode(r[1])); recipeEl.appendChild(li); });
+    var acc = 0;
+    steps.forEach(function(s, i){
+      var li = document.createElement("li");
+      var div = document.createElement("div"), h = document.createElement("h3"), p = document.createElement("p");
+      h.textContent = s[0]; p.textContent = s[1]; div.appendChild(h); div.appendChild(p);
+      var t = document.createElement("time"); t.textContent = fmt(acc) + " – " + fmt(acc + s[2]);
+      var barEl = document.createElement("span"); barEl.className = "bar";
+      li.appendChild(div); li.appendChild(t); li.appendChild(barEl);
+      stepsEl.appendChild(li);
+      // ring tick at each step boundary
+      var a = (acc / total) * Math.PI * 2 - Math.PI / 2;
+      el("line", {x1: r1(140 + Math.cos(a) * 104), y1: r1(140 + Math.sin(a) * 104), x2: r1(140 + Math.cos(a) * 132), y2: r1(140 + Math.sin(a) * 132), stroke: "#efe5d6", "stroke-width": "2", "stroke-opacity": ".45"}, ringSegs);
+      acc += s[2];
+    });
+    $("timerNote").textContent = "Total brew time " + fmt(total);
+    resetTimer();
+  }
+  function render(){
+    var p = Math.min(1, elapsed / total);
+    ringProg.setAttribute("stroke-dasharray", p.toFixed(4) + " 1");
+    var a = p * Math.PI * 2 - Math.PI / 2;
+    ringDot.setAttribute("cx", r1(140 + Math.cos(a) * 118)); ringDot.setAttribute("cy", r1(140 + Math.sin(a) * 118));
+    var acc = 0, idx = steps.length - 1;
+    for (var i = 0; i < steps.length; i++){ if (elapsed < acc + steps[i][2]){ idx = i; break; } acc += steps[i][2]; }
+    if (elapsed <= 0 && !runningT) idx = -1;
+    var lis = stepsEl.children, acc2 = 0;
+    for (var j = 0; j < lis.length; j++){
+      var sp = Math.max(0, Math.min(1, (elapsed - acc2) / steps[j][2]));
+      lis[j].style.setProperty("--p", sp.toFixed(3));
+      lis[j].classList.toggle("now", j === idx && p < 1);
+      lis[j].classList.toggle("done", sp >= 1);
+      acc2 += steps[j][2];
+    }
+    if (p >= 1){ clock.textContent = fmt(total); clockSub.textContent = "Enjoy"; }
+    else if (idx < 0){ clock.textContent = fmt(total); clockSub.textContent = "Ready"; }
+    else {
+      var stepEnd = 0; for (var k = 0; k <= idx; k++) stepEnd += steps[k][2];
+      clock.textContent = fmt(elapsed); clockSub.textContent = steps[idx][0] + " · " + fmt(stepEnd - elapsed) + " left";
+    }
+    if (idx !== curStep && runningT){ if (curStep !== -1 || idx > 0) tone(idx >= 0 ? 740 : 520, 0.35, 0.1); curStep = idx; }
+  }
+  function loop(){
+    timerRAF = 0;
+    if (!runningT) return;
+    elapsed = (performance.now() - t0) / 1000;
+    if (elapsed >= total){ elapsed = total; runningT = false; setStartUI(); render(); tone(880, 0.6, 0.12); setTimeout(function(){ tone(1175, 0.7, 0.1); }, 180); return; }
+    render();
+    timerRAF = requestAnimationFrame(loop);
+  }
+  function setStartUI(){
+    $("tStartLbl").textContent = runningT ? "Pause" : (elapsed > 0 && elapsed < total ? "Resume" : "Start");
+    $("tIcon").setAttribute("d", runningT ? "M4 3 H8 V15 H4 Z M10 3 H14 V15 H10 Z" : "M5 3 L15 9 L5 15 Z");
+  }
+  $("tStart").addEventListener("click", function(){
+    if (runningT){ runningT = false; }
+    else { if (elapsed >= total) elapsed = 0; runningT = true; t0 = performance.now() - elapsed * 1000; if (!timerRAF) timerRAF = requestAnimationFrame(loop); }
+    setStartUI(); render();
+  });
+  function resetTimer(){ runningT = false; elapsed = 0; curStep = -1; if (timerRAF){ cancelAnimationFrame(timerRAF); timerRAF = 0; } setStartUI(); render(); }
+  $("tReset").addEventListener("click", resetTimer);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden && runningT && !timerRAF) timerRAF = requestAnimationFrame(loop); });
+  var tabs = Array.prototype.slice.call(document.querySelectorAll("[role=tab]"));
+  function selectTab(t){
+    tabs.forEach(function(x){ var on = x === t; x.setAttribute("aria-selected", String(on)); x.tabIndex = on ? 0 : -1; });
+    $("brewPanel").setAttribute("aria-labelledby", t.id);
+    buildMethod(t.getAttribute("data-m"));
+  }
+  tabs.forEach(function(t, i){
+    t.addEventListener("click", function(){ selectTab(t); });
+    t.addEventListener("keydown", function(e){
+      var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (d){ e.preventDefault(); var n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); selectTab(n); }
+    });
+  });
+  buildMethod("pour");
+
+  /* ---------- subscription ---------- */
+  var subForm = $("subForm"), subMsg = $("subMsg");
+  function price(){
+    var size = subForm.querySelector("input[name=size]:checked"), freq = subForm.querySelector("input[name=freq]:checked");
+    var base = +size.getAttribute("data-price"), off = +freq.getAttribute("data-off"), per = +freq.getAttribute("data-per");
+    var each = base * (1 - off / 100);
+    $("priceBig").textContent = "$" + each.toFixed(2);
+    $("perBag").textContent = "per bag · about $" + Math.round(each * per) + " a month";
+    return {each: each, size: size.value, freq: freq.value};
+  }
+  subForm.addEventListener("change", price);
+  price();
+  subForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var email = $("subEmail").value.trim();
+    if (!/^[^\s@]+@[^\s@]+$/.test(email)){ subMsg.className = "sub-msg err"; subMsg.textContent = "We need an email address to send your roast dates."; $("subEmail").focus(); return; }
+    var p = price();
+    var sizeTxt = p.size === "1000" ? "1 kg" : p.size + " g";
+    subMsg.className = "sub-msg";
+    subMsg.textContent = "Welcome to the Ember Club: " + sizeTxt + " " + p.freq + ", " + $("grind").value.toLowerCase() + ", $" + p.each.toFixed(2) + " a bag. This is a fictional roastery, so no order was placed.";
+    try { localStorage.setItem("ember-oak-club", JSON.stringify({size: p.size, freq: p.freq})); } catch (err){}
+    tone(587, 0.2, 0.1); setTimeout(function(){ tone(880, 0.35, 0.1); }, 140);
+  });
+  try {
+    var saved = JSON.parse(localStorage.getItem("ember-oak-club") || "null");
+    if (saved){
+      var s1 = subForm.querySelector("input[name=size][value='" + saved.size + "']"), s2 = subForm.querySelector("input[name=freq][value='" + saved.freq + "']");
+      if (s1) s1.checked = true; if (s2) s2.checked = true; price();
+    }
+  } catch (err){}
+  // label the bag with the next roast day (roasts happen Tuesday and Friday)
+  (function(){
+    var d = new Date(), day = d.getDay(), add = [2, 1, 3, 2, 1, 4, 3][day];
+    var next = new Date(d.getTime() + add * 864e5);
+    $("bagDate").textContent = next.toLocaleDateString("en-US", {weekday: "long", month: "short", day: "numeric"});
+  })();
+
+  /* ---------- layout ---------- */
+  function layout(){ sizeCanvas(); updBar(); }
+  window.addEventListener("resize", function(){ requestAnimationFrame(layout); });
+  layout();
+  applyRoast(+range.value, false);
+})();
+</script>
+</body>
+</html>

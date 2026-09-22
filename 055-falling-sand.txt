@@ -1,0 +1,42 @@
+TITLE: Dune Engine — Falling Sand Sandbox
+FILE: 055-falling-sand.html
+
+=== PROMPT (exact prompt used) ===
+Create "Dune Engine — Falling Sand Sandbox", a cellular-automaton physics toy. A pixel-art canvas (each cell 3–4px) with elements: Sand (warm variations #e6c07b, #d8a95b), Water (#3d7ee0 with shimmer, flows sideways), Stone (static greys), Fire (flickers, rises, burns wood, turns water to steam), Wood (#8b5a2b), Steam (rises and condenses back into water), Oil (floats on water, highly flammable), Lava (turns sand into glass), and Plant (grows into water). Correct density-based interactions (sand sinks in water, oil floats). Desert-dusk UI palette: sand #f3e3c3, terracotta #c1440e, deep dusk blue #1f2a44. An element picker as a row of textured swatches with icons, brush-size slider, pause, clear, and "Scenes" (hourglass, volcano, oasis). Pointer/touch painting interpolated along the stroke. A tiny monospace readout of particle count and fps. Efficient: typed arrays, bottom-up updates with alternating direction, ImageData rendering.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Dune Engine is a falling-sand physics toy styled as a desert-dusk instrument. A large pixel-art canvas, framed in terracotta, sits under a dusk-blue sky with faint stars and a banded retro sun low on the horizon; a sand-coloured tool panel holds textured element swatches, the brush, the controls and three scenes. The title "DUNE ENGINE" is drawn in a 5×7 bitmap font whose grains fall into place like sand. The simulation is a real cellular automaton on 3–4 px cells: sand piles and sinks through water, water shimmers and levels out sideways, oil floats and catches fire, fire flickers upward and burns wood and plants, steam rises and rains back down, lava crawls, melts sand into glass and crusts into stone where it meets the sea, and plants creep into any water they touch. It opens on an erupting volcano scene with a glowing lava conduit, a forested flank and an oily sea.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Typed-array grid (element, shade, life and update-stamp arrays) swept bottom-up with alternating row direction, so falls and flows stay unbiased and each particle moves at most once per frame
+- Density-based displacement: sand (20) sinks through water (10) and oil (8); gases rise through liquids; lava (30) stays under everything; element-specific dispersion distances for water, oil and lava
+- Reactions: fire ignites wood, plants and oil at different rates and boils water into steam; anchored flames on burning wood spawn free flames; lava turns sand to glass, ignites fuel and hardens to stone in water; steam and smoke have lifetimes, and steam condenses into rain
+- Rendering through one ImageData with a Uint32 view (one pixel per cell) drawn scaled up with smoothing off; per-element colour variations, animated water shimmer with bright surface cells, fire coloured by age with random flicker, lava with travelling heat bands
+- A cheap bloom: fire and lava heat is accumulated into a quarter-resolution buffer and drawn twice, smoothed and additively blended, so flames light up the rock around them
+- A static sky buffer with a vertical dusk gradient, one-pixel dithering, hashed stars and a banded retro sun, computed once per resize
+- Element swatches textured procedurally in tiny canvases (dispersed sand, shimmering water, brick stone, flame gradients, wood grain), each with a hand-drawn SVG icon and key badge
+- Procedural scenes: an hourglass with continuous glass walls and a wooden frame, a volcano with a lava crater, conduit and chamber, trees, a beach and an oil slick, and an oasis of sine dunes, a pool, reeds, curved palms and boulders
+- Bitmap-font title rendered to canvas, with grains that fall and bounce into their places
+
+=== INTERACTION MODEL ===
+- Paint with mouse, pen or touch; strokes are interpolated along the path so fast drags leave unbroken lines, and holding still keeps pouring a stream
+- Right-click (or the Eraser swatch) erases; painting fire onto wood, oil or plants lights them
+- Element picker: ten textured swatches, also on keys 1–9 and 0; the selection is remembered in guarded localStorage
+- Brush size slider (1–14 cells) with a live preview dot and [ / ] shortcuts; a ring cursor on the canvas shows the brush footprint
+- Controls: Pause/Play (Space), Step one frame while paused (the "." key too), a speed toggle cycling ½×, 1× and 2×, and Clear, which sweeps the grid away with a moving terracotta line
+- Scenes: Hourglass, Volcano and Oasis rebuild the world instantly
+- A tiny monospace readout shows live particle count, frames per second, grid size and speed
+- The canvas re-fits on resize, preserving existing particles anchored to the floor; the simulation pauses while the tab is hidden, and prefers-reduced-motion starts it at half speed

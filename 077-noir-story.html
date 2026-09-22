@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Glass Alibi — An Interactive Noir</title>
+<meta name="description" content="The Glass Alibi: a short interactive film-noir mystery in black and white. Six rain-soaked scenes, branching choices, three endings, a case-file notebook and one red clue.">
+<meta name="theme-color" content="#0b0b0b">
+<style>
+:root{
+  --black:#070707;
+  --ink:#e9e5db;
+  --paper:#efebe2;
+  --grey1:#161616;
+  --grey2:#232323;
+  --grey3:#3a3a3a;
+  --grey4:#6b6b6b;
+  --grey5:#a3a3a3;
+  --red:#b3001b;
+  --serif:"Baskerville","Libre Baskerville","Book Antiqua","Palatino Linotype","P052",Georgia,serif;
+  --cond:"Bodoni MT Condensed","Bodoni 72 Oldstyle","DejaVu Serif Condensed","Didot","Georgia",serif;
+  --mono:"Courier Prime","Courier New",Courier,"Nimbus Mono PS","Liberation Mono",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--black);color:var(--ink)}
+body{font-family:var(--serif);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- top bar ---------- */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:min(1180px,calc((100vh - 440px) * 2.1 + 68px));margin:0 auto;padding:14px clamp(14px,3vw,34px) 10px}
+.bar .mark{font-family:var(--cond);font-stretch:condensed;letter-spacing:.34em;font-size:13px;color:var(--grey5);text-transform:uppercase;white-space:nowrap}
+.bar .mark b{color:var(--ink);font-weight:400}
+.tools{display:flex;gap:8px}
+.tool{-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:1px solid #333;background:#0d0d0d;border-radius:2px;cursor:pointer;
+  font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:#cfcac0;transition:border-color .2s,background .2s}
+.tool:hover{border-color:#777;background:#141414}
+.tool svg{width:14px;height:14px;flex:none}
+.tool .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#e9e5db;color:#111;font-size:11px}
+.tool.stamped{animation:stamp .5s ease}
+@keyframes stamp{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.tool[aria-pressed="true"]{border-color:#bbb}
+:focus-visible{outline:2px solid #f2eee5;outline-offset:3px}
+
+/* ---------- the screen ---------- */
+.theatre{max-width:min(1180px,calc((100vh - 440px) * 2.1 + 68px));margin:0 auto;padding:0 clamp(14px,3vw,34px) 30px}
+.frame{position:relative;width:100%;aspect-ratio:2.1/1;min-height:250px;overflow:hidden;background:#000;
+  box-shadow:0 0 0 1px #1c1c1c,0 30px 60px rgba(0,0,0,.8);clip-path:circle(100% at 50% 50%)}
+.frame .art{position:absolute;inset:0;width:100%;height:100%;display:none}
+.frame .art.on{display:block}
+.frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.shift{position:absolute;inset:0}
+.frame.jit .shift{transform:translate(1.5px,-1px)}
+.frame.jit2 .shift{transform:translate(-1px,1.5px)}
+.blinds,.sweep,.vig,.flick{position:absolute;pointer-events:none}
+.blinds{inset:0;opacity:0;transition:opacity 1s;
+  background:repeating-linear-gradient(-9deg,rgba(0,0,0,0) 0 26px,rgba(0,0,0,.42) 26px 46px);
+  -webkit-mask:linear-gradient(90deg,rgba(0,0,0,.2),#000 35%,#000 75%,rgba(0,0,0,.35));mask:linear-gradient(90deg,rgba(0,0,0,.2),#000 35%,#000 75%,rgba(0,0,0,.35))}
+.sweep{inset:-30% -60%;opacity:0;mix-blend-mode:screen;
+  background:repeating-linear-gradient(-9deg,rgba(240,235,225,0) 0 34px,rgba(240,235,225,.16) 34px 52px);
+  -webkit-mask:linear-gradient(90deg,transparent 40%,#000 47%,#000 53%,transparent 60%);mask:linear-gradient(90deg,transparent 40%,#000 47%,#000 53%,transparent 60%)}
+.frame[data-scene="club"] .sweep{filter:opacity(.55)}
+.frame[data-scene="office"] .blinds{opacity:1}
+.frame[data-scene="office"] .sweep,.frame[data-scene="club"] .sweep,.frame[data-scene="backstage"] .sweep{animation:sweep 11s linear infinite}
+.frame[data-scene="club"] .sweep{animation-duration:16s}
+@keyframes sweep{0%{transform:translateX(-38%);opacity:0}6%{opacity:1}34%{transform:translateX(38%);opacity:.9}40%{opacity:0;transform:translateX(44%)}100%{opacity:0;transform:translateX(44%)}}
+.vig{inset:0;background:radial-gradient(ellipse at 50% 48%,rgba(0,0,0,0) 45%,rgba(0,0,0,.55) 78%,rgba(0,0,0,.92) 100%)}
+.flick{inset:0;background:#000;opacity:0}
+
+/* animated parts of the illustrations */
+.steam path{animation:steam 5.5s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.steam path:nth-child(2){animation-delay:1.8s}
+.steam path:nth-child(3){animation-delay:3.6s}
+@keyframes steam{0%{opacity:0;transform:translateY(20px) scaleY(.7)}25%{opacity:.55}70%{opacity:.25}100%{opacity:0;transform:translateY(-60px) scaleY(1.2) translateX(8px)}}
+.swing{animation:swing 4.2s ease-in-out infinite;transform-origin:330px 170px}
+@keyframes swing{0%,100%{transform:rotate(-3.5deg)}50%{transform:rotate(3.5deg)}}
+.fog{animation:fog 38s ease-in-out infinite alternate}
+.fog.b{animation-duration:52s;animation-direction:alternate-reverse}
+@keyframes fog{0%{transform:translateX(-120px)}100%{transform:translateX(140px)}}
+.glint{animation:glint 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes glint{0%,70%,100%{opacity:0;transform:scale(.4)}80%{opacity:1;transform:scale(1)}}
+.bulbs circle{animation:bulb 7s steps(1) infinite}
+.bulbs circle:nth-child(3n){animation-delay:2.3s}
+@keyframes bulb{0%,100%{opacity:1}93%{opacity:.35}95%{opacity:1}}
+#art-pier .e1,#art-pier .e2{display:none}
+#art-pier.e1 .e1{display:inline}
+#art-pier.e2 .e2{display:inline}
+#art-pier.e2 .nora,#art-pier.e2 .ferryNear{display:none}
+#art-alley.dawn .dawnwash{display:inline}
+#art-alley .dawnwash{display:none}
+#art-alley.dawn .tube{display:none}
+
+/* title card + intertitles + stamps */
+.titlecard{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:radial-gradient(ellipse at center,rgba(0,0,0,.35),rgba(0,0,0,.72));transition:opacity .8s ease}
+.titlecard.gone{opacity:0;pointer-events:none}
+.titlecard svg{width:min(78%,760px);height:auto;display:block;margin:0 auto}
+.titlecard p{font-family:var(--mono);font-size:clamp(11px,1.2vw,14px);letter-spacing:.3em;text-transform:uppercase;color:#bdb8ad;margin-top:10px}
+.intertitle{position:absolute;inset:0;display:grid;place-items:center;background:#000;opacity:0;pointer-events:none;transition:opacity .35s}
+.intertitle.on{opacity:1}
+.intertitle div{border:1px solid #6b6b6b;outline:1px solid #2a2a2a;outline-offset:6px;padding:18px 34px;text-align:center}
+.intertitle b{display:block;font-family:var(--cond);font-stretch:condensed;font-weight:400;font-size:clamp(26px,3.6vw,46px);letter-spacing:.12em;text-transform:uppercase;color:#ece8de}
+.intertitle i{display:block;margin-top:6px;font-family:var(--mono);font-style:normal;font-size:13px;letter-spacing:.3em;color:#9a958b;text-transform:uppercase}
+.stampmark{position:absolute;right:6%;top:10%;transform:rotate(-8deg) scale(1.6);opacity:0;pointer-events:none;border:4px double rgba(236,232,222,.85);padding:8px 18px;
+  font-family:var(--cond);font-stretch:condensed;font-size:clamp(20px,3vw,40px);letter-spacing:.18em;text-transform:uppercase;color:rgba(236,232,222,.9);transition:opacity .25s,transform .35s cubic-bezier(.3,1.6,.6,1)}
+.stampmark.on{opacity:1;transform:rotate(-8deg) scale(1)}
+.stampmark small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.2em;margin-top:2px}
+
+/* ---------- script panel ---------- */
+.script{display:grid;grid-template-columns:minmax(0,1fr);margin-top:18px}
+.head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid #2a2a2a;padding-bottom:8px}
+.head h1{font-family:var(--cond);font-stretch:condensed;font-weight:400;font-size:clamp(22px,2.6vw,32px);letter-spacing:.06em;text-transform:uppercase;color:#f1ede4;line-height:1.05}
+.head span{font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#8c877d;white-space:nowrap}
+.log{max-height:198px;min-height:110px;overflow-y:auto;padding:12px 2px 4px;cursor:text;scrollbar-width:thin;scrollbar-color:#444 transparent}
+.log p{font-size:clamp(16px,1.25vw,18px);line-height:1.6;color:#e2ddd2;margin-bottom:10px;max-width:74ch}
+.log p.reply{color:#f3efe6;padding-left:16px;border-left:2px solid #3b3b3b}
+.log p.note{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:#9b968c}
+.caret{display:inline-block;width:.55em;height:1.05em;margin-left:2px;vertical-align:-.15em;background:#e2ddd2;animation:blink .9s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.skip{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:#6f6a61;text-transform:uppercase;margin-top:2px;height:14px}
+
+.cards{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;min-height:10px}
+.card{-webkit-appearance:none;appearance:none;position:relative;flex:1 1 230px;max-width:360px;min-height:92px;text-align:left;cursor:pointer;border:0;border-radius:2px;padding:26px 16px 12px 16px;
+  background:
+    linear-gradient(#efebe2,#efebe2) 0 0/100% 20px no-repeat,
+    repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 21px,rgba(60,70,80,.2) 21px 22px),
+    linear-gradient(180deg,#f2eee6,#e6e1d6);
+  color:#171717;font-family:var(--mono);font-size:14.5px;line-height:22px;
+  box-shadow:0 10px 18px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.4) inset;
+  transform:rotate(var(--r,0deg)) translateY(12px);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.3,1.2),opacity .35s ease,box-shadow .25s}
+.card::before{content:"";position:absolute;left:0;right:0;top:19px;height:1.5px;background:rgba(40,40,40,.55)}
+.card::after{content:"";position:absolute;left:12px;right:12px;top:22px;height:1px;background:rgba(40,40,40,.25)}
+.card.in{opacity:1;transform:rotate(var(--r,0deg)) translateY(0)}
+.card:hover{transform:rotate(0deg) translateY(-4px);box-shadow:0 18px 26px rgba(0,0,0,.6)}
+.card .k{position:absolute;left:14px;top:3px;font-size:11px;letter-spacing:.2em;color:#5b5b5b}
+.card .hint{display:block;margin-top:4px;font-family:var(--serif);font-style:italic;font-size:13.5px;line-height:1.4;color:#5a564f}
+.card[aria-disabled="true"]{cursor:not-allowed;filter:grayscale(1) brightness(.72)}
+.card[aria-disabled="true"] .txt{text-decoration:line-through;text-decoration-color:rgba(20,20,20,.6)}
+.card[aria-disabled="true"]:hover{transform:rotate(var(--r,0deg));box-shadow:0 10px 18px rgba(0,0,0,.55)}
+.card.gone{opacity:0;transform:rotate(var(--r,0deg)) translateY(8px);pointer-events:none}
+.card:focus-visible{outline:2px solid #f2eee5;outline-offset:4px}
+
+/* ---------- case file drawer ---------- */
+.filewrap{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:20}
+.file{position:absolute;top:0;right:0;bottom:0;width:min(400px,92vw);pointer-events:auto;visibility:hidden;transform:translateX(104%);transition:transform .45s cubic-bezier(.2,.8,.2,1),visibility 0s linear .45s;
+  background:linear-gradient(180deg,#d8d4ca,#cbc6ba);color:#1b1b1b;box-shadow:-30px 0 60px rgba(0,0,0,.7);display:flex;flex-direction:column}
+.file.open{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.file header{padding:22px 24px 14px;border-bottom:2px solid #1b1b1b;position:relative}
+.file header small{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:#4b4b4b;text-transform:uppercase}
+.file h2{font-family:var(--cond);font-stretch:condensed;font-weight:400;font-size:30px;letter-spacing:.08em;text-transform:uppercase;line-height:1.05;margin-top:4px}
+.file .count{font-family:var(--mono);font-size:12px;margin-top:6px;color:#3b3b3b}
+.file .x{position:absolute;right:14px;top:14px;width:34px;height:34px;border:1px solid #555;background:transparent;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.file ol{list-style:none;overflow-y:auto;padding:14px 24px;flex:1}
+.file li{position:relative;padding:10px 0 10px 40px;border-bottom:1px dashed rgba(0,0,0,.25);font-family:var(--mono);font-size:13px;line-height:1.5}
+.file li b{display:block;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px}
+.file li .n{position:absolute;left:0;top:10px;font-size:12px;color:#555}
+.file li svg{position:absolute;left:-2px;top:28px;width:30px;height:18px}
+.file li.new{animation:typein .6s ease}
+@keyframes typein{0%{background:rgba(0,0,0,.12)}100%{background:transparent}}
+.file li.empty{color:#7b776f;font-style:italic}
+.file footer{padding:14px 24px 20px;border-top:2px solid #1b1b1b;display:flex;gap:10px}
+.file footer button{-webkit-appearance:none;appearance:none;flex:1;height:38px;border:1px solid #1b1b1b;background:transparent;cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.file footer button:hover{background:rgba(0,0,0,.08)}
+.scrim{position:fixed;inset:0;z-index:15;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .4s}
+.scrim.on{opacity:1;pointer-events:auto}
+
+.toast{position:fixed;left:50%;bottom:22px;z-index:30;transform:translate(-50%,20px);opacity:0;pointer-events:none;transition:opacity .4s,transform .4s;
+  background:#efebe2;color:#111;font-family:var(--mono);font-size:13px;padding:10px 16px 10px 14px;box-shadow:0 12px 26px rgba(0,0,0,.6);display:flex;align-items:center;gap:10px;max-width:92vw}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast svg{width:26px;height:16px;flex:none}
+
+@media (max-width:720px){
+  .bar .mark{font-size:11px;letter-spacing:.2em}
+  .bar .where{display:none}
+  .titlecard p{letter-spacing:.12em;font-size:10px}
+  .tool .lbl{display:none}
+  .tool{padding:0 10px}
+  .frame{aspect-ratio:16/10;max-height:none}
+  .log{max-height:none}
+  .cards{flex-direction:column}
+  .card{max-width:none;flex:1 1 auto}
+  .head{flex-direction:column;gap:2px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sweep,.steam path,.swing,.fog,.glint,.bulbs circle,.caret{animation:none!important}
+  *{transition-duration:.01s!important}
+}
+</style>
+</head>
+<body>
+<!-- shared paint for every scene -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#262626"/><stop offset="1" stop-color="#121212"/></linearGradient>
+    <radialGradient id="gPool"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".55" stop-color="#fff" stop-opacity=".1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gCone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="gHalo"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".25" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d0d0d"/><stop offset=".75" stop-color="#303030"/><stop offset="1" stop-color="#3b3b3b"/></linearGradient>
+    <linearGradient id="gFrost" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5a5a5"/><stop offset="1" stop-color="#666"/></linearGradient>
+    <linearGradient id="gGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2e2e2e"/><stop offset="1" stop-color="#0c0c0c"/></linearGradient>
+    <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset=".25" stop-color="#1c1c1c"/><stop offset="1" stop-color="#070707"/></linearGradient>
+    <linearGradient id="gCurtain" x1="0" y1="0" x2="64" y2="0" spreadMethod="repeat" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b0b0b"/><stop offset=".5" stop-color="#262626"/><stop offset="1" stop-color="#0b0b0b"/></linearGradient>
+    <linearGradient id="gShadeL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".85"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></linearGradient>
+    <linearGradient id="gShadeR" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".85"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></linearGradient>
+    <pattern id="pBrick" width="64" height="28" patternUnits="userSpaceOnUse">
+      <rect width="64" height="28" fill="#1e1e1e"/>
+      <path d="M0 0.5H64M0 14.5H64M16 0V14M48 0V14M0 14V28M32 14V28" stroke="#0e0e0e" stroke-width="2"/>
+    </pattern>
+    <filter id="fB3" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
+    <filter id="fB8" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="fB30" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
+    <path id="woman" d="M0 -300c-16 0-27 12-27 29 0 9 4 17 10 22l-5 12c-32 7-50 26-54 58l-14 168 28 5 12-118 4 146-16 200h58l6-146 6 146h58l-16-200 4-146 12 118 28-5-14-168c-4-32-22-51-54-58l-5-12c6-5 10-13 10-22 0-17-11-29-27-29z"/>
+    <path id="hat" d="M-46 -286c14-6 30-8 46-8s32 2 46 8c-8 4-24 6-46 6s-38-2-46-6zM-24 -290c2-16 12-26 24-26s22 10 24 26z"/>
+  </defs>
+</svg>
+
+<header class="bar">
+  <div class="mark"><b>The Glass Alibi</b><span class="where"> · Port Calloway, 1947</span></div>
+  <div class="tools">
+    <button type="button" class="tool" id="bSound" aria-pressed="false" aria-label="Ambient sound off">
+      <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1.5 5h2.5l3.5-3v10l-3.5-3h-2.5z" fill="currentColor"/><path id="waves" d="M9.5 4.5q1.5 2.5 0 5M11.3 3q2.8 4 0 8" fill="none" stroke="currentColor" stroke-width="1.1" style="display:none"/><path id="xmark" d="M9.5 5l3.5 4M13 5l-3.5 4" stroke="currentColor" stroke-width="1.1"/></svg>
+      <span class="lbl" id="soundLbl">Sound off</span></button>
+    <button type="button" class="tool" id="bFile" aria-expanded="false" aria-controls="file">
+      <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1.5 3h4l1 1.5h6v7.5h-11z" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>
+      <span class="lbl">Case file</span><span class="badge" id="badge">0</span></button>
+    <button type="button" class="tool" id="bRestart" aria-label="Restart the story">
+      <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11.5 7a4.5 4.5 0 1 1-1.4-3.3M10.5 1.5v2.6h-2.6" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+      <span class="lbl">Restart</span></button>
+  </div>
+</header>
+
+<main class="theatre">
+  <div class="frame" id="frame" data-scene="office">
+    <div class="shift">
+      <!-- ============ OFFICE ============ -->
+      <svg class="art on" id="art-office" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A detective's office at night: rain on the window, blinds, a desk lamp, a cup of coffee, and a woman's shadow behind the frosted door">
+        <rect width="1600" height="900" fill="url(#gWall)"/>
+        <ellipse cx="440" cy="640" rx="560" ry="330" fill="url(#gPool)" opacity=".45"/>
+        <rect x="190" y="90" width="580" height="470" fill="url(#gSky)"/>
+        <path d="M190 560V432h58v-52h40v74h46v-126h72v144h38v-92h58v112h46v-164h58v152h46v-60h58v98h40v-40h20v102z" fill="#0b0b0b"/>
+        <g fill="#b9b9b9" opacity=".55">
+          <rect x="300" y="352" width="10" height="14"/><rect x="318" y="392" width="10" height="14"/><rect x="424" y="372" width="10" height="14"/>
+          <rect x="560" y="336" width="10" height="14"/><rect x="578" y="376" width="10" height="14"/><rect x="578" y="420" width="10" height="14"/><rect x="668" y="470" width="10" height="14"/>
+        </g>
+        <g stroke="#3d3d3d" stroke-width="8">
+          <path d="M190 98h580M190 110h580M190 122h580M190 134h580M190 146h580M190 158h580M190 170h580M190 182h580"/>
+        </g>
+        <path d="M300 186v120M660 186v160" stroke="#555" stroke-width="1.5"/>
+        <rect x="474" y="90" width="12" height="470" fill="#0c0c0c"/>
+        <rect x="190" y="320" width="580" height="12" fill="#0c0c0c"/>
+        <rect x="182" y="82" width="596" height="486" fill="none" stroke="#0a0a0a" stroke-width="16"/>
+        <rect x="160" y="566" width="640" height="20" fill="#2c2c2c"/>
+        <!-- frosted door -->
+        <rect x="1168" y="150" width="276" height="750" fill="#151515"/>
+        <rect x="1168" y="150" width="276" height="750" fill="none" stroke="#0a0a0a" stroke-width="10"/>
+        <rect x="1200" y="206" width="212" height="310" fill="url(#gFrost)"/>
+        <clipPath id="cGlass"><rect x="1200" y="206" width="212" height="310"/></clipPath>
+        <g clip-path="url(#cGlass)"><g opacity=".8" filter="url(#fB8)" fill="#1b1b1b">
+          <use href="#woman" transform="translate(1302 575) scale(1.05)"/>
+          <use href="#hat" transform="translate(1302 575) scale(1.05)"/>
+        </g></g>
+        <g transform="translate(1306 300) scale(-1 1)" font-family="Bodoni MT Condensed, DejaVu Serif Condensed, Georgia, serif" fill="#2a2a2a" text-anchor="middle">
+          <text font-size="30" letter-spacing="3">E. CRANE</text>
+          <text y="30" font-size="15" letter-spacing="5">INVESTIGATIONS</text>
+        </g>
+        <circle cx="1216" cy="590" r="9" fill="#6a6a6a"/>
+        <!-- coat rack -->
+        <g fill="#0c0c0c">
+          <rect x="1498" y="240" width="10" height="660"/>
+          <path d="M1466 250c10-20 64-20 74 0-10 4-64 4-74 0z"/>
+          <path d="M1480 246c2-14 10-22 23-22s21 8 23 22z"/>
+          <path d="M1486 300c-20 20-34 90-40 240l-6 140h130l-8-150c-6-140-18-210-40-232z"/>
+        </g>
+        <!-- desk -->
+        <path d="M190 690H1260L1420 900H40z" fill="#0c0c0c"/>
+        <rect x="190" y="682" width="1070" height="10" fill="#343434"/>
+        <!-- papers + ashtray -->
+        <g transform="translate(610 700) rotate(-4)"><rect width="150" height="46" fill="#8a8a8a"/><path d="M12 12h120M12 22h96M12 32h110" stroke="#555" stroke-width="2"/></g>
+        <ellipse cx="1010" cy="704" rx="44" ry="9" fill="#2b2b2b"/>
+        <rect x="1010" y="696" width="44" height="5" fill="#bdbdbd" transform="rotate(-8 1010 698)"/>
+        <!-- lamp -->
+        <g id="lampGlow">
+          <polygon points="372,470 512,470 700,700 176,700" fill="url(#gCone)" opacity=".42"/>
+          <ellipse cx="440" cy="700" rx="270" ry="26" fill="url(#gPool)"/>
+        </g>
+        <g fill="#0e0e0e">
+          <ellipse cx="440" cy="688" rx="64" ry="12"/>
+          <rect x="434" y="470" width="12" height="220"/>
+          <path d="M366 474l26-52h96l26 52z"/>
+        </g>
+        <path d="M368 472h144" stroke="#f2f2f2" stroke-width="3" opacity=".9"/>
+        <!-- phone -->
+        <g fill="#0e0e0e">
+          <ellipse cx="1120" cy="688" rx="40" ry="9"/>
+          <rect x="1113" y="560" width="14" height="128"/>
+          <path d="M1102 540h36l-6 24h-24z"/>
+          <path d="M1140 600c22 0 30 20 22 40-4 10-12 10-16 4 6-14 4-30-6-30z"/>
+        </g>
+        <!-- coffee -->
+        <g transform="translate(870 648)">
+          <ellipse cx="0" cy="42" rx="66" ry="11" fill="#1c1c1c"/>
+          <path d="M-38 0h76l-8 38c-2 6-8 8-14 8h-32c-6 0-12-2-14-8z" fill="#d4d4d4"/>
+          <path d="M-38 0h76" stroke="#fff" stroke-width="2"/>
+          <ellipse cx="0" cy="2" rx="36" ry="5" fill="#161616"/>
+          <path d="M38 8c20 0 22 22 2 24" fill="none" stroke="#d4d4d4" stroke-width="6"/>
+        </g>
+        <g class="steam" transform="translate(870 640)" fill="none" stroke="#dcdcdc" stroke-width="5" stroke-linecap="round" filter="url(#fB3)">
+          <path d="M-12 0c-16-20 16-34 0-56s14-34 2-52"/>
+          <path d="M6 -4c14-18-14-32 2-52s-12-34 4-54"/>
+          <path d="M-2 0c-10-22 12-30 0-48s10-30 0-46"/>
+        </g>
+      </svg>
+
+      <!-- ============ ALLEY ============ -->
+      <svg class="art" id="art-alley" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A wet alley behind a jazz club: brick walls, a fire escape, a swinging bulb over the stage door, and something small and red in the gutter">
+        <rect width="1600" height="900" fill="#0b0b0b"/>
+        <g filter="url(#fB3)"><rect x="694" y="246" width="212" height="318" fill="#4c4c4c"/></g>
+        <ellipse cx="800" cy="420" rx="170" ry="150" fill="url(#gHalo)" opacity=".6"/>
+        <g fill="#151515"><rect x="836" y="318" width="6" height="248"/><path d="M826 318h26l-5-12h-16z"/><path d="M706 566v-22q10-20 38-22h40q24 2 34 22v22z"/></g>
+        <circle cx="839" cy="322" r="18" fill="url(#gHalo)"/><circle cx="839" cy="322" r="3.5" fill="#fff"/>
+        <path d="M0 0L700 250V560L0 900z" fill="url(#pBrick)"/>
+        <path d="M0 0L700 250V560L0 900z" fill="url(#gShadeL)"/>
+        <path d="M1600 0L900 250V560L1600 900z" fill="url(#pBrick)"/>
+        <path d="M1600 0L900 250V560L1600 900z" fill="url(#gShadeR)"/>
+        <path d="M0 900L700 560H900L1600 900z" fill="url(#gGround)"/>
+        <g opacity=".5" filter="url(#fB8)"><rect x="770" y="580" width="60" height="300" fill="#8a8a8a"/><rect x="700" y="600" width="18" height="220" fill="#6a6a6a"/><rect x="880" y="600" width="18" height="220" fill="#6a6a6a"/></g>
+        <ellipse cx="600" cy="800" rx="170" ry="26" fill="#474747" opacity=".6"/>
+        <ellipse cx="1060" cy="720" rx="120" ry="16" fill="#474747" opacity=".5"/>
+        <!-- right wall windows + fire escape -->
+        <g fill="#8d8d8d" opacity=".55"><path d="M1180 260l90-26v90l-90 22z"/><path d="M1380 190l110-36v110l-110 30z"/></g>
+        <g stroke="#060606" stroke-width="6" fill="none">
+          <path d="M1100 330l380-120M1100 350l380-120M1100 480l380-110M1100 500l380-110M1130 340l200 140M1330 280l120 110"/>
+          <path d="M1100 330v170M1480 210v170M1290 270v170"/>
+        </g>
+        <!-- stage door with the bulb -->
+        <path d="M232 400L372 356V650L232 710z" fill="#070707"/>
+        <path d="M244 352L362 318V336L244 372z" fill="#8a8a8a"/>
+        <text transform="matrix(1 -.3 0 1 262 364)" font-family="Bodoni MT Condensed, DejaVu Serif Condensed, Georgia, serif" font-size="20" letter-spacing="4" fill="#161616">STAGE</text>
+        <g class="swing">
+          <path d="M330 170V250" stroke="#111" stroke-width="3"/>
+          <polygon points="316,262 344,262 470,720 150,760" fill="url(#gCone)" opacity=".33"/>
+          <circle cx="330" cy="262" r="30" fill="url(#gHalo)"/>
+          <circle cx="330" cy="262" r="9" fill="#fff"/>
+          <path d="M318 250h24" stroke="#111" stroke-width="6"/>
+        </g>
+        <!-- drainpipe to the gutter -->
+        <path d="M480 172V660q0 20 22 26l40 10" fill="none" stroke="#0a0a0a" stroke-width="16"/>
+        <path d="M474 172V650" stroke="#3a3a3a" stroke-width="3"/>
+        <g class="tube" transform="translate(560 716) rotate(-18)">
+          <rect x="-22" y="-7" width="30" height="14" rx="2" fill="#1b1b1b" stroke="#777" stroke-width="1.2"/>
+          <rect x="8" y="-5.5" width="12" height="11" fill="#9a9a9a"/>
+          <path d="M20 -5.5h10l6 5.5-6 5.5h-10z" fill="#b3001b"/>
+          <circle class="glint" cx="30" cy="-6" r="8" fill="url(#gHalo)"/>
+        </g>
+        <!-- cans and a cat -->
+        <g fill="#080808">
+          <rect x="1120" y="640" width="96" height="130" rx="6"/><ellipse cx="1168" cy="640" rx="54" ry="10"/>
+          <rect x="1236" y="660" width="88" height="120" rx="6"/><ellipse cx="1280" cy="660" rx="50" ry="9"/>
+          <path d="M1150 634c-4-22 4-40 20-46l2-12 8 10 8-10 1 14c10 8 12 24 6 44z"/>
+          <path d="M1194 628c18 2 30-6 34-18" fill="none" stroke="#080808" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <circle cx="1176" cy="600" r="2.4" fill="#cfcfcf"/><circle cx="1188" cy="600" r="2.4" fill="#cfcfcf"/>
+        <rect class="dawnwash" width="1600" height="900" fill="#c9c9c9" opacity=".22"/>
+      </svg>
+
+      <!-- ============ CLUB ============ -->
+      <svg class="art" id="art-club" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="The Blue Lantern jazz club after hours: an empty microphone in a spotlight, a piano, a bartender, and a glass on table six">
+        <rect width="1600" height="900" fill="#0a0a0a"/>
+        <rect x="260" y="0" width="1100" height="600" fill="url(#gCurtain)"/>
+        <g font-family="Bodoni MT Condensed, DejaVu Serif Condensed, Georgia, serif" font-size="52" letter-spacing="14" text-anchor="middle">
+          <text x="810" y="170" fill="#fff" opacity=".35" filter="url(#fB8)">THE BLUE LANTERN</text>
+          <text x="810" y="170" fill="none" stroke="#f2f2f2" stroke-width="1.6">THE BLUE LANTERN</text>
+        </g>
+        <polygon points="880,0 940,0 1100,600 720,600" fill="url(#gCone)" opacity=".28"/>
+        <ellipse cx="910" cy="604" rx="200" ry="26" fill="url(#gPool)"/>
+        <rect x="240" y="596" width="1120" height="16" fill="#2a2a2a"/>
+        <rect x="240" y="612" width="1120" height="60" fill="#0f0f0f"/>
+        <g fill="#050505">
+          <path d="M340 596l10-86c40-50 170-60 260-40l40 24-6 102z"/>
+          <path d="M360 510l180-110 10 12-160 106z"/>
+        </g>
+        <g stroke="#101010" stroke-width="6" fill="none"><path d="M910 600V356"/><path d="M880 600h60"/></g>
+        <ellipse cx="910" cy="346" rx="12" ry="18" fill="#9a9a9a"/>
+        <g fill="#060606" transform="translate(1180 330) rotate(8)">
+          <path d="M0 0c-26 20-30 60-12 80-26 18-34 70-14 104 20 30 70 30 90 0 20-34 12-86-14-104 18-20 14-60-12-80z"/>
+          <rect x="18" y="-170" width="10" height="176"/>
+        </g>
+        <!-- bar, with a back-bar mirror so Sal reads as a silhouette -->
+        <rect x="0" y="250" width="262" height="302" fill="#2c2c2c"/>
+        <rect x="0" y="250" width="262" height="302" fill="url(#gPool)" opacity=".35"/>
+        <rect x="0" y="420" width="250" height="16" fill="#1f1f1f"/>
+        <g fill="#6d6d6d" opacity=".7"><rect x="30" y="360" width="16" height="58" rx="5"/><rect x="60" y="340" width="14" height="78" rx="5"/><rect x="90" y="368" width="18" height="50" rx="6"/><rect x="124" y="348" width="14" height="70" rx="5"/><rect x="152" y="362" width="16" height="56" rx="5"/></g>
+        <g fill="#0b0b0b"><use href="#woman" transform="translate(130 640) scale(.62)"/></g>
+        <path d="M96 548c12-8 30-8 40 2" stroke="#8a8a8a" stroke-width="4" fill="none"/><path d="M140 530h18l-3 18h-12z" fill="none" stroke="#bdbdbd" stroke-width="2"/>
+        <path d="M0 560H270V900H0z" fill="#070707"/>
+        <rect x="0" y="552" width="280" height="12" fill="#2d2d2d"/>
+        <!-- tables -->
+        <g>
+          <ellipse cx="540" cy="770" rx="120" ry="22" fill="#141414"/><rect x="532" y="770" width="16" height="130" fill="#070707"/>
+          <circle cx="540" cy="738" r="36" fill="url(#gHalo)" opacity=".7"/><rect x="532" y="728" width="16" height="30" fill="#bdbdbd" rx="3"/>
+          <path d="M400 900c0-80 10-150 40-170l14 20c-20 20-24 80-24 150z" fill="#050505"/>
+        </g>
+        <g>
+          <ellipse cx="1240" cy="772" rx="150" ry="24" fill="#1c1c1c"/><rect x="1232" y="772" width="16" height="130" fill="#070707"/>
+          <circle cx="1140" cy="740" r="40" fill="url(#gHalo)" opacity=".75"/><rect x="1132" y="730" width="16" height="30" fill="#bdbdbd" rx="3"/>
+          <text x="1330" y="760" font-family="Courier New, monospace" font-size="18" fill="#9a9a9a">6</text>
+          <!-- the glass -->
+          <g transform="translate(1250 676) scale(1.35)">
+            <path d="M-38 0h76c-4 24-20 36-38 38-18-2-34-14-38-38z" fill="#9a9a9a" fill-opacity=".18" stroke="#e6e6e6" stroke-width="2.4"/>
+            <path d="M0 38v40M-24 80h48" stroke="#e6e6e6" stroke-width="2.4"/>
+            <path d="M-30 6c8 6 18 8 30 8" stroke="#fff" stroke-opacity=".5" stroke-width="2" fill="none"/>
+            <path d="M12 -2.5c3-3 7-3 9 0 2-3 6-3 9 0-1 4-5 6-9 5-4 1-8-1-9-5z" fill="#b3001b"/>
+          </g>
+        </g>
+        <path d="M1500 900c0-110-10-190-40-220l-18 18c24 30 28 110 28 202z" fill="#050505"/>
+      </svg>
+
+      <!-- ============ BACKSTAGE ============ -->
+      <svg class="art" id="art-backstage" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A dressing room: a woman at a bulb-lit mirror, a wig on a stand, and a stage gown hanging behind her">
+        <rect width="1600" height="900" fill="url(#gWall)"/>
+        <polygon points="1440,0 1600,0 1600,900 1330,900" fill="#6a6a6a" opacity=".35"/>
+        <rect x="1440" y="0" width="160" height="900" fill="#050505" opacity=".6"/>
+        <rect x="520" y="170" width="560" height="380" fill="#3c3c3c"/>
+        <rect x="540" y="190" width="520" height="340" fill="#2b2b2b"/>
+        <ellipse cx="800" cy="360" rx="230" ry="170" fill="url(#gPool)" opacity=".5"/>
+        <clipPath id="cMirror"><rect x="540" y="190" width="520" height="340"/></clipPath>
+        <g clip-path="url(#cMirror)"><g opacity=".6" fill="#111"><use href="#woman" transform="translate(800 590) scale(1.05)"/></g></g>
+        <g class="bulbs">
+          <circle cx="530" cy="190" r="14" fill="url(#gHalo)"/><circle cx="530" cy="290" r="14" fill="url(#gHalo)"/><circle cx="530" cy="390" r="14" fill="url(#gHalo)"/><circle cx="530" cy="490" r="14" fill="url(#gHalo)"/>
+          <circle cx="1070" cy="190" r="14" fill="url(#gHalo)"/><circle cx="1070" cy="290" r="14" fill="url(#gHalo)"/><circle cx="1070" cy="390" r="14" fill="url(#gHalo)"/><circle cx="1070" cy="490" r="14" fill="url(#gHalo)"/>
+          <circle cx="660" cy="176" r="14" fill="url(#gHalo)"/><circle cx="800" cy="176" r="14" fill="url(#gHalo)"/><circle cx="940" cy="176" r="14" fill="url(#gHalo)"/>
+        </g>
+        <g fill="#f4f4f4"><circle cx="530" cy="190" r="5"/><circle cx="530" cy="290" r="5"/><circle cx="530" cy="390" r="5"/><circle cx="530" cy="490" r="5"/><circle cx="1070" cy="190" r="5"/><circle cx="1070" cy="290" r="5"/><circle cx="1070" cy="390" r="5"/><circle cx="1070" cy="490" r="5"/><circle cx="660" cy="176" r="5"/><circle cx="800" cy="176" r="5"/><circle cx="940" cy="176" r="5"/></g>
+        <!-- gown on the rack -->
+        <path d="M150 150H440" stroke="#0a0a0a" stroke-width="8"/>
+        <path d="M300 150v18M272 190l28-22 28 22" stroke="#0a0a0a" stroke-width="4" fill="none"/>
+        <path d="M272 192c-4 40 6 80 0 120-30 140-70 330-90 460h236c-20-130-60-320-90-460-6-40 4-80 0-120z" fill="#161616"/>
+        <path d="M300 200c-6 90 10 330 40 560" stroke="#4a4a4a" stroke-width="3" fill="none" opacity=".7"/>
+        <path d="M182 772h236l-8-26H190z" fill="#060606"/>
+        <!-- wig on a stand -->
+        <g fill="#0b0b0b"><rect x="1242" y="560" width="14" height="180"/><ellipse cx="1249" cy="740" rx="50" ry="10"/><ellipse cx="1249" cy="512" rx="44" ry="54"/></g>
+        <path d="M1200 500c-10-56 30-86 60-80 40 4 60 40 46 90 18 20 10 60-10 64 10-30-4-40-12-44 4 30-10 46-26 44 10-20 0-36-10-40-16 20-40 20-50 6 14-4 16-20 2-40z" fill="#030303"/>
+        <!-- vanity -->
+        <rect x="360" y="600" width="880" height="26" fill="#2f2f2f"/>
+        <path d="M360 626H1240L1300 900H300z" fill="#0b0b0b"/>
+        <g transform="translate(980 590)"><path d="M0 0c10-14 36-14 46-4 12-6 26 0 26 10-14 6-50 8-72-6z" fill="#cfcfcf"/><path d="M14 -2c8 2 16 1 22-3" stroke="#b3001b" stroke-width="3.2" fill="none" stroke-linecap="round"/></g>
+        <rect x="660" y="572" width="22" height="28" rx="3" fill="#8a8a8a"/><rect x="700" y="578" width="40" height="22" rx="10" fill="#d0d0d0"/>
+        <!-- Vera, seen from behind -->
+        <g fill="#030303"><use href="#woman" transform="translate(800 840) scale(1.35)"/></g>
+      </svg>
+
+      <!-- ============ PIER ============ -->
+      <svg class="art" id="art-pier" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Pier 9 in fog: lamps along the planks, black water, a ferry's lights on the horizon, and a woman with a suitcase under the last lamp">
+        <rect width="1600" height="560" fill="url(#gSky)"/>
+        <rect y="520" width="1600" height="380" fill="url(#gWater)"/>
+        <g stroke="#9a9a9a" stroke-opacity=".22" stroke-width="2">
+          <path d="M60 600h240M420 640h300M900 610h200M1220 660h300M160 720h380M820 740h420M300 820h500M1000 850h400"/>
+        </g>
+        <g class="ferryNear">
+          <path d="M1080 512h210l-18 20h-176z" fill="#0b0b0b"/>
+          <path d="M1118 512v-26h118v26z" fill="#0f0f0f"/><rect x="1182" y="464" width="16" height="22" fill="#0f0f0f"/>
+          <g fill="#e8e8e8"><rect x="1128" y="494" width="8" height="6"/><rect x="1146" y="494" width="8" height="6"/><rect x="1164" y="494" width="8" height="6"/><rect x="1200" y="494" width="8" height="6"/><rect x="1218" y="494" width="8" height="6"/></g>
+          <g fill="#e8e8e8" opacity=".3" filter="url(#fB3)"><rect x="1126" y="540" width="8" height="70"/><rect x="1162" y="540" width="8" height="90"/><rect x="1216" y="540" width="8" height="64"/></g>
+        </g>
+        <g class="e2">
+          <path d="M1380 516h70l-6 7h-58z" fill="#111"/><path d="M1392 516v-9h40v9z" fill="#141414"/>
+          <g fill="#e8e8e8"><rect x="1396" y="510" width="3" height="3"/><rect x="1404" y="510" width="3" height="3"/><rect x="1420" y="510" width="3" height="3"/></g>
+        </g>
+        <!-- pier -->
+        <path d="M120 900L740 530H860L1480 900z" fill="#141414"/>
+        <g stroke="#060606" stroke-width="3">
+          <path d="M780 530L560 900M800 530V900M820 530L1040 900M760 530L320 900M840 530L1280 900"/>
+          <path d="M700 555H900M600 614H1000M470 690H1130M300 790H1300"/>
+        </g>
+        <g stroke="#0a0a0a" stroke-width="10"><path d="M150 880L736 532M1450 880L864 532"/></g>
+        <g fill="#0a0a0a"><rect x="210" y="760" width="16" height="140"/><rect x="420" y="660" width="12" height="90"/><rect x="560" y="610" width="8" height="60"/><rect x="1374" y="760" width="16" height="140"/><rect x="1168" y="660" width="12" height="90"/><rect x="1032" y="610" width="8" height="60"/></g>
+        <!-- lamps -->
+        <g fill="#0a0a0a"><rect x="1098" y="300" width="12" height="440"/><rect x="620" y="410" width="7" height="200"/><rect x="980" y="410" width="7" height="200"/><rect x="714" y="470" width="4" height="80"/></g>
+        <g fill="url(#gHalo)"><circle cx="1104" cy="296" r="110"/><circle cx="623" cy="406" r="56"/><circle cx="983" cy="406" r="56"/><circle cx="716" cy="468" r="30"/></g>
+        <g fill="#fff"><circle cx="1104" cy="296" r="9"/><circle cx="623" cy="406" r="5"/><circle cx="983" cy="406" r="5"/><circle cx="716" cy="468" r="3"/></g>
+        <polygon points="1090,300 1118,300 1260,740 950,740" fill="url(#gCone)" opacity=".22"/>
+        <ellipse cx="1104" cy="740" rx="170" ry="26" fill="url(#gPool)" opacity=".7"/>
+        <!-- Nora and her suitcase -->
+        <g class="nora" fill="#040404">
+          <use href="#woman" transform="translate(1052 643) scale(.46)"/>
+          <use href="#hat" transform="translate(1052 643) scale(.46)"/>
+          <rect x="1076" y="716" width="42" height="30" rx="3"/><path d="M1089 716v-6h16v6" stroke="#040404" stroke-width="3" fill="none"/>
+        </g>
+        <!-- police headlights (ending one) -->
+        <g class="e1" filter="url(#fB8)">
+          <polygon points="60,900 120,860 700,640 760,700" fill="url(#gCone)" opacity=".35"/>
+          <polygon points="220,900 260,870 820,690 860,740" fill="url(#gCone)" opacity=".3"/>
+          <circle cx="110" cy="872" r="40" fill="url(#gHalo)"/><circle cx="250" cy="878" r="36" fill="url(#gHalo)"/>
+        </g>
+        <g opacity=".13" filter="url(#fB30)">
+          <ellipse class="fog" cx="500" cy="560" rx="520" ry="70" fill="#d8d8d8"/>
+          <ellipse class="fog b" cx="1200" cy="620" rx="560" ry="80" fill="#d8d8d8"/>
+          <ellipse class="fog" cx="800" cy="470" rx="700" ry="50" fill="#d8d8d8"/>
+        </g>
+      </svg>
+
+      <canvas id="fx" aria-hidden="true"></canvas>
+      <div class="blinds" aria-hidden="true"></div>
+      <div class="sweep" aria-hidden="true"></div>
+    </div>
+    <canvas id="grain" aria-hidden="true"></canvas>
+    <div class="vig" aria-hidden="true"></div>
+    <div class="flick" id="flick" aria-hidden="true"></div>
+
+    <div class="stampmark" id="stamp" aria-hidden="true">Case closed<small>file 47-0913</small></div>
+    <div class="intertitle" id="inter" aria-hidden="true"><div><b id="interT">I · The Office</b><i id="interS">1:10 a.m.</i></div></div>
+    <div class="titlecard" id="titlecard">
+      <div>
+        <svg viewBox="0 0 800 210" role="img" aria-label="The Glass Alibi">
+          <text x="400" y="46" text-anchor="middle" font-family="Courier New, Nimbus Mono PS, monospace" font-size="18" letter-spacing="9" fill="#bdb8ad">A PORT CALLOWAY MYSTERY</text>
+          <text x="400" y="158" text-anchor="middle" textLength="740" lengthAdjust="spacingAndGlyphs" font-family="Bodoni MT Condensed, Bodoni 72, DejaVu Serif Condensed, Didot, Georgia, serif" font-size="128" fill="#f1ede4" letter-spacing="2">THE GLASS ALIBI</text>
+          <path d="M60 184H740" stroke="#6b6b6b" stroke-width="1"/>
+          <path d="M392 178c3-3 7-3 8 0 1-3 5-3 8 0-1 4-4 6-8 5-4 1-7-1-8-5z" fill="#b3001b"/>
+        </svg>
+        <p>Six scenes · three endings · one red clue</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="script" aria-label="Story">
+    <div class="head"><h1 id="sceneTitle">Port Calloway, 1947</h1><span id="sceneTime">it has rained for three days</span></div>
+    <div class="log" id="log" aria-hidden="true">
+      <p>They called it the wettest spring since the harbour was dredged. I called it Tuesday. Somewhere under Pier 9 a man named Leo Sorrell had stopped breathing, and by one in the morning the only light left on Harbor Street was mine.</p>
+      <p class="note">Tip: click the text or press Space to finish a line. Press 1, 2 or 3 to play a card. The case file keeps every clue.</p>
+    </div>
+    <div class="skip" id="skip" aria-hidden="true"></div>
+    <p class="sr" id="live" aria-live="polite"></p>
+    <div class="cards" id="cards" role="group" aria-label="Choices"></div>
+  </section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="filewrap">
+<aside class="file" id="file" aria-label="Case file" aria-hidden="true">
+  <header>
+    <small>Case no. 47-0913 · E. Crane</small>
+    <h2>Sorrell, Leo<br>Pier 9</h2>
+    <p class="count" id="count">Clues: 0 of 9</p>
+    <button type="button" class="x" id="fileClose" aria-label="Close the case file"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="#111" stroke-width="1.5"/></svg></button>
+  </header>
+  <ol id="clues"></ol>
+  <footer><button type="button" id="fileRestart">Start over</button><button type="button" id="fileBack">Back to the case</button></footer>
+</aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  /* ================= the case ================= */
+  const CLUES = {
+    alibi:  { t: 'Nora’s alibi', d: 'On stage at the Blue Lantern till half past twelve. “Ask the glass,” she said.' },
+    plum:   { t: 'Plum', d: 'Nora’s lipstick: a dark, bruised plum. Not a shade you forget.' },
+    threat: { t: 'The threat', d: 'Two nights ago, in front of the whole bar: “I’ll see you under the pier, Leo.”' },
+    tube:   { t: 'Harbor Crimson No. 9', d: 'A cracked lipstick tube in the alley gutter. A red you could hear.', key: true },
+    set:    { t: 'The second set', d: '“Nora” skipped Blue Glass Heart and kept her face out of the spotlight.' },
+    glass:  { t: 'The glass alibi', d: 'Table six: the kiss on the rim is crimson. Nora wears plum.', key: true },
+    kiss:   { t: 'Table six', d: 'A lipstick kiss on the rim of Nora’s glass. Pretty. Convenient.' },
+    gown:   { t: 'The damp gown', d: 'Nora’s stage gown, wet at the hem. Somebody wore it out into the rain.' },
+    vera:   { t: 'Vera’s confession', d: 'Vera sang the second set in Nora’s gown. “She said she needed an hour.”', key: true },
+    iou:    { t: 'Leo’s paper', d: 'Leo held the Vale sisters’ father’s debts, and meant to collect from Vera.' }
+  };
+  const TOTAL = 9;
+  const S = {
+    office: {
+      art: 'office', n: 'I', title: 'The Office', time: '1:10 a.m.', rain: 'window',
+      text: () => [
+        'The rain had been working on the city for three days, and the city was losing. I was nursing a cold coffee when the frosted glass of my door filled with a shape I knew from the posters outside the Blue Lantern.',
+        'Nora Vale. Wet fur, dry eyes, lips the colour of a bruised plum. “Leo Sorrell is dead under Pier 9,” she said. “The police think I did it. I was on stage till half past twelve — ask anyone. Ask the glass.”'
+      ],
+      onEnter: () => addClue('plum', true),
+      choices: [
+        { k: 'Take the case. Fifty a day, plus expenses.', clue: 'alibi', reply: 'She laid two twenties and a ten on the blotter like she was dealing cards. “Start at the club,” she said. “The back way. The front is full of cops.”', go: 'alley' },
+        { k: 'Ask why the cops like her for it.', clue: 'threat', stay: true, reply: '“Because two nights ago I told Leo I’d see him under the pier,” she said. “In front of the whole bar. It was a figure of speech.” It was a good figure. The cops had admired it too.' }
+      ]
+    },
+    alley: {
+      art: 'alley', n: 'II', title: 'The Alley', time: '1:40 a.m.', rain: 'heavy',
+      text: () => [
+        'The alley behind the Blue Lantern smelled of gin and wet brick. One bulb swung over the stage door like it couldn’t make up its mind. Somebody had left in a hurry; the puddles still had opinions about it.',
+        'In the gutter under the drainpipe something caught the light: a lipstick tube, cracked open, the stick worn to a slant. The shade was a red you could hear. Harbor Crimson No. 9.'
+      ],
+      choices: [
+        { k: 'Pocket the lipstick.', clue: 'tube', reply: 'I wrapped it in my handkerchief. It weighed about as much as a lie.', go: 'club' },
+        { k: 'Leave it to the rain.', reply: 'Half the girls in Port Calloway wore red. The rain could have it.', go: 'club' }
+      ]
+    },
+    club: {
+      art: 'club', n: 'III', title: 'The Blue Lantern', time: '1:55 a.m.', rain: 'smoke',
+      text: () => [
+        'Last call had come and gone, but the piano player hadn’t heard. Sal polished a glass that was already clean. “Nora? Sang both sets, same as always. Her drink’s still on table six. Nobody touches table six.”',
+        has('tube')
+          ? 'The glass sat under the lamp like a witness. On the rim, a perfect kiss in red — the same shouting red as the tube in my pocket. Nora wore plum. I’d have bet my licence on it.'
+          : 'The glass sat under the lamp like a witness, a lipstick kiss on its rim. Pretty. Convenient. I couldn’t have told you why it bothered me.'
+      ],
+      choices: [
+        { k: 'Ask Sal about the second set.', clue: 'set', stay: true, reply: '“She skipped Blue Glass Heart,” Sal said. “First time in two years. Kept her face out of the spot, too. Said the light hurt her eyes.”' },
+        { k: 'Take a closer look at the glass.', clue: () => has('tube') ? 'glass' : 'kiss', stay: true,
+          reply: () => has('tube') ? 'Crimson. Not plum, not rose, not anything a woman like Nora would wear to a funeral or a murder. Somebody else had been drinking at table six.' : 'A clean kiss, carefully placed. The kind of thing you leave when you want a glass to remember you.' },
+        { k: 'Slip backstage.', go: 'backstage' }
+      ]
+    },
+    backstage: {
+      art: 'backstage', n: 'IV', title: 'Backstage', time: '2:15 a.m.', rain: 'none',
+      text: () => [
+        'The dressing room was all mirror and no mercy. Vera Vale sat under the bulbs taking off her face — the kid sister in the cigarette-girl uniform, same cheekbones as Nora, same size as the gown hanging behind her.',
+        '“Nora’s gone to see a man about a boat,” she said without turning round. A cold-cream rag lay by her elbow, streaked red.'
+      ],
+      choices: [
+        { k: 'Ask about the gown.', clue: 'gown', stay: true, reply: 'The hem was dark and heavy. “Rain gets in everywhere,” Vera said. The gown was Nora’s, and the only door with rain behind it was the stage door.' },
+        { k: 'Show her the lipstick.', clue: 'vera', stay: true, req: () => has('tube'), lock: 'Show her what? You left the only thing worth showing in the gutter.',
+          reply: 'She looked at the tube the way you look at a photograph of yourself you don’t remember posing for. “I sang for her,” she whispered. “The second set. In her dress. She said she needed an hour. Just an hour.”' },
+        { k: 'Go to Pier 9.', go: 'pier' }
+      ]
+    },
+    pier: {
+      art: 'pier', n: 'V', title: 'Pier 9', time: '2:40 a.m.', rain: 'light',
+      text: () => [
+        'Fog had the pier by the throat. Out past the pilings the two-forty ferry cleared its throat, and under the last lamp stood Nora Vale with a suitcase and the patience of a woman who had already said goodbye to this town.',
+        '“You found me,” she said. “Tell me you came to wave.”'
+      ],
+      choices: [
+        { k: 'Lay out the glass alibi.', clue: 'iou', req: () => has('tube') && (has('glass') || has('vera')), lock: 'You have a hunch, not a case. A hunch won’t hold her.', confront: true,
+          reply: '“Your glass had a kiss on it, Nora. Crimson. You wear plum. Vera wore your dress and your songs, but she wore her own mouth.” The ferry horn filled the silence. “Leo held our father’s paper,” she said at last. “He was going to collect it from Vera. I couldn’t let him.”' },
+        { k: 'Tell her Vera will take the fall.', end: 'wrong' },
+        { k: 'Carry her suitcase to the gangway.', end: 'wrong' }
+      ],
+      finals: [
+        { k: 'Call Lieutenant Hask.', end: 'red' },
+        { k: 'Let her catch the ferry.', end: 'ferry' }
+      ]
+    },
+    red: {
+      art: 'pier', variant: 'e1', n: 'VI', title: 'Red on the Glass', time: 'dawn', rain: 'light', stamp: ['Case closed', 'file 47-0913'],
+      text: () => [
+        'Hask’s boys came with their sirens off, which is the only polite thing I ever saw them do. Nora didn’t run. At the car she turned and touched her lips — plum, perfect. “Tell Vera to sing Blue Glass Heart for me.”',
+        'The rain started again, like it had been waiting for its cue.'
+      ]
+    },
+    ferry: {
+      art: 'pier', variant: 'e2', n: 'VI', title: 'The Last Ferry', time: 'dawn', rain: 'light', stamp: ['Off the record', 'file 47-0913'],
+      text: () => [
+        'I watched the ferry’s lights go soft in the fog until there was nothing left to watch. In the morning I dropped the lipstick into the harbour and told Hask the glass looked fine to me.',
+        'Somewhere a glass alibi was holding, and I was the only crack in it. I kept my mouth shut. That’s a kind of glass, too.'
+      ]
+    },
+    wrong: {
+      art: 'alley', variant: 'dawn', n: 'VI', title: 'Wrong Song', time: 'dawn', rain: 'heavy', stamp: ['Case cold', 'file 47-0913'],
+      text: () => [
+        'Hask took Vera in at dawn. She didn’t argue; she had been rehearsing for it her whole life. By the time I understood what the glass had been trying to tell me, the two-forty ferry was a rumour on the horizon.',
+        'Some nights the rain washes everything clean. That night it just washed.'
+      ]
+    }
+  };
+
+  /* ================= state ================= */
+  let scene = null, clues = [], used = new Set(), confronted = false, moving = false;
+  function has(id) { return clues.indexOf(id) >= 0; }
+
+  const frame = $('frame'), logEl = $('log'), cardsEl = $('cards'), live = $('live'), skipEl = $('skip');
+  const sceneTitle = $('sceneTitle'), sceneTime = $('sceneTime');
+  const inter = $('inter'), interT = $('interT'), interS = $('interS'), titlecard = $('titlecard'), stamp = $('stamp');
+
+  /* ================= typewriter ================= */
+  const queue = [];
+  let typing = null, typeAcc = 0, afterType = null;
+  const caret = document.createElement('span'); caret.className = 'caret';
+  function type(text, cls) {
+    const p = document.createElement('p'); if (cls) p.className = cls;
+    logEl.appendChild(p);
+    queue.push({ p, text, i: 0, pause: 0 });
+    live.textContent = text;
+    if (!typing) nextLine();
+  }
+  function nextLine() {
+    typing = queue.shift() || null;
+    if (typing) { typing.p.appendChild(caret); skipEl.textContent = 'click or press space to skip'; }
+    else { caret.remove(); skipEl.textContent = ''; const f = afterType; afterType = null; if (f) f(); }
+  }
+  function whenTyped(fn) { if (!typing && !queue.length) fn(); else afterType = fn; }
+  function finishAll() {
+    if (!typing) return;
+    for (const q of [typing].concat(queue)) q.p.textContent = q.text;
+    queue.length = 0; typing = null; caret.remove(); skipEl.textContent = '';
+    logEl.scrollTop = logEl.scrollHeight;
+    const f = afterType; afterType = null; if (f) f();
+  }
+  function stepType(dt) {
+    if (!typing) return;
+    if (reduce) { finishAll(); return; }
+    typeAcc += dt;
+    const cps = 0.018;
+    let changed = false;
+    while (typing && typeAcc >= cps + typing.pause) {
+      typeAcc -= cps + typing.pause; typing.pause = 0;
+      const ch = typing.text[typing.i++];
+      changed = true;
+      if (ch && ch !== ' ' && (typing.i & 1)) keyClick();
+      if (ch === '.' || ch === '?' || ch === '!') typing.pause = 0.22;
+      else if (ch === ',' || ch === ';' || ch === '—' || ch === ':') typing.pause = 0.1;
+      if (typing.i >= typing.text.length) {
+        typing.p.textContent = typing.text; bell();
+        const done = typing; typing = null; typeAcc = -0.35;
+        void done; nextLine();
+      }
+    }
+    if (changed && typing) {
+      typing.p.textContent = typing.text.slice(0, typing.i);
+      typing.p.appendChild(caret);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+  }
+  logEl.addEventListener('click', finishAll);
+
+  /* ================= cards ================= */
+  const TILTS = [-1.4, 0.9, -0.6, 1.3];
+  function showCards(list) {
+    cardsEl.innerHTML = '';
+    list.forEach((c, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'card';
+      b.style.setProperty('--r', TILTS[i % TILTS.length] + 'deg');
+      const locked = c.req && !c.req();
+      b.innerHTML = '<span class="k">' + (c.cont ? '→' : String.fromCharCode(65 + i) + '.') + '</span><span class="txt"></span>';
+      b.querySelector('.txt').textContent = c.k;
+      if (locked) {
+        b.setAttribute('aria-disabled', 'true');
+        const h = document.createElement('span'); h.className = 'hint'; h.textContent = c.lock; b.appendChild(h);
+      }
+      b.addEventListener('click', () => { if (!locked) choose(c); else nudge(b); });
+      cardsEl.appendChild(b);
+      setTimeout(() => b.classList.add('in'), reduce ? 0 : 90 + i * 110);
+    });
+  }
+  function nudge(b) { if (b.animate && !reduce) b.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }], { duration: 260 }); }
+  function currentChoices() {
+    const sc = S[scene];
+    if (scene === 'pier' && confronted) return sc.finals;
+    return (sc.choices || []).filter(c => !(c.stay && used.has(scene + '|' + c.k)) && !(c.confront && confronted));
+  }
+  function choose(c) {
+    if (moving) return;
+    if (typing) { finishAll(); return; }
+    if (c.file) { setFile(true); return; }
+    if (c.again) { restart(); return; }
+    if (c.cont) { goto(c.go); return; }
+    for (const b of cardsEl.children) { b.classList.add('gone'); b.disabled = true; }
+    used.add(scene + '|' + c.k);
+    type('— ' + c.k, 'note');
+    const clue = typeof c.clue === 'function' ? c.clue() : c.clue;
+    if (clue) addClue(clue);
+    const rep = typeof c.reply === 'function' ? c.reply() : c.reply;
+    if (rep) type(rep, 'reply');
+    if (c.confront) confronted = true;
+    whenTyped(() => {
+      if (c.end) goto(c.end);
+      else if (c.go) { if (rep) showCards([{ k: 'Continue', cont: true, go: c.go }]); else goto(c.go); }
+      else showCards(currentChoices());
+    });
+  }
+
+  /* ================= case file ================= */
+  const KISS = '<svg viewBox="0 0 30 18" aria-hidden="true"><path d="M2 9c4-6 9-7 13-3 4-4 9-3 13 3-3 6-8 8-13 7-5 1-10-1-13-7z" fill="#b3001b"/><path d="M4 9c4 1 18 1 22 0" stroke="#5b000d" stroke-width="1" fill="none"/></svg>';
+  function addClue(id, quiet) {
+    if (has(id)) return;
+    clues.push(id);
+    renderFile(id);
+    const b = $('bFile'); b.classList.remove('stamped'); void b.offsetWidth; b.classList.add('stamped');
+    if (!quiet) toast(CLUES[id]);
+  }
+  function renderFile(fresh) {
+    const ol = $('clues'); ol.innerHTML = '';
+    clues.forEach((id, i) => {
+      const c = CLUES[id], li = document.createElement('li');
+      if (id === fresh) li.className = 'new';
+      li.innerHTML = '<span class="n">' + String(i + 1).padStart(2, '0') + '</span>' + (c.key ? KISS : '') + '<b></b><span></span>';
+      li.querySelector('b').textContent = c.t; li.querySelector('span:last-child').textContent = c.d;
+      ol.appendChild(li);
+    });
+    if (!clues.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Nothing yet. A good file starts with a bad night.'; ol.appendChild(li); }
+    const n = Math.min(TOTAL, clues.filter(id => id !== 'kiss').length);
+    $('badge').textContent = String(clues.length);
+    $('count').textContent = 'Clues: ' + n + ' of ' + TOTAL;
+  }
+  let toastT = 0;
+  function toast(c) {
+    const t = $('toast');
+    t.innerHTML = (c.key ? KISS : '<svg viewBox="0 0 26 16" aria-hidden="true"><path d="M3 3h20v10H3z" fill="none" stroke="#111" stroke-width="1.4"/><path d="M6 7h12M6 10h8" stroke="#111"/></svg>') + '<span></span>';
+    t.querySelector('span').textContent = 'Added to the case file — ' + c.t;
+    t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600);
+  }
+  const file = $('file'), scrim = $('scrim');
+  function setFile(open) {
+    file.classList.toggle('open', open); scrim.classList.toggle('on', open);
+    file.setAttribute('aria-hidden', String(!open));
+    $('bFile').setAttribute('aria-expanded', String(open));
+    if (open) $('fileClose').focus(); else $('bFile').focus();
+  }
+  $('bFile').addEventListener('click', () => setFile(!file.classList.contains('open')));
+  $('fileClose').addEventListener('click', () => setFile(false));
+  $('fileBack').addEventListener('click', () => setFile(false));
+  scrim.addEventListener('click', () => setFile(false));
+  $('fileRestart').addEventListener('click', () => { setFile(false); restart(); });
+  $('bRestart').addEventListener('click', restart);
+
+  /* ================= scenes + iris ================= */
+  function iris(from, to, ms) {
+    return new Promise(res => {
+      if (reduce || !frame.animate) { frame.style.clipPath = 'circle(' + to + ' at 50% 50%)'; res(); return; }
+      const a = frame.animate([{ clipPath: 'circle(' + from + ' at 50% 50%)' }, { clipPath: 'circle(' + to + ' at 50% 50%)' }], { duration: ms, easing: 'cubic-bezier(.6,0,.4,1)', fill: 'forwards' });
+      a.onfinish = () => { frame.style.clipPath = 'circle(' + to + ' at 50% 50%)'; a.cancel(); res(); };
+    });
+  }
+  const pause = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+  function setArt(sc) {
+    for (const a of frame.querySelectorAll('.art')) a.classList.remove('on');
+    const el = $('art-' + sc.art);
+    el.classList.add('on');
+    el.classList.remove('e1', 'e2', 'dawn');
+    if (sc.variant) el.classList.add(sc.variant);
+    frame.dataset.scene = sc.art;
+    setFx(sc.rain);
+  }
+  async function goto(id) {
+    if (moving) return;
+    moving = true;
+    cardsEl.innerHTML = '';
+    const sc = S[id];
+    await iris('75%', '0%', 650);
+    interT.textContent = sc.n + ' · ' + sc.title; interS.textContent = sc.time;
+    inter.classList.add('on');
+    stamp.classList.remove('on');
+    titlecard.classList.add('gone');
+    scene = id; confronted = false;
+    setArt(sc);
+    logEl.innerHTML = '';
+    sceneTitle.textContent = sc.n + '. ' + sc.title; sceneTime.textContent = sc.time;
+    await pause(1000);
+    inter.classList.remove('on');
+    await iris('0%', '75%', 750);
+    moving = false;
+    if (sc.onEnter) sc.onEnter();
+    sc.text().forEach(t => type(t));
+    whenTyped(() => {
+      if (sc.stamp) {
+        stamp.innerHTML = sc.stamp[0] + '<small>' + sc.stamp[1] + '</small>';
+        stamp.classList.add('on');
+        const n = Math.min(TOTAL, clues.filter(k => k !== 'kiss').length);
+        type('You gathered ' + n + ' of ' + TOTAL + ' clues. ' + (id === 'wrong' ? 'The red one was the one that mattered.' : 'The red ones did the talking.'), 'note');
+        whenTyped(() => showCards([{ k: 'Read the case file', file: true }, { k: 'Start the night over', again: true }]));
+      } else showCards(currentChoices());
+    });
+  }
+
+  function restart() {
+    clues = []; used = new Set(); confronted = false;
+    renderFile(null);
+    stamp.classList.remove('on');
+    moving = false; queue.length = 0; typing = null; afterType = null; caret.remove();
+    goto('office');
+  }
+
+  /* ================= rain, smoke, grain ================= */
+  const fx = $('fx'), fctx = fx.getContext('2d');
+  const grain = $('grain'), gctx = grain.getContext('2d');
+  let W = 0, H = 0, DPR = 1, fxMode = 'window';
+  const NR = 420;
+  const rx = new Float32Array(NR), ry = new Float32Array(NR), rl = new Float32Array(NR), rv = new Float32Array(NR), ra = new Float32Array(NR);
+  const NS = 40; const sx = new Float32Array(NS), sy = new Float32Array(NS), st = new Float32Array(NS).fill(9);
+  const NB = 26; const bx = new Float32Array(NB), by = new Float32Array(NB), bv = new Float32Array(NB), bs = new Float32Array(NB);
+  const NK = 9; const kx = new Float32Array(NK), ky = new Float32Array(NK), kr = new Float32Array(NK), kvx = new Float32Array(NK), kvy = new Float32Array(NK);
+  let region = { x: 0, y: 0, w: 1, h: 1 };
+  function mapRect(x, y, w, h) {
+    const sc = Math.max(W / 1600, H / 900), ox = (W - 1600 * sc) / 2, oy = (H - 900 * sc) / 2;
+    return { x: ox + x * sc, y: oy + y * sc, w: w * sc, h: h * sc, s: sc };
+  }
+  function setFx(mode) {
+    fxMode = mode;
+    region = mode === 'window' ? mapRect(190, 90, 580, 470) : { x: 0, y: 0, w: W, h: H, s: Math.max(W / 1600, H / 900) };
+    for (let i = 0; i < NR; i++) seedDrop(i, true);
+    for (let i = 0; i < NB; i++) { bx[i] = region.x + Math.random() * region.w; by[i] = region.y + Math.random() * region.h; bv[i] = 0; bs[i] = 1.5 + Math.random() * 2.5; }
+    for (let i = 0; i < NK; i++) { kx[i] = W * (0.2 + Math.random() * 0.7); ky[i] = H * (0.1 + Math.random() * 0.6); kr[i] = H * (0.18 + Math.random() * 0.25); kvx[i] = (Math.random() - 0.5) * 10; kvy[i] = -2 - Math.random() * 5; }
+  }
+  function seedDrop(i, anywhere) {
+    const heavy = fxMode === 'heavy';
+    rx[i] = region.x + Math.random() * (region.w + region.h * 0.25);
+    ry[i] = anywhere ? region.y + Math.random() * region.h : region.y - Math.random() * 60;
+    rl[i] = (heavy ? 18 : 12) + Math.random() * (heavy ? 26 : 16);
+    rv[i] = (heavy ? 900 : 650) + Math.random() * 500;
+    ra[i] = 0.08 + Math.random() * (heavy ? 0.28 : 0.2);
+  }
+  function drawFx(dt) {
+    fctx.setTransform(1, 0, 0, 1, 0, 0); fctx.clearRect(0, 0, fx.width, fx.height);
+    fctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (fxMode === 'none') return;
+    if (fxMode === 'smoke') {
+      for (let i = 0; i < NK; i++) {
+        kx[i] += kvx[i] * dt; ky[i] += kvy[i] * dt;
+        if (ky[i] < -kr[i]) { ky[i] = H + kr[i] * 0.5; kx[i] = W * (0.2 + Math.random() * 0.7); }
+        const g = fctx.createRadialGradient(kx[i], ky[i], 0, kx[i], ky[i], kr[i]);
+        g.addColorStop(0, 'rgba(210,210,210,0.07)'); g.addColorStop(1, 'rgba(210,210,210,0)');
+        fctx.fillStyle = g; fctx.fillRect(kx[i] - kr[i], ky[i] - kr[i], kr[i] * 2, kr[i] * 2);
+      }
+      return;
+    }
+    fctx.save();
+    if (fxMode === 'window') { fctx.beginPath(); fctx.rect(region.x, region.y, region.w, region.h); fctx.clip(); }
+    const slant = fxMode === 'window' ? 0.08 : 0.2;
+    const n = fxMode === 'light' ? 240 : fxMode === 'window' ? 170 : NR;
+    fctx.lineWidth = fxMode === 'heavy' ? 1.3 : 1;
+    for (let i = 0; i < n; i++) {
+      ry[i] += rv[i] * dt; rx[i] -= rv[i] * slant * dt;
+      if (ry[i] > region.y + region.h) {
+        if (fxMode !== 'window' && Math.random() < 0.35) { const k = (Math.random() * NS) | 0; sx[k] = rx[i]; sy[k] = region.y + region.h * (0.72 + Math.random() * 0.27); st[k] = 0; }
+        seedDrop(i, false);
+      }
+      fctx.strokeStyle = 'rgba(230,230,230,' + ra[i].toFixed(3) + ')';
+      fctx.beginPath(); fctx.moveTo(rx[i], ry[i]); fctx.lineTo(rx[i] + rl[i] * slant, ry[i] - rl[i]); fctx.stroke();
+    }
+    // splashes on the wet ground
+    fctx.strokeStyle = 'rgba(220,220,220,0.35)'; fctx.lineWidth = 1;
+    for (let k = 0; k < NS; k++) {
+      if (st[k] > 0.35) continue; st[k] += dt;
+      const u = st[k] / 0.35, r = 2 + u * 9;
+      fctx.globalAlpha = 1 - u;
+      fctx.beginPath(); fctx.ellipse(sx[k], sy[k], r, r * 0.3, 0, Math.PI, Math.PI * 2); fctx.stroke();
+    }
+    fctx.globalAlpha = 1;
+    // beads sliding down the office window
+    if (fxMode === 'window') {
+      for (let i = 0; i < NB; i++) {
+        if (bv[i] === 0 && Math.random() < 0.004) bv[i] = 40 + Math.random() * 90;
+        if (bv[i] > 0) { by[i] += bv[i] * dt; bx[i] += (Math.random() - 0.5) * 0.8; bv[i] *= 0.995; if (by[i] > region.y + region.h) { by[i] = region.y + Math.random() * region.h * 0.5; bv[i] = 0; } }
+        fctx.fillStyle = 'rgba(235,235,235,0.35)';
+        fctx.beginPath(); fctx.arc(bx[i], by[i], bs[i], 0, Math.PI * 2); fctx.fill();
+        if (bv[i] > 0) { fctx.fillStyle = 'rgba(235,235,235,0.12)'; fctx.fillRect(bx[i] - bs[i] * 0.4, by[i] - 40, bs[i] * 0.8, 40); }
+      }
+    }
+    fctx.restore();
+  }
+
+  // film grain: a few pre-baked noise tiles, jumped around every other frame
+  const tiles = [];
+  for (let t = 0; t < 4; t++) {
+    const c = document.createElement('canvas'); c.width = c.height = 200;
+    const g = c.getContext('2d'), im = g.createImageData(200, 200);
+    for (let i = 0; i < im.data.length; i += 4) { const v = Math.random() * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 34; }
+    g.putImageData(im, 0, 0); tiles.push(c);
+  }
+  const pats = tiles.map(t => gctx.createPattern(t, 'repeat'));
+  let gFrame = 0, scratch = 0, scratchX = 0;
+  function drawGrain() {
+    if (reduce && gFrame > 2) return;
+    if ((gFrame++ & 1) === 1) return;
+    gctx.setTransform(1, 0, 0, 1, 0, 0);
+    gctx.clearRect(0, 0, grain.width, grain.height);
+    const pat = pats[(Math.random() * 4) | 0];
+    gctx.translate(-Math.random() * 200, -Math.random() * 200);
+    gctx.fillStyle = pat; gctx.fillRect(0, 0, grain.width + 200, grain.height + 200);
+    gctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (scratch > 0) {
+      scratch--;
+      gctx.fillStyle = 'rgba(235,235,235,0.35)'; gctx.fillRect(scratchX, 0, 1.2, grain.height);
+      gctx.fillStyle = 'rgba(0,0,0,0.3)'; gctx.fillRect(scratchX + 60, grain.height * 0.2, 1, grain.height * 0.5);
+    } else if (!reduce && Math.random() < 0.012) { scratch = 3 + ((Math.random() * 5) | 0); scratchX = Math.random() * grain.width; }
+  }
+
+  /* ================= projector flicker, lamp flicker, jitter ================= */
+  const flick = $('flick'), lampGlow = $('lampGlow');
+  let jitT = 3 + Math.random() * 4, jitOn = 0, lampT = 0, lampState = 1;
+  function stepFilm(dt) {
+    if (reduce) return;
+    flick.style.opacity = (Math.random() < 0.06 ? 0.08 + Math.random() * 0.08 : Math.random() * 0.035).toFixed(3);
+    jitT -= dt;
+    if (jitT <= 0) { frame.classList.add(Math.random() < 0.5 ? 'jit' : 'jit2'); jitOn = 0.09; jitT = 4 + Math.random() * 6; }
+    if (jitOn > 0) { jitOn -= dt; if (jitOn <= 0) frame.classList.remove('jit', 'jit2'); }
+    lampT -= dt;
+    if (lampT <= 0) {
+      if (lampState === 1 && Math.random() < 0.3) { lampState = 0.25 + Math.random() * 0.4; lampT = 0.05 + Math.random() * 0.12; }
+      else { lampState = 1; lampT = 0.4 + Math.random() * 3.2; }
+      lampGlow.setAttribute('opacity', lampState.toFixed(2));
+    }
+  }
+
+  /* ================= audio: rain + a walking bass ================= */
+  let actx = null, master = null, soundOn = false, bassTimer = 0, nextBeat = 0, beatN = 0, noise = null, thunderT = 0;
+  function ensureAudio() {
+    if (actx) return true;
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+    try {
+      actx = new AC();
+      master = actx.createGain(); master.gain.value = 0; master.connect(actx.destination);
+      const sr = actx.sampleRate;
+      noise = actx.createBuffer(2, sr * 3, sr);
+      for (let c = 0; c < 2; c++) { const d = noise.getChannelData(c); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      const rain = actx.createBufferSource(); rain.buffer = noise; rain.loop = true;
+      const hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 500;
+      const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200;
+      const rg = actx.createGain(); rg.gain.value = 0.085;
+      rain.connect(hp); hp.connect(lp); lp.connect(rg); rg.connect(master); rain.start();
+      const rum = actx.createBufferSource(); rum.buffer = noise; rum.loop = true; rum.playbackRate.value = 0.5;
+      const rlp = actx.createBiquadFilter(); rlp.type = 'lowpass'; rlp.frequency.value = 220;
+      const rug = actx.createGain(); rug.gain.value = 0.16;
+      rum.connect(rlp); rlp.connect(rug); rug.connect(master); rum.start();
+      return true;
+    } catch (e) { actx = null; return false; }
+  }
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  // C minor blues-ish changes, walked in quarter notes with a little swing
+  const WALK = [
+    [36, 39, 43, 46], [41, 44, 48, 47], [38, 41, 44, 43], [43, 47, 50, 37],
+    [36, 43, 39, 41], [44, 48, 51, 45], [38, 44, 41, 42], [43, 38, 41, 35]
+  ];
+  function pluck(t, m, v) {
+    const f = mtof(m), o = actx.createOscillator(), o2 = actx.createOscillator(), lp = actx.createBiquadFilter(), g = actx.createGain();
+    o.type = 'triangle'; o2.type = 'sine'; o.frequency.setValueAtTime(f * 1.03, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.04); o2.frequency.value = f;
+    lp.type = 'lowpass'; lp.frequency.setValueAtTime(1300, t); lp.frequency.exponentialRampToValueAtTime(420, t + 0.35); lp.Q.value = 2;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.34 * v, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0008, t + 0.95);
+    o.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
+    o.start(t); o2.start(t); o.stop(t + 1); o2.stop(t + 1);
+  }
+  function brush(t, v, len) {
+    const s = actx.createBufferSource(); s.buffer = noise;
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 5200; bp.Q.value = 0.8;
+    const g = actx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.045 * v, t + len * 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    s.connect(bp); bp.connect(g); g.connect(master); s.start(t, Math.random() * 2); s.stop(t + len + 0.05);
+  }
+  function thunder(t) {
+    const s = actx.createBufferSource(); s.buffer = noise; s.playbackRate.value = 0.3;
+    const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 160;
+    const g = actx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.45, t + 0.8); g.gain.exponentialRampToValueAtTime(0.0001, t + 5);
+    s.connect(lp); lp.connect(g); g.connect(master); s.start(t); s.stop(t + 5.2);
+  }
+  function bassLoop() {
+    if (!soundOn || !actx) return;
+    const beat = 60 / 74;
+    while (nextBeat < actx.currentTime + 0.3) {
+      const bar = Math.floor(beatN / 4) % WALK.length, b = beatN % 4;
+      const swing = b % 2 === 1 ? beat * 0.08 : 0;
+      pluck(nextBeat + swing, WALK[bar][b], b === 0 ? 1 : 0.8);
+      if (b === 1 || b === 3) brush(nextBeat + swing, 1, 0.22);
+      if (b === 3 && Math.random() < 0.5) brush(nextBeat + beat * 0.66, 0.5, 0.12);
+      nextBeat += beat; beatN++;
+    }
+    thunderT -= 0.05;
+    if (thunderT <= 0) { thunder(actx.currentTime + 0.2); thunderT = 28 + Math.random() * 30; }
+  }
+  function keyClick() {
+    if (!soundOn || !actx) return;
+    const t = actx.currentTime, s = actx.createBufferSource(); s.buffer = noise;
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600 + Math.random() * 900; bp.Q.value = 3;
+    const g = actx.createGain(); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+    s.connect(bp); bp.connect(g); g.connect(master); s.start(t, Math.random() * 2); s.stop(t + 0.03);
+  }
+  function bell() {
+    if (!soundOn || !actx) return;
+    const t = actx.currentTime + 0.01, o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.value = 2093;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + 1);
+  }
+  function setSound(on) {
+    if (on && !ensureAudio()) on = false;
+    soundOn = on;
+    const b = $('bSound');
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', on ? 'Ambient sound on' : 'Ambient sound off');
+    $('soundLbl').textContent = on ? 'Sound on' : 'Sound off';
+    $('waves').style.display = on ? '' : 'none'; $('xmark').style.display = on ? 'none' : '';
+    if (!actx) return;
+    if (on) {
+      if (actx.state === 'suspended') actx.resume();
+      master.gain.setTargetAtTime(0.8, actx.currentTime, 0.4);
+      nextBeat = actx.currentTime + 0.15; thunderT = 10;
+      clearInterval(bassTimer); bassTimer = setInterval(bassLoop, 50);
+    } else {
+      master.gain.setTargetAtTime(0, actx.currentTime, 0.15);
+      clearInterval(bassTimer); bassTimer = 0;
+    }
+  }
+  $('bSound').addEventListener('click', () => setSound(!soundOn));
+
+  /* ================= keys ================= */
+  document.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (e.key === 'Escape' && file.classList.contains('open')) { setFile(false); return; }
+    if (file.classList.contains('open')) return;
+    if ((e.key === ' ' || e.key === 'Enter') && tag !== 'BUTTON') { if (typing) { e.preventDefault(); finishAll(); } return; }
+    if (e.key === ' ' && typing) { e.preventDefault(); finishAll(); return; }
+    if (/^[1-4]$/.test(e.key)) {
+      const b = cardsEl.children[+e.key - 1];
+      if (b && !b.disabled) { e.preventDefault(); b.click(); }
+    } else if (e.key === 'c' || e.key === 'C') setFile(true);
+    else if (e.key === 's' || e.key === 'S') setSound(!soundOn);
+  });
+
+  /* ================= loop + sizing ================= */
+  function resize() {
+    const r = frame.getBoundingClientRect();
+    W = Math.max(1, r.width); H = Math.max(1, r.height);
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    fx.width = Math.round(W * DPR); fx.height = Math.round(H * DPR);
+    grain.width = Math.max(1, Math.round(W / 1.5)); grain.height = Math.max(1, Math.round(H / 1.5));
+    setFx(fxMode);
+  }
+  let last = performance.now(), raf = 0;
+  function frameLoop(now) {
+    raf = requestAnimationFrame(frameLoop);
+    let dt = (now - last) / 1000; last = now;
+    if (!(dt > 0)) dt = 0; if (dt > 0.1) dt = 0.1;
+    stepType(dt);
+    drawFx(dt);
+    drawGrain();
+    stepFilm(dt);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+    else if (!raf) { last = performance.now(); raf = requestAnimationFrame(frameLoop); }
+  });
+  window.addEventListener('resize', resize);
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(frame);
+
+  // opening: the title card over the office, one card to begin
+  renderFile(null);
+  resize();
+  setFx('window');
+  showCards([{ k: 'Open the door to Nora Vale.', go: 'office', cont: true }]);
+  raf = requestAnimationFrame(frameLoop);
+})();
+</script>
+</body>
+</html>

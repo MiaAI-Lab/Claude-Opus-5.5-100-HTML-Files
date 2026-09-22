@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dusk Meadow — Fireflies</title>
+<meta name="description" content="Dusk Meadow: a tranquil canvas meadow at dusk where about 120 fireflies wander, blink and slowly learn to flash in unison. Hold a lantern still to call them, move it quickly to scatter them.">
+<meta name="theme-color" content="#141b41">
+<style>
+:root{
+  --indigo:#141b41;
+  --rose:#e8a0a0;
+  --glow:#e8ff8a;
+  --ink:#fbe9e4;
+  --ink-2:rgba(251,233,228,.74);
+  --ink-3:rgba(251,233,228,.5);
+  --serif:"Cormorant Garamond","Bodoni 72",Didot,"Hoefler Text",Baskerville,"Baskerville Old Face",Garamond,"EB Garamond",P052,"Palatino Linotype",serif;
+  --sans:"Avenir Next","Segoe UI","Helvetica Neue","Nimbus Sans","Liberation Sans",Arial,sans-serif;
+  --glide:cubic-bezier(.22,.8,.24,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--indigo);color:var(--ink);font-family:var(--serif);overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+main{position:fixed;inset:0}
+#meadow{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:none}
+:focus-visible{outline:1.5px solid var(--glow);outline-offset:4px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.title{position:absolute;left:clamp(22px,4vw,64px);top:clamp(22px,5vh,58px);max-width:min(440px,78vw);pointer-events:none;text-shadow:0 2px 24px rgba(10,12,40,.55)}
+.title h1{margin:0;font-style:italic;font-weight:300;font-size:clamp(40px,5.2vw,78px);line-height:.95;letter-spacing:-.01em;color:#fff1ea}
+.title h1 span{display:block;margin-top:.12em;font-size:.42em;letter-spacing:.02em;color:var(--ink-2)}
+.title h1 span::before{content:"";display:inline-block;width:1.6em;height:1px;margin:0 .45em .28em 0;background:linear-gradient(90deg,rgba(232,255,138,0),rgba(232,255,138,.8));vertical-align:middle}
+.title p{margin:16px 0 0;max-width:330px;font-style:italic;font-size:clamp(14px,1.15vw,16.5px);line-height:1.5;color:var(--ink-3)}
+
+.controls{position:absolute;left:clamp(16px,3vw,44px);bottom:clamp(16px,4vh,40px);width:min(300px,calc(100vw - 32px));padding:16px 18px 14px;border-radius:18px;background:rgba(10,14,34,.34);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);font-family:var(--sans);transition:opacity 1.4s var(--glide),transform 1.4s var(--glide)}
+.controls.idle{opacity:.12;transform:translateY(4px)}
+.controls.idle:focus-within,.controls.idle:hover{opacity:1;transform:none}
+.row{display:grid;grid-template-columns:62px minmax(0,1fr) 34px;align-items:center;gap:10px;margin:0 0 8px}
+.row label{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-3)}
+.row output{font-size:11.5px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,rgba(232,255,138,.8) 0 var(--fill,50%),rgba(255,255,255,.22) var(--fill,50%) 100%)}
+input[type=range]::-moz-range-track{height:1px;background:rgba(255,255,255,.22)}
+input[type=range]::-moz-range-progress{height:1px;background:rgba(232,255,138,.8)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;margin-top:-5px;border-radius:50%;background:#f6ffd0;box-shadow:0 0 10px 2px rgba(232,255,138,.75)}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:50%;background:#f6ffd0;box-shadow:0 0 10px 2px rgba(232,255,138,.75)}
+input[type=range]:focus-visible{outline:none}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(232,255,138,.35),0 0 12px 3px rgba(232,255,138,.9)}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.unison{flex:1;min-width:0}
+.unison span{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.unison b{font-weight:400;letter-spacing:.04em;color:var(--glow);font-variant-numeric:tabular-nums}
+.meter{position:relative;height:2px;margin-top:7px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+.meter i{position:absolute;inset:0;transform-origin:0 50%;transform:scaleX(.1);background:linear-gradient(90deg,rgba(232,255,138,.35),#e8ff8a);box-shadow:0 0 8px rgba(232,255,138,.8)}
+.snd{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px 0 10px;border:0;border-radius:999px;background:rgba(255,255,255,.06);color:var(--ink-2);font:inherit;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .3s,color .3s,box-shadow .3s}
+.snd:hover{background:rgba(255,255,255,.12);color:var(--ink)}
+.snd svg{width:16px;height:16px}
+.snd[aria-pressed="true"]{color:#f6ffd0;box-shadow:inset 0 0 0 1px rgba(232,255,138,.45);background:rgba(232,255,138,.1)}
+.snd .chirp{opacity:.3;transition:opacity .3s}
+.snd[aria-pressed="true"] .chirp{opacity:1}
+
+.hint{position:absolute;left:50%;bottom:clamp(18px,4.2vh,42px);transform:translateX(-50%);margin:0;font-style:italic;font-size:clamp(14px,1.15vw,16px);color:var(--ink-2);text-shadow:0 1px 14px rgba(0,0,0,.6);white-space:nowrap;pointer-events:none;transition:opacity 2s var(--glide)}
+.hint.gone{opacity:0}
+
+@media (max-width:720px){
+  .title h1{font-size:clamp(38px,11vw,54px)}
+  .title p{font-size:14px;max-width:290px}
+  .hint{bottom:auto;top:clamp(180px,30vh,250px);left:22px;transform:none;white-space:normal;max-width:260px;font-size:14px}
+  .controls{padding:14px 16px 12px}
+  #meadow{cursor:default}
+}
+@media (hover:none){#meadow{cursor:default}}
+@media (prefers-reduced-motion:reduce){
+  .controls,.hint{transition:none}
+}
+</style>
+</head>
+<body>
+<main>
+  <canvas id="meadow" role="img" aria-label="A meadow at dusk: rolling hills and a dark treeline under a rose-to-indigo sky, grass swaying in the wind, and fireflies blinking above it"></canvas>
+  <header class="title">
+    <h1>Dusk Meadow<span>fireflies</span></h1>
+    <p>Some fireflies, like <i>Photinus carolinus</i> in the Great Smoky Mountains, learn to flash in unison. Stay a while and watch these ones find each other.</p>
+  </header>
+  <p class="hint" id="hint">Hold the lantern still to call them &middot; move quickly to scatter</p>
+  <section class="controls" id="controls" aria-label="Meadow controls">
+    <div class="row"><label for="sync">Sync</label><input type="range" id="sync" min="0" max="100" value="55"><output for="sync" id="syncOut">55</output></div>
+    <div class="row"><label for="wind">Wind</label><input type="range" id="wind" min="0" max="100" value="40"><output for="wind" id="windOut">40</output></div>
+    <div class="foot">
+      <div class="unison" aria-live="off"><span>In unison <b id="unisonVal">0%</b></span><div class="meter" aria-hidden="true"><i id="meter"></i></div></div>
+      <button type="button" class="snd" id="sound" aria-pressed="false" aria-label="Cricket sounds">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6.5h2.5L8 3.5v9L4.5 9.5H2z" fill="currentColor"/><path class="chirp" d="M10.5 6c.8.7.8 3.3 0 4M12.4 4.4c1.7 1.6 1.7 5.6 0 7.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Crickets</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = mq.matches;
+  if (mq.addEventListener) mq.addEventListener('change', e => { reduced = e.matches; });
+
+  const cv = $('#meadow');
+  const ctx = cv.getContext('2d');
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+  let W = 0, H = 0, DPR = 1, HORIZON = 0;
+
+  function mulberry(a) {
+    return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+
+  /* ── value noise for the wind field ── */
+  const perm = new Uint8Array(512);
+  (() => {
+    const r = mulberry(8128), p = [];
+    for (let i = 0; i < 256; i++) p.push(i);
+    for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = p[i]; p[i] = p[j]; p[j] = t; }
+    for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+  })();
+  const hsh = (i, j) => perm[(perm[i & 255] + j) & 255] / 255;
+  function vnoise(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = hsh(xi, yi), b = hsh(xi + 1, yi), c = hsh(xi, yi + 1), d = hsh(xi + 1, yi + 1);
+    return (a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v) * 2 - 1;
+  }
+
+  /* ── colour helpers ── */
+  const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  const rgb = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (a == null ? 1 : a) + ')';
+  const SKY_DUSK = [hex('#141b41'), hex('#2b2d66'), hex('#6d5486'), hex('#c98a9c'), hex('#e8a0a0')];
+  const SKY_NIGHT = [hex('#080b24'), hex('#111639'), hex('#2a2a55'), hex('#5a4a6c'), hex('#8a6680')];
+  const SKY_STOPS = [0, .3, .52, .66, .76];
+
+  /* ── sprites ── */
+  const glowSprite = (() => {
+    const s = 64, c = mk(s, s), x = c.getContext('2d'), R = s / 2;
+    const g = x.createRadialGradient(R, R, 0, R, R, R);
+    g.addColorStop(0, 'rgba(252,255,226,1)');
+    g.addColorStop(.12, 'rgba(240,255,170,.9)');
+    g.addColorStop(.3, 'rgba(232,255,138,.35)');
+    g.addColorStop(.6, 'rgba(200,240,110,.08)');
+    g.addColorStop(1, 'rgba(200,240,110,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    return c;
+  })();
+  const starSprite = (() => {
+    const s = 16, c = mk(s, s), x = c.getContext('2d'), R = s / 2;
+    const g = x.createRadialGradient(R, R, 0, R, R, R);
+    g.addColorStop(0, 'rgba(255,250,240,1)');
+    g.addColorStop(.25, 'rgba(255,240,230,.6)');
+    g.addColorStop(1, 'rgba(255,240,230,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    return c;
+  })();
+  const mistSprite = (() => {
+    const c = mk(256, 64), x = c.getContext('2d');
+    const g = x.createRadialGradient(128, 32, 0, 128, 32, 128);
+    g.addColorStop(0, 'rgba(236,190,200,.5)');
+    g.addColorStop(.5, 'rgba(236,190,200,.16)');
+    g.addColorStop(1, 'rgba(236,190,200,0)');
+    x.setTransform(1, 0, 0, .25, 0, 24);
+    x.fillStyle = g; x.fillRect(0, -200, 256, 700);
+    return c;
+  })();
+  let moonCanvas = null, moonR = 20;
+  function paintMoon() {
+    moonR = Math.max(13, Math.min(W, H) * .034);
+    const pad = moonR * 5, s = Math.ceil(pad * 2);
+    moonCanvas = mk(s, s);
+    const x = moonCanvas.getContext('2d'), c = s / 2;
+    let g = x.createRadialGradient(c, c, moonR * .8, c, c, pad);
+    g.addColorStop(0, 'rgba(255,228,214,.28)');
+    g.addColorStop(.3, 'rgba(240,190,200,.09)');
+    g.addColorStop(1, 'rgba(240,190,200,0)');
+    x.fillStyle = g; x.fillRect(0, 0, s, s);
+    x.fillStyle = 'rgba(190,190,230,.1)';
+    x.beginPath(); x.arc(c, c, moonR, 0, 6.2832); x.fill();
+    const lit = mk(s, s), lx = lit.getContext('2d');
+    g = lx.createRadialGradient(c + moonR * .3, c + moonR * .3, 0, c, c, moonR);
+    g.addColorStop(0, '#fffaf0'); g.addColorStop(1, '#f3e2cf');
+    lx.fillStyle = g;
+    lx.beginPath(); lx.arc(c, c, moonR, 0, 6.2832); lx.fill();
+    lx.fillStyle = 'rgba(190,170,160,.22)';
+    [[.35, .2, .22], [.55, .45, .16], [.2, .55, .12]].forEach(m => { lx.beginPath(); lx.arc(c + moonR * m[0], c + moonR * m[1], moonR * m[2], 0, 6.2832); lx.fill(); });
+    lx.globalCompositeOperation = 'destination-out';
+    lx.fillStyle = '#000';
+    lx.beginPath(); lx.arc(c - moonR * .44, c - moonR * .34, moonR * .96, 0, 6.2832); lx.fill();
+    x.shadowColor = 'rgba(255,236,220,.9)';
+    x.shadowBlur = moonR * .8;
+    x.drawImage(lit, 0, 0);
+    x.shadowBlur = 0;
+  }
+
+  /* ── land: hills + treeline + meadow floor, painted once per resize ── */
+  let land = null;
+  function paintLand() {
+    land = mk(Math.round(W * DPR), Math.round(H * DPR));
+    const x = land.getContext('2d');
+    x.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const r = mulberry(31);
+    const ridge = (base, amps, color, jag) => {
+      x.fillStyle = color;
+      x.beginPath();
+      x.moveTo(0, H);
+      for (let px = 0; px <= W + 8; px += 6) {
+        let y = base;
+        amps.forEach(a => { y += Math.sin(px * a[1] + a[2]) * a[0]; });
+        if (jag) y += (vnoise(px * .05, 3.3) * jag);
+        x.lineTo(px, y);
+      }
+      x.lineTo(W, H);
+      x.closePath();
+      x.fill();
+    };
+    ridge(HORIZON - H * .035, [[H * .04, .0029, 1.2], [H * .016, .0087, 2.5]], '#2d2b52', 0);
+    const g1 = x.createLinearGradient(0, HORIZON - H * .07, 0, HORIZON + H * .06);
+    g1.addColorStop(0, '#1d2638'); g1.addColorStop(1, '#141e22');
+    ridge(HORIZON - H * .005, [[H * .045, .0021, 4.1], [H * .014, .0074, .7]], g1, 0);
+    // treeline
+    x.fillStyle = '#0c1a14';
+    const treeBase = px => HORIZON + H * .045 + Math.sin(px * .0018 + 2) * H * .03 + Math.sin(px * .0061) * H * .009;
+    let px = -20;
+    while (px < W + 40) {
+      const kind = r();
+      const tb = treeBase(px);
+      if (kind < .32) {
+        const w = 10 + r() * 18, h = 26 + r() * 48;
+        x.beginPath();
+        x.moveTo(px - w, tb + 4);
+        for (let k = 0; k <= 6; k++) {
+          const u = k / 6, lw = w * (1 - u) * (k % 2 ? .62 : 1);
+          x.lineTo(px - lw, tb - h * u);
+        }
+        for (let k = 6; k >= 0; k--) {
+          const u = k / 6, lw = w * (1 - u) * (k % 2 ? .62 : 1);
+          x.lineTo(px + lw, tb - h * u);
+        }
+        x.closePath(); x.fill();
+        px += w * (.9 + r() * .8);
+      } else if (kind < .82) {
+        const w = 18 + r() * 34, h = 20 + r() * 40;
+        for (let k = 0; k < 5; k++) {
+          const cx = px + (r() - .5) * w, cy = tb - h * (.35 + r() * .5), rr = w * (.3 + r() * .28);
+          x.beginPath(); x.arc(cx, cy, rr, 0, 6.2832); x.fill();
+        }
+        x.fillRect(px - w * .55, tb - h * .4, w * 1.1, h * .4 + 6);
+        px += w * (.7 + r() * .7);
+      } else {
+        px += 6 + r() * 26;
+      }
+    }
+    x.fillStyle = '#0c1a14';
+    x.beginPath();
+    x.moveTo(0, H);
+    for (let q = 0; q <= W + 8; q += 8) x.lineTo(q, treeBase(q) + 2);
+    x.lineTo(W, H); x.closePath(); x.fill();
+    // rolling meadow: the far grass still catches a little sky light
+    const g2 = x.createLinearGradient(0, HORIZON + H * .06, 0, H);
+    g2.addColorStop(0, '#2b353b'); g2.addColorStop(.18, '#1f2b2a'); g2.addColorStop(.5, '#121d17'); g2.addColorStop(1, '#060c08');
+    ridge(HORIZON + H * .1, [[H * .035, .0014, .4], [H * .012, .0047, 1.9]], g2, 0);
+  }
+
+  /* ── stars ── */
+  const stars = [];
+  (() => {
+    const r = mulberry(4242);
+    for (let i = 0; i < 340; i++) {
+      stars.push({ x: r(), y: Math.pow(r(), 1.25) * .62, s: .5 + Math.pow(r(), 3) * 1.9, th: Math.pow(r(), .8), tw: .5 + r() * 2.5, ph: r() * 6.283 });
+    }
+  })();
+
+  /* ── grass ── */
+  let blades = [];
+  function makeGrass() {
+    const r = mulberry(9001);
+    blades = [];
+    const back = Math.round(W * .36), front = Math.round(Math.max(150, W * .3));
+    const hs = Math.min(1.25, H / 900) * .8 + .2;
+    for (let i = 0; i < back; i++) {
+      const by = HORIZON + H * .14 + Math.pow(r(), .75) * H * .2;
+      const depth = (by - HORIZON) / (H - HORIZON);
+      blades.push({ layer: 0, x: r() * (W + 40) - 20, y: by, h: (8 + r() * 22) * (.45 + depth * 1.4) * hs, w: 1.4 + depth * 2.6, a: 0, v: 0, flex: .7 + r() * .6, ph: r() * 6.283 });
+    }
+    for (let i = 0; i < front; i++) {
+      const by = H * (.92 + r() * .12);
+      blades.push({ layer: 1, x: r() * (W + 60) - 30, y: by, h: (70 + Math.pow(r(), 1.3) * 220) * hs, w: 4 + r() * 7, a: 0, v: 0, flex: .75 + r() * .7, ph: r() * 6.283 });
+    }
+    blades.sort((a, b) => a.y - b.y);
+  }
+
+  /* ── fireflies ── */
+  const N = 120;
+  const flies = [];
+  function makeFlies() {
+    const r = mulberry(606);
+    flies.length = 0;
+    for (let i = 0; i < N; i++) {
+      const period = 2.4 + r() * .3;
+      flies.push({
+        x: r() * W, y: HORIZON + H * .02 + r() * (H - HORIZON) * .85,
+        vx: (r() - .5) * 20, vy: (r() - .5) * 10,
+        z: r(), zv: (r() - .5) * .02,
+        w: 2 * Math.PI / period, th: r() * 2 * Math.PI, b: 0,
+        wander: r() * 6.283, sp: 14 + r() * 22
+      });
+    }
+  }
+
+  /* ── state ── */
+  let syncK = .55, wind = .4, dusk = .32, moonT = .34, simT = 0, meanB = 0, orderR = 0, orderS = 0, ramp = 0;
+  const lantern = { x: -999, y: -999, sx: -999, sy: -999, on: 0, target: 0, speed: 0, still: 0, lastX: 0, lastY: 0, lastT: 0, touch: false };
+  let meteor = null, nextMeteor = 18 + Math.random() * 20;
+
+  function resize() {
+    W = innerWidth; H = innerHeight;
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    HORIZON = H * (W < 720 ? .6 : .6);
+    paintLand();
+    paintMoon();
+    const keep = flies.length ? flies.map(f => ({ x: f.x / (oldW || W), y: f.y / (oldH || H) })) : null;
+    makeGrass();
+    if (!flies.length) makeFlies();
+    else flies.forEach((f, i) => { f.x = keep[i].x * W; f.y = keep[i].y * H; });
+    oldW = W; oldH = H;
+  }
+  let oldW = 0, oldH = 0;
+
+  /* ── simulation ── */
+  function windAt(x, t) {
+    const n = vnoise(x * .0022 - t * .32, t * .11);
+    const wave = Math.sin(x * .0055 - t * 1.25) * .35;
+    const gust = Math.pow(Math.max(0, Math.sin(x * .0016 - t * .7 + Math.sin(t * .13) * 2)), 6) * .9;
+    return wind * (.08 + .55 * n + wave * .6 + gust);
+  }
+  function stepGrass(dt) {
+    const t = simT, lx = lantern.sx, ly = lantern.sy, lon = lantern.on;
+    const R = Math.max(90, Math.min(W, H) * .16);
+    const amp = reduced ? .5 : 1;
+    for (let i = 0; i < blades.length; i++) {
+      const b = blades[i];
+      let target = windAt(b.x, t) * b.flex * amp + Math.sin(t * 1.7 + b.ph) * .02 * amp;
+      if (lon > .01) {
+        const dx = b.x - lx, dy = (b.y - b.h * .6) - ly;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < R * R) {
+          const d = Math.sqrt(d2), f = 1 - d / R;
+          target += (dx >= 0 ? 1 : -1) * f * f * .95 * lon;
+        }
+      }
+      const k = b.layer ? 34 : 46;
+      b.v += ((target - b.a) * k - b.v * 5.5) * dt;
+      b.a += b.v * dt;
+    }
+  }
+
+  function stepFlies(dt) {
+    ramp = Math.min(1, ramp + dt / 60);
+    const K = syncK * .73 * ramp;
+    const vis = Math.max(150, Math.min(W, H) * .25), vis2 = vis * vis;
+    let cs = 0, sn = 0, bsum = 0;
+    for (let i = 0; i < N; i++) { const f = flies[i]; cs += Math.cos(f.th); sn += Math.sin(f.th); }
+    orderR = Math.sqrt(cs * cs + sn * sn) / N;
+    const psi = Math.atan2(sn, cs);
+    const lookStill = lantern.on > .5 && lantern.still > .35;
+    const scatter = lantern.on > .3 && lantern.speed > 900;
+    const top = HORIZON - H * .05, bottom = H * .96;
+    for (let i = 0; i < N; i++) {
+      const f = flies[i];
+      let coup = 0, cnt = 0, ax = 0, ay = 0, cx = 0, cy = 0, avx = 0, avy = 0, nb = 0;
+      for (let j = 0; j < N; j++) {
+        if (j === i) continue;
+        const o = flies[j];
+        const dx = o.x - f.x, dy = o.y - f.y, d2 = dx * dx + dy * dy;
+        if (d2 < vis2) {
+          coup += Math.sin(o.th - f.th); cnt++;
+          if (d2 < 3600) {
+            nb++; cx += dx; cy += dy; avx += o.vx; avy += o.vy;
+            if (d2 < 700) { const d = Math.sqrt(d2) + .01; ax -= dx / d * 26; ay -= dy / d * 26; }
+          }
+        }
+      }
+      f.th += (f.w + K * ((cnt ? .7 * coup / cnt : 0) + .3 * orderR * Math.sin(psi - f.th))) * dt;
+      if (f.th > 6.2832) f.th -= 6.2832;
+      if (nb) { ax += cx / nb * .06 + (avx / nb - f.vx) * .25; ay += cy / nb * .06 + (avy / nb - f.vy) * .25; }
+      f.wander += (Math.random() - .5) * 2.4 * dt;
+      ax += Math.cos(f.wander) * 9; ay += Math.sin(f.wander) * 6;
+      if (f.y < top) ay += (top - f.y) * .6;
+      if (f.y > bottom) ay -= (f.y - bottom) * .8;
+      if (f.x < -30) f.x = W + 30; else if (f.x > W + 30) f.x = -30;
+      if (lantern.on > .01) {
+        const dx = lantern.sx - f.x, dy = lantern.sy - f.y, d = Math.sqrt(dx * dx + dy * dy) + .01;
+        if (lookStill && d < Math.max(320, W * .3)) {
+          const pull = Math.min(1, (d - 40) / 120) * 34 * lantern.on;
+          ax += dx / d * pull - dy / d * 14 * lantern.on;
+          ay += dy / d * pull + dx / d * 14 * lantern.on;
+        }
+        if (scatter && d < 200) {
+          const push = (1 - d / 200) * 900 * dt;
+          f.vx -= dx / d * push; f.vy -= dy / d * push;
+        }
+      }
+      const sp = reduced ? .55 : 1;
+      f.vx += ax * dt; f.vy += ay * dt;
+      const v = Math.sqrt(f.vx * f.vx + f.vy * f.vy), vmax = f.sp * sp * (lookStill ? 1.9 : 1);
+      if (v > vmax) { f.vx *= .96; f.vy *= .96; }
+      f.x += f.vx * dt; f.y += f.vy * dt;
+      f.z += f.zv * dt;
+      if (f.z < 0 || f.z > 1) { f.zv = -f.zv; f.z = Math.max(0, Math.min(1, f.z)); }
+      if (Math.random() < dt * .1) f.zv = (Math.random() - .5) * .04;
+      let ph = f.th;
+      if (ph > Math.PI) ph -= 6.2832;
+      const b = ph < 0 ? Math.exp(-(ph * ph) / (2 * .13 * .13)) : Math.exp(-(ph * ph) / (2 * .42 * .42));
+      f.b = reduced ? b * .8 : b;
+      bsum += f.b;
+    }
+    meanB = bsum / N;
+  }
+
+  /* ── drawing ── */
+  function drawSky() {
+    const d = Math.min(1, dusk);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    for (let i = 0; i < SKY_STOPS.length; i++) g.addColorStop(SKY_STOPS[i], rgb(mix(SKY_DUSK[i], SKY_NIGHT[i], d)));
+    g.addColorStop(1, rgb(mix(SKY_DUSK[4], SKY_NIGHT[4], d)));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    const glow = ctx.createRadialGradient(W * .28, HORIZON, 0, W * .28, HORIZON, W * .7);
+    glow.addColorStop(0, 'rgba(255,190,170,' + (.28 * (1 - d)).toFixed(3) + ')');
+    glow.addColorStop(1, 'rgba(255,190,170,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, HORIZON + 40);
+    const dark = .25 + d * .75;
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+      const vis = Math.max(0, Math.min(1, (dark - s.th) / .18));
+      if (vis <= 0) continue;
+      const sy = s.y * H;
+      const fade = Math.max(0, 1 - sy / (HORIZON * .95));
+      const tw = reduced ? 1 : .65 + .35 * Math.sin(simT * s.tw + s.ph);
+      ctx.globalAlpha = vis * fade * tw * .9;
+      const r = s.s * 2.2;
+      ctx.drawImage(starSprite, s.x * W - r, sy - r, r * 2, r * 2);
+    }
+    ctx.globalAlpha = 1;
+    if (meteor) {
+      const m = meteor, p = m.t / m.dur;
+      const hx = m.x + m.dx * p, hy = m.y + m.dy * p;
+      const lg = ctx.createLinearGradient(hx, hy, hx - m.dx * .18, hy - m.dy * .18);
+      lg.addColorStop(0, 'rgba(255,245,235,' + (.8 * Math.sin(p * Math.PI)).toFixed(3) + ')');
+      lg.addColorStop(1, 'rgba(255,245,235,0)');
+      ctx.strokeStyle = lg; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx - m.dx * .18, hy - m.dy * .18); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    // moon
+    const mt = Math.min(1, moonT);
+    const mx = W * (W < 720 ? .76 : .74) - mt * W * .05;
+    const my = HORIZON + moonR * 1.2 - mt * (HORIZON - H * .14);
+    const s = moonCanvas.width / DPR;
+    ctx.globalAlpha = Math.min(1, .75 + d * .25);
+    ctx.drawImage(moonCanvas, mx - s / 2, my - s / 2, s, s);
+    ctx.globalAlpha = 1;
+  }
+  function drawMist() {
+    ctx.globalCompositeOperation = 'screen';
+    const a = .22 * (1 - dusk * .5);
+    for (let i = 0; i < 4; i++) {
+      const w = W * (.7 + i * .15), h = H * .09;
+      const x = ((simT * (6 + i * 3) + i * W * .37) % (W + w)) - w;
+      ctx.globalAlpha = a * (i % 2 ? .7 : 1);
+      ctx.drawImage(mistSprite, x, HORIZON + H * (.03 + i * .025) - h / 2, w, h);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  let backFill = null, frontFill = null;
+  function makeFills() {
+    backFill = ctx.createLinearGradient(0, HORIZON + H * .08, 0, H);
+    backFill.addColorStop(0, '#34423f'); backFill.addColorStop(.3, '#1b2a22'); backFill.addColorStop(1, '#0a130d');
+    frontFill = ctx.createLinearGradient(0, H * .6, 0, H);
+    frontFill.addColorStop(0, '#0d1812'); frontFill.addColorStop(.6, '#060d09'); frontFill.addColorStop(1, '#020504');
+  }
+  function drawBlades(layer, fill, rim) {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    for (let i = 0; i < blades.length; i++) {
+      const b = blades[i];
+      if (b.layer !== layer) continue;
+      const a = b.a, h = b.h, w = b.w;
+      const sa = Math.sin(a), ca = Math.cos(a);
+      const tx = b.x + sa * h, ty = b.y - ca * h;
+      const cxp = b.x + Math.sin(a * .45) * h * .5, cyp = b.y - h * .55;
+      ctx.moveTo(b.x - w * .5, b.y + 2);
+      ctx.quadraticCurveTo(cxp - w * .35, cyp, tx, ty);
+      ctx.quadraticCurveTo(cxp + w * .35, cyp, b.x + w * .5, b.y + 2);
+      ctx.closePath();
+    }
+    ctx.fill();
+    if (rim) {
+      ctx.strokeStyle = rim;
+      ctx.lineWidth = .7;
+      ctx.stroke();
+    }
+  }
+  function drawFlies(minZ, maxZ) {
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < N; i++) {
+      const f = flies[i];
+      if (f.z < minZ || f.z >= maxZ) continue;
+      const scale = .55 + f.z * 1.05;
+      const b = f.b;
+      const r = (8 + 32 * b) * scale;
+      ctx.globalAlpha = .13 + .87 * b;
+      ctx.drawImage(glowSprite, f.x - r, f.y - r, r * 2, r * 2);
+      if (b > .25) {
+        const rr = (2 + 3 * b) * scale;
+        ctx.globalAlpha = b;
+        ctx.drawImage(glowSprite, f.x - rr, f.y - rr, rr * 2, rr * 2);
+      }
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  function drawLight() {
+    ctx.globalCompositeOperation = 'lighter';
+    if (meanB > .02) {
+      const g = ctx.createRadialGradient(W * .5, H * .86, 0, W * .5, H * .86, Math.max(W, H) * .7);
+      g.addColorStop(0, 'rgba(200,240,120,' + (meanB * (reduced ? .08 : .2)).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(200,240,120,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, HORIZON, W, H - HORIZON);
+    }
+    if (lantern.on > .01) {
+      const R = Math.max(120, Math.min(W, H) * .2);
+      const g = ctx.createRadialGradient(lantern.sx, lantern.sy, 0, lantern.sx, lantern.sy, R);
+      const a = lantern.on * (.9 + .1 * Math.sin(simT * 7));
+      g.addColorStop(0, 'rgba(255,226,170,' + (.5 * a).toFixed(3) + ')');
+      g.addColorStop(.08, 'rgba(255,205,140,' + (.3 * a).toFixed(3) + ')');
+      g.addColorStop(.4, 'rgba(255,170,110,' + (.08 * a).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(255,170,110,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(lantern.sx - R, lantern.sy - R, R * 2, R * 2);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  function drawLanternCore() {
+    if (lantern.on < .01) return;
+    ctx.globalCompositeOperation = 'lighter';
+    const a = lantern.on * (.85 + .15 * Math.sin(simT * 5.3) * Math.sin(simT * 3.1));
+    const R = 46;
+    const g = ctx.createRadialGradient(lantern.sx, lantern.sy, 0, lantern.sx, lantern.sy, R);
+    g.addColorStop(0, 'rgba(255,244,214,' + (.95 * a).toFixed(3) + ')');
+    g.addColorStop(.1, 'rgba(255,214,150,' + (.55 * a).toFixed(3) + ')');
+    g.addColorStop(.35, 'rgba(255,170,100,' + (.12 * a).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(255,170,100,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(lantern.sx - R, lantern.sy - R, R * 2, R * 2);
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  function drawVignette() {
+    const g = ctx.createRadialGradient(W * .5, H * .55, Math.min(W, H) * .35, W * .5, H * .55, Math.max(W, H) * .8);
+    g.addColorStop(0, 'rgba(4,6,20,0)');
+    g.addColorStop(1, 'rgba(4,6,20,.5)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function render() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    drawSky();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(land, 0, 0);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    drawMist();
+    drawFlies(0, .34);
+    drawBlades(0, backFill, null);
+    drawFlies(.34, .72);
+    drawLight();
+    drawBlades(1, frontFill, 'rgba(170,150,185,.13)');
+    drawLanternCore();
+    drawFlies(.72, 1.01);
+    drawVignette();
+  }
+
+  /* ── UI ── */
+  const sync = $('#sync'), windIn = $('#wind');
+  const syncOut = $('#syncOut'), windOut = $('#windOut');
+  const unisonVal = $('#unisonVal'), meter = $('#meter');
+  function readSliders() {
+    syncK = sync.value / 100;
+    wind = windIn.value / 100;
+    syncOut.textContent = sync.value;
+    windOut.textContent = windIn.value;
+    sync.style.setProperty('--fill', sync.value + '%');
+    windIn.style.setProperty('--fill', windIn.value + '%');
+    if (windGain && actx) windGain.gain.setTargetAtTime(.02 + wind * .16, actx.currentTime, .5);
+  }
+  let windGain = null, actx = null;
+  sync.addEventListener('input', readSliders);
+  windIn.addEventListener('input', readSliders);
+
+  const controls = $('#controls');
+  let idleT = 0;
+  function wake() {
+    controls.classList.remove('idle');
+    clearTimeout(idleT);
+    idleT = setTimeout(() => controls.classList.add('idle'), 3800);
+  }
+  ['pointermove', 'pointerdown', 'keydown', 'focusin'].forEach(ev => addEventListener(ev, wake, { passive: true }));
+
+  const hint = $('#hint');
+  let hintGone = false;
+  const dropHint = () => { if (!hintGone) { hintGone = true; hint.classList.add('gone'); } };
+  setTimeout(dropHint, 12000);
+
+  function movePointer(e) {
+    const now = performance.now();
+    const dt = Math.max(1, now - lantern.lastT) / 1000;
+    const d = Math.hypot(e.clientX - lantern.lastX, e.clientY - lantern.lastY);
+    const inst = d / dt;
+    lantern.speed = lantern.speed * .6 + inst * .4;
+    if (inst > 60) lantern.still = 0;
+    lantern.lastX = e.clientX; lantern.lastY = e.clientY; lantern.lastT = now;
+    lantern.x = e.clientX; lantern.y = e.clientY;
+    if (lantern.sx < -900) { lantern.sx = lantern.x; lantern.sy = lantern.y; }
+  }
+  cv.addEventListener('pointermove', e => {
+    movePointer(e);
+    if (e.pointerType === 'mouse' || lantern.touch) lantern.target = 1;
+  });
+  cv.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse') { lantern.touch = true; try { cv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } }
+    lantern.lastX = e.clientX; lantern.lastY = e.clientY; lantern.lastT = performance.now();
+    movePointer(e);
+    lantern.sx = lantern.x; lantern.sy = lantern.y;
+    lantern.target = 1;
+    setTimeout(dropHint, 4000);
+  });
+  const lift = e => { if (e.pointerType !== 'mouse') { lantern.touch = false; lantern.target = 0; } };
+  cv.addEventListener('pointerup', lift);
+  cv.addEventListener('pointercancel', lift);
+  cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') lantern.target = 0; });
+
+  /* ── crickets: synthesized chirps + a hush of wind ── */
+  let master = null, soundOn = false, schedTimer = 0, crickets = [];
+  const sndBtn = $('#sound');
+  function initAudio() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    actx = new AC();
+    master = actx.createGain(); master.gain.value = 0;
+    master.connect(actx.destination);
+    const len = actx.sampleRate * 2, buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; last = (last + .02 * w) / 1.02; d[i] = last * 3.5; }
+    const src = actx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = .6;
+    windGain = actx.createGain(); windGain.gain.value = .02 + wind * .16;
+    src.connect(bp).connect(windGain).connect(master); src.start();
+    const r = mulberry(77);
+    for (let i = 0; i < 5; i++) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      const p = actx.createStereoPanner ? actx.createStereoPanner() : null;
+      o.type = 'sine'; o.frequency.value = 4100 + r() * 900;
+      g.gain.value = 0;
+      if (p) { p.pan.value = r() * 1.6 - .8; o.connect(g).connect(p).connect(master); } else o.connect(g).connect(master);
+      o.start();
+      crickets.push({ g, next: actx.currentTime + r() * 1.2, gap: .55 + r() * .7, pulses: 3 + Math.floor(r() * 3), rate: 26 + r() * 12, vol: .03 + r() * .04 });
+    }
+    return true;
+  }
+  function schedule() {
+    if (!actx || !soundOn) return;
+    const until = actx.currentTime + .25;
+    crickets.forEach(c => {
+      while (c.next < until) {
+        for (let p = 0; p < c.pulses; p++) {
+          const t = c.next + p / c.rate;
+          c.g.gain.setValueAtTime(0, t);
+          c.g.gain.linearRampToValueAtTime(c.vol, t + .004);
+          c.g.gain.linearRampToValueAtTime(0, t + .02);
+        }
+        c.next += c.gap * (.9 + Math.random() * .2) + (Math.random() < .08 ? 1.2 : 0);
+      }
+    });
+  }
+  sndBtn.addEventListener('click', () => {
+    if (!actx && !initAudio()) return;
+    if (actx.state === 'suspended') actx.resume();
+    soundOn = !soundOn;
+    sndBtn.setAttribute('aria-pressed', String(soundOn));
+    master.gain.setTargetAtTime(soundOn ? .8 : 0, actx.currentTime, .35);
+    clearInterval(schedTimer);
+    if (soundOn) {
+      const t = actx.currentTime;
+      crickets.forEach(c => { if (c.next < t) c.next = t + Math.random() * .5; });
+      schedTimer = setInterval(schedule, 100);
+    }
+  });
+
+  /* ── loop ── */
+  let raf = 0, last = performance.now(), uiT = 0;
+  function frame(now) {
+    const dt = Math.min(.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    simT += dt;
+    dusk = Math.min(1, dusk + dt / (reduced ? 260 : 170));
+    moonT = Math.min(1, moonT + dt / (reduced ? 480 : 320));
+    lantern.still += dt;
+    lantern.speed *= Math.pow(.02, dt);
+    lantern.on += (lantern.target - lantern.on) * Math.min(1, dt * 3);
+    const k = Math.min(1, dt * 10);
+    lantern.sx += (lantern.x - lantern.sx) * k;
+    lantern.sy += (lantern.y - lantern.sy) * k;
+    if (!reduced) {
+      nextMeteor -= dt;
+      if (nextMeteor <= 0 && dusk > .45) {
+        nextMeteor = 25 + Math.random() * 35;
+        const dir = Math.random() < .5 ? -1 : 1;
+        meteor = { x: W * (.2 + Math.random() * .6), y: H * (.05 + Math.random() * .2), dx: dir * W * (.18 + Math.random() * .12), dy: H * (.08 + Math.random() * .06), t: 0, dur: .9 };
+      }
+      if (meteor) { meteor.t += dt; if (meteor.t > meteor.dur) meteor = null; }
+    }
+    stepGrass(dt);
+    stepFlies(dt);
+    render();
+    uiT -= dt;
+    if (uiT <= 0) {
+      uiT = .25;
+      orderS += (orderR - orderS) * .5;
+      unisonVal.textContent = Math.round(orderS * 100) + '%';
+      meter.style.transform = 'scaleX(' + Math.max(.02, orderS).toFixed(3) + ')';
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { cancelAnimationFrame(raf); raf = 0; if (actx && soundOn) actx.suspend(); }
+    else {
+      if (actx && soundOn) actx.resume();
+      if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+    }
+  });
+  let rsT = 0;
+  addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { resize(); makeFills(); }, 80); });
+
+  resize();
+  makeFills();
+  readSliders();
+  for (let i = 0; i < 90; i++) { simT += 1 / 30; stepGrass(1 / 30); stepFlies(1 / 30); }
+  wake();
+  raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

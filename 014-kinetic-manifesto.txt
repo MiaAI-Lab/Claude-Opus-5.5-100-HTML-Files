@@ -1,0 +1,41 @@
+TITLE: MOVE — A Manifesto in Motion
+FILE: 014-kinetic-manifesto.html
+
+=== PROMPT (exact prompt used) ===
+Design "MOVE — A Manifesto in Motion", a scroll-driven kinetic typography experience. Black background (#0a0a0a), off-white type (#f1f1ec) and one acid accent (#c6ff00). Seven original manifesto statements about motion, attention and design each get a full-screen scene with a distinct typographic motion driven by scroll progress: letters assembling from scattered positions; words stretching horizontally with scaleX; a line splitting in half to reveal an accent line; characters cascading like dominoes; a word rotating in 3D; a sentence typed out with a caret; and a giant word zooming until its counter becomes the next scene's background. Use sticky sections and custom scroll-progress mapping, with CSS transforms only for performance. Typography: a heavy grotesque/condensed sans stack for display and monospace for small annotations such as scene numbers ("SC. 03 / 07"). A progress rail on the side. Reduced motion: statements appear statically with simple fades.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+MOVE is a scroll-played kinetic typography manifesto in three colours only: black #0a0a0a, off-white #f1f1ec and acid #c6ff00. It opens on a film-slate title card where a hand-drawn SVG "MOVE" rises letter by letter, its O counter already filled with acid, above an acid ticker. Seven sticky full-screen scenes follow, each with its own original statement and its own motion driven by scroll progress: "Nothing arrives whole." assembles from scattered, rotated glyphs; "Time is material." stretches each word with scaleX until the three lines form a justified block (with live ×n readouts); "Transitions are the content." is sliced by an acid blade and its two halves part to reveal an acid insert band; "Every move sets off the next." rises letter by letter like dominoes standing up in perspective, with a knock of overshoot; "Look again. Then closer." turns on a solid four-faced 3D prism like a trivision billboard; "If it moves, it must mean something." is typed with a caret, including a typed-and-struck-through "DECORATE" that is backspaced; and the finale zooms into the counter of the O in "MOVE" until the acid counter becomes the background of the closing "YOUR MOVE." page. Monospace annotations (SC. 03 / 07, t = 0.600, a running timecode) frame everything like an editor's timeline.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Sticky 100vh stages inside tall sections; per-scene progress computed from getBoundingClientRect and lightly smoothed toward the scroll target, all rendering done with transform/opacity only
+- Custom heavy condensed M, O, V, E glyphs drawn as SVG paths once in a defs library and reused with <use>, so the title card and the finale share the same letterforms and acid counter
+- Scroll-mapped zoom with a computed maximum scale and origin at the counter of the O, with the counter translated to the viewport centre so the zoom lands exactly on the next scene's acid background
+- Seeded random scatter (translate, rotate, scale) per glyph with staggered quartic easing for the assembly scene
+- scaleX stretch with measured natural widths so each word ends exactly at the measure, plus live scale readouts
+- Two clip-path polygon halves of the same word, cut at the measured visual centre of the capitals (canvas font metrics), with a drawn acid blade and a scaleY insert band
+- Per-letter rotateX from the baseline with its own perspective and a damped overshoot for the domino rise, with acid landing ticks
+- A preserve-3d prism with four solid faces, stepped hold-and-flip easing, face shading from the relative angle and a pointer-driven tilt
+- Typing state machine (type, mistake, pause, strike-through, backspace, retype) with a blinking acid caret and keystroke counters
+- Outlined ghost scene numerals with parallax, a hairline grid on the intro, a CSS marquee ticker and a timecode that treats the scroll as a playhead
+- Display type fitted to the viewport in JS, so layouts hold across different system condensed fonts
+
+=== INTERACTION MODEL ===
+- Scroll is the playhead: every scene plays forward and backward with the wheel, trackpad or touch
+- Side progress rail (a bottom bar on phones) shows each scene's progress; click a segment to jump to that scene
+- Keys 1–7 jump to scenes, 0 returns to the top, M toggles motion; native keyboard scrolling works throughout
+- Pointer velocity skews the intro "MOVE" and springs back; pointer position tilts the 3D prism in scene 5
+- "Motion on/off" toggle (remembered with guarded localStorage) switches to a static reading mode; prefers-reduced-motion starts in that mode, with statements shown in their final state and simple fades
+- The closing page lists all seven statements as buttons that jump back to their scenes, plus a "Replay from the top" button

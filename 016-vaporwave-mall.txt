@@ -1,0 +1,46 @@
+TITLE: Plaza Aeterna
+FILE: 016-vaporwave-mall.html
+
+=== PROMPT (exact prompt used) ===
+Build "PLAZA AETERNA — Mall of Tomorrow (Est. 1994)", a vaporwave dreamscape. Background: a sunset gradient (#ff71ce → #b967ff → #01cdfe) with a striped retro sun, a 3D-perspective neon grid floor scrolling toward the viewer, palm silhouettes, and a slowly rotating marble bust built from layered SVG shapes with procedurally generated marble veining. Overlay draggable Windows-95-style windows (bevelled grey #c0c0c0, navy title bars) containing: a "Store Directory" with pastel icons, a mock MIDI player that plays a synthesized chord progression (Web Audio, after a gesture), and a "Welcome" message in full-width styling (Ａ Ｅ Ｓ Ｔ Ｈ Ｅ Ｔ Ｉ Ｃ). Typography: a mixture of serif italics, pixel-feeling monospace and widely spaced letters. Interaction: drag windows by their title bars, minimise them to a taskbar with a Start button and clock, click desktop icons to open windows, and a VHS tracking glitch on hover. Responsive: windows become stacked cards on phones.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Plaza Aeterna is a fictional 1994 shopping mall shown as a Windows-95-style desktop floating in a vaporwave sunset. The sky runs from cyan through violet to hot pink, with a striped yellow-to-magenta sun, wireframe mountain ranges and a neon grid floor rushing toward the viewer. Two procedurally drawn palms frame a marble bust of Helios on a plinth, which turns slowly on its axis while pink and cyan light rake across it. Bevelled grey windows with navy title bars float over the scene: a Welcome.txt note with full-width ＡＥＳＴＨＥＴＩＣ lettering and a chrome serif-italic logotype, a tabbed Store Directory with pastel shop icons and a live floor plan, and a Jukebox MIDI player that synthesises lo-fi mall muzak. A taskbar, Start menu, VHS on-screen display and CRT scanlines complete the illusion. On phones the windows become a column of stacked cards under a full-height hero of the sun and bust.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Pseudo-3D marble bust in layered SVG: the head is a rotational solid whose silhouette is recomputed every frame from per-height elliptical cross-sections, so the jaw and chin shift correctly as it turns
+- Facial features (eyes with incised irises, lids, brow shadow, a two-plane shaded nose, lips, nasolabial folds, chin) defined as 3D curves on the head surface and projected each frame, fading out as they turn away from the viewer
+- About 120 hair curls placed on a spherical shell, depth-sorted and swapped between behind-skull and in-front-of-face groups as they rotate; ears foreshorten from edge-on to full view
+- Procedural marble veining: seeded random walks on the head surface (re-projected and back-face culled every frame) plus clipped static veins on the torso
+- Torso with a himation drape and fibula brooch, narrowed by a projected-width scale as it turns; front anatomy and drape cross-fade into back detail (spine, shoulder blades) when seen from behind
+- Canvas neon grid floor with true perspective spacing (y = horizon + D/z), a double-stroke glow pass, horizon haze, a sun reflection and low-poly wireframe mountain ranges
+- Striped sun built from an SVG mask whose black bands scroll and thicken toward the horizon
+- Palm fronds generated procedurally as spines with drooping leaflet triangles in a shared SVG symbol, swaying gently with CSS
+- Authentic Win95 chrome from stacked inset box-shadows (raised and sunken bevels, tabs, trackbar, checkboxes, dithered pressed task buttons)
+- Chrome serif-italic logotype using a background-clip gradient with a hard cyan offset shadow; full-width and katakana type in a CJK serif; mono labels with wide letter-spacing
+- VHS layer: scanlines and vignette, a periodic tracking band sweeping down the screen, a PLAY ▶ SP on-screen display with a date stamp and live tape counter, and a per-window hover glitch (RGB-split drop-shadows, horizontal jitter, a noisy band that sweeps down the window)
+- Jukebox LCD with a scrolling marquee, glowing time and chord readouts, an analyser-driven spectrum canvas and a 4-octave keyboard that lights the sounding notes
+
+=== INTERACTION MODEL ===
+- Drag windows by their title bars (pointer capture works for mouse and touch); double-click a title bar or use the maximise button to toggle maximise; arrow keys move a focused title bar (Shift moves faster)
+- Minimise a window and it shrinks into its taskbar button; clicking a taskbar button restores the window, focuses it, or minimises it again; close buttons remove the window and its taskbar entry
+- Desktop icons (Welcome.txt, Directory, Jukebox.mid, Fountain.exe, Recycle Bin) open or refocus their windows on click; the Start menu (keyboard-navigable, Esc closes) opens every program, toggles the VHS filter and offers a "Shut Down…" screen
+- Store Directory: Level 1–3 tabs (arrow-key navigable); hovering or focusing a store lights its unit on the floor plan and shows its hours in the status bar
+- Jukebox: play/pause/stop/previous/next, three synthesised tracks with real chord progressions (FM electric piano, detuned saw pad, bass, bells, soft drums, tape-wow LFO, convolution reverb), a volume slider, "Slowed + reverb" tape mode and Mute; sound starts only after a click, and the tray speaker is a global mute
+- Wishing Fountain: toss a penny for a coin arc, a splash ripple, a chime and a random wish; the penny count is kept in localStorage (guarded with try/catch)
+- Recycle Bin: "Empty" crumples the files away, and Mall Management then restores them
+- Drag the bust sideways to spin it with momentum; hovering windows and icons with a mouse triggers the VHS glitch
+- prefers-reduced-motion stops the grid, the sun bands, the bust rotation, the glitches and the marquees; on short desktops (under 830 px tall, e.g. 1366×768 and 1280×720) the windows switch to compact versions (tighter paper, smaller map, playlist hidden, with tracks changed via previous/next) and a layout pass stacks the Directory and Jukebox so no windows collide; on phones the windows stack as full-width cards, minimising collapses a card to its title bar, and the taskbar shows icon-only buttons

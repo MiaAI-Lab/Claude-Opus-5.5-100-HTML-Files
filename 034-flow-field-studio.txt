@@ -1,0 +1,40 @@
+TITLE: Currents — Flow Field Studio
+FILE: 034-flow-field-studio.html
+
+=== PROMPT (exact prompt used) ===
+Create "Currents — Flow Field Studio", generative art made of thousands of particles following a Perlin/simplex noise vector field (implement the noise inline). Particles leave long, fine, semi-transparent strokes that accumulate into silky flowing textures like wind maps or marbled paper. Five curated palettes, each with its own background: "Kyoto Dusk" (#1a1423; #e8a87c #d45d79 #6e5773 #ea9085), "Glacier" (#f4f7f6; #264653 #2a9d8f #8ab17d), "Ember" (#0d0d0d; #ff4800 #ff7b00 #ffb700), "Riso" (paper #f2eee3; fluorescent pink #ff48b0 and blue #0078bf with multiply blending) and "Mono Ink". A slim, elegant side panel holds noise scale, particle count, stroke length, curl/turbulence, palette, a seed field, "Regenerate" and "Download PNG". Clicking the canvas plants an attractor/vortex that bends the field locally; the piece slowly evolves over time (the noise's z-axis). Typography: understated monospace labels and a serif title. Must stay performant (typed arrays, batched paths).
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Currents is a quiet generative studio: the artwork fills the window edge to edge and a slim, typographically calm side panel sits to its right (a pull-up sheet on phones). Thousands of particles ride a seeded 3D simplex-noise vector field and lay down long, hair-fine, semi-transparent strokes that pile up into silky ribbons wherever the currents converge, like wind maps or marbled paper. The field's z-axis drifts slowly, so the piece keeps evolving, and a very slow, periodic fade keeps it from silting up. Five curated palettes each re-theme the whole room: Kyoto Dusk (dusky violet ground, peach, rose, mauve, salmon), Glacier (pale ice ground, slate, teal, moss), Ember (near-black ground with additive orange light), Riso (cream paper, fluorescent pink and blue multiplied like a risograph print, with paper grain) and Mono Ink (sumi-black ink on warm paper). The title is set in a book serif with an italic accent, controls are labelled in understated monospace, and a museum-style caption names each piece ("Currents, No. 0860") from its seed.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Inline, seeded 3D simplex noise (Gustavson-style) drives the flow angle, with a curl multiplier and an optional finer turbulence octave blended in
+- Typed-array particle state (Float32Array positions, Int16Array lifetimes, Uint8Array colour) and one batched path per pigment per frame: particles are grouped into contiguous colour ranges so each colour is a single stroke() call with thousands of polyline segments
+- Colour regions from a second, slower noise field with quantile thresholds, so pigments flow in territories like marbling instead of averaging into one tone
+- Palette-specific compositing: source-over for Kyoto Dusk and Glacier, additive "lighter" for Ember, multiply for Riso and Mono Ink
+- Periodic low-alpha background fades (every 24 frames) that keep trails long but avoid 8-bit ghosting
+- Procedural paper-grain canvas layered with a CSS blend mode on light palettes and composited into the exported PNG
+- Vortices as local tangential plus inward forces with a quadratic falloff; they are drawn on a separate overlay canvas with rotating dashed rings and spin arrows
+- A time-boxed pre-roll and a warm-up phase with extra substeps, so the first frame already reads as a finished textile
+- A cover-fit repaint on resize that keeps the painting rather than wiping it
+- DPR-aware canvases (capped at 2); the whole UI re-themes through CSS custom properties with eased colour transitions
+
+=== INTERACTION MODEL ===
+- Click or tap the canvas to plant a vortex that bends the field locally; new vortices alternate spin, Shift reverses one, clicking an existing vortex lifts it (up to 12)
+- Live sliders for noise scale, curl/turbulence, particle count (500–8,000) and stroke length, with accent-filled tracks and monospace readouts
+- Five palette swatches (keys 1–5); a seed field (Enter to apply) plus a dice button for a new named seed; "Regenerate" re-renders the current seed reproducibly
+- "Download PNG" exports the canvas plus grain via toBlob; a toast confirms the file name
+- Pause/Flowing toggle, "Clear vortices", and keys R, N, Space, C and S
+- On phones the panel is a bottom sheet with a Controls toggle; the choice of palette and seed is remembered with guarded localStorage; the loop stops while the tab is hidden, and reduced-motion slows the drift and substeps

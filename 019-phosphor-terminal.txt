@@ -1,0 +1,43 @@
+TITLE: HELIOS/OS
+FILE: 019-phosphor-terminal.html
+
+=== PROMPT (exact prompt used) ===
+Build "HELIOS/OS v2.3", a retro CRT terminal operating system simulation. Full-screen phosphor green (#33ff66 on #031a07) with themes for amber (#ffb000 on #1a0f00) and ice (#9fe7ff). CRT effects in CSS/canvas: scanlines, subtle screen curvature (vignette, rounded corners, inner shadow), phosphor glow/bloom text-shadow, gentle flicker and a rolling refresh bar. On load: a believable BIOS boot sequence (memory check counting up, device list) followed by a login banner. A working shell with an input line and blinking block caret supporting: help, ls, cat <file> (several short fictional files including a poem and a mission log), clear, date, whoami, theme <green|amber|ice>, matrix (glyph rain for a few seconds), weather (ASCII art), snake (a small playable ASCII snake game inside the terminal), command history with ↑/↓, and tab completion. Typography: a monospace stack. Keyboard-first, with tap-to-focus on phones so the soft keyboard appears. Optional typing sounds (Web Audio clicks, off by default).
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+HELIOS/OS v2.3 "Aphelion" is a fictional 1987 operating system running on a fictional Heliograph HX-14 monochrome terminal aboard a relay station. The page is the whole monitor: a graphite bezel with a power LED, an engraved badge and a row of physical keys frames a curved, glowing phosphor tube. The tube powers on with a collapsing-beam animation, runs a POST screen (a vendor sun badge, a counting memory test, device detection, a kernel progress bar and service checks), auto-types the operator login, then prints a neofetch-style welcome: a box-drawing HELIOS logo, a block-shaded sun emblem beside a system card, and a short message of the day. From there it is a working shell with a small fictional filesystem and a light storyline (a mission log, a decoded signal, a poem someone left on tty3). Three phosphors are available: P1 green (#33ff66 on #031a07), P3 amber (#ffb000 on #1a0f00) and ice (#9fe7ff).
+
+=== MAJOR VISUAL TECHNIQUES ===
+- CRT tube built from stacked layers: a radial phosphor gradient, 3 px scanlines, a faint RGB aperture-grille stripe, animated film grain on a low-resolution canvas, a rolling refresh band, an irregular stepped flicker, a vignette with deep inset shadows for the curved glass, and a glass reflection highlight.
+- Three-layer text-shadow bloom on all text, brighter "hot" glow for headings, inverse-video tags and a status line, with every colour driven by per-theme CSS custom properties (including an RGB triplet for rgba glows).
+- The power-on and power-off animations (a horizontal beam expanding into the raster, then collapsing to a dot) use CSS keyframes on the tube plus a separate glowing beam element.
+- Theme changes play a "degauss" wobble (skew, scale and hue-rotate keyframes); occasional random sync glitches jolt the raster.
+- Phosphor persistence: clearing the screen clones the old text into a ghost layer that blurs and fades out.
+- Output streams at a simulated line speed (19200 baud by default, adjustable with `baud`), appending characters to text nodes on each animation frame.
+- Glyph rain draws on canvas: mirrored katakana, Greek and digit glyphs, glowing heads, frame-rate-independent translucent trails, random shimmer, and a fade-out that brings the text back.
+- The snake game is drawn as HTML inside the terminal: a box-drawing border, a dotted field, a blinking <> pellet, and a body that fades through the shade characters █ ▓ ▒ ░ toward the tail.
+- ASCII weather: five hand-drawn condition icons, a day-seeded forecast, and a three-day strip.
+- The banner re-renders to fit the terminal's width in character columns, measured with a probe, so the logo and system card stay intact from phones to wide screens.
+
+=== INTERACTION MODEL ===
+- Keyboard-first shell: type commands at a blinking block caret. The caret goes solid while you type and hollow when the input is unfocused. Any key or click fast-forwards the boot.
+- Commands: help, ls [-a] [-l] [dir], cd, pwd, cat <file>, clear, date, whoami, theme <green|amber|ice>, matrix, weather, snake, history, echo, uname [-a], uptime, fortune, sound <on|off>, baud <rate|max> and reboot. There are hidden extras (sudo, exit/logout, answer) and a hidden .plan file.
+- ↑/↓ walk through the command history, which persists in localStorage. Tab completes commands, file paths (directory-aware, hidden files only when requested) and command arguments, and lists candidates when the match is ambiguous. Ctrl+C cancels the line, Ctrl+L clears the screen, Ctrl+U kills to the start of the line, and Enter/Esc/Ctrl+C flush long streaming output.
+- Bezel keys auto-type common commands (Help, Ls, Poem, Log, Weather, Snake, Matrix, Clear). The P1/P3/Ice keys and the in-screen [P1:GRN] status item switch phosphor. The Sound key or [SND:OFF] toggles Web Audio typing clicks, the Enter thock, error beeps and a degauss thunk. Sound is off by default and the AudioContext is created only on a gesture.
+- Snake: arrows/WASD steer, P or Space pauses, Q or Esc quits. On touch, swipe on the screen, or use the on-screen D-pad that replaces the command keys during play. The best score is saved.
+- Matrix: any key or click stops the rain early.
+- Phones: tap anywhere on the tube to focus the real, invisible input so the soft keyboard appears. The layout follows visualViewport height, and the key row scrolls horizontally.
+- Reduced motion turns off flicker, the roll band, grain animation, beam and degauss effects, and streaming delays, so the boot completes instantly.

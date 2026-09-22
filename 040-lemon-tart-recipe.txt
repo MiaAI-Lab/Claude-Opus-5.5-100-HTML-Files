@@ -1,0 +1,37 @@
+TITLE: Nonna Lucia's Lemon Ricotta Tart
+FILE: 040-lemon-tart-recipe.html
+
+=== PROMPT (exact prompt used) ===
+Design "Nonna Lucia's Lemon Ricotta Tart", a beautiful interactive recipe page. Mediterranean citrus palette: lemon #f7d44c, leaf green #5b8c51, terracotta #c65d3b, cream #fbf6ea, ink #2e2a24. Hero: a hand-drawn-style SVG illustration of the tart with lemons and leaves (wobbly line quality, flat colour fills, subtle paper texture), with lemon slices that rotate gently. Two columns on desktop (ingredients left, method right), one column on mobile. Features: a servings scaler (−/+) that recalculates every quantity with nice fractions (½, ¾) plus a metric/US toggle; an ingredient checklist with a satisfying strike-through animation; numbered steps that can be marked done, each with a built-in countdown timer where relevant (e.g. bake 35 min) showing ring progress and playing a gentle chime when finished (Web Audio); and a "cook mode" that enlarges the current step. Typography: warm serif headings ("Iowan Old Style", Palatino, "P052", Georgia, serif) with an italic, handwritten-flavoured style for notes such as "Nonna's tip". Include a short story intro and a print stylesheet (@media print).
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A warm, illustrated family recipe card for a fictional grandmother's lemon ricotta tart. A cream page with a faint dotted-linen print opens on a two-part hero. On the left is a "Ricettario di famiglia" kicker, a tilted italic terracotta "Nonna Lucia's" over a heavy serif "Lemon Ricotta Tart", a short story and an at-a-glance strip. On the right is a hand-drawn scene: a terracotta arch with a lemon-yellow sun, a golden fluted tart topped with candied lemon slices on a plate, a green gingham cloth fading into the page, a whole lemon, a cut half and leaves. Lemon slices slowly spin on the tart's surface (in perspective) and float around the scene. Below, a sticky ingredients card on the left and nine numbered method cards on the right carry the same palette of lemon #f7d44c, leaf #5b8c51, terracotta #c65d3b, cream #fbf6ea and ink #2e2a24. The current step is outlined with a lemon offset shadow, and Nonna's tips sit in tilted italic margin notes. A print stylesheet turns the page into a clean black-on-white card.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A hand-drawn illustration in inline SVG. One filter chain wobbles every line and fill (feTurbulence + feDisplacementMap), then composites a fine paper grain only inside the drawn shapes. There are flat colour fills, ink outlines, a gingham pattern, and nested linear-gradient masks that dissolve the tablecloth into the page on three sides.
+- Runtime-built SVG details: the tart's scalloped fluted rim and wall flutes are computed around an ellipse. Each lemon slice (rind, pith, flesh, segment membranes, juice sacs) has slightly irregular hand-drawn edges.
+- The animated layer is a separate overlaid SVG, so the heavy filter never repaints. Nine slices spin inside a scale(1, .36) perspective frame, so they turn on the tart's surface. Floating slices spin and bob, and a leaf sways (CSS transform-box: fill-box).
+- Typography: an Iowan Old Style / Palatino / P052 stack with a rotated italic byline, a small-caps first line, wavy-underlined "Nonna's tip" labels in italic, and tabular lining numerals for quantities.
+- Micro-interactions: circular checkboxes pop and draw their tick. A terracotta strike-through sweeps across the ingredient name via an animated background-size (it works across wrapped lines), and a lemon progress bar fills. Changed quantities bump. Timer rings deplete via stroke-dashoffset and pulse when finished.
+- A tactile "pressed" button style with an offset ink shadow, an offset lemon shadow on the current step, and a print stylesheet (@media print) with two-column ingredients and no controls.
+
+=== INTERACTION MODEL ===
+- The servings scaler (− / +, 4 to 16) recalculates every quantity. Metric shows rounded grams and ml. US shows friendly cups, tbsp and tsp with ½ ¼ ⅓ ⅔ ¾ fractions and remainders (e.g. "½ cup + 2 tbsp"). Counts use halves, the tin size and in-step temperatures and thicknesses update, and a Metric / US toggle switches everything, including °C/°F in the method.
+- The ingredient checklist shows a gathered counter and progress bar. Checks, done steps, servings, units and the chime preference persist in localStorage (guarded with try/catch). "Clear ticks" resets them.
+- Each step can be marked done, which advances the highlighted current step. Steps with ingredient needs show chips with the scaled quantities.
+- Step timers (30, 15, 20, 35, 12 and 60 min) can be started, paused, resumed and reset, and several can run at once. Running timers appear in a floating dock that jumps to their step. On finish, a soft two-note synthesized bell chime plays (Web Audio, created on the first Start) and a toast appears. The header's "Chime on/off" toggle mutes it.
+- Cook mode is a full-screen, large-type view of one step. It shows a giant italic numeral, progress dots, ingredient chips, the tip and a big timer, with Previous / "Done, next" / Skip buttons. Arrow keys and Escape work, focus is trapped, and a screen wake lock is requested where supported.
+- "Print card" calls the browser's print dialog using the print stylesheet. Reduced-motion users get static slices and instant transitions.

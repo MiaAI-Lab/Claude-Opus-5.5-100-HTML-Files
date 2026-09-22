@@ -1,0 +1,44 @@
+TITLE: Labyrinthos
+FILE: 033-stone-labyrinth.html
+
+=== PROMPT (exact prompt used) ===
+Build "Labyrinthos", a maze game styled as an ancient stone labyrinth seen from above. Generate a new perfect maze each round (recursive backtracker or Wilson's algorithm), rendered on canvas as carved terracotta/sandstone walls (#c4773b, #e2b07a, with highlight and shadow edges for relief) on a darker dusty floor (#6b4a2b), with subtle noise texture and a Greek-key meander border. The player is a small flickering flame that lights only a radius around it — the rest of the maze is dark (fog of war that dimly remembers visited corridors). Controls: arrow keys/WASD, swipes on touch, and an on-screen d-pad on mobile. The exit is a glowing golden thread spool. Features: the maze visibly carves itself at the start of each round; a "Show Ariadne's thread" hint animates the solution path (BFS) as a red thread; a timer; three sizes; and a victory screen with a laurel illustration. Typography: an inscriptional Roman-capitals feeling serif with wide spacing.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Labyrinthos" is a torch-lit maze game built as a carved stone tablet seen from above, set in a dark umber chamber between two pedimented steles. Every round starts in full light: a sandstone slab, scored with the mason's setting-out lines, is cut into a perfect maze before your eyes, with a glowing chisel spark and flying stone chips following the recursive backtracker as it winds through the grid. Then darkness falls. You are a small flickering flame at the entrance whose light reveals only a warm circle of terracotta walls and dusty floor, while the corridors you have already passed stay dimly remembered and a thin golden thread traces the path you have walked. In the far corner a golden thread spool glows like a beacon. The frame is a recessed channel carrying a relief Greek-key meander with rosettes at the corners. Inscriptional Roman capitals with wide spacing, Latin labels (TEMPVS, GRADVS, OPTIMVM, EXITVS INVENTVS) and a gilded laurel wreath on the victory screen complete the antique mood.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Procedural textures built once per round: multi-octave mottling made by upscaling tiny random canvases, per-pixel grain, pebbles and hairline cracks for the floor (#6b4a2b); a sandstone gradient (#e2b07a to #c4773b) with bedding strata for the walls
+- Relief walls: a single Path2D of every wall tile clips the sandstone texture; a blurred cast shadow falls to the lower right; per-edge highlight and shadow bevels, block joints and chisel scratches; walls are narrower than corridors for a carved look
+- Greek-key meander drawn along all four sides by rotating one strip routine, stroked three times (shadow, highlight, face) for relief, set in a recessed channel with carved rosette corner blocks
+- Carving animation: the finished maze is revealed tile by tile over an uncut slab in the exact order the backtracker carved it, led by a radial chisel spark and pooled chip particles
+- Fog of war: a half-resolution fog canvas is filled with darkness, then "destination-out" erases a flickering radial light around the flame, a softer halo around the spool and a smoothed per-tile memory map, so visited corridors stay dimly lit
+- Warm torchlight tint over the lit circle; flame drawn from layered Bezier teardrops with swaying tip, blue base and rising embers
+- Ariadne's thread: BFS path through chamber centres with a deterministic wobble, drawn with rounded quadratic joins, a glow shadow and a highlight strand, unspooling progressively to the spool
+- The player's own trail is a pale gold thread beneath the fog, visible only where there is light or memory
+- Golden spool drawn in canvas with wooden flanges, animated thread wraps, a loose end and a pulsing glow; gold particle burst on victory
+- HTML steles with a clipped triangular pediment, incised text shadows, gradient-clipped title lettering and an SVG meander keyline; SVG laurel wreath built from one leaf shape reused along an arc and mirrored
+
+=== INTERACTION MODEL ===
+- Arrow keys or WASD walk one chamber per press and keep walking while held; Shift plus a direction runs along a corridor, following bends until a junction
+- Touch: swipe on the maze to run a corridor, tap to step toward the tapped side; an on-screen stone d-pad appears on phones and touch devices (hold to keep walking)
+- Mouse: click on the maze to step toward the click
+- Three sizes (Small 10x10, Medium 16x16, Large 24x24, with Latin names and Roman numerals); each change or "New labyrinth" (N) generates and carves a fresh perfect maze
+- "Show Ariadne's thread" (T, or the thread button on phones) animates the BFS solution from your current position and keeps it updated as you move; using it is noted on the victory screen and excludes the run from best times
+- Timer starts on the first step; steps are counted; the best unaided time per size is kept in localStorage (guarded with try/catch); the round number is shown in Roman numerals
+- Victory dialog with laurel wreath, time, steps, how the exit was found, a new-best note and a button to enter another labyrinth
+- Optional Web Audio sound (off by default, visible toggle): stone footsteps, a dull thud on walls, grinding while the maze is carved, and a plucked lyre arpeggio on victory
+- Walking into a wall gives a small bump animation; screen-reader announcements for new rounds, the lit torch, the thread and the victory
+- prefers-reduced-motion: instant carving, steady flame, no particles or bump, thread shown at once

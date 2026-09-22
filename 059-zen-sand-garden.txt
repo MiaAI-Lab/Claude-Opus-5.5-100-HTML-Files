@@ -1,0 +1,44 @@
+TITLE: Karesansui — A Zen Sand Garden
+FILE: 059-zen-sand-garden.html
+
+=== PROMPT (exact prompt used) ===
+Create "Karesansui — A Zen Sand Garden": a top-down view of a raked gravel garden on canvas with fine sand texture (#e8e0cf with grain noise and subtle lighting), a few natural stones (procedurally shaped and shaded, with moss patches #6b7d4b) and a wooden border frame (#5b3f2a). Dragging with the rake carves parallel grooves (4–5 tines) that follow your path, with realistic light and shadow on the ridges; the ripple tool draws concentric rings around a stone on click. Tools in a minimal vertical bar: rake, ripple, place stone, smooth (softly erases grooves), and "return to calm" (animated smoothing). Ambient touches: a maple leaf occasionally drifts across and settles; soft shadows move slowly as if the sun were passing; an optional distant wind chime (Web Audio, after a gesture). Typography: small, elegant serif captions and a vertically set title. Touch on mobile is first-class.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Karesansui is a small dry garden to tend by hand, seen from directly above. A mitred frame of dark wood (#5b3f2a) holds a bed of fine pale gravel (#e8e0cf). The gravel is raked into gently wavering straight furrows that break into concentric rings around two moss islands (#6b7d4b) and a lone stone. Stones and moss are generated procedurally and lit by a sun that slowly swings from morning to evening, so the furrows, stones and every cast shadow change as it moves. Red and amber maple leaves occasionally tumble across on the wind and settle, each trailed by its own drifting shadow. The page around the garden is dark and quiet. A vertically set title (枯山水 / KARESANSUI, with a small vermilion 静 seal) sits on the left, a slim washi-paper tool bar on the right, and small italic serif captions below.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- The gravel is a real heightmap (Float32Array) lit per cell. Normals come from finite differences, with Lambert shading normalised so flat sand stays exactly #e8e0cf, a warm tint on lit faces, cool shadows, cavity darkening and baked grain and speckle.
+- Only changed regions are re-lit, via dirty rectangles and putImageData, then upscaled with smoothing into a device-pixel-ratio canvas. A multiply-blended grain tile keeps the texture crisp on high-DPI screens.
+- The rake stamps a five-tine cosine profile across the swept path, with outer spill ridges and soft entry. The rake head follows the pointer with physical lag, so strokes become smooth curves.
+- Ripples are computed as offset contours of each feature's irregular outline (a polar radius lookup table) and revealed outward with easing. Rings follow the shape of each moss island or stone, not a plain circle.
+- Stones are shaded per pixel from a procedural dome height field with Perlin weathering. They get Blinn specular, contact ambient occlusion, moss speckling and a stable hash grain. Blurred silhouettes are offset along the sun vector to cast long or short shadows.
+- Moss islands have fuzzy noise edges, cushion-like tufts, highlight tips and their own shading and shadows.
+- The frame is four clip-path mitred planks with procedurally generated grain (horizontal on the rails, vertical on the stiles) and bevel gradients. It casts an inner shadow onto the sand on the side away from the sun.
+- Maple leaves are seven-lobed Path2D sprites with radial gradients and veins. They tumble with a scaleX flip, sway and descend while their shadow separates and softens with height.
+- "Return to calm" first decays the whole heightmap to still sand, then sweeps a raking front across the garden to restore the classic composition.
+
+=== INTERACTION MODEL ===
+- Rake (1 or R): drag with a mouse, pen or finger to draw five parallel furrows. Raking over a fallen leaf sweeps it away.
+- Ripple (2 or P): tap near a stone or moss island to ring it with animated concentric circles, or tap open sand for a lone ripple. Enter or Space on the focused garden rings a random feature.
+- Place stone (3 or O): tap the sand to set a new procedurally shaped stone, which rings itself. Tap an existing stone to lift it, leaving its impression in the gravel.
+- Smooth (4 or M): brush softly to erase furrows.
+- Return to calm (5 or C): an animated smoothing of the whole bed, then a slow re-raking.
+- Wind chime (B): optional distant Web Audio chimes with inharmonic tube partials and generated reverb, occasional gusts, a soft note when a leaf lands, and a quiet gravel-scrape noise that follows rake speed. It is off by default and starts only on a gesture.
+- Save (S): downloads the garden as a PNG.
+- Hover or focus shows tool tips with shortcuts. The caption below explains the current tool and the time of day.
+- Touch is first-class: the garden sets touch-action: none, and on phones the tool bar becomes a horizontal pill at the bottom while the vertical title shrinks to a slim column.
+- Reduced motion freezes the sun, removes falling leaves and makes "return to calm" instant.

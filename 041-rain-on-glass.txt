@@ -1,0 +1,40 @@
+TITLE: Midnight Window
+FILE: 041-rain-on-glass.html
+
+=== PROMPT (exact prompt used) ===
+Create "Midnight Window", rain on a window pane at night. Behind the glass, a canvas shows a blurred city bokeh scene (soft glowing circles in amber #ffb347, warm white, tail-light red #ff4b4b and teal signage #3fd0c9 on deep blue-black #0a0f1f), drifting slowly. On the glass: realistic raindrops — small static beads plus larger drops that grow, then slide down in wobbly paths leaving trails and merging with others; each drop refracts the background (render the background flipped and magnified inside the drop). Condensation fogs the glass; the user can wipe it clear with pointer or finger, and the cleared area slowly fogs back. Ambient layers: occasional distant lightning and rain sound synthesized with Web Audio (filtered noise plus droplet ticks) behind a "sound" toggle. A small caption in a light serif: "It's 00:47. The city is still awake." using the live local time. Controls: rain intensity slider and a city/forest background toggle (forest = green bokeh). Performance-minded.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"Midnight Window" is a full-screen, nearly wordless nocturne: you are looking through a fogged window at night while rain runs down the glass. Behind it, an out-of-focus city glows in amber #ffb347 streetlights, warm-white windows, tail-light red #ff4b4b pairs that slowly drift away and teal #3fd0c9 signage on deep blue-black #0a0f1f. On the glass, condensation softens everything into milky halos, except where a hand has already wiped a band clear across the streetlights. Tiny beads speckle the pane, larger drops gather, merge, hesitate and slide in wobbling paths that cut thin clear trails through the fog, and every drop acts as a small lens showing the scene flipped and magnified. The only type is a small wordmark, the date and a light serif caption with the live local time, for example "It's 00:47. The city is still awake." A compact frosted control bar holds rain intensity, a city / forest toggle, a wipe button and a sound toggle.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Layered canvas pipeline: a half-resolution bokeh layer, a quarter-resolution fog mask and fog composite, a full-resolution bead layer, and drops drawn last on the main canvas
+- Bokeh from pre-rendered disc sprites (flat body, brighter rim, soft edge) composited additively over a pre-blurred base (building or tree-trunk silhouettes and horizon glow painted small and upscaled); tail-lights and headlights drift, windows and signs twinkle and occasionally switch off and on
+- Condensation: the scene is downsampled to about 1/26 and upscaled for a heavy blur, boosted with a glow pass, a milky haze and a fine speckle texture, then masked by the fog-mask canvas (destination-in) and laid over the clear view
+- Refraction per drop: a CanvasPattern of the live background with a pattern transform that point-flips and magnifies it about the drop centre (s = c − k·(p − c)), filled into an ellipse that stretches while sliding, then shaded with a rim, top shadow, bottom caustic and specular sprite
+- Drop simulation with pooled objects: spawn-merging on landing, a size threshold for sliding, stick-slip friction, lateral wobble, trail droplets shed as they move (with area loss), merging collisions, and thin wobbling clear trails cut through fog and beads that slowly fog over again
+- Beads accumulate on their own layer and evaporate exponentially, keeping a steady fine texture
+- Distant lightning: multi-pulse flashes lit into the background layer, so the fog and every drop refract the flash
+- The first frame is pre-warmed (a two-pass hand-wipe band plus about a second of simulated rain), and the fog mask survives resizes by being rescaled
+
+=== INTERACTION MODEL ===
+- Drag with mouse, pen or finger to wipe the glass: a soft brush clears the fog and beads and removes the drops it passes over; the cleared area slowly fogs back. A ring cursor shows the brush on desktop
+- Double-click to breathe on the glass and fog up a patch
+- "Wipe" button sweeps a clean arc across the pane (a keyboard and touch-friendly way in)
+- Rain slider (0–100) changes drop and bead spawn rates, and the loudness of the rain sound
+- City / Forest segmented toggle cross-fades the whole scene to green forest bokeh and changes the caption to "The forest is still listening."
+- Sound toggle (off by default) creates a Web Audio graph on first use: looping filtered noise for the hiss and body of the rain, randomly scheduled droplet plinks and taps with stereo panning, and low rumbling thunder a few seconds after each flash
+- Caption and date update live from the local clock; rendering and audio pause while the tab is hidden; prefers-reduced-motion disables lightning, slows drops and drift, and removes UI transitions

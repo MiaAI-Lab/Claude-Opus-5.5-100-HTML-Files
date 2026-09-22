@@ -1,0 +1,38 @@
+TITLE: Hytte — A Winter Cabin
+FILE: 051-winter-cabin.html
+
+=== PROMPT (exact prompt used) ===
+Create "Hytte — A Winter Cabin", a cosy interactive scene: the interior of a log cabin at night, illustrated in SVG/CSS with warm wood tones (#7a4a2a, #a0673c). A stone fireplace with an animated fire (layered flame shapes with flicker plus canvas embers rising); a large window onto a snowy spruce forest with falling snow at several depths and a green-violet aurora (#4dffb4 → #8a5cff) rippling in the sky; a steaming mug on the sill; a reading lamp; and a sleeping cat that breathes. Warm vs cold light: the firelight flicker subtly modulates the room's lighting. Interaction: click the lamp to toggle it (room lighting changes); click the fireplace to add a log (the fire flares, more embers); click the window to open it (cold wind — snow blows inside briefly and the fire dims); click the cat to make its ear twitch; an optional ambient sound toggle (synthesized fire crackle and wind). A title placard in a Scandinavian-style serif. The composition adapts to portrait screens (window above, fireplace below).
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Hytte is a whole-screen illustrated interior: a Scandinavian log cabin at night, drawn in SVG with warm wood tones (#7a4a2a, #a0673c) and lit like a painting. A carved wooden placard reading HYTTE, "a winter cabin", hangs from a nail above a big mullioned window. Through the window, a snowy spruce forest at three depths sits under stars and a rippling green-to-violet aurora (#4dffb4 → #8a5cff) while snow falls outside. A blue enamel mug steams on the sill. A tripod reading lamp with a linen shade stands beside a pendulum wall clock that keeps the real local time. On the right is a rough stone chimney breast with an arched firebox, a timber mantel carrying candles, a red Dala horse and a spruce sprig, a basket of birch logs, and a grey tabby asleep on a braided rag rug in front of the hearth. The fire is animated, and its flicker drives the lighting of the whole room: a warm glow modulates over a cool night tone. On portrait screens the scene is recomposed, with the window above and the fireplace below.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Two hand-planned compositions (landscape 1600×1000, portrait 1000×1700) rendered into one SVG with "meet" scaling; the log wall and plank floor bleed far beyond the frame so any aspect ratio stays filled
+- Procedural SVG construction: horizontal logs with gradient rounding, chinking, grain, knots and butt joints; a perspective plank floor converging on a vanishing point; irregular rounded stones from jittered quadratic outlines with a shared highlight/shadow gradient; voussoirs laid along the quadratic arch of the firebox, with a keystone and jamb blocks
+- The wall is cut by an SVG mask so the window opening shows a canvas behind it: a cached sky gradient, twinkling stars, aurora rays built from one gradient sprite drawn as hundreds of thin strips (additive blending, rippling with sine and value noise) over soft radial glows, pre-rendered spruce rows with snow ledges, a drift lit warm by the cabin, and snow at three depths
+- A canvas fire clipped to the firebox arch: a coal bed, and three nested layers of Bézier flame tongues (red, orange, pale yellow) whose heights and sway come from value noise, with blue at the roots and additive blending; rising embers are clipped to the opening, and flare sparks leap out when a log lands
+- Room lighting through blend-mode overlays: a multiply night layer whose strength depends on the lamp and the fire, a screen-blended firelight gradient whose opacity follows the flame noise every frame, a lamp pool, and a cold aurora-tinted window glow
+- Real 3D casement sashes: HTML panes with frost gradients and muntins that rotate with CSS perspective about their hinges when the window opens
+- Life in the details: candle flames with halos, mug steam that the draught bends sideways, the cat breathing (body scaled from its base), spring-driven ear twitches and tail flicks, drifting "z"s, a swinging pendulum, and glowing seams on the charred logs that pulse with the fire
+- An added birch log flies from the basket in an arc, drops into the firebox and slowly chars from white bark to black
+
+=== INTERACTION MODEL ===
+- Click the lamp (or L) to toggle it: the shade and bulb glow, and the room darkens or brightens
+- Click the fire (or F) to add a log: it arcs from the basket into the grate, the fire flares, sparks burst and the flames stay boosted for several seconds
+- Click the window (or W) to open it: the sashes swing in, snow blows into the room, the steam and flames lean, the fire gutters and the cold glow strengthens. It closes by itself after about five seconds, or on another click
+- Click the cat (or C) to make its ear twitch and tail flick, with a purr when sound is on
+- The Sound toggle synthesizes everything with Web Audio after the first click: a low fire roar, randomly scheduled filtered-noise crackles that speed up with the fire, wind whose band-pass is swept by an LFO and swells when the window opens, log thuds and a 26 Hz amplitude-modulated purr
+- Every object is also a real button with an aria-label, a tooltip on hover or focus and a visible focus ring. A live region narrates each change. Rendering pauses while the tab is hidden, and reduced motion slows the flicker, snow and pendulum

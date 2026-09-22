@@ -1,0 +1,41 @@
+TITLE: Hi-Fi Walnut — Vinyl Listening Room
+FILE: 057-vinyl-listening-room.html
+
+=== PROMPT (exact prompt used) ===
+Build "Hi-Fi Walnut — Vinyl Listening Room", a luxury music player. A photoreal-leaning turntable in CSS/SVG: a walnut plinth (#5c3d2e, wood grain from layered gradients), a brushed-aluminium platter, a black record with realistic grooves (repeating radial gradients) and specular light arcs that stay fixed while the record spins, a centre label designed per album, and a tonearm that swings onto the record when playing. Music: three original "albums" synthesized with Web Audio — ambient generative pieces (e.g. Rhodes-like FM chords under a slow melody, with soft vinyl-crackle noise), each with a distinct mood. The UI panel: generative CSS album art, track title, animated progress, play/pause, next, a volume knob, and a pair of VU meters whose needles respond to the audio (AnalyserNode). Palette: walnut, brass #c9a227, cream #efe6d8 and a deep green felt background #1f3b2d. Typography: elegant serif album titles with small caps. Changing albums triggers a record-swap animation.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Hi-Fi Walnut is a private listening room rendered as a luxury object. On deep green felt (#1f3b2d) lit by a warm lamp sits a top-down walnut turntable: a figured veneer plinth (#5c3d2e) with a brass inlay line, hinges and nameplate, a brushed-aluminium platter with strobe markings and an amber strobe lamp, a black record with fine grooves, dark silent bands exactly where the tracks change, and fixed specular light arcs that stay put while the record and its label turn underneath. An S-shaped aluminium tonearm with a brass counterweight lifts, swings onto the lead-in, lowers with a needle-drop thump and then tracks inward through the side. Below the turntable an integrated amplifier holds two cream analogue VU meters that glow amber and swing with the music, and a knurled brass volume knob. On the right a cream liner-notes card (#efe6d8) carries generative CSS cover art, album titles in display-serif small caps, the track list, a brass progress rail, the transport and a crate of three records. All three fictional albums are ambient pieces generated live with Web Audio: the candlelit Rhodes, flute and brushes of "Moss & Lantern Light", the rainy organ and electric piano of "Tidewater Hours", and the music-box bell arpeggios of "Brass Constellations".
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Walnut veneer from inline SVG: an x-stretched feTurbulence grain mapped through feColorMatrix into walnut tones, a second low-frequency turbulence for darker figure, then lamp-light, bevel and brass inlay layers
+- Record built from stacked CSS gradients: px-pitch repeating-radial grooves, smooth lead-in, run-out and rim bands, faint asymmetric pressing sheen, dust specks, and two dark inter-track bands whose radii (CSS custom properties) are computed from each album's real track timing
+- Fixed specular "bowtie" highlights: a masked conic-gradient in screen blend mode that never rotates, so the grooves appear to turn beneath the light
+- Rotating per-album SVG labels with text on circular paths (title above, imprint below), a static spindle, and a platter with repeating-conic strobe dots lit by an amber lamp
+- Tonearm geometry solved from the pivot, arm length and spindle distance (θ = acos(k/R) − φ), so the stylus sits on the exact groove radius for the current album time; a blurred shadow twin and the cue lever respond to the lift height
+- Platter inertia: angular velocity eases up to 33⅓ rpm (200°/s) and coasts down slowly
+- Record swap with the Web Animations API: the disc lifts, spins away off the deck, the label and bands change, and the next record slides in and settles
+- VU meters in SVG with a true VU scale (needle position linear in voltage, −20 to +3 VU with a red zone), spring ballistics tuned to roughly 300 ms, peak lamps and a warm backlight
+- Generative album art in pure CSS: lantern glow with moss hills, tide bands with moon and rain, and brass orbits with a star field and SVG constellations
+- A felt texture painted once on a fixed canvas from thousands of short fibres, plus lamp light and vignette
+
+=== INTERACTION MODEL ===
+- Play/Pause from the big brass button, a click on the record, the deck's START·STOP button or Space: the motor spins up, the arm cues and drops, and the music starts; pause lifts the arm in place and the platter coasts to a stop
+- Previous/Next (buttons or P/N) lift the arm, move it to the next track band and drop it again; tracks can also be chosen from the list, and the progress rail can be dragged or clicked to seek (←/→ jump 10 s)
+- Change the record from the crate (or keys 1 2 3), with the full lift-away and settle animation; if music was playing it resumes on the new record
+- Brass volume knob: drag vertically or horizontally, use the mouse wheel, or arrow and Page keys (it is an ARIA slider); ↑/↓ also adjust volume globally, and a MUTE toggle switch (or M) silences output
+- Audio: an AudioContext created on the first gesture; FM electric piano, flute with breath noise and delayed vibrato, inharmonic FM bells, a detuned-saw organ pad, a sine/triangle bass and brushed noise, all through gentle saturation, a glue compressor and a generated convolution reverb; wow at the platter's own 0.556 Hz, looping surface crackle with a scratch that ticks once per revolution, and rain for the grey record; bars are seeded, so seeking replays the same music
+- End of side: the stylus drifts into the run-out groove, thumps softly each revolution, then the arm returns automatically
+- prefers-reduced-motion shortens arm and swap animations; the frame loop pauses while the tab is hidden

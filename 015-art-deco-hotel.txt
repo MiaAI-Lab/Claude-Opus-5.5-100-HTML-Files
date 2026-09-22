@@ -1,0 +1,42 @@
+TITLE: The Aurelian
+FILE: 015-art-deco-hotel.html
+
+=== PROMPT (exact prompt used) ===
+Create a landing page for "The Aurelian", a fictional 1928 Art Deco grand hotel. Black lacquer (#0b0b0c) and deep emerald (#0f3d33) grounds with gold (#d4af37, grading to #f5e3a1) geometric ornament — sunbursts, stepped ziggurat frames, chevrons and fan motifs, all inline SVG. Typography: tall, thin, high-contrast display capitals (stack: Didot, "Bodoni 72", "Bodoni MT", "C059", Georgia, serif) with wide letter-spacing, plus refined small caps. Sections: a hero with an animated sunburst radiating behind the hotel name and a symmetrical Deco frame that draws itself in gold; "The Suites" as three arched cards with gilded hover states; a dining section with a menu styled as an engraved card; an elevator-dial floor selector that scrolls to sections while its needle rotates; and a reservation form with Deco-bordered inputs. Delight: a gold-foil shimmer sweeping across headings and fan patterns that open on scroll. Elegant and symmetrical on desktop, gracefully stacked on phones.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A symmetrical, jazz-age landing page for The Aurelian, a fictional 1928 grand hotel, built as a tower you ride through: the hero is the lobby, and each section below is a floor reached by a brass elevator dial. Black lacquer and deep emerald grounds carry gold ornament that grades from #d4af37 to #f5e3a1: a slowly turning sunburst radiates behind a tall, vertically stretched Didot-stack wordmark, while a stepped ziggurat frame draws itself in gold from the bottom centre outwards on both sides at once, ending in a keystone fan that cradles the diamond monogram. Below come three arched suite cards with painted SVG window vignettes, an emerald Salon with a frieze of Deco fans that unfold as they scroll into view, a supper club whose menu is an engraved ivory card with a guilloche rosette, and a reservation desk with double-bracketed, stepped-corner inputs. It is elegant and mirrored on desktop and stacks into a single column on phones.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Hero sunburst: 72 procedurally built SVG ray wedges filled with a user-space radial gold gradient, counter-rotating dotted rings and three staggered "radiating" pulse rings, all animated with CSS transforms
+- Self-drawing Deco frame: JavaScript computes a mirrored stepped-ziggurat outline, inner offset line, pilasters, corner quarter-sunbursts, a keystone fan and foot chevrons to the hero's exact size; every path uses pathLength="1" and a staggered stroke-dashoffset animation, and is rebuilt on resize
+- A shared SVG gold gradient whose highlight stop is animated with SMIL, so a light glint travels along all gold linework
+- Gold-foil shimmer: a multi-stop foil gradient clipped to text (background-clip:text) sweeping across the wordmark and every section heading on a timed loop
+- Tall display capitals: the Didot/Bodoni/C059 stack with wide tracking and a scaleY stretch for the Deco "tall and thin" proportion, plus all-small-caps labels in a Baskerville/Palatino text stack
+- Arched suite cards made with oversized border radii (a perfect semicircle at any width), a double gilt keyline, a skewed sheen sweep on hover and hand-drawn SVG vignettes (moonlit skyline, rising sun with rays, a searchlit spire) whose rays rotate on hover
+- Fans that open on scroll: blades generated per fan, pivoting from a closed stick to their spread angles with centre-out staggered transitions, triggered by IntersectionObserver
+- Engraved menu card: layered ivory radial gradients, triple gold keylines via box-shadow rings and a double border, stepped corner ornaments, a procedural guilloche rosette of rotated ellipses and letterpress text-shadows
+- Seigaiha-style fan-scale background for the Salon built purely from repeating radial gradients
+- Deco-bordered inputs: sixteen gradient layers on one pseudo-element draw double stepped brackets at each corner that spread and brighten on focus; custom chevron select arrows
+
+=== INTERACTION MODEL ===
+- Fixed elevator floor indicator: numerals L and 2 to 5 sit on a brass arc; clicking one smooth-scrolls to that floor, and the needle, driven by a damped spring in requestAnimationFrame, tracks scroll continuously, dwelling on each floor and swinging with a slight overshoot between them
+- Up and down call buttons step one floor at a time; the plaque under the dial names the current floor (announced politely to screen readers)
+- Optional lift chime: a synthesized Web Audio bell (sine partials with exponential decay), created only after the user presses the visible Chime toggle, rings on each floor arrival and on a confirmed booking
+- On phones the dial collapses into a compact medallion that expands on tap; tapping outside or pressing Escape closes it again
+- Suite cards lift and gild on hover and focus; each "Select" button pre-fills the reservation form's residence, scrolls to the desk and focuses the name field
+- Reservation form: dates default to three weeks ahead, the departure date follows the arrival date, a live estimate spells out the nights and total, inline validation messages appear, and on submit a fictional key-card confirmation with a generated code is shown (nothing is sent; the guest name is remembered in guarded localStorage)
+- Keyboard: skip link, native buttons and links throughout, visible gold focus rings; prefers-reduced-motion freezes the sunburst, foil and needle spring and shows the frame fully drawn with fans open

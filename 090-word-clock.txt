@@ -1,0 +1,37 @@
+TITLE: Horologe — The Word Clock
+FILE: 090-word-clock.html
+
+=== PROMPT (exact prompt used) ===
+Build "Horologe — The Word Clock", a typographic clock that spells the current time in words on a grid of letters (an original English layout in the letter-grid clock tradition: "IT IS HALF PAST TEN", five-minute precision plus four corner dots for single minutes). An 11×10 letter grid in a clean, wide-tracked sans; inactive letters are faint (#2a2a2a on #111) and active ones glow warm white (#fff6e5) with soft bloom, fading on and off in a gentle stagger when the time changes. Faces: "Obsidian" (dark), "Paper" (ink on #f3efe6), "Copper" (letters etched into a brushed-copper gradient, lit ones glowing) and "Neon" (magenta tube glow). A small subtitle gives the date in words. Interaction: a face switcher; clicking the grid toggles between the English layout and a second-language layout (e.g. Spanish); a fullscreen button; and a "demo" button that runs through a whole day in 20 seconds. The clock scales to fill any screen while keeping its square grid.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Horologe is a typographic word clock that spells the current time on an original 11×10 letter grid: "IT IS TWENTY FIVE TO TEN", to five-minute precision, with four corner dots adding the single minutes. The English layout is my own arrangement. It adds NOON and MIDNIGHT for 12:00, and its seven filler letters secretly spell MOMENTS. The second-language layout is an original Spanish grid ("SON LAS NUEVE Y MEDIA", "ES LA UNA MENOS CUARTO", "… EN PUNTO") whose fillers spell MOMENTO. Letters are set in a clean geometric sans on a grid that spaces them widely. Inactive letters are faint (#2a2a2a on #111) and active ones glow warm white (#fff6e5) with a soft bloom; they fade off and on in a gentle, reading-order stagger when the time changes. Four faces restyle everything, including the page, controls and dots: Obsidian (black glass with a diagonal reflection), Paper (letterpress ink on #f3efe6), Copper (letters etched into a brushed-copper plate, lit ones backlit and glowing) and Neon (magenta tubes on a dark brick wall, flickering as they strike). Beneath the face, a serif subtitle gives the date in words ("Tuesday, the twenty-second of September") with the year spelled out. The face always stays square and scales to fill the screen.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- 110 letter cells in a CSS grid sized from a single --S variable (min of viewport width and height), so the square face and its type scale together on any screen.
+- Every face is a set of CSS custom properties on <body> (page background, panel gradient, sheen, off/on colours, layered text-shadow bloom, radius), so a face switch is one attribute change with smooth colour transitions.
+- Stagger choreography: letters switching off fade first, then new letters light in reading order via per-cell transition-delay; minute dots follow in clockwise order.
+- Language change as a diagonal flip wave: each cell folds away on rotateX with a delay from row plus column, the letters are rewritten while hidden, then they fold back in.
+- A brushed-copper plate from stacked repeating-linear-gradients over a multi-stop copper gradient, with an inset bevel and etched off-letters (paired light/dark text-shadows).
+- Neon tube ignition: a keyframed flicker on each newly lit letter (fill-mode backwards, so it never blocks the flip), a magenta ambient glow and a brick wall made of repeating gradients.
+- A glass sheen for Obsidian, letterpress deboss for Paper, and a demo progress hairline with a monospace readout.
+
+=== INTERACTION MODEL ===
+- Click, tap or press Enter on the clock (it is a real button) to switch between the English and Spanish layouts; the EN/ES pill and the L key do the same. The date and year switch language too.
+- Face switcher with four swatches (keys 1–4); the choice and language are remembered in localStorage (guarded with try/catch).
+- Demo (D) runs a whole day, 00:00 to 23:59, in 20 seconds, with fast transitions, a progress hairline and a digital readout, then returns to the real time. Pressing it again stops early.
+- Fullscreen (F) with auto-hiding chrome and cursor after 2.2 s of stillness.
+- M reveals the hidden word in the filler letters, one letter at a time.
+- The face's accessible label and a polite live region give the time in words (including the extra minutes); updates pause while the tab is hidden; prefers-reduced-motion shortens the fades and removes the flicker and flip.

@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARES VII Mission Control</title>
+<meta name="description" content="A NASA-punk mission control dashboard for ARES VII, a fictional crewed Mars transfer: live simulated telemetry, a Hohmann trajectory, crew vitals, light-time-delayed comms and master caution alarms.">
+<meta name="theme-color" content="#0e1116">
+<style>
+:root{
+  --bg:#0e1116; --panel:#12161d; --o:#ff6b1a; --t:#e8e6e3; --dim:#8b8f96; --dim2:#5b6068; --amber:#ffb000; --cyan:#4ee1ff; --red:#ff4a3d; --ok:#4ee1ff;
+  --line:rgba(232,230,227,.09);
+  --mono:"JetBrains Mono","SF Mono","IBM Plex Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  --cond:"DIN Condensed","Bahnschrift SemiCondensed",Bahnschrift,"Roboto Condensed","Arial Narrow","Nimbus Sans Narrow","DejaVu Sans Condensed",sans-serif;
+  --sans:"Inter","Helvetica Neue","Segoe UI",Roboto,"DejaVu Sans",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--t);font:12px/1.4 var(--mono);-webkit-font-smoothing:antialiased;overflow:hidden;
+  background-image:linear-gradient(rgba(78,225,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(78,225,255,.028) 1px,transparent 1px);background-size:24px 24px}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.app{display:flex;flex-direction:column;height:100vh;padding:10px 14px 12px;gap:10px}
+
+/* ---------------- header ---------------- */
+.hdr{display:flex;align-items:stretch;gap:14px;flex:none;min-height:66px}
+.seg.mini{margin-top:5px;align-self:flex-start;border-radius:4px;align-items:center}
+.seg.mini span{font-size:8.5px;letter-spacing:.18em;color:var(--dim2);padding:0 6px}
+.seg.mini button{padding:3px 7px;font-size:9px;letter-spacing:.1em}
+.clk .note{color:var(--dim2)}
+.brand{display:flex;align-items:center;gap:12px;padding-right:14px;border-right:1px solid var(--line)}
+.patch{width:52px;height:52px;flex:none}
+.brand h1{margin:0;font:700 26px/1 var(--cond);letter-spacing:.08em;text-transform:uppercase}
+.brand h1 span{color:var(--o)}
+.brand p{margin:3px 0 0;font-size:9.5px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+.brand p b{color:var(--amber);font-weight:400}
+.clk{display:flex;flex-direction:column;justify-content:center;padding:0 14px;border-right:1px solid var(--line);min-width:0}
+.clk label{font-size:9px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase}
+.clk b{font:500 26px/1.05 var(--mono);letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.clk.met b{color:var(--t)}
+.clk.moi b{color:var(--o)}
+.clk.gt b{color:var(--cyan);font-size:22px}
+.clk small{font-size:10px;color:var(--dim);letter-spacing:.08em;white-space:nowrap}
+.ctrls{margin-left:auto;display:flex;align-items:center;gap:10px}
+.seg{display:flex;border:1px solid rgba(232,230,227,.22);border-radius:6px;overflow:hidden}
+.seg button{background:none;border:0;padding:7px 10px;font-size:10.5px;letter-spacing:.12em;cursor:pointer;color:var(--dim);text-transform:uppercase}
+.seg button+button{border-left:1px solid rgba(232,230,227,.18)}
+.seg button[aria-pressed="true"]{background:rgba(255,107,26,.16);color:var(--o)}
+.seg button:hover{color:var(--t)}
+.snd{background:none;border:1px solid rgba(232,230,227,.22);border-radius:6px;padding:7px 10px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:10.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.snd svg{width:14px;height:14px}
+.snd[aria-pressed="true"]{color:var(--t)}
+.master{width:118px;height:52px;border-radius:8px;border:2px solid #4a3a12;background:#1b170c;color:#6d5a26;font:700 12px/1.1 var(--cond);letter-spacing:.14em;text-transform:uppercase;cursor:pointer;box-shadow:inset 0 0 0 3px #0e1116}
+.master.alarm{animation:mc 1s steps(1) infinite;border-color:var(--amber)}
+.master.acked{background:#3a2c05;color:var(--amber);border-color:#8a6400}
+@keyframes mc{0%{background:var(--amber);color:#1a1200;box-shadow:inset 0 0 0 3px #0e1116,0 0 24px rgba(255,176,0,.55)}50%{background:#3a2c05;color:var(--amber);box-shadow:inset 0 0 0 3px #0e1116}}
+
+/* annunciator strip: always in the layout flow, never overlays panels */
+.banner{flex:none;display:flex;align-items:center;gap:12px;min-height:34px;padding:4px 6px 4px 12px;border:1px solid var(--line);border-radius:8px;background:rgba(78,225,255,.035);transition:background .3s,border-color .3s}
+.banner .lamp{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px rgba(78,225,255,.7);flex:none}
+.banner .tri{width:18px;height:16px;flex:none;display:none}
+.banner p{margin:0;flex:1;min-width:0;display:flex;align-items:baseline;gap:16px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.banner p span{color:var(--t);white-space:nowrap}
+.banner p small{font-size:10px;letter-spacing:.1em;color:var(--dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.banner.on{border-color:var(--amber);background:rgba(255,176,0,.1)}
+.banner.on .lamp{display:none}
+.banner.on .tri{display:block}
+.banner.on p span{color:var(--amber)}
+.banner.on p small{color:#c8a860}
+.banner.alarm .tri{animation:bl .8s steps(1) infinite}
+.ack[hidden]{display:none}
+.ack{background:var(--amber);color:#1a1200;border:0;border-radius:5px;padding:8px 14px;font:700 11px var(--mono);letter-spacing:.16em;cursor:pointer}
+
+/* ---------------- grid & panels ---------------- */
+.grid{flex:1;min-height:0;display:grid;gap:10px;grid-template-columns:minmax(0,1.02fr) minmax(0,1.22fr) minmax(0,.98fr);grid-template-rows:minmax(0,1.12fr) minmax(0,1fr) minmax(0,1.02fr);
+  grid-template-areas:"traj telem ship" "traj telem subs" "crew crew comms"}
+.panel{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.012));border:1px solid var(--line);border-radius:10px;padding:9px 12px 10px;display:flex;flex-direction:column;min-width:0;min-height:0}
+.panel::before{content:"";position:absolute;inset:-1px;border-radius:10px;pointer-events:none;opacity:.9;
+  background:linear-gradient(var(--o),var(--o)) top left/14px 2px no-repeat,linear-gradient(var(--o),var(--o)) top left/2px 14px no-repeat,
+  linear-gradient(var(--o),var(--o)) top right/14px 2px no-repeat,linear-gradient(var(--o),var(--o)) top right/2px 14px no-repeat,
+  linear-gradient(var(--o),var(--o)) bottom left/14px 2px no-repeat,linear-gradient(var(--o),var(--o)) bottom left/2px 14px no-repeat,
+  linear-gradient(var(--o),var(--o)) bottom right/14px 2px no-repeat,linear-gradient(var(--o),var(--o)) bottom right/2px 14px no-repeat}
+.ph{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;flex:none;margin-bottom:6px}
+.ph h2{margin:0;font:inherit;color:var(--t)}
+.ph b{color:var(--o);font-weight:400}
+.ph .r{margin-left:auto;display:flex;gap:6px;align-items:center}
+.chip{border:1px solid rgba(78,225,255,.35);color:var(--cyan);border-radius:4px;padding:1px 6px;font-size:9px;letter-spacing:.14em}
+.chip.o{border-color:rgba(255,107,26,.45);color:var(--o)}
+.chip.a{border-color:rgba(255,176,0,.5);color:var(--amber)}
+.traj{grid-area:traj}.telem{grid-area:telem}.ship{grid-area:ship}.subs{grid-area:subs}.crew{grid-area:crew}.comms{grid-area:comms}
+
+/* trajectory */
+.trajwrap{flex:1;min-height:0;position:relative}
+#trajSvg{width:100%;height:100%;display:block}
+.replay{position:absolute;right:0;top:0;background:rgba(255,107,26,.1);border:1px solid rgba(255,107,26,.45);color:var(--o);border-radius:5px;padding:5px 9px;font-size:10px;letter-spacing:.14em;cursor:pointer;text-transform:uppercase}
+.replay[aria-pressed="true"]{background:var(--o);color:#140800}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;flex:none;border-top:1px solid var(--line);padding-top:7px}
+.st label{display:block;font-size:8.5px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+.st b{font:500 15px/1.2 var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.st b small{font-size:10px;color:var(--dim);font-weight:400}
+
+/* telemetry */
+.charts{flex:1;min-height:0;display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:6px}
+.ch{display:grid;grid-template-columns:132px minmax(0,1fr);gap:10px;min-height:0;border-top:1px solid var(--line);padding-top:6px}
+.ch:first-child{border-top:0;padding-top:0}
+.cv label{display:block;font-size:9px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+.cv b{display:block;font:500 25px/1.1 var(--mono);color:var(--cyan);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.cv b small{font-size:11px;color:var(--dim);font-weight:400;margin-left:3px}
+.cv .lim{display:block;font-size:9.5px;color:var(--dim);letter-spacing:.06em;margin-top:2px}
+.cv i{font-style:normal;color:var(--cyan)}
+.cv.caution b{color:var(--amber)}
+.cv.caution i{color:var(--amber)}
+.ch canvas{width:100%;height:100%;display:block;min-height:0}
+
+/* ship */
+.shipwrap{flex:1;min-height:0;position:relative}
+#shipSvg{width:100%;height:100%;display:block}
+.part{transition:filter .3s}
+.part.hl{filter:drop-shadow(0 0 5px rgba(255,107,26,.9))}
+.part.hl .pl{stroke:var(--o)}
+.part.warn .pl{stroke:var(--amber);animation:pw 1s steps(1) infinite}
+@keyframes pw{50%{stroke:#6b4a00}}
+.flow{stroke-dasharray:3 5;animation:flow 1.1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-16}}
+.blink{animation:bl 1.6s steps(1) infinite}
+.blink.g{animation-delay:-.8s}
+@keyframes bl{50%{opacity:.15}}
+.beam{opacity:0}
+.beam.go{animation:beam 1.4s ease-out}
+@keyframes beam{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(1.6)}}
+
+/* subsystems */
+.tiles{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:6px}
+.tile{position:relative;display:flex;flex-direction:column;justify-content:space-between;text-align:left;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:6px;padding:6px 8px 6px 9px;cursor:pointer;min-height:0;overflow:hidden}
+.tile:hover{border-color:rgba(232,230,227,.3);background:rgba(255,255,255,.05)}
+.tile .top{display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:.16em;color:var(--dim);min-height:0}
+.tile .lt{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px rgba(78,225,255,.8);flex:none}
+.tile b{font:600 10.5px/1.1 var(--sans);letter-spacing:0;text-transform:uppercase;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile span.v{font-size:10px;color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.caution{border-color:rgba(255,176,0,.6);background:rgba(255,176,0,.08)}
+.tile.caution .lt{background:var(--amber);box-shadow:0 0 10px rgba(255,176,0,.9);animation:bl .8s steps(1) infinite}
+.tile.caution.acked .lt{animation:none}
+.tile.caution span.v{color:var(--amber)}
+.tile.sel{border-color:var(--o)}
+
+/* crew */
+.cards{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.card{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;min-height:0;min-width:0;overflow:hidden;background:rgba(0,0,0,.18)}
+.card .who{display:flex;align-items:baseline;gap:7px;min-width:0}
+.card .role{font-size:9px;letter-spacing:.14em;color:#140800;background:var(--o);border-radius:3px;padding:1px 5px;flex:none}
+.card .nm{font:600 13px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .act{font-size:9.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .act i{font-style:normal;color:var(--cyan)}
+.card .hr{display:flex;align-items:center;gap:8px}
+.card .hr b{font:500 26px/1 var(--mono);font-variant-numeric:tabular-nums}
+.card .hr small{font-size:9px;color:var(--dim);letter-spacing:.14em}
+.heart{width:15px;height:14px;flex:none;transition:transform .12s}
+.heart.beat{transform:scale(1.28)}
+.card canvas{width:100%;flex:1;min-height:30px;display:block}
+.vit{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:9px;color:var(--dim);letter-spacing:.08em}
+.vit b{display:block;font:500 12px var(--mono);color:var(--t);letter-spacing:0}
+
+/* comms */
+.lt-line{font-size:10px;color:var(--dim);letter-spacing:.08em;margin:-2px 0 6px;display:flex;justify-content:space-between;flex:none}
+.lt-line b{color:var(--cyan);font-weight:400}
+.log{flex:1;min-height:0;overflow:auto;margin:0;padding:0 4px 0 0;list-style:none;scrollbar-width:thin;scrollbar-color:#2a2f38 transparent}
+.log li{padding:5px 0 6px;border-bottom:1px dashed rgba(232,230,227,.08);animation:inb .4s ease-out}
+@keyframes inb{from{opacity:0;transform:translateY(4px)}}
+.log .m{display:flex;gap:8px;font-size:9.5px;letter-spacing:.08em;color:var(--dim)}
+.log .m .d{color:var(--cyan)}
+.log .m .u{color:var(--o)}
+.log .m .s{color:var(--amber)}
+.log p{margin:2px 0 0;font:12.5px/1.35 var(--sans);color:var(--t)}
+.log li.sys p{color:#d8c28e;font:11px var(--mono);letter-spacing:.04em}
+.bar{height:3px;background:rgba(255,107,26,.15);border-radius:2px;margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--o)}
+.send{display:flex;gap:6px;flex:none;margin-top:7px}
+.send input{flex:1;min-width:0;background:rgba(0,0,0,.3);border:1px solid rgba(232,230,227,.2);border-radius:5px;padding:7px 9px;font-size:12px}
+.send input::placeholder{color:var(--dim2)}
+.send button{background:var(--o);color:#140800;border:0;border-radius:5px;padding:0 12px;font:700 10.5px var(--mono);letter-spacing:.14em;cursor:pointer}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(5,7,10,.55);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);z-index:41;background:#12161d;border-left:1px solid rgba(255,107,26,.5);padding:18px 20px;transform:translateX(102%);transition:transform .32s cubic-bezier(.3,.8,.2,1);display:flex;flex-direction:column;gap:12px;overflow:auto}
+.drawer.on{transform:none}
+.drawer h3{margin:0;font:700 28px/1 var(--cond);letter-spacing:.08em;text-transform:uppercase}
+.drawer .code{font-size:10px;letter-spacing:.2em;color:var(--o)}
+.drawer .desc{font:13px/1.5 var(--sans);color:#c9c7c3;margin:0}
+.drawer .close{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:6px;border:1px solid rgba(232,230,227,.25);background:none;cursor:pointer;display:grid;place-items:center}
+.drawer .close svg{width:14px;height:14px}
+.params{display:flex;flex-direction:column;gap:2px}
+.prm{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.prm label{font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.prm b{font:500 18px var(--mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--cyan)}
+.prm small{grid-column:1 / 3;font-size:10px;color:var(--dim2)}
+.dstat{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.dstat i{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.dstat.c i{background:var(--amber);box-shadow:0 0 10px var(--amber)}
+.dstat.c{color:var(--amber)}
+.foot{font-size:9px;letter-spacing:.2em;color:var(--dim2);text-align:center;text-transform:uppercase;flex:none;margin-top:-4px}
+
+@media (max-width:1180px){
+  body{overflow:auto}
+  .app{height:auto;min-height:100vh}
+  .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"traj telem" "ship subs" "crew crew" "comms comms"}
+  .app{max-width:100vw;overflow-x:hidden}
+  .traj{min-height:520px}.telem{min-height:520px}.ship{min-height:280px}.subs{min-height:280px}.crew{min-height:250px}.comms{min-height:340px}
+  .hdr{flex-wrap:wrap}
+}
+@media (max-width:720px){
+  .app{padding:8px 10px 12px}
+  .grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"traj" "telem" "ship" "subs" "crew" "comms"}
+  .traj{min-height:470px}.telem{min-height:470px}.ship{min-height:240px}.subs{min-height:300px}.crew{min-height:500px}
+  .hdr{gap:8px}
+  .brand{border-right:0;width:100%;padding-right:0}
+  .brand h1{font-size:23px}
+  .patch{width:44px;height:44px}
+  .clk{padding:0 8px 0 0;border-right:0;flex:1 1 40%;overflow:hidden}
+  .clk b{font-size:16px}
+  .clk small{font-size:9px;white-space:normal;line-height:1.3}
+  .clk.gt b{font-size:16px}
+  .clk.gt{flex-basis:100%}
+  .seg.mini span{display:none}
+  .seg.mini button{padding:3px 6px}
+  .ctrls{flex-wrap:wrap;width:100%}
+  .master{width:100%;height:44px;order:-1}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .ch{grid-template-columns:108px minmax(0,1fr)}
+  .cv b{font-size:20px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .banner{flex-wrap:wrap;padding:6px 8px 6px 10px}
+  .banner p{flex-direction:column;gap:2px;letter-spacing:.1em}
+  .banner p span,.banner p small{white-space:normal}
+  .ack{width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .master.alarm{animation:none;background:var(--amber);color:#1a1200}
+  .flow,.blink,.tile.caution .lt,.part.warn .pl{animation:none}
+  .log li{animation:none}
+  .drawer,.scrim,.banner{transition:none}
+  .banner.alarm .tri{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hdr">
+    <div class="brand">
+      <svg class="patch" viewBox="0 0 52 52" aria-hidden="true">
+        <circle cx="26" cy="26" r="24" fill="#12161d" stroke="#ff6b1a" stroke-width="2"/>
+        <circle cx="26" cy="26" r="19" fill="none" stroke="rgba(232,230,227,.25)" stroke-dasharray="1 3"/>
+        <ellipse cx="26" cy="27" rx="17" ry="8" fill="none" stroke="#4ee1ff" stroke-width="1.2" transform="rotate(-24 26 27)"/>
+        <circle cx="34" cy="17" r="6" fill="#c9501c"/><circle cx="32" cy="15.5" r="1.4" fill="#e07a45"/>
+        <circle cx="13" cy="33" r="3.2" fill="#4ee1ff"/>
+        <path d="M22 30l4-11 4 11-4-2.5z" fill="#e8e6e3"/>
+        <text x="26" y="45" text-anchor="middle" font-size="5.5" font-family="Consolas, DejaVu Sans Mono, monospace" fill="#e8e6e3" letter-spacing="1">VII</text>
+      </svg>
+      <div>
+        <h1>ARES <span>VII</span></h1>
+        <p>Mission control · flight dir. white · <b>simulated telemetry</b></p>
+      </div>
+    </div>
+    <div class="clk met"><label>Mission elapsed time</label><b id="met">000:00:00:00</b><small id="fd">FLIGHT DAY 000 · TRANS-MARS CRUISE</small>
+      <div class="seg mini" role="group" aria-label="Simulation rate"><span>SIM</span>
+        <button type="button" data-rate="1" aria-pressed="true">×1</button>
+        <button type="button" data-rate="60" aria-pressed="false">×60</button>
+        <button type="button" data-rate="3600" aria-pressed="false">×3600</button>
+      </div></div>
+    <div class="clk moi"><label>Mars orbit insertion</label><b id="moi">T− 000d 00:00:00</b><small>MOI BURN · Δv 2.09 km/s</small><small class="note">departure FD 0 · arrival FD 259</small></div>
+    <div class="clk gt"><label id="gLabel">Earth · UTC</label><b id="gtime">00:00:00</b><small id="gsub">—</small>
+      <div class="seg mini" role="group" aria-label="Clock reference">
+        <button type="button" id="tEarth" aria-pressed="true">Earth UTC</button>
+        <button type="button" id="tMars" aria-pressed="false">Mars sol</button>
+      </div></div>
+    <div class="ctrls">
+      <button type="button" class="snd" id="snd" aria-pressed="true" aria-label="Alarm sound on"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3v10L5 10H2z" fill="currentColor"/><path id="sndWave" d="M11 5.5c1.2 1.4 1.2 3.6 0 5M12.8 3.8c2.2 2.4 2.2 6 0 8.4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><span id="sndLbl">Sound on</span></button>
+      <button type="button" class="master" id="master" aria-label="Master caution. No active cautions.">Master<br>caution</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" role="status" aria-live="assertive" aria-label="Caution and warning annunciator">
+    <span class="lamp" aria-hidden="true"></span>
+    <svg class="tri" viewBox="0 0 22 20" aria-hidden="true"><path d="M11 1 21 19H1z" fill="none" stroke="#ffb000" stroke-width="1.8"/><path d="M11 7v6M11 15v1.6" stroke="#ffb000" stroke-width="2"/></svg>
+    <p><span id="bText">All systems nominal</span><small id="bSub">12 / 12 subsystems in family · no active cautions · C&amp;W armed</small></p>
+    <button type="button" class="ack" id="ack" hidden>Acknowledge</button>
+  </div>
+
+  <main class="grid">
+    <section class="panel traj" aria-labelledby="hTraj">
+      <div class="ph"><b>01</b><h2 id="hTraj">Trajectory · heliocentric</h2><span class="r"><span class="chip">Hohmann</span></span></div>
+      <div class="trajwrap">
+        <svg id="trajSvg" viewBox="0 0 440 440" role="img" aria-label="Hohmann transfer orbit from Earth to Mars with the spacecraft position">
+          <defs>
+            <radialGradient id="sunG"><stop offset="0" stop-color="#fff3d6"/><stop offset=".35" stop-color="#ffb000"/><stop offset=".7" stop-color="#ff6b1a" stop-opacity=".45"/><stop offset="1" stop-color="#ff6b1a" stop-opacity="0"/></radialGradient>
+          </defs>
+          <g id="trajGrid" stroke="rgba(232,230,227,.08)" fill="none"></g>
+          <circle cx="220" cy="220" r="130" fill="none" stroke="#4ee1ff" stroke-opacity=".35" stroke-width="1"/>
+          <circle cx="220" cy="220" r="198.1" fill="none" stroke="#ff6b1a" stroke-opacity=".35" stroke-width="1"/>
+          <path id="ellFull" fill="none" stroke="rgba(232,230,227,.14)" stroke-dasharray="1 4"/>
+          <path id="ellAhead" fill="none" stroke="#e8e6e3" stroke-opacity=".55" stroke-width="1.2" stroke-dasharray="5 4"/>
+          <path id="ellDone" fill="none" stroke="#ff6b1a" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="220" cy="220" r="26" fill="url(#sunG)"/>
+          <circle cx="220" cy="220" r="7" fill="#ffd27a"/>
+          <text x="220" y="246" text-anchor="middle" font-size="8.5" fill="#8b8f96" letter-spacing="2" font-family="Consolas, DejaVu Sans Mono, monospace">SOL</text>
+          <g id="tmi"><circle r="3" fill="none" stroke="#e8e6e3"/><text x="-8" y="3" text-anchor="end" font-size="8" fill="#8b8f96" letter-spacing="1.5" font-family="Consolas, DejaVu Sans Mono, monospace">TMI · FD 0</text></g>
+          <g id="moiM"><circle r="3" fill="none" stroke="#ff6b1a"/><text x="0" y="-9" text-anchor="middle" font-size="8" fill="#ff6b1a" letter-spacing="1.5" font-family="Consolas, DejaVu Sans Mono, monospace">MOI · FD 259</text></g>
+          <line id="los" stroke="#4ee1ff" stroke-opacity=".6" stroke-dasharray="2 3"/>
+          <text id="losT" font-size="8.5" fill="#4ee1ff" text-anchor="middle" font-family="Consolas, DejaVu Sans Mono, monospace" letter-spacing="1">LT</text>
+          <g id="earth"><circle r="6" fill="#4ee1ff"/><circle r="11" fill="none" stroke="#4ee1ff" stroke-opacity=".3"/><text x="0" y="22" text-anchor="middle" font-size="9" fill="#4ee1ff" letter-spacing="2" font-family="Consolas, DejaVu Sans Mono, monospace">EARTH</text></g>
+          <g id="mars"><circle r="5" fill="#c9501c"/><circle r="10" fill="none" stroke="#ff6b1a" stroke-opacity=".35"/><text x="0" y="21" text-anchor="middle" font-size="9" fill="#ff6b1a" letter-spacing="2" font-family="Consolas, DejaVu Sans Mono, monospace">MARS</text></g>
+          <g id="sc">
+            <circle r="9" fill="none" stroke="#ff6b1a" stroke-opacity=".7"><animate attributeName="r" values="6;18" dur="2s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".8;0" dur="2s" repeatCount="indefinite"/></circle>
+            <path d="M0-6 5 0 0 6-5 0z" fill="#ff6b1a" stroke="#0e1116"/>
+            <text id="scT" x="9" y="-9" font-size="9" fill="#e8e6e3" letter-spacing="1.5" font-family="Consolas, DejaVu Sans Mono, monospace">ARES VII</text>
+          </g>
+          <g font-family="Consolas, DejaVu Sans Mono, monospace" font-size="8" fill="#5b6068" letter-spacing="1.5">
+            <path d="M16 424h65" stroke="#8b8f96"/><path d="M16 420v8M81 420v8" stroke="#8b8f96"/><text x="48" y="416" text-anchor="middle">0.5 AU</text>
+            <text x="424" y="424" text-anchor="end" id="dayT">FD 142 / 259</text>
+          </g>
+        </svg>
+        <button type="button" class="replay" id="replay" aria-pressed="false">&#9654; Replay transfer</button>
+      </div>
+      <div class="stats">
+        <div class="st"><label>Sun range</label><b id="sR">—</b></div>
+        <div class="st"><label>Velocity ☉</label><b id="sV">—</b></div>
+        <div class="st"><label>Earth range</label><b id="sE">—</b></div>
+        <div class="st"><label>Mars range</label><b id="sM">—</b></div>
+      </div>
+    </section>
+
+    <section class="panel telem" aria-labelledby="hTel">
+      <div class="ph"><b>02</b><h2 id="hTel">Telemetry · live</h2><span class="r"><span class="chip" id="rateChip">10 Hz</span><span class="chip o">Sim</span></span></div>
+      <div class="charts">
+        <div class="ch"><div class="cv" id="cv0"><label>Cabin ppO₂</label><b><span id="v0">21.25</span><small>kPa</small></b><span class="lim">limits 19.5–23.1 · <i id="s0">NOM</i></span></div><canvas id="c0" role="img" aria-label="Cabin oxygen partial pressure chart"></canvas></div>
+        <div class="ch"><div class="cv" id="cv1"><label>Cabin CO₂</label><b><span id="v1">2400</span><small>ppm</small></b><span class="lim">caution &gt; 4000 · <i id="s1">NOM</i></span></div><canvas id="c1" role="img" aria-label="Carbon dioxide chart"></canvas></div>
+        <div class="ch"><div class="cv" id="cv2"><label>Array power</label><b><span id="v2">32.9</span><small>kW</small></b><span class="lim">bus load <i id="s2">21.4 kW</i></span></div><canvas id="c2" role="img" aria-label="Solar array power chart"></canvas></div>
+        <div class="ch"><div class="cv" id="cv3"><label>Velocity ☉ (nav)</label><b><span id="v3">24.720</span><small>km/s</small></b><span class="lim">vis-viva · <i id="s3">slowing</i></span></div><canvas id="c3" role="img" aria-label="Heliocentric velocity chart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="panel ship" aria-labelledby="hShip">
+      <div class="ph"><b>03</b><h2 id="hShip">Vehicle · ARES VII TV</h2><span class="r"><span class="chip">Attitude hold</span></span></div>
+      <div class="shipwrap">
+        <svg id="shipSvg" viewBox="0 0 420 200" role="img" aria-label="Animated schematic of the ARES VII transit vehicle">
+          <g font-family="Consolas, DejaVu Sans Mono, monospace" font-size="7.5" letter-spacing="1.2" fill="#8b8f96">
+            <!-- arrays -->
+            <g class="part" data-sys="power" id="arrays">
+              <g id="arrUp">
+                <path class="pl" d="M204 104V14" stroke="#e8e6e3" stroke-width="1.4"/>
+                <rect class="pl" x="178" y="14" width="52" height="84" fill="#10263a" stroke="#4ee1ff" stroke-width="1"/>
+                <path d="M178 26h52M178 38h52M178 50h52M178 62h52M178 74h52M178 86h52M191 14v84M204 14v84M217 14v84" stroke="#4ee1ff" stroke-opacity=".35" stroke-width=".6"/>
+                <circle class="blink g" cx="204" cy="11" r="2" fill="#39ff88"/>
+              </g>
+              <g id="arrDn">
+                <path class="pl" d="M204 116v70" stroke="#e8e6e3" stroke-width="1.4"/>
+                <rect class="pl" x="178" y="122" width="52" height="64" fill="#10263a" stroke="#4ee1ff" stroke-width="1"/>
+                <path d="M178 134h52M178 146h52M178 158h52M178 170h52M191 122v64M204 122v64M217 122v64" stroke="#4ee1ff" stroke-opacity=".35" stroke-width=".6"/>
+                <circle class="blink" cx="204" cy="189" r="2" fill="#ff3b30"/>
+              </g>
+            </g>
+            <!-- truss -->
+            <g class="part" data-sys="struct">
+              <path class="pl" d="M150 104H262M150 116H262" stroke="#e8e6e3" stroke-width="1.2"/>
+              <path d="M150 116l8-12 8 12 8-12 8 12 8-12 8 12M222 116l8-12 8 12 8-12 8 12" stroke="#e8e6e3" stroke-opacity=".45" stroke-width=".8" fill="none"/>
+            </g>
+            <!-- radiators -->
+            <g class="part" data-sys="thermal">
+              <path class="pl" d="M238 104 250 64H286L274 104Z" fill="#161b24" stroke="#e8e6e3" stroke-width="1"/>
+              <path class="pl" d="M238 116 250 156H286L274 116Z" fill="#161b24" stroke="#e8e6e3" stroke-width="1"/>
+              <path class="flow" d="M246 100 256 70H280M246 120 256 150H280" fill="none" stroke="#4ee1ff" stroke-width="1.2"/>
+            </g>
+            <!-- hab -->
+            <g class="part" data-sys="eclss">
+              <rect class="pl" x="40" y="86" width="110" height="48" rx="10" fill="#171c25" stroke="#e8e6e3" stroke-width="1.4"/>
+              <path d="M62 86v48M84 86v48M106 86v48M128 86v48" stroke="#e8e6e3" stroke-opacity=".2"/>
+              <rect x="26" y="98" width="14" height="24" rx="3" fill="#171c25" stroke="#e8e6e3" stroke-width="1.2"/>
+              <path class="pl" d="M66 86q0-12 14-12t14 12" fill="#171c25" stroke="#e8e6e3" stroke-width="1.2"/>
+              <path d="M73 80h4M80 77v5M83 80h4" stroke="#4ee1ff" stroke-width="1.4"/>
+              <circle cx="52" cy="110" r="2.4" fill="#4ee1ff" opacity=".8"/><circle cx="118" cy="110" r="2.4" fill="#4ee1ff" opacity=".8"/>
+              <circle class="blink" cx="27" cy="124" r="1.8" fill="#ff3b30"/>
+            </g>
+            <!-- HGA -->
+            <g class="part" data-sys="comms">
+              <path class="pl" d="M124 86V52" stroke="#e8e6e3" stroke-width="1.3"/>
+              <g id="hga" transform="translate(124 50)">
+                <path class="pl" d="M-13-2A14 14 0 0 0 13-2" fill="#171c25" stroke="#e8e6e3" stroke-width="1.4"/>
+                <path d="M0-2V-12M-4-12h8" stroke="#e8e6e3" stroke-width="1"/>
+                <g class="beam" id="beam" style="transform-origin:0px -14px"><path d="M-9-18a12 12 0 0 1 18 0M-14-23a19 19 0 0 1 28 0M-19-28a26 26 0 0 1 38 0" fill="none" stroke="#4ee1ff" stroke-width="1.2"/></g>
+              </g>
+            </g>
+            <!-- service module -->
+            <g class="part" data-sys="prop">
+              <rect class="pl" x="262" y="90" width="72" height="40" rx="6" fill="#171c25" stroke="#e8e6e3" stroke-width="1.4"/>
+              <circle cx="284" cy="110" r="12" fill="none" stroke="#e8e6e3" stroke-opacity=".45"/><circle cx="312" cy="110" r="12" fill="none" stroke="#e8e6e3" stroke-opacity=".45"/>
+              <path d="M268 88v-5M264 85h8M268 132v5M264 135h8" stroke="#e8e6e3" stroke-width="1"/>
+              <path class="pl" d="M334 100 362 88V132L334 120Z" fill="#171c25" stroke="#e8e6e3" stroke-width="1.4"/>
+              <g id="rcs" opacity="0"><circle cx="268" cy="78" r="3" fill="#e8e6e3" opacity=".6"/><circle cx="268" cy="72" r="2" fill="#e8e6e3" opacity=".35"/></g>
+            </g>
+            <!-- labels -->
+            <path d="M80 72V46H56" stroke="#5b6068" fill="none"/><text x="18" y="44">CUPOLA</text>
+            <path d="M136 42h24" stroke="#5b6068"/><text x="163" y="44" fill="#4ee1ff">HGA</text>
+            <path d="M60 134v28H40" stroke="#5b6068" fill="none"/><text x="6" y="165">HAB-A</text>
+            <path d="M234 26h34" stroke="#5b6068"/><text x="272" y="28">ARRAY 1</text>
+            <path d="M234 178h34" stroke="#5b6068"/><text x="272" y="180">ARRAY 2</text>
+            <path d="M288 66h20" stroke="#5b6068"/><text x="312" y="68">RADIATOR</text>
+            <path d="M312 134v22h18" stroke="#5b6068" fill="none"/><text x="334" y="159">LOX/LCH₄</text>
+            <path d="M362 110h14" stroke="#5b6068"/><text x="378" y="104">MAIN</text><text x="378" y="114">ENGINE</text>
+            <text x="6" y="192" fill="#5b6068" font-size="7">TV-7 · MASS 142.6 t · NOT TO SCALE</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <section class="panel subs" aria-labelledby="hSubs">
+      <div class="ph"><b>04</b><h2 id="hSubs">Subsystems</h2><span class="r"><span class="chip" id="subSum">12 / 12 nominal</span></span></div>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <section class="panel crew" aria-labelledby="hCrew">
+      <div class="ph"><b>05</b><h2 id="hCrew">Crew biomed · 4 aboard</h2><span class="r"><span class="chip">Surgeon console</span></span></div>
+      <div class="cards" id="cards"></div>
+    </section>
+
+    <section class="panel comms" aria-labelledby="hComms">
+      <div class="ph"><b>06</b><h2 id="hComms">Comms · S/X-band</h2><span class="r"><span class="chip" id="dsn">DSN 43 · lock</span></span></div>
+      <div class="lt-line"><span>One-way light time <b id="ltv">—</b></span><span>Round trip <b id="rtv">—</b></span></div>
+      <ul class="log" id="log" aria-live="polite" aria-label="Communications log"></ul>
+      <form class="send" id="sendForm">
+        <label class="sr-only" for="msg">Uplink message to the crew</label>
+        <input id="msg" maxlength="90" autocomplete="off" placeholder="Uplink to ARES VII…">
+        <button type="submit">Send ↑</button>
+      </form>
+    </section>
+  </main>
+  <div class="foot">ARES VII is a fictional mission · all telemetry, crew and events are simulated in your browser · orbital mechanics are real</div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dName" aria-hidden="true">
+  <button type="button" class="close" id="dClose" aria-label="Close subsystem detail"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1l12 12M13 1 1 13" stroke="#e8e6e3" stroke-width="1.8"/></svg></button>
+  <span class="code" id="dCode">SYS</span>
+  <h3 id="dName">Subsystem</h3>
+  <div class="dstat" id="dStat"><i></i><span id="dStatT">Nominal</span></div>
+  <p class="desc" id="dDesc"></p>
+  <div class="params" id="dParams"></div>
+</aside>
+
+<script>
+(function(){
+'use strict';
+function $(s){ return document.querySelector(s); }
+function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+function pad(n, w){ n = String(Math.floor(n)); while (n.length < (w || 2)) n = '0' + n; return n; }
+var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= TIME ================= */
+var MET0 = 142 * 86400 + 5 * 3600 + 17 * 60 + 32;
+var wall0 = Date.now(), simEl = 0, rate = 1, marsMode = false;
+function met(){ return MET0 + simEl; }
+function utcMs(){ return wall0 + simEl * 1000; }
+function fmtMET(s){ var d = Math.floor(s / 86400); s -= d * 86400; return pad(d, 3) + ':' + pad(s / 3600) + ':' + pad((s % 3600) / 60) + ':' + pad(s % 60); }
+function fmtDur(s){ s = Math.max(0, s); var m = Math.floor(s / 60); return m + 'm ' + pad(s % 60) + 's'; }
+
+/* ================= ORBIT (real Hohmann numbers) ================= */
+var AU_KM = 149597870.7, LT_AU = 499.005, VE = 29.78;
+var RA = 1.5237, A = (1 + RA) / 2, E = (RA - 1) / (RA + 1);
+var PER = Math.pow(A, 1.5) * 365.256, TR = PER / 2, MARS_P = 686.98, EARTH_P = 365.256;
+var PHI0 = -120 * Math.PI / 180;
+var TRC = 220, TRS = 130;
+function kep(M){ var En = M; for (var i = 0; i < 12; i++) En -= (En - E * Math.sin(En) - M) / (1 - E * Math.cos(En)); return En; }
+var O = { r:1, ang:0, v:0, ex:0, ey:0, mx:0, my:0, sx:0, sy:0, dE:0, dM:0, lt:0 };
+function orbit(tDays){
+  var M = 2 * Math.PI * tDays / PER, En = kep(M);
+  var nu = 2 * Math.atan2(Math.sqrt(1 + E) * Math.sin(En / 2), Math.sqrt(1 - E) * Math.cos(En / 2));
+  var r = A * (1 - E * Math.cos(En)), a = PHI0 + nu;
+  O.r = r; O.ang = a; O.nu = nu;
+  O.sx = r * Math.cos(a); O.sy = r * Math.sin(a);
+  O.v = VE * Math.sqrt(2 / r - 1 / A);
+  var ea = PHI0 + 2 * Math.PI * tDays / EARTH_P; O.ex = Math.cos(ea); O.ey = Math.sin(ea);
+  var ma = PHI0 + Math.PI - 2 * Math.PI * (TR - tDays) / MARS_P; O.mx = RA * Math.cos(ma); O.my = RA * Math.sin(ma);
+  O.dE = Math.hypot(O.sx - O.ex, O.sy - O.ey); O.dM = Math.hypot(O.sx - O.mx, O.sy - O.my);
+  O.lt = O.dE * LT_AU;
+  // velocity direction (for antenna pointing)
+  var fpa = Math.atan2(E * Math.sin(nu), 1 + E * Math.cos(nu));
+  O.vdir = a + Math.PI / 2 - fpa;
+  O.edir = Math.atan2(O.ey - O.sy, O.ex - O.sx);
+  return O;
+}
+function P(x, y){ return [TRC + x * TRS, TRC - y * TRS]; }
+
+/* ---- trajectory drawing ---- */
+var ellFull = $('#ellFull'), ellDone = $('#ellDone'), ellAhead = $('#ellAhead');
+(function(){
+  var g = $('#trajGrid'), html = '';
+  [0.5, 1.0, 1.5].forEach(function(r){ html += '<circle cx="220" cy="220" r="' + (r * TRS) + '" stroke-dasharray="2 6"/>'; });
+  html += '<path d="M220 8V432M8 220H432"/>';
+  for (var a = 0; a < 360; a += 30){ var rad = a * Math.PI / 180; html += '<path d="M' + (220 + Math.cos(rad) * 206).toFixed(1) + ' ' + (220 - Math.sin(rad) * 206).toFixed(1) + 'L' + (220 + Math.cos(rad) * 214).toFixed(1) + ' ' + (220 - Math.sin(rad) * 214).toFixed(1) + '"/>'; }
+  g.innerHTML = html;
+  var d = '';
+  for (var k = 0; k <= 120; k++){ var nu = k / 120 * Math.PI * 2, r = A * (1 - E * E) / (1 + E * Math.cos(nu)), p = P(r * Math.cos(PHI0 + nu), r * Math.sin(PHI0 + nu)); d += (k ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+  ellFull.setAttribute('d', d);
+  var t = P(Math.cos(PHI0), Math.sin(PHI0)); $('#tmi').setAttribute('transform', 'translate(' + t[0].toFixed(1) + ' ' + t[1].toFixed(1) + ')');
+  var m = P(RA * Math.cos(PHI0 + Math.PI), RA * Math.sin(PHI0 + Math.PI)); $('#moiM').setAttribute('transform', 'translate(' + m[0].toFixed(1) + ' ' + m[1].toFixed(1) + ')');
+})();
+function arcPath(nu0, nu1){
+  var d = '', n = Math.max(2, Math.ceil(Math.abs(nu1 - nu0) / 0.04));
+  for (var k = 0; k <= n; k++){ var nu = nu0 + (nu1 - nu0) * k / n, r = A * (1 - E * E) / (1 + E * Math.cos(nu)), p = P(r * Math.cos(PHI0 + nu), r * Math.sin(PHI0 + nu)); d += (k ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+  return d;
+}
+var earthG = $('#earth'), marsG = $('#mars'), scG = $('#sc'), los = $('#los'), losT = $('#losT'), dayT = $('#dayT'), scT = $('#scT'), earthL = $('#earth text');
+var replayOn = false, replayT = 0, lastNu = -1;
+function drawTraj(tDays){
+  orbit(tDays);
+  var e = P(O.ex, O.ey), m = P(O.mx, O.my), s = P(O.sx, O.sy);
+  earthG.setAttribute('transform', 'translate(' + e[0].toFixed(1) + ' ' + e[1].toFixed(1) + ')');
+  marsG.setAttribute('transform', 'translate(' + m[0].toFixed(1) + ' ' + m[1].toFixed(1) + ')');
+  scG.setAttribute('transform', 'translate(' + s[0].toFixed(1) + ' ' + s[1].toFixed(1) + ')');
+  los.setAttribute('x1', e[0].toFixed(1)); los.setAttribute('y1', e[1].toFixed(1)); los.setAttribute('x2', s[0].toFixed(1)); los.setAttribute('y2', s[1].toFixed(1));
+  var mx = (e[0] + s[0]) / 2, my = (e[1] + s[1]) / 2, nx = -(s[1] - e[1]), ny = s[0] - e[0], nl = Math.hypot(nx, ny) || 1;
+  nx /= nl; ny /= nl; if (nx * (mx - TRC) + ny * (my - TRC) < 0){ nx = -nx; ny = -ny; }
+  losT.setAttribute('x', (mx + nx * 16).toFixed(1)); losT.setAttribute('y', (my + ny * 16 + 3).toFixed(1));
+  losT.textContent = 'LT ' + fmtDur(O.lt);
+  var right = s[0] > 340;
+  scT.setAttribute('x', right ? '-10' : '10'); scT.setAttribute('text-anchor', right ? 'end' : 'start');
+  earthL.setAttribute('y', e[1] < TRC ? '-15' : '22');
+  if (Math.abs(O.nu - lastNu) > 0.002){ lastNu = O.nu; ellDone.setAttribute('d', arcPath(0, O.nu)); ellAhead.setAttribute('d', arcPath(O.nu, Math.PI)); }
+  dayT.textContent = 'FD ' + Math.floor(tDays) + ' / ' + Math.round(TR);
+}
+
+/* ================= TELEMETRY MODEL ================= */
+var S = { o2:21.25, co2:2380, pwr:33, load:21.4, vel:24.7, strings:0, co2Bias:0, cabinP:101.2, vn:0 };
+var CH = [
+  { id:0, min:20.4, max:22.2, lo:19.5, hi:23.1, dec:2, get:function(){ return S.o2; } },
+  { id:1, min:1500, max:4500, hi:4000, dec:0, get:function(){ return S.co2; } },
+  { id:2, min:14, max:40, dec:1, get:function(){ return S.pwr; }, second:function(){ return S.load; } },
+  { id:3, auto:true, dec:3, get:function(){ return S.vel; } }
+];
+var N = 260, CHART_FONT = '9px Menlo, Consolas, "DejaVu Sans Mono", monospace';
+CH.forEach(function(c){
+  c.buf = new Float32Array(N); c.buf2 = new Float32Array(N); c.cv = document.getElementById('c' + c.id); c.ctx = c.cv.getContext('2d');
+  c.vEl = document.getElementById('v' + c.id); c.sEl = document.getElementById('s' + c.id); c.box = document.getElementById('cv' + c.id);
+});
+var sampleAcc = 0, sampleT = 0, noiseSeed = 1;
+function gauss(){ var u = 0, v = 0; while (u === 0) u = Math.random(); v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function stepModel(dtReal, rtArg){
+  var t = met();
+  orbit(t / 86400);
+  var rt = rtArg !== undefined ? rtArg : performance.now() / 1000;
+  var drift = Math.sin(t / 5400) * 0.06 + Math.sin(rt * 0.33) * 0.07 + Math.sin(rt * 1.1) * 0.02;
+  S.o2 += (21.25 + drift - S.o2) * 0.08 + gauss() * 0.01;
+  var cyc = (t % 1800) / 1800;
+  var target = 2250 + 420 * cyc + S.co2Bias + Math.sin(rt * 0.8) * 45 + Math.sin(rt * 0.23) * 70;
+  S.co2 += (target - S.co2) * (S.co2Bias ? 0.02 : 0.08) + gauss() * 9;
+  var full = 60 / (O.r * O.r) - S.strings * 1.35 + Math.sin(rt * 1.05) * 0.25;
+  S.pwr += (full - S.pwr) * 0.1 + gauss() * 0.05;
+  S.load += (21.4 + Math.sin(t / 900) * 0.8 + (Math.sin(rt * 0.5) > 0.7 ? 1.1 : 0) - S.load) * 0.12 + gauss() * 0.04;
+  S.vn = S.vn * 0.94 + gauss() * 0.00006;
+  S.vel = O.v + S.vn;
+  S.cabinP += (101.3 - S.cabinP) * 0.02 + gauss() * 0.004;
+  CH.forEach(function(c){ c.buf.copyWithin(0, 1); c.buf[N - 1] = c.get(); if (c.second){ c.buf2.copyWithin(0, 1); c.buf2[N - 1] = c.second(); } });
+}
+function sizeCanvas(cv){
+  var d = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 100, h = cv.clientHeight || 40;
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  var ctx = cv.getContext('2d'); ctx.setTransform(d, 0, 0, d, 0, 0);
+  cv._w = w; cv._h = h;
+}
+function drawChart(c, frac){
+  var cv = c.cv, ctx = c.ctx, w = cv._w, h = cv._h, buf = c.buf, i;
+  if (!w) return;
+  ctx.clearRect(0, 0, w, h);
+  var mn = c.min, mx = c.max;
+  if (c.auto){ mn = Infinity; mx = -Infinity; for (i = 0; i < N; i++){ if (buf[i] < mn) mn = buf[i]; if (buf[i] > mx) mx = buf[i]; } var mid = (mn + mx) / 2, span = Math.max(0.0025, (mx - mn) * 1.8); mn = mid - span / 2; mx = mid + span / 2; }
+  function Y(v){ return h - 4 - (v - mn) / (mx - mn) * (h - 8); }
+  // grid
+  ctx.strokeStyle = 'rgba(232,230,227,.06)'; ctx.lineWidth = 1; ctx.beginPath();
+  for (i = 1; i < 4; i++){ var gy = Math.round(h * i / 4) + 0.5; ctx.moveTo(0, gy); ctx.lineTo(w, gy); }
+  var step = w / 6, off = (frac * (w / (N - 1)) + (sampleT * (w / (N - 1)))) % step;
+  for (var gx = w - off; gx > 0; gx -= step){ ctx.moveTo(Math.round(gx) + 0.5, 0); ctx.lineTo(Math.round(gx) + 0.5, h); }
+  ctx.stroke();
+  // limits
+  ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(255,176,0,.55)'; ctx.beginPath();
+  if (c.hi !== undefined && c.hi < mx){ ctx.moveTo(0, Y(c.hi)); ctx.lineTo(w, Y(c.hi)); }
+  if (c.lo !== undefined && c.lo > mn){ ctx.moveTo(0, Y(c.lo)); ctx.lineTo(w, Y(c.lo)); }
+  ctx.stroke(); ctx.setLineDash([]);
+  var dx = w / (N - 2), x0 = -frac * dx;
+  if (c.second){
+    ctx.strokeStyle = 'rgba(255,107,26,.7)'; ctx.lineWidth = 1.2; ctx.beginPath();
+    for (i = 0; i < N; i++){ var sx = x0 + i * dx, sy = Y(c.buf2[i]); if (i) ctx.lineTo(sx, sy); else ctx.moveTo(sx, sy); }
+    ctx.stroke();
+  }
+  var col = c.box.classList.contains('caution') ? '255,176,0' : '78,225,255';
+  ctx.beginPath();
+  for (i = 0; i < N; i++){ var px = x0 + i * dx, py = Y(buf[i]); if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); }
+  ctx.strokeStyle = 'rgb(' + col + ')'; ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.lineTo(x0 + (N - 1) * dx, h); ctx.lineTo(x0, h); ctx.closePath();
+  var gr = ctx.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(' + col + ',.22)'); gr.addColorStop(1, 'rgba(' + col + ',0)');
+  ctx.fillStyle = gr; ctx.fill();
+  var lx = x0 + (N - 1) * dx, ly = Y(buf[N - 1]);
+  ctx.fillStyle = 'rgba(' + col + ',.25)'; ctx.beginPath(); ctx.arc(lx - 2, ly, 6, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgb(' + col + ')'; ctx.beginPath(); ctx.arc(lx - 2, ly, 2.6, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(139,143,150,.8)'; ctx.font = CHART_FONT;
+  ctx.fillText(mx.toFixed(c.dec), 4, 10); ctx.fillText(mn.toFixed(c.dec), 4, h - 4);
+}
+function updateReadouts(){
+  var o2 = CH[0].buf[N - 1], co2 = CH[1].buf[N - 1];
+  CH[0].vEl.textContent = o2.toFixed(2);
+  CH[1].vEl.textContent = Math.round(co2);
+  var co2c = co2 > 4000; CH[1].box.classList.toggle('caution', co2c); CH[1].sEl.textContent = co2c ? 'CAUTION' : (co2 > 3200 ? 'RISING' : 'NOM');
+  var o2c = o2 < 19.5 || o2 > 23.1; CH[0].box.classList.toggle('caution', o2c); CH[0].sEl.textContent = o2c ? 'CAUTION' : 'NOM';
+  CH[2].vEl.textContent = CH[2].buf[N - 1].toFixed(1); CH[2].sEl.textContent = CH[2].buf2[N - 1].toFixed(1) + ' kW' + (S.strings ? ' · STR 14 OFF' : '');
+  CH[3].vEl.textContent = CH[3].buf[N - 1].toFixed(3);
+}
+
+/* ================= CREW ================= */
+var CREW = [
+  { role:'CDR', name:'Adaeze Okafor', act:'Sleep period', loc:'CREW QTRS 1', hr:54, base:54, spo2:98, temp:36.4, dose:1.00 },
+  { role:'PLT', name:'Mateo Ruiz', act:'Exercise · treadmill', loc:'HAB-A AFT', hr:126, base:126, spo2:97, temp:37.2, dose:1.03 },
+  { role:'MS1', name:'Dr. Yuki Tanabe', act:'Lab · bio-sample prep', loc:'HAB-A LAB', hr:72, base:72, spo2:99, temp:36.7, dose:0.97 },
+  { role:'MS2', name:'Lena Varga', act:'Maintenance · ECLSS', loc:'NODE 1', hr:84, base:84, spo2:98, temp:36.9, dose:1.01 }
+];
+var ACTS = [['Sleep period', 'CREW QTRS', 55], ['Exercise · treadmill', 'HAB-A AFT', 128], ['Exercise · resistive', 'HAB-A AFT', 112], ['Lab · bio-sample prep', 'HAB-A LAB', 72], ['Maintenance · ECLSS', 'NODE 1', 86], ['Galley · meal', 'GALLEY', 76], ['Earth obs · cupola', 'CUPOLA', 70], ['Planning conference', 'HAB-A FWD', 74]];
+var cardsEl = $('#cards');
+CREW.forEach(function(c, i){
+  var el = document.createElement('article'); el.className = 'card'; el.setAttribute('aria-label', c.role + ' ' + c.name);
+  el.innerHTML = '<div class="who"><span class="role"></span><span class="nm"></span></div><div class="act"><i></i> · <span class="loc"></span></div>' +
+    '<div class="hr"><svg class="heart" viewBox="0 0 15 14" aria-hidden="true"><path d="M7.5 13 1.6 7.2A3.6 3.6 0 0 1 7.5 2.6a3.6 3.6 0 0 1 5.9 4.6z" fill="#ff6b1a"/></svg><b>--</b><small>BPM</small></div>' +
+    '<canvas aria-hidden="true"></canvas><div class="vit"><span>SpO₂<b class="sp">--</b></span><span>TEMP<b class="tp">--</b></span><span>DOSE<b class="ds">--</b></span></div>';
+  el.querySelector('.role').textContent = c.role; el.querySelector('.nm').textContent = c.name;
+  c.el = el; c.actEl = el.querySelector('.act i'); c.locEl = el.querySelector('.loc'); c.hrEl = el.querySelector('.hr b'); c.heart = el.querySelector('.heart');
+  c.spEl = el.querySelector('.sp'); c.tpEl = el.querySelector('.tp'); c.dsEl = el.querySelector('.ds');
+  c.cv = el.querySelector('canvas'); c.ctx = c.cv.getContext('2d'); c.phase = Math.random(); c.x = 0; c.py = null; c.nextAct = 40 + i * 23;
+  cardsEl.appendChild(el);
+  c.actEl.textContent = c.act; c.locEl.textContent = c.loc;
+});
+function ecg(p){
+  return 0.12 * Math.exp(-Math.pow((p - 0.12) / 0.028, 2)) - 0.1 * Math.exp(-Math.pow((p - 0.215) / 0.01, 2)) + 1.0 * Math.exp(-Math.pow((p - 0.24) / 0.011, 2)) - 0.22 * Math.exp(-Math.pow((p - 0.265) / 0.012, 2)) + 0.26 * Math.exp(-Math.pow((p - 0.46) / 0.05, 2));
+}
+function drawEcg(c, dt){
+  var cv = c.cv, ctx = c.ctx, w = cv._w, h = cv._h;
+  if (!w) return;
+  var speed = w / 3.2, steps = Math.max(1, Math.round(dt * 120)), sdt = dt / steps;
+  ctx.lineWidth = 1.5; ctx.strokeStyle = '#4ee1ff'; ctx.lineJoin = 'round';
+  for (var k = 0; k < steps; k++){
+    var old = c.phase;
+    c.phase += sdt * c.hr / 60;
+    if (c.phase >= 1){ c.phase -= 1; c.heart.classList.add('beat'); clearTimeout(c.bt); c.bt = setTimeout(function(hh){ return function(){ hh.classList.remove('beat'); }; }(c.heart), 120); }
+    void old;
+    var nx = c.x + sdt * speed;
+    var ny = h * 0.62 - ecg(c.phase) * h * 0.5 + (Math.random() - 0.5) * 0.6;
+    if (nx >= w){ nx = 0; c.py = null; }
+    ctx.clearRect(nx, 0, 14, h);
+    if (c.py !== null){ ctx.beginPath(); ctx.moveTo(c.x, c.py); ctx.lineTo(nx, ny); ctx.stroke(); }
+    c.x = nx; c.py = ny;
+  }
+  ctx.fillStyle = 'rgba(78,225,255,.9)'; ctx.fillRect(c.x, c.py - 1.5, 2.4, 3);
+}
+function updateCrew(dtReal){
+  var t = met();
+  CREW.forEach(function(c){
+    c.hr += (c.base - c.hr) * 0.02 + (Math.random() - 0.5) * 0.35;
+    c.hrEl.textContent = Math.round(c.hr);
+    c.spEl.textContent = c.spo2 + '%';
+    c.tpEl.textContent = (c.temp + Math.sin(t / 3000 + c.base) * 0.05).toFixed(1) + '°';
+    c.dsEl.textContent = Math.round(t / 86400 * 1.84 * c.dose) + ' mSv';
+  });
+}
+function rotateActivities(){
+  var c = CREW[Math.floor(Math.random() * CREW.length)], a = ACTS[Math.floor(Math.random() * ACTS.length)];
+  c.act = a[0]; c.loc = a[1] + (a[1] === 'CREW QTRS' ? ' ' + (CREW.indexOf(c) + 1) : ''); c.base = a[2] + (Math.random() - 0.5) * 6;
+  c.actEl.textContent = c.act; c.locEl.textContent = c.loc;
+}
+
+/* ================= SUBSYSTEMS ================= */
+var SUBS = [
+  { id:'eclss', code:'ECL', name:'ECLSS', part:'eclss', v:function(){ return Math.round(S.co2) + ' ppm CO₂'; }, desc:'Environmental control and life support: CO₂ removal by two swing-bed scrubbers, O₂ generation by electrolysis and trace-contaminant control for a 4-person crew.',
+    p:[['ppO₂', function(){ return S.o2.toFixed(2) + ' kPa'; }, 'limits 19.5 – 23.1 kPa'], ['CO₂', function(){ return Math.round(S.co2) + ' ppm'; }, 'caution above 4000 ppm'], ['Scrubber bed', function(){ return S.co2Bias > 0 ? 'B · ΔP HIGH' : (Math.floor(met() / 1800) % 2 ? 'A active' : 'B active'); }, 'swing cycle 30 min'], ['O₂ generation', function(){ return (3.3 + Math.sin(met() / 700) * 0.1).toFixed(2) + ' kg/day'; }, 'electrolysis, 4 crew']] },
+  { id:'power', code:'EPS', name:'Power', part:'power', v:function(){ return S.pwr.toFixed(1) + ' kW'; }, desc:'Two roll-out solar arrays sized for 60 kW at 1 AU. Output falls with the square of distance from the Sun, so it drops through the cruise.',
+    p:[['Array output', function(){ return S.pwr.toFixed(1) + ' kW'; }, '60 kW × (1 AU / r)²'], ['Bus load', function(){ return S.load.toFixed(1) + ' kW'; }, 'margin > 6 kW'], ['Strings offline', function(){ return String(S.strings); }, '96 strings per wing'], ['Battery SOC', function(){ return (97.4 + Math.sin(met() / 2000)).toFixed(1) + ' %'; }, 'Li-ion, 4 × 40 kWh']] },
+  { id:'thermal', code:'TCS', name:'Thermal', part:'thermal', v:function(){ return (4.2 + Math.sin(met() / 900) * 0.3).toFixed(1) + ' °C loop'; }, desc:'Two pumped coolant loops reject heat through deployable radiators. The internal water loop stays near 4 °C.',
+    p:[['Loop 1 temp', function(){ return (4.2 + Math.sin(met() / 900) * 0.3).toFixed(1) + ' °C'; }, 'band 2 – 8 °C'], ['Loop 2 temp', function(){ return (3.9 + Math.cos(met() / 800) * 0.3).toFixed(1) + ' °C'; }, 'band 2 – 8 °C'], ['Radiator rejection', function(){ return (18.6 + Math.sin(met() / 1200)).toFixed(1) + ' kW'; }, '']] },
+  { id:'gnc', code:'GNC', name:'Guidance', part:null, v:function(){ return (0.02 + Math.abs(Math.sin(met() / 300)) * 0.03).toFixed(2) + '° att'; }, desc:'Guidance, navigation and control. Star trackers and gyros hold attitude; the nav solution comes from DSN ranging and optical navigation.',
+    p:[['Sun range', function(){ return O.r.toFixed(4) + ' AU'; }, 'heliocentric'], ['Velocity', function(){ return O.v.toFixed(3) + ' km/s'; }, 'vis-viva'], ['Attitude error', function(){ return (0.02 + Math.abs(Math.sin(met() / 300)) * 0.03).toFixed(3) + '°'; }, 'deadband 0.1°'], ['Next TCM', function(){ return 'FD 146'; }, 'trajectory correction manoeuvre 4']] },
+  { id:'prop', code:'PRP', name:'Propulsion', part:'prop', v:function(){ return 'Δv 2.61 km/s'; }, desc:'LOX/methane main engine for Mars orbit insertion, plus four RCS quads for attitude control and small corrections.',
+    p:[['Δv remaining', function(){ return '2.61 km/s'; }, 'MOI needs 2.09 km/s'], ['LOX tank', function(){ return '68.2 %'; }, ''], ['LCH₄ tank', function(){ return '67.9 %'; }, ''], ['RCS quad C', function(){ return (18.4 + Math.sin(met() / 600)).toFixed(1) + ' °C'; }, 'heater band 12 – 30 °C']] },
+  { id:'comms', code:'COM', name:'Comms', part:'comms', v:function(){ return 'LT ' + fmtDur(O.lt); }, desc:'The X-band high-gain antenna tracks Earth; S-band gives a low-rate backup. The link is carried by the Deep Space Network.',
+    p:[['One-way light time', function(){ return fmtDur(O.lt); }, 'range / c'], ['Earth range', function(){ return (O.dE * AU_KM / 1e6).toFixed(2) + ' M km'; }, ''], ['Downlink rate', function(){ return (2.4 / Math.max(0.2, O.dE * O.dE) * 0.3).toFixed(2) + ' Mbps'; }, 'scales with 1 / range²'], ['HGA pointing', function(){ return '0.0' + (3 + Math.floor(Math.random() * 5)) + '°'; }, 'error']] },
+  { id:'avio', code:'AVN', name:'Avionics', part:null, v:function(){ return '3/3 voting'; }, desc:'Triple-redundant flight computers with cross-channel voting and radiation-tolerant memory scrubbing.',
+    p:[['Flight computers', function(){ return '3 / 3 voting'; }, ''], ['Memory scrub', function(){ return (Math.floor(met() / 60) % 100) + ' % pass'; }, 'every 100 min'], ['SEU count (24 h)', function(){ return '7'; }, 'single-event upsets, corrected']] },
+  { id:'press', code:'PRS', name:'Pressure', part:'eclss', v:function(){ return S.cabinP.toFixed(1) + ' kPa'; }, desc:'Cabin total pressure and leak monitoring across the habitat and node.',
+    p:[['Total pressure', function(){ return S.cabinP.toFixed(2) + ' kPa'; }, 'sea-level atmosphere'], ['dP/dt', function(){ return '0.00 kPa/h'; }, 'leak check'], ['N₂ reserve', function(){ return '81 %'; }, '']] },
+  { id:'water', code:'WRS', name:'Water', part:'eclss', v:function(){ return 'Recov 94.1 %'; }, desc:'Water recovery: urine processing by vacuum distillation and a water processor assembly, closing the loop at about 94 %.',
+    p:[['Recovery rate', function(){ return '94.1 %'; }, ''], ['Potable', function(){ return '1 284 L'; }, ''], ['Distiller speed', function(){ return (1180 + Math.round(Math.sin(met() / 400) * 12)) + ' rpm'; }, 'nominal 1150 – 1250']] },
+  { id:'rad', code:'RAD', name:'Radiation', part:'eclss', v:function(){ return (0.075 + Math.sin(met() / 5000) * 0.004).toFixed(3) + ' mSv/h'; }, desc:'Dosimetry for galactic cosmic rays and solar particle events. The cruise dose rate is about 1.8 mSv per day, similar to what the Curiosity rover’s RAD instrument measured.',
+    p:[['Dose rate', function(){ return (0.075 + Math.sin(met() / 5000) * 0.004).toFixed(3) + ' mSv/h'; }, '≈ 1.8 mSv/day'], ['Mission dose (avg)', function(){ return Math.round(met() / 86400 * 1.84) + ' mSv'; }, ''], ['SPE watch', function(){ return 'none'; }, 'solar particle events']] },
+  { id:'struct', code:'STR', name:'Structure', part:'struct', v:function(){ return 'Loads nom'; }, desc:'Truss, pressure shell and mechanisms: strain gauges and accelerometers across the vehicle.',
+    p:[['Truss strain', function(){ return (12 + Math.random() * 2).toFixed(1) + ' µε'; }, ''], ['Array drive', function(){ return 'tracking'; }, 'sun-pointing']] },
+  { id:'pay', code:'PAY', name:'Payload', part:null, v:function(){ return '6 active'; }, desc:'Science payloads: cruise dosimetry, a plant growth unit and optical navigation imaging.',
+    p:[['Experiments', function(){ return '6 active'; }, ''], ['Plant unit', function(){ return 'day 38 · lettuce'; }, ''], ['Data queued', function(){ return (4.2 + Math.sin(met() / 3000)).toFixed(1) + ' GB'; }, 'for next DSN pass']] }
+];
+var tilesEl = $('#tiles'), selected = null;
+SUBS.forEach(function(s){
+  var b = document.createElement('button'); b.type = 'button'; b.className = 'tile';
+  b.innerHTML = '<span class="top"><span class="lt"></span><span class="cd"></span></span><b></b><span class="v"></span>';
+  b.querySelector('.cd').textContent = s.code; b.querySelector('b').textContent = s.name;
+  s.el = b; s.vEl = b.querySelector('.v');
+  b.setAttribute('aria-label', s.name + ' subsystem, nominal. Open detail.');
+  b.addEventListener('click', function(){ openDrawer(s); });
+  b.addEventListener('pointerenter', function(){ hlPart(s.part, true); });
+  b.addEventListener('pointerleave', function(){ hlPart(s.part, false); });
+  b.addEventListener('focus', function(){ hlPart(s.part, true); });
+  b.addEventListener('blur', function(){ hlPart(s.part, false); });
+  tilesEl.appendChild(b);
+});
+function hlPart(p, on){ if (!p) return; var el = document.querySelector('.part[data-sys="' + p + '"]'); if (el) el.classList.toggle('hl', on); }
+function updateTiles(){ SUBS.forEach(function(s){ s.vEl.textContent = s.v(); }); var n = SUBS.filter(function(s){ return s.el.classList.contains('caution'); }).length; $('#subSum').textContent = (12 - n) + ' / 12 nominal'; $('#subSum').className = 'chip' + (n ? ' a' : ''); }
+// drawer
+var drawer = $('#drawer'), scrim = $('#scrim'), dParams = $('#dParams'), dOpen = null, lastFocus = null;
+function openDrawer(s){
+  lastFocus = document.activeElement; dOpen = s;
+  $('#dCode').textContent = s.code + ' · SUBSYSTEM DETAIL'; $('#dName').textContent = s.name; $('#dDesc').textContent = s.desc;
+  dParams.innerHTML = '';
+  s.p.forEach(function(p){ var d = document.createElement('div'); d.className = 'prm'; d.innerHTML = '<label></label><b></b><small></small>'; d.querySelector('label').textContent = p[0]; d.querySelector('small').textContent = p[2]; p.el = d.querySelector('b'); dParams.appendChild(d); });
+  renderDrawer();
+  drawer.classList.add('on'); scrim.classList.add('on'); drawer.setAttribute('aria-hidden', 'false');
+  SUBS.forEach(function(o){ o.el.classList.toggle('sel', o === s); });
+  hlPart(s.part, true);
+  setTimeout(function(){ $('#dClose').focus(); }, 50);
+}
+function renderDrawer(){
+  if (!dOpen) return;
+  dOpen.p.forEach(function(p){ p.el.textContent = p[1](); });
+  var c = dOpen.el.classList.contains('caution');
+  $('#dStat').className = 'dstat' + (c ? ' c' : ''); $('#dStatT').textContent = c ? 'Caution · ' + (caution ? caution.text : '') : 'Nominal';
+}
+function closeDrawer(){
+  if (!dOpen) return;
+  hlPart(dOpen.part, false); SUBS.forEach(function(o){ o.el.classList.remove('sel'); });
+  dOpen = null; drawer.classList.remove('on'); scrim.classList.remove('on'); drawer.setAttribute('aria-hidden', 'true');
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+$('#dClose').addEventListener('click', closeDrawer); scrim.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') closeDrawer();
+  if (e.key === 'Tab' && dOpen){ var f = drawer.querySelectorAll('button'); if (f.length === 1){ e.preventDefault(); f[0].focus(); } }
+});
+
+/* ================= AUDIO ================= */
+var AC = null, soundOn = true;
+function unlock(){
+  if (!AC){ var Ctx = window.AudioContext || window.webkitAudioContext; if (Ctx){ try { AC = new Ctx(); } catch (e) { AC = null; } } }
+  else if (AC.state === 'suspended') AC.resume();
+}
+document.addEventListener('pointerdown', unlock); document.addEventListener('keydown', unlock);
+function tone(f, t, d, type, g){
+  var o = AC.createOscillator(), gn = AC.createGain(), lp = AC.createBiquadFilter();
+  o.type = type || 'square'; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = 3200;
+  gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(g || 0.07, t + 0.01); gn.gain.setValueAtTime(g || 0.07, t + d - 0.03); gn.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(lp); lp.connect(gn); gn.connect(AC.destination); o.start(t); o.stop(t + d + 0.02);
+}
+function beep(){ if (!AC || !soundOn || AC.state !== 'running') return; var t = AC.currentTime + 0.02; tone(1046, t, 0.14); tone(784, t + 0.17, 0.2); }
+function quindar(start){ if (!AC || !soundOn || AC.state !== 'running') return; tone(start ? 2525 : 2475, AC.currentTime + 0.02, 0.25, 'sine', 0.05); }
+$('#snd').addEventListener('click', function(){
+  soundOn = !soundOn; this.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+  this.setAttribute('aria-label', soundOn ? 'Alarm sound on' : 'Alarm sound off');
+  $('#sndLbl').textContent = soundOn ? 'Sound on' : 'Muted'; $('#sndWave').style.display = soundOn ? '' : 'none';
+});
+
+/* ================= CAUTIONS ================= */
+var CAUT = [
+  { sys:'eclss', text:'ECLSS · CO₂ scrubber B ΔP high', sub:'Swing bed B flow restricted. Crew to swap to bed A.', on:function(){ S.co2Bias = 1900; }, off:function(){ S.co2Bias = 0; } },
+  { sys:'power', text:'EPS · array 2 string 14 offline', sub:'String current zero. Array 2 output reduced by about 1.3 kW.', on:function(){ S.strings = 1; }, off:function(){ S.strings = 0; } },
+  { sys:'thermal', text:'TCS · coolant loop 2 pump current high', sub:'Pump 2B drawing 1.9 A (limit 1.8 A). Monitoring for bearing wear.' },
+  { sys:'comms', text:'COMM · HGA pointing error 0.4°', sub:'Gimbal slip after array feathering. Link margin still positive.' },
+  { sys:'prop', text:'PROP · RCS quad C heater temp low', sub:'Quad C at 9 °C, below the 12 °C band. Backup heater enabled.' },
+  { sys:'water', text:'WRS · distiller speed low', sub:'Urine processor at 1020 rpm. Crew to inspect the drive belt.' }
+];
+var caution = null, cautionState = 'none', nextCaution = 12 + Math.random() * 8, beepT = 0, ackT = 0, lastCaut = -1;
+var master = $('#master'), banner = $('#banner'), ackBtn = $('#ack'), bText = $('#bText'), bSub = $('#bSub');
+function raiseCaution(){
+  var i; do { i = Math.floor(Math.random() * CAUT.length); } while (i === lastCaut); lastCaut = i;
+  caution = CAUT[i]; cautionState = 'alarm';
+  if (caution.on) caution.on();
+  var s = SUBS.filter(function(x){ return x.id === caution.sys; })[0]; caution.tile = s;
+  s.el.classList.add('caution'); s.el.classList.remove('acked'); s.el.setAttribute('aria-label', s.name + ' subsystem, caution. Open detail.');
+  var part = s.part && document.querySelector('.part[data-sys="' + s.part + '"]'); if (part) part.classList.add('warn');
+  master.classList.add('alarm'); master.classList.remove('acked'); master.setAttribute('aria-label', 'Master caution: ' + caution.text + '. Press to acknowledge.');
+  bText.textContent = 'Caution · ' + caution.text; bSub.textContent = caution.sub;
+  banner.classList.add('on', 'alarm'); ackBtn.hidden = false;
+  logSys('CAUTION · ' + caution.text.toUpperCase());
+  beepT = 0; beep();
+}
+function acknowledge(){
+  if (cautionState !== 'alarm') return;
+  cautionState = 'acked'; ackT = 14 + Math.random() * 10;
+  master.classList.remove('alarm'); master.classList.add('acked'); master.setAttribute('aria-label', 'Master caution acknowledged: ' + caution.text);
+  caution.tile.el.classList.add('acked');
+  var hadFocus = document.activeElement === ackBtn;
+  banner.classList.remove('alarm'); ackBtn.hidden = true;
+  bText.textContent = 'Acknowledged · ' + caution.text; bSub.textContent = 'Crew working the procedure · lamp steady until resolved';
+  if (hadFocus) master.focus();
+  logSys('ACK by FLIGHT · crew working ' + caution.text.split('·')[0].trim());
+}
+function resolveCaution(){
+  var s = caution.tile;
+  s.el.classList.remove('caution', 'acked'); s.el.setAttribute('aria-label', s.name + ' subsystem, nominal. Open detail.');
+  var part = s.part && document.querySelector('.part[data-sys="' + s.part + '"]'); if (part) part.classList.remove('warn');
+  if (caution.off) caution.off();
+  logSys('RESOLVED · ' + caution.text.toUpperCase());
+  master.classList.remove('acked'); master.setAttribute('aria-label', 'Master caution. No active cautions.');
+  banner.classList.remove('on', 'alarm');
+  bText.textContent = 'All systems nominal'; bSub.textContent = '12 / 12 subsystems in family · last event resolved: ' + caution.text;
+  caution = null; cautionState = 'none'; nextCaution = 26 + Math.random() * 22;
+}
+master.addEventListener('click', acknowledge); $('#ack').addEventListener('click', acknowledge);
+
+/* ================= COMMS ================= */
+var logEl = $('#log'), transit = [];
+var DOWN = [
+  'MCC, ARES. Scrubber swap complete, CO₂ trending down nicely.',
+  'Photo of the Earth–Moon pair queued for the next DSN pass. Two dots, very far away now.',
+  'Water recovery holding at 94 percent. Filters look clean.',
+  'Mars is getting brighter every week from the cupola. Reddish, steady, no twinkle.',
+  'Star tracker 2 back in lock after the RCS pulse.',
+  'Copy the TCM-4 pad. Reading back: burn at FD 146, Δv 0.42 metres per second.',
+  'Lettuce in the plant unit is ready for tasting tomorrow. Crew is excited.',
+  'Private medical conference complete. All four crew in good health.',
+  'Treadmill harness replaced; exercise schedule back on track.'
+];
+var UP = [
+  'ARES, MCC. Good morning. Daily summary, news and a playlist uplinked.',
+  'TCM-4 pad in your inbox. No rush on the readback.',
+  'Thermal loops look great from here. No action required.',
+  'Flight surgeon requests a private conference at the next window.',
+  'Solar weather is quiet; radiation storm watch cancelled.'
+];
+var di = Math.floor(Math.random() * DOWN.length), ui = 0;
+function addLog(kind, who, text, stamp, extra){
+  var li = document.createElement('li'); if (kind === 's') li.className = 'sys';
+  li.innerHTML = '<div class="m"><span></span><span class="' + kind + '"></span><span></span></div><p></p>';
+  var sp = li.querySelectorAll('.m span');
+  sp[0].textContent = fmtMET(stamp).slice(0, 12); sp[1].textContent = kind === 'd' ? '↓ ' + who : kind === 'u' ? '↑ ' + who : '● ' + who; sp[2].textContent = extra || '';
+  li.querySelector('p').textContent = text;
+  var near = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 40;
+  logEl.appendChild(li);
+  while (logEl.children.length > 40) logEl.removeChild(logEl.firstChild);
+  if (near) logEl.scrollTop = logEl.scrollHeight;
+  return li;
+}
+function logSys(text){ addLog('s', 'SYS', text, met()); }
+function downlink(text, sentAgo){
+  addLog('d', 'ARES VII', text, met(), 'sent ' + fmtDur(sentAgo || O.lt) + ' ago');
+  quindar(false);
+  var b = $('#beam'); b.classList.remove('go'); void b.getBoundingClientRect(); if (!reduced) b.classList.add('go');
+}
+function uplink(text, userSent){
+  var li = addLog('u', 'MCC FLIGHT', text, met(), 'in transit');
+  var bar = document.createElement('div'); bar.className = 'bar'; bar.innerHTML = '<i></i>'; li.appendChild(bar);
+  transit.push({ li:li, fill:bar.firstChild, meta:li.querySelectorAll('.m span')[2], t0:met(), dur:O.lt, text:text, reply:userSent });
+  quindar(true);
+}
+function updateTransit(){
+  var now = met();
+  for (var i = transit.length - 1; i >= 0; i--){
+    var m = transit[i], p = (now - m.t0) / m.dur;
+    if (p >= 1){
+      m.fill.style.width = '100%'; m.meta.textContent = 'received by crew';
+      transit.splice(i, 1);
+      if (m.reply){ (function(txt){ pending.push({ at:now + 25 + Math.random() * 35 + O.lt, text:'MCC, ARES. Copy your message: “' + txt + '”. Thanks, ARES out.' }); })(m.text); }
+    } else {
+      m.fill.style.width = (p * 100).toFixed(1) + '%';
+      m.meta.textContent = 'arrives in ' + fmtDur(m.dur - (now - m.t0));
+    }
+  }
+  for (var j = pending.length - 1; j >= 0; j--){ if (now >= pending[j].at){ downlink(pending[j].text, O.lt); pending.splice(j, 1); } }
+}
+var pending = [];
+$('#sendForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var v = $('#msg').value.trim(); if (!v) return;
+  unlock(); uplink(v, true); $('#msg').value = '';
+});
+// history
+(function(){
+  orbit(met() / 86400);
+  var t = met();
+  addLog('u', 'MCC FLIGHT', 'ARES, MCC. Good morning. Daily summary, news and a playlist uplinked.', t - 4700, 'received by crew');
+  addLog('d', 'ARES VII', 'Morning, MCC. Crew is up, sleep period nominal. Starting the daily planning conference.', t - 3100, 'sent ' + fmtDur(O.lt) + ' ago');
+  addLog('d', 'ARES VII', 'Treadmill session complete for PLT, 45 minutes.', t - 1240, 'sent ' + fmtDur(O.lt) + ' ago');
+  uplink('TCM-4 pad in your inbox. No rush on the readback.', false);
+  transit[0].t0 = t - O.lt * 0.62;
+})();
+var nextDown = 6;
+
+/* ================= SHIP ANIMATION ================= */
+var arrUp = $('#arrUp'), arrDn = $('#arrDn'), hga = $('#hga'), rcs = $('#rcs');
+var rcsT = 3;
+function animShip(T, dt){
+  var s = reduced ? 1 : 0.9 + 0.1 * Math.cos(T * 0.25);
+  arrUp.setAttribute('transform', 'translate(0 104) scale(1 ' + s.toFixed(3) + ') translate(0 -104)');
+  arrDn.setAttribute('transform', 'translate(0 116) scale(1 ' + s.toFixed(3) + ') translate(0 -116)');
+  // dish points toward Earth relative to velocity (vehicle axis = velocity, nose forward to the left)
+  var rel = O.edir - O.vdir, deg = -(rel * 180 / Math.PI);
+  deg = ((deg + 180) % 360 + 360) % 360 - 180; deg = clamp(deg * 0.5, -70, 70);
+  hga.setAttribute('transform', 'translate(124 50) rotate(' + deg.toFixed(1) + ')');
+  rcsT -= dt;
+  if (rcsT < 0 && !reduced){ rcs.setAttribute('opacity', '1'); rcsT = 4 + Math.random() * 6; setTimeout(function(){ rcs.setAttribute('opacity', '0'); }, 180); }
+}
+
+/* ================= CLOCKS ================= */
+var metEl = $('#met'), fdEl = $('#fd'), moiEl = $('#moi'), gtime = $('#gtime'), gsub = $('#gsub'), gLabel = $('#gLabel');
+function updateClocks(){
+  var m = met(), ms = utcMs(), d = new Date(ms);
+  metEl.textContent = fmtMET(m);
+  var fd = Math.floor(m / 86400);
+  fdEl.textContent = 'FLIGHT DAY ' + pad(fd, 3) + ' · TRANS-MARS CRUISE';
+  var left = TR * 86400 - m, ld = Math.floor(left / 86400), rs = left - ld * 86400;
+  moiEl.textContent = 'T− ' + pad(ld, 3) + 'd ' + pad(rs / 3600) + ':' + pad((rs % 3600) / 60) + ':' + pad(rs % 60);
+  if (!marsMode){
+    gLabel.textContent = 'Earth · UTC';
+    gtime.textContent = pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds());
+    var start = Date.UTC(d.getUTCFullYear(), 0, 1), doy = Math.floor((ms - start) / 86400000) + 1;
+    gsub.textContent = d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()) + ' · DOY ' + pad(doy, 3);
+  } else {
+    var jd = ms / 86400000 + 2440587.5, jdtt = jd + 69.184 / 86400, msd = (jdtt - 2405522.0028779) / 1.0274912517;
+    var mtc = (msd % 1) * 24, h = Math.floor(mtc), mi = Math.floor((mtc - h) * 60), se = Math.floor(((mtc - h) * 60 - mi) * 60);
+    gLabel.textContent = 'Mars · MTC (airy mean)';
+    gtime.textContent = pad(h) + ':' + pad(mi) + ':' + pad(se);
+    gsub.textContent = 'MSD ' + msd.toFixed(3) + ' · mission sol ' + Math.floor(m / 86400 / 1.0274912517 + 1);
+  }
+}
+$('#tEarth').addEventListener('click', function(){ marsMode = false; this.setAttribute('aria-pressed', 'true'); $('#tMars').setAttribute('aria-pressed', 'false'); updateClocks(); });
+$('#tMars').addEventListener('click', function(){ marsMode = true; this.setAttribute('aria-pressed', 'true'); $('#tEarth').setAttribute('aria-pressed', 'false'); updateClocks(); });
+document.querySelectorAll('[data-rate]').forEach(function(b){
+  b.addEventListener('click', function(){
+    rate = +b.getAttribute('data-rate');
+    document.querySelectorAll('[data-rate]').forEach(function(o){ o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+    $('#rateChip').textContent = rate === 1 ? '10 Hz' : 'SIM ×' + rate;
+  });
+});
+$('#replay').addEventListener('click', function(){ replayOn = !replayOn; replayT = 0; this.setAttribute('aria-pressed', replayOn ? 'true' : 'false'); this.innerHTML = replayOn ? '&#9632; Live' : '&#9654; Replay transfer'; });
+
+/* ================= STATS ================= */
+function updateStats(){
+  orbit(met() / 86400);
+  $('#sR').innerHTML = O.r.toFixed(3) + ' <small>AU</small>';
+  $('#sV').innerHTML = O.v.toFixed(2) + ' <small>km/s</small>';
+  $('#sE').innerHTML = (O.dE * AU_KM / 1e6).toFixed(1) + ' <small>M km</small>';
+  $('#sM').innerHTML = (O.dM * AU_KM / 1e6).toFixed(1) + ' <small>M km</small>';
+  $('#ltv').textContent = fmtDur(O.lt); $('#rtv').textContent = fmtDur(O.lt * 2);
+}
+
+/* ================= LOOP ================= */
+function resize(){ CH.forEach(function(c){ sizeCanvas(c.cv); }); CREW.forEach(function(c){ sizeCanvas(c.cv); c.x = 0; c.py = null; }); }
+window.addEventListener('resize', resize);
+var last = performance.now(), T = 0, uiAcc = 0, slowAcc = 0, actAcc = 0;
+function frame(now){
+  var dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (!document.hidden){
+    T += dt; simEl += dt * rate;
+    var maxEl = TR * 86400 - MET0 - 3600;
+    if (simEl > maxEl){
+      simEl = 0; rate = 1;
+      document.querySelectorAll('[data-rate]').forEach(function(o){ o.setAttribute('aria-pressed', o.getAttribute('data-rate') === '1' ? 'true' : 'false'); });
+      $('#rateChip').textContent = '10 Hz'; logSys('SIM · time warp reached MOI − 1 h · replay reset to FD 142');
+    }
+    sampleAcc += dt;
+    while (sampleAcc >= 0.1){ sampleAcc -= 0.1; stepModel(0.1); sampleT = (sampleT + 1) % 6000; }
+    var frac = sampleAcc / 0.1;
+    CH.forEach(function(c){ drawChart(c, frac); });
+    CREW.forEach(function(c){ drawEcg(c, dt); });
+    if (replayOn){ replayT += dt / 12 * TR; if (replayT > TR){ replayT = 0; } drawTraj(replayT); } else drawTraj(met() / 86400);
+    orbit(met() / 86400);
+    animShip(T, dt);
+    uiAcc += dt; slowAcc += dt; actAcc += dt;
+    if (uiAcc > 0.2){ uiAcc = 0; updateClocks(); updateReadouts(); updateTransit(); updateCrew(); }
+    if (slowAcc > 1){ slowAcc = 0; updateStats(); updateTiles(); renderDrawer(); }
+    if (actAcc > 35){ actAcc = 0; rotateActivities(); }
+    // caution state machine (real seconds)
+    if (cautionState === 'none'){ nextCaution -= dt; if (nextCaution <= 0) raiseCaution(); }
+    else if (cautionState === 'alarm'){ beepT += dt; if (beepT > 1.8){ beepT = 0; beep(); } }
+    else if (cautionState === 'acked'){ ackT -= dt; if (ackT <= 0) resolveCaution(); }
+    nextDown -= dt;
+    if (nextDown <= 0){ nextDown = 16 + Math.random() * 12; if (Math.random() < 0.72){ downlink(DOWN[di % DOWN.length]); di++; } else { uplink(UP[ui % UP.length], false); ui++; } }
+  }
+  requestAnimationFrame(frame);
+}
+resize();
+var rt0 = performance.now() / 1000;
+for (var k = 0; k < N; k++) stepModel(0.1, rt0 - (N - k) * 0.1);
+updateClocks(); updateReadouts(); updateStats(); updateTiles(); updateCrew(); drawTraj(met() / 86400);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

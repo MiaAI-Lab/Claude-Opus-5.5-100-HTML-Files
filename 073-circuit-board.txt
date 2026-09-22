@@ -1,0 +1,40 @@
+TITLE: Silicon — Living Circuit Board
+FILE: 073-circuit-board.html
+
+=== PROMPT (exact prompt used) ===
+Build "Silicon — Living Circuit Board". An SVG printed circuit board in rich green solder mask (#0a4d2e with subtle texture) with gold traces and pads (#d4a537 with highlights), white silkscreen labels (component references such as U1, R12, C4, "REV 2.1"), chips (black epoxy with pin legs and printed markings), capacitors, resistors with colour bands, LEDs and a crystal oscillator. Signals — glowing pulses of cyan (#3cf2ff) and warm white light — travel along traces from chip to chip, routed along a graph of trace segments. Interaction: hovering a component highlights all of its connected traces and shows a spec tooltip; a "power" switch boots the board (LEDs light in sequence, a small OLED component shows boot text); clicking a chip "overclocks" it (faster pulses, a slight heat shimmer); a "logic probe" cursor mode shows voltage readings on traces. A title block in silkscreen monospace in the corner. Scales responsively via viewBox.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"Silicon" is a fictional development board rendered as one large responsive SVG and laid on a dark teal anti-static mat beside a datasheet-style control panel. The board is green solder mask with noise texture, a soft sheen and hatched copper pours. Its gold traces, routed at 45 degrees with mask clearance halos, connect a 64-pin QFP processor (U1), a TSOP memory (U2), a SOIC logic chip (U3), a DPAK regulator (U4) and a QFN USB bridge (U5). Around them sit a 25 MHz crystal, aluminium electrolytic capacitors with vent crosses and polarity stripes, carbon-film resistors with correct four-band colour codes, SMD parts, five status LEDs and a power LED, a 2x10 header, USB-C and barrel-jack connectors, a slide switch and a small OLED module. White silkscreen marks every reference (U1, R12-style labels, C4, "REV 2.1"), and a monospace title block sits in the corner. The page boots itself: the switch slides on, the power LED lights, warm-white power flows down the 3V3 trunk, the LEDs light in sequence, the OLED types a boot log, and cyan data pulses start racing from chip to chip.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Board built from data at runtime: each net is a list of points produced by a small 45-degree router (horizontal-first, vertical-first and centred dogleg), drawn as a wide mask-coloured clearance halo, then three copper strokes (dark edge, gold face, offset highlight)
+- Parts drawn from reusable SVG builders: QFP, TSOP and SOIC bodies with tinned legs on gold pads, epoxy gradients, pin-1 dimples and laser-etched markings; plated through-hole rings with specular dots; axial resistors with real colour bands; electrolytic cans with a sleeve stripe and a scored vent
+- Solder mask texture from an feTurbulence noise filter over a diagonal mask gradient, a radial sheen, a glossy diagonal highlight, a blurred board shadow, hatched copper pours with stitching-via grids, fiducials and mounting holes
+- Canvas overlay aligned with the viewBox for all light: pulses with tapered tails sampled along each polyline and pre-rendered glow sprites composited with "lighter", pad flashes on arrival, LED blooms, an OLED glow, and orange heat bloom with rising haze on overclocked chips
+- Pulses are routed across the net graph: when one reaches a part it continues along another net of that part, so signals hop from chip to chip; power pulses stay on the power nets
+- Overclocked chips get an animated feTurbulence and feDisplacementMap heat-shimmer filter and an orange outline
+- The OLED is live SVG text: a typed boot log, then a dashboard with packets, core clock, temperature and current, plus an animated square-wave scope trace
+- Datasheet panel with gold corner brackets, a physical-looking rocker switch, tabular meters and a condensed technical typeface paired with monospace
+
+=== INTERACTION MODEL ===
+- Power: the panel rocker, clicking SW1 on the board, or the P key boots or shuts down the board (switch slide, LED sequence, OLED collapse on power-off)
+- Hover or keyboard-focus any part to highlight all of its connected traces (others dim, a warm glow runs along them) and show a spec tooltip with live status
+- Click a chip (U1 to U5), or press Enter on a focused chip, to overclock it: faster and denser pulses on its nets, heat shimmer, temperature and current rise, and the red HOT LED blinks; click again or use "Cool all chips" to return to nominal
+- Logic probe mode (button or L): the cursor becomes a drawn probe that snaps to the nearest trace and reads its net, endpoints and voltage (12 V, 5 V, 3.3 V rails, ground, 25 MHz clock, LED forward voltage, or logic HIGH/LOW with pulse detection); works with touch drag
+- Touch: first tap selects a part and shows its tooltip, a second tap on a chip overclocks it; Esc clears the selection and puts the probe away
+- Status LEDs react to traffic (bus, I/O), a heartbeat and the clock; the meters show supply, rail, current, core clock, temperature and packet count
+- Optional Web Audio sound (off by default): a power chirp and an overclock whine
+- prefers-reduced-motion: the board boots instantly, pulses move at half speed without haze, and switch transitions are removed

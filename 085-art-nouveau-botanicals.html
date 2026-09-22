@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maison Lierre — Botanical Teas, Paris 1899</title>
+<meta name="description" content="An Art Nouveau poster page for Maison Lierre, a fictional botanical tea house in Paris, 1899: whiplash borders, lilies and ivy, a mosaic halo, three signature blends and an afternoon-tea menu.">
+<meta name="theme-color" content="#fefae0">
+<style>
+  :root {
+    --sage: #a3b18a;
+    --olive: #588157;
+    --gold: #c9a227;
+    --terra: #bc6c25;
+    --cream: #fefae0;
+    --teal: #264653;
+
+    --bg: #fefae0;
+    --bg-2: #f6efcb;
+    --panel: #fffdf0;
+    --panel-2: #f7f0d2;
+    --ink: #264653;
+    --ink-2: #4a6358;
+    --ink-3: #7c8a70;
+    --line: #264653;
+    --line-2: #588157;
+    --gilt: #c9a227;
+    --leaf: #588157;
+    --leaf-2: #a3b18a;
+    --petal: #fffdf2;
+    --glow: none;
+    --halo-inner: #fbf5d6;
+    --serif: "Hoefler Text", "Garamond", "EB Garamond", "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", P052, Georgia, serif;
+    --caps: "Palatino Linotype", Palatino, "Book Antiqua", P052, "Iowan Old Style", Georgia, serif;
+  }
+  body.salon {
+    --bg: #1d3843;
+    --bg-2: #183039;
+    --panel: #22424e;
+    --panel-2: #264653;
+    --ink: #fefae0;
+    --ink-2: #dcd8b8;
+    --ink-3: #a3b18a;
+    --line: #c9a227;
+    --line-2: #d8b84a;
+    --gilt: #e8c54a;
+    --leaf: #7fa37a;
+    --leaf-2: #a3b18a;
+    --petal: #f6f0cf;
+    --glow: drop-shadow(0 0 2.5px rgba(232, 197, 74, .75)) drop-shadow(0 0 9px rgba(201, 162, 39, .35));
+    --halo-inner: #264653;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; }
+  body {
+    background:
+      radial-gradient(120% 70% at 50% 20%, transparent 55%, rgba(120, 100, 40, .10)),
+      radial-gradient(60% 40% at 50% 12%, rgba(201, 162, 39, .10), transparent 70%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17.5px;
+    line-height: 1.62;
+    overflow-x: hidden;
+    transition: background-color .8s ease, color .8s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+  body.salon {
+    background:
+      radial-gradient(120% 70% at 50% 20%, transparent 50%, rgba(0, 0, 0, .35)),
+      radial-gradient(60% 40% at 50% 12%, rgba(201, 162, 39, .14), transparent 70%),
+      var(--bg);
+  }
+
+  /* ---------- the ornamental frame (fixed) ---------- */
+  #frame { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; overflow: visible; }
+  #frame .ln { fill: none; stroke: var(--line); stroke-linecap: round; stroke-linejoin: round; transition: stroke .8s ease; }
+  #frame .gl { fill: none; stroke: var(--gilt); stroke-linecap: round; transition: stroke .8s ease; }
+  #frame .lf { fill: var(--leaf); stroke: var(--line); stroke-width: .8; transition: fill .8s ease, stroke .8s ease; }
+  #frame .pt { fill: var(--petal); stroke: var(--line); stroke-width: 1.1; transition: fill .8s ease, stroke .8s ease; }
+  #frame .dot { fill: var(--gilt); }
+  #frame .an { fill: var(--terra); }
+  #frame .glow-group { filter: var(--glow); }
+  .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.5s cubic-bezier(.5, .1, .3, 1) forwards; animation-delay: var(--d, 0s); }
+  .bloom { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; animation: bloom .7s cubic-bezier(.3, 1.4, .5, 1) forwards; animation-delay: var(--d, .8s); }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes bloom { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: scale(1); } }
+  .sway { transform-box: fill-box; animation: sway 7s ease-in-out infinite alternate; }
+  .sway.b { animation-duration: 9s; animation-delay: -3s; }
+  @keyframes sway { from { transform: rotate(-1.4deg); } to { transform: rotate(1.4deg); } }
+
+  /* ---------- day / salon toggle ---------- */
+  .mode {
+    position: absolute;
+    top: 22px;
+    right: clamp(40px, 6vw, 90px);
+    z-index: 20;
+    appearance: none;
+    border: 1.5px solid var(--gilt);
+    background: var(--panel);
+    color: var(--ink);
+    font-family: var(--caps);
+    font-size: 12.5px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    padding: 7px 14px 7px 8px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px -10px rgba(38, 70, 83, .6);
+    transition: background .6s ease, color .6s ease, transform .25s ease;
+  }
+  .mode:hover { transform: translateY(-1px); }
+  .mode .knob { width: 38px; height: 20px; border-radius: 999px; background: var(--bg-2); position: relative; box-shadow: inset 0 0 0 1px rgba(38, 70, 83, .25); }
+  .mode .knob::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff6c9, #e0b83a 60%, #b58b16);
+    transition: transform .5s cubic-bezier(.3, 1.4, .5, 1);
+  }
+  body.salon .mode .knob::after { transform: translateX(18px); box-shadow: 0 0 10px 2px rgba(232, 197, 74, .7); }
+
+  /* ---------- layout ---------- */
+  .poster { position: relative; max-width: 1120px; margin: 0 auto; padding: 64px clamp(40px, 6vw, 90px) 90px; }
+  .hero { position: relative; display: grid; place-items: center; margin-bottom: 30px; }
+  #hero-art { width: min(100%, 980px); height: auto; display: block; overflow: visible; }
+  #hero-art .ln { fill: none; stroke: var(--line); stroke-linecap: round; stroke-linejoin: round; transition: stroke .8s ease; }
+  #hero-art .gl { fill: none; stroke: var(--gilt); stroke-linecap: round; transition: stroke .8s ease; }
+  #hero-art .lf { fill: var(--leaf); stroke: var(--line); stroke-width: .9; transition: fill .8s ease, stroke .8s ease; }
+  #hero-art .lf2 { fill: var(--leaf-2); stroke: var(--line); stroke-width: .9; transition: fill .8s ease; }
+  #hero-art .pt { fill: var(--petal); stroke: var(--line); stroke-width: 1.3; transition: fill .8s ease, stroke .8s ease; }
+  #hero-art .an { fill: var(--terra); }
+  #hero-art .tess { transition: fill .8s ease; }
+  #hero-art .glow-group { filter: var(--glow); }
+  #halo-ring { transform-box: fill-box; transform-origin: center; animation: spin 360s linear infinite; }
+  #halo-rays { transform-box: fill-box; transform-origin: center; animation: spin 520s linear infinite reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .glint { opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .glint.on { animation: glint 1.6s ease-in-out forwards; }
+  @keyframes glint { 0% { opacity: 0; transform: scale(.2) rotate(0deg); } 45% { opacity: 1; transform: scale(1.15) rotate(45deg); } 100% { opacity: 0; transform: scale(.3) rotate(90deg); } }
+  #title-letters path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  #title-letters .under { stroke: var(--line); stroke-width: 12.5; transition: stroke .8s ease; }
+  #title-letters .over { stroke: var(--gilt); stroke-width: 6.4; transition: stroke .8s ease; }
+  #title-letters .hi { stroke: #fff8d8; stroke-width: 1.4; opacity: .55; }
+  .ribbon-text { font-family: var(--caps); font-size: 16px; letter-spacing: .34em; text-transform: uppercase; fill: var(--ink); transition: fill .8s ease; }
+  body.salon .ribbon-text { fill: #fefae0; }
+
+  h1.sr, .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); margin: 0; white-space: nowrap; }
+  .lede {
+    text-align: center;
+    max-width: 640px;
+    margin: -8px auto 34px;
+    font-size: 19px;
+    font-style: italic;
+    color: var(--ink-2);
+  }
+
+  /* ---------- dividers ---------- */
+  .divider { display: block; width: min(520px, 90%); height: 40px; margin: 38px auto; overflow: visible; }
+  .divider .ln { fill: none; stroke: var(--line); stroke-width: 1.3; stroke-linecap: round; transition: stroke .8s ease; }
+  .divider .gl { fill: var(--gilt); }
+  .divider .lf { fill: var(--leaf); transition: fill .8s ease; }
+  body.salon .divider, body.salon .initial, body.salon .card-art, body.salon .emblem { filter: var(--glow); }
+
+  /* ---------- panels ---------- */
+  .panel {
+    position: relative;
+    background: var(--panel);
+    border-radius: 46px 14px 46px 14px;
+    padding: 38px clamp(24px, 4vw, 54px) 34px;
+    box-shadow: 0 0 0 1.5px var(--gilt), 0 0 0 7px var(--panel), 0 0 0 8.5px var(--line-2), 0 26px 50px -30px rgba(38, 70, 83, .55);
+    transition: background .8s ease, box-shadow .8s ease;
+  }
+  .kicker {
+    margin: 0 0 6px;
+    font-family: var(--caps);
+    font-size: 12.5px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--terra);
+  }
+  body.salon .kicker { color: var(--gilt); }
+  h2 {
+    margin: 0 0 16px;
+    font-family: var(--caps);
+    font-weight: 400;
+    font-size: clamp(28px, 3vw, 38px);
+    letter-spacing: .06em;
+    line-height: 1.12;
+    color: var(--ink);
+  }
+  h2 em { font-style: italic; color: var(--line-2); letter-spacing: .02em; }
+  .story { display: block; }
+  .initial { float: left; width: 96px; height: 109px; margin: 6px 18px 4px 0; }
+  .initial .frame { fill: var(--panel-2); stroke: var(--gilt); stroke-width: 2; transition: fill .8s ease; }
+  .initial .ln { fill: none; stroke: var(--line); stroke-linecap: round; stroke-linejoin: round; transition: stroke .8s ease; }
+  .initial .gl { fill: none; stroke: var(--gilt); stroke-linecap: round; stroke-linejoin: round; }
+  .initial .lf { fill: var(--leaf); stroke: var(--line); stroke-width: .7; }
+  .story p { margin: 0 0 14px; }
+  .story p:last-child { margin-bottom: 0; }
+  .signature { font-style: italic; color: var(--ink-3); }
+
+  /* ---------- blends ---------- */
+  .section-head { text-align: center; margin: 0 0 26px; }
+  .section-head .kicker { margin-bottom: 4px; }
+  .blends { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+  .blend {
+    position: relative;
+    aspect-ratio: 300 / 470;
+    background: var(--panel);
+    border-radius: 150px 150px 16px 16px / 120px 120px 16px 16px;
+    padding: 26px 24px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 0 0 1.5px var(--gilt), 0 0 0 6px var(--panel), 0 0 0 7.5px var(--line-2), 0 24px 40px -28px rgba(38, 70, 83, .6);
+    transition: transform .5s cubic-bezier(.3, 1.3, .5, 1), background .8s ease, box-shadow .8s ease;
+    outline: none;
+  }
+  .blend:hover, .blend:focus-visible { transform: translateY(-6px); }
+  .blend:focus-visible { box-shadow: 0 0 0 1.5px var(--gilt), 0 0 0 6px var(--panel), 0 0 0 9px var(--terra), 0 24px 40px -28px rgba(38, 70, 83, .6); }
+  .card-art { width: 78%; height: auto; margin: 6px 0 8px; overflow: visible; }
+  .card-art .ln { fill: none; stroke: var(--line); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.4; }
+  .card-art .gl { fill: none; stroke: var(--gilt); stroke-width: 1.4; }
+  .card-art .lf { fill: var(--leaf); stroke: var(--line); stroke-width: .9; }
+  .card-art .lf2 { fill: var(--leaf-2); stroke: var(--line); stroke-width: .9; }
+  .card-art .pt { fill: var(--petal); stroke: var(--line); stroke-width: 1.1; }
+  .card-art .tr { fill: var(--terra); stroke: var(--line); stroke-width: 1; }
+  .card-art .au { fill: var(--gilt); }
+  .card-art .disc { fill: var(--panel-2); stroke: var(--gilt); stroke-width: 1.2; }
+  .blend h3 { margin: 4px 0 0; font-family: var(--caps); font-weight: 400; font-size: 24px; letter-spacing: .08em; line-height: 1.15; }
+  .blend .fr { margin: 2px 0 10px; font-style: italic; font-size: 14.5px; color: var(--line-2); }
+  .blend p { margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--ink-2); }
+  .blend .price {
+    margin-top: auto;
+    padding-top: 12px;
+    font-family: var(--caps);
+    font-size: 13px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--terra);
+  }
+  body.salon .blend .price { color: var(--gilt); }
+  .vines { position: absolute; inset: -16px; width: calc(100% + 32px); height: calc(100% + 32px); pointer-events: none; overflow: visible; }
+  .vines .vn { fill: none; stroke: var(--leaf); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.4s cubic-bezier(.5, .1, .3, 1); }
+  .vines .vn.thin { stroke-width: 1.3; transition-delay: .25s; }
+  .vines .vl { fill: var(--leaf); stroke: var(--line); stroke-width: .7; transform-box: fill-box; transform-origin: 50% 100%; transform: scale(0); transition: transform .45s cubic-bezier(.3, 1.6, .5, 1); transition-delay: 0s; }
+  .vines .vb { fill: var(--terra); transform-box: fill-box; transform-origin: center; transform: scale(0); transition: transform .4s cubic-bezier(.3, 1.6, .5, 1); }
+  .blend:hover .vines .vn, .blend:focus-visible .vines .vn { stroke-dashoffset: 0; }
+  .blend:hover .vines .vl, .blend:focus-visible .vines .vl, .blend:hover .vines .vb, .blend:focus-visible .vines .vb { transform: scale(1); transition-delay: var(--d, .6s); }
+
+  /* ---------- menu + contact ---------- */
+  .lower { display: grid; grid-template-columns: 1.35fr 1fr; gap: 34px; align-items: start; }
+  .menu-list { list-style: none; margin: 0; padding: 0; }
+  .menu-list li { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 10px; padding: 7px 0; }
+  .menu-list .dish { font-size: 17px; }
+  .menu-list .dish small { display: block; font-size: 14px; font-style: italic; color: var(--ink-3); line-height: 1.35; }
+  .menu-list .lead { border-bottom: 2px dotted var(--sage); transform: translateY(-5px); min-width: 20px; }
+  .menu-list .cost { font-family: var(--caps); font-size: 14.5px; letter-spacing: .08em; color: var(--terra); white-space: nowrap; }
+  body.salon .menu-list .cost { color: var(--gilt); }
+  .menu-note { margin: 16px 0 0; font-size: 14.5px; font-style: italic; color: var(--ink-3); text-align: center; }
+  .contact {
+    border-radius: 120px 120px 22px 22px / 90px 90px 22px 22px;
+    text-align: center;
+    padding-top: 30px;
+  }
+  .emblem { width: 120px; height: 120px; display: block; margin: 0 auto 8px; overflow: visible; }
+  .emblem .ln { fill: none; stroke: var(--line); stroke-linecap: round; stroke-linejoin: round; }
+  .emblem .gl { fill: none; stroke: var(--gilt); stroke-linecap: round; stroke-linejoin: round; }
+  .emblem .lf { fill: var(--leaf); stroke: var(--line); stroke-width: .7; }
+  .emblem .disc { fill: var(--panel-2); stroke: var(--gilt); stroke-width: 1.5; }
+  address { font-style: normal; }
+  .contact .addr { font-size: 18px; line-height: 1.5; margin: 6px 0 12px; }
+  .contact .hours { font-size: 15px; color: var(--ink-2); margin: 0 0 14px; }
+  .contact .tel { font-family: var(--caps); letter-spacing: .22em; text-transform: uppercase; font-size: 13px; color: var(--terra); }
+  body.salon .contact .tel { color: var(--gilt); }
+  .reserve {
+    margin-top: 18px;
+    appearance: none;
+    border: 0;
+    font-family: var(--caps);
+    font-size: 13px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: var(--teal);
+    padding: 12px 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 0 0 1.5px var(--gilt), 0 0 0 4px var(--panel), 0 0 0 5.5px var(--teal);
+    transition: transform .25s ease, background .5s ease;
+  }
+  body.salon .reserve { background: var(--gold); color: #1d3843; box-shadow: 0 0 0 1.5px #fff2b8, 0 0 0 4px var(--panel), 0 0 0 5.5px var(--gold), 0 0 22px rgba(232, 197, 74, .5); }
+  .reserve:hover { transform: translateY(-2px); }
+  .reserve-note { margin: 12px 0 0; font-size: 14px; font-style: italic; color: var(--ink-3); min-height: 1.4em; }
+  footer.colophon { text-align: center; margin-top: 50px; font-size: 14px; font-style: italic; color: var(--ink-3); }
+  footer.colophon span { display: block; font-family: var(--caps); font-style: normal; font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--line-2); margin-bottom: 6px; }
+
+  :focus-visible { outline: 2px dashed var(--terra); outline-offset: 4px; }
+  .blend:focus-visible { outline: none; }
+
+  @media (max-width: 900px) {
+    .blends { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto; }
+    .lower { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    body { font-size: 16.5px; }
+    .poster { padding: 58px 26px 70px; }
+    .mode { top: 16px; right: auto; left: 50%; transform: translateX(-50%); font-size: 11px; padding: 5px 10px 5px 6px; }
+    .mode:hover { transform: translateX(-50%) translateY(-1px); }
+    .mode .knob { width: 32px; height: 18px; }
+    .mode .knob::after { width: 14px; height: 14px; }
+    body.salon .mode .knob::after { transform: translateX(14px); }
+    .lede { font-size: 17px; margin-bottom: 24px; }
+    .initial { width: 72px; height: 82px; margin: 5px 12px 2px 0; }
+    .panel { border-radius: 30px 10px 30px 10px; padding: 30px 22px 26px; }
+    .blend { aspect-ratio: auto; min-height: 470px; }
+    .divider { margin: 28px auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .draw { animation: none; stroke-dashoffset: 0; }
+    .bloom { animation: none; opacity: 1; }
+    .sway, #halo-ring, #halo-rays { animation: none; }
+    .glint.on { animation: none; }
+    .blend, .vines .vn, .vines .vl, .vines .vb { transition-duration: .01ms !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<svg id="frame" aria-hidden="true" focusable="false"></svg>
+
+<div class="poster">
+  <button type="button" class="mode" id="mode" aria-pressed="false" aria-label="Switch to the Salon evening palette"><span class="knob" aria-hidden="true"></span><span id="mode-lbl">Day</span></button>
+  <header class="hero">
+    <h1 class="sr">Maison Lierre — Botanical Teas, Paris 1899</h1>
+    <svg id="hero-art" viewBox="0 0 980 720" role="img" aria-labelledby="hero-t">
+      <title id="hero-t">Maison Lierre: gilded lettering inside a mosaic halo, flanked by two tall lilies and wreathed in ivy</title>
+      <defs>
+        <radialGradient id="halo-fill" cx="50%" cy="46%" r="60%">
+          <stop offset="0" stop-color="#fffbe4"/>
+          <stop offset=".7" stop-color="#f6eec4"/>
+          <stop offset="1" stop-color="#e9dca1"/>
+        </radialGradient>
+        <radialGradient id="halo-fill-salon" cx="50%" cy="46%" r="60%">
+          <stop offset="0" stop-color="#2f5664"/>
+          <stop offset=".7" stop-color="#264653"/>
+          <stop offset="1" stop-color="#1c3640"/>
+        </radialGradient>
+        <path id="ribbon-arc" d="M248 588 Q490 672 732 588"/>
+      </defs>
+      <g id="halo-rays"></g>
+      <g id="halo-ring"></g>
+      <circle id="halo-disc" cx="490" cy="330" r="178" fill="url(#halo-fill)" stroke="var(--gilt)" stroke-width="2.5"/>
+      <circle cx="490" cy="330" r="168" fill="none" class="gl" stroke-width="1" stroke-dasharray="2 5"/>
+      <g id="glints"></g>
+      <g id="lily-left" class="glow-group"></g>
+      <g id="lily-right" class="glow-group"></g>
+      <g id="hero-ivy" class="glow-group"></g>
+      <g id="title-letters" class="glow-group"></g>
+      <g id="ribbon" class="glow-group">
+        <path d="M230 560 Q490 650 750 560 L742 598 Q490 690 238 598 Z" fill="var(--panel)" stroke="var(--gilt)" stroke-width="2"/>
+        <path d="M230 560 L196 548 L214 580 L200 610 L238 598" fill="var(--panel-2)" stroke="var(--gilt)" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M750 560 L784 548 L766 580 L780 610 L742 598" fill="var(--panel-2)" stroke="var(--gilt)" stroke-width="2" stroke-linejoin="round"/>
+        <text class="ribbon-text" text-anchor="middle"><textPath href="#ribbon-arc" startOffset="50%">Botanical Teas &#183; Paris 1899</textPath></text>
+      </g>
+    </svg>
+  </header>
+
+  <p class="lede">A salon of leaf, blossom and root behind a green-glass door, where every cup is poured the way a garden is tended: patiently, and with an eye for beauty.</p>
+
+  <section class="panel" aria-labelledby="story-h">
+    <div class="story">
+      <div>
+        <p class="kicker">The house</p>
+        <h2 id="story-h">A tea room grown <em>like ivy</em></h2>
+        <p class="first"><svg class="initial" viewBox="0 0 104 118" aria-hidden="true">
+        <path class="frame" d="M6 112V34Q6 6 52 6T98 34V112Z"/>
+        <path class="gl" d="M12 106V36Q12 13 52 13T92 36V106Z" stroke-width="1" stroke-dasharray="2 4"/>
+        <path class="ln" d="M26 100C18 84 30 72 24 58S12 36 26 30" stroke-width="1.6"/>
+        <path class="ln" d="M80 100C88 86 74 76 80 62S94 42 80 34" stroke-width="1.6"/>
+        <g class="lf">
+          <path transform="translate(24 58) rotate(-30)" d="M0 0C-3-2-7-3-8-7C-9-11-5-12-4-11C-4-14-1-17 0-18C1-17 4-14 4-11C5-12 9-11 8-7C7-3 3-2 0 0Z"/>
+          <path transform="translate(80 62) rotate(35)" d="M0 0C-3-2-7-3-8-7C-9-11-5-12-4-11C-4-14-1-17 0-18C1-17 4-14 4-11C5-12 9-11 8-7C7-3 3-2 0 0Z"/>
+          <path transform="translate(26 30) rotate(-10) scale(.8)" d="M0 0C-3-2-7-3-8-7C-9-11-5-12-4-11C-4-14-1-17 0-18C1-17 4-14 4-11C5-12 9-11 8-7C7-3 3-2 0 0Z"/>
+        </g>
+        <!-- the letter I, in the house lettering -->
+        <path d="M40 35Q52 42 64 35M52 39V91M40 95Q52 88 64 95" fill="none" stroke="var(--line)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M40 35Q52 42 64 35M52 39V91M40 95Q52 88 64 95" fill="none" stroke="var(--gilt)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="52" cy="108" r="2.5" fill="var(--terra)"/>
+      </svg><span class="vh">I</span>n the spring of 1899, Céleste Varenne hung a single copper kettle in the window of a narrow shop and painted the door the green of new leaves. She had spent ten years among herbalists and tea merchants, and she believed a cup should taste of the place it came from: the dry hillside, the river mist, the hedgerow after rain.</p>
+        <p>Maison Lierre grew the way ivy does, a room at a time, climbing toward the light. Today its salon is lined with glass jars of lime blossom and verbena, rose petals and jasmine, all blended by hand at the long zinc counter and poured at little marble tables under a ceiling of painted vines.</p>
+        <p class="signature">— C. V., <span lang="fr">propriétaire</span> (a fictional founder of a fictional house)</p>
+      </div>
+    </div>
+  </section>
+
+  <svg class="divider" viewBox="0 0 520 40" aria-hidden="true">
+    <path class="ln" d="M10 20C60 20 90 8 130 14S190 30 222 22"/>
+    <path class="ln" d="M510 20C460 20 430 8 390 14S330 30 298 22"/>
+    <path class="ln" d="M222 22C232 18 236 10 230 6S218 8 222 14"/>
+    <path class="ln" d="M298 22C288 18 284 10 290 6S302 8 298 14"/>
+    <path class="lf" d="M260 4C252 12 250 22 260 34C270 22 268 12 260 4Z"/>
+    <circle class="gl" cx="260" cy="20" r="3"/>
+    <circle class="gl" cx="240" cy="26" r="2"/><circle class="gl" cx="280" cy="26" r="2"/>
+    <circle class="gl" cx="130" cy="14" r="2"/><circle class="gl" cx="390" cy="14" r="2"/>
+  </svg>
+
+  <section aria-labelledby="blends-h">
+    <div class="section-head">
+      <p class="kicker">Three signature blends</p>
+      <h2 id="blends-h">From the zinc counter</h2>
+    </div>
+    <div class="blends">
+      <article class="blend" tabindex="0" aria-labelledby="b1">
+        <svg class="vines" viewBox="0 0 332 502" preserveAspectRatio="none" aria-hidden="true">
+          <path class="vn" pathLength="1" d="M20 500C8 440 30 400 14 340S26 240 18 190C12 120 60 40 166 18"/>
+          <path class="vn" pathLength="1" d="M312 500C324 440 302 400 318 340S306 240 314 190C320 120 272 40 166 18"/>
+          <path class="vn thin" pathLength="1" d="M14 340C-4 330-6 312 6 306S22 318 12 322"/>
+          <path class="vn thin" pathLength="1" d="M318 250C336 240 338 222 326 216S310 228 320 232"/>
+          <g transform="translate(20 430) rotate(-60)"><path class="vl" style="--d:.55s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(14 300) rotate(50)"><path class="vl" style="--d:.75s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(30 150) rotate(-40)"><path class="vl" style="--d:.95s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(312 420) rotate(60)"><path class="vl" style="--d:.6s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(318 330) rotate(-50)"><path class="vl" style="--d:.8s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(300 130) rotate(40)"><path class="vl" style="--d:1s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(166 18) scale(1.2)"><path class="vl" style="--d:1.15s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <circle class="vb" style="--d:1.2s" cx="6" cy="306" r="3.5"/><circle class="vb" style="--d:1.25s" cx="326" cy="216" r="3.5"/>
+        </svg>
+        <svg class="card-art" viewBox="0 0 200 170" aria-hidden="true">
+          <circle class="disc" cx="100" cy="86" r="74"/>
+          <path class="ln" d="M100 164C98 130 104 110 100 80"/>
+          <path class="ln" d="M100 120C86 106 70 104 58 96"/>
+          <path class="ln" d="M101 108C116 96 132 96 146 86"/>
+          <!-- linden bract and ivy -->
+          <path class="lf2" d="M58 96C44 92 36 80 40 70C52 74 58 84 58 96Z"/>
+          <path class="lf" transform="translate(146 86) rotate(60) scale(1.3)" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/>
+          <path class="lf" transform="translate(100 150) rotate(-150) scale(1.1)" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/>
+          <!-- chamomile heads -->
+          <g transform="translate(100 64)">
+            <g class="pt"><ellipse rx="5" ry="15" transform="rotate(0) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(30) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(60) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(90) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(120) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(150) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(180) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(210) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(240) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(270) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(300) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(330) translate(0 -17)"/></g>
+            <circle r="11" class="au" stroke="var(--line)" stroke-width="1.2"/>
+            <circle r="5" fill="var(--terra)" opacity=".5"/>
+          </g>
+          <g transform="translate(58 116) scale(.55)">
+            <g class="pt"><ellipse rx="5" ry="15" transform="translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(40) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(80) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(120) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(160) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(200) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(240) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(280) translate(0 -17)"/><ellipse rx="5" ry="15" transform="rotate(320) translate(0 -17)"/></g>
+            <circle r="11" class="au" stroke="var(--line)" stroke-width="1.6"/>
+          </g>
+          <circle class="au" cx="146" cy="60" r="3"/><circle class="au" cx="152" cy="68" r="2.2"/><circle class="au" cx="142" cy="70" r="2"/>
+        </svg>
+        <h3 id="b1">Lierre d’Or</h3>
+        <p class="fr">Golden Ivy &middot; <span lang="fr">tisane du soir</span></p>
+        <p>Lime blossom, lemon verbena and whole chamomile flowers, a calm golden cup for the hour when the lamps are lit.</p>
+        <p class="price">The pot &middot; 1 fr. 20</p>
+      </article>
+
+      <article class="blend" tabindex="0" aria-labelledby="b2">
+        <svg class="vines" viewBox="0 0 332 502" preserveAspectRatio="none" aria-hidden="true">
+          <path class="vn" pathLength="1" d="M18 500C30 450 6 410 20 360S10 250 22 200C30 130 70 50 166 18"/>
+          <path class="vn" pathLength="1" d="M314 500C302 450 326 410 312 360S322 250 310 200C302 130 262 50 166 18"/>
+          <path class="vn thin" pathLength="1" d="M20 360C0 352-2 334 10 330S24 342 14 344"/>
+          <path class="vn thin" pathLength="1" d="M312 280C332 272 334 254 322 250S308 262 318 264"/>
+          <g transform="translate(24 450) rotate(-55)"><path class="vl" style="--d:.55s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(16 270) rotate(55)"><path class="vl" style="--d:.75s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(36 140) rotate(-35)"><path class="vl" style="--d:.95s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(308 440) rotate(55)"><path class="vl" style="--d:.6s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(318 330) rotate(-55)"><path class="vl" style="--d:.8s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(296 130) rotate(35)"><path class="vl" style="--d:1s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(166 18) scale(1.2)"><path class="vl" style="--d:1.15s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <circle class="vb" style="--d:1.2s" cx="10" cy="330" r="3.5"/><circle class="vb" style="--d:1.25s" cx="322" cy="250" r="3.5"/>
+        </svg>
+        <svg class="card-art" viewBox="0 0 200 170" aria-hidden="true">
+          <circle class="disc" cx="100" cy="86" r="74"/>
+          <path class="ln" d="M100 164C102 136 96 118 100 96"/>
+          <path class="ln" d="M100 132C84 124 74 112 64 110"/>
+          <path class="ln" d="M100 124C116 116 128 118 140 110"/>
+          <path class="lf" d="M64 110C48 112 38 100 40 88C54 88 64 98 64 110Z"/>
+          <path class="lf2" d="M140 110C156 112 164 98 160 88C148 90 140 98 140 110Z"/>
+          <path class="lf" d="M100 150C88 156 76 150 74 140C86 138 96 142 100 150Z"/>
+          <!-- a rose, spiralling from its heart -->
+          <g transform="translate(100 66)">
+            <!-- five scalloped outer petals, a cupped inner ring, a spiral heart -->
+            <path class="tr" fill-opacity=".72" d="M0-40C14-44 26-34 26-24C38-26 46-12 40 0C48 10 40 26 28 26C26 38 12 44 0 38C-12 44-26 38-28 26C-40 26-48 10-40 0C-46-12-38-26-26-24C-26-34-14-44 0-40Z"/>
+            <path class="tr" d="M0-28C12-30 22-20 20-10C28-6 30 6 22 14C20 24 8 28 0 24C-8 28-20 24-22 14C-30 6-28-6-20-10C-22-20-12-30 0-28Z"/>
+            <path class="ln" d="M-10 2C-12-8-4-14 4-13C12-12 15-4 12 4C9 11 0 12-5 9C-10 6-8-2-2-3C3-4 6 0 4 4" stroke-width="1.6"/>
+            <path class="ln" d="M-20 -10C-14-2-14 8-22 14M20-10C14-2 14 8 22 14M-8 22C-2 18 2 18 8 22" stroke-width="1.1"/>
+            <circle class="au" cx="-40" cy="-30" r="2.4"/><circle class="au" cx="44" cy="-26" r="2"/>
+          </g>
+        </svg>
+        <h3 id="b2">Rose de Montmartre</h3>
+        <p class="fr">Montmartre Rose &middot; <span lang="fr">thé noir aux pétales</span></p>
+        <p>A bright Ceylon black tea folded with rose petals and a whisper of vanilla bean, for long afternoons and longer letters.</p>
+        <p class="price">The pot &middot; 1 fr. 40</p>
+      </article>
+
+      <article class="blend" tabindex="0" aria-labelledby="b3">
+        <svg class="vines" viewBox="0 0 332 502" preserveAspectRatio="none" aria-hidden="true">
+          <path class="vn" pathLength="1" d="M22 500C10 452 28 408 16 350S28 250 16 196C8 130 64 44 166 18"/>
+          <path class="vn" pathLength="1" d="M310 500C322 452 304 408 316 350S304 250 316 196C324 130 268 44 166 18"/>
+          <path class="vn thin" pathLength="1" d="M16 350C-2 342-4 322 8 318S22 330 12 332"/>
+          <path class="vn thin" pathLength="1" d="M316 230C334 222 336 204 324 200S310 212 320 214"/>
+          <g transform="translate(18 440) rotate(-65)"><path class="vl" style="--d:.55s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(18 260) rotate(45)"><path class="vl" style="--d:.75s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(34 146) rotate(-45)"><path class="vl" style="--d:.95s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(314 430) rotate(65)"><path class="vl" style="--d:.6s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(316 320) rotate(-45)"><path class="vl" style="--d:.8s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(298 136) rotate(45)"><path class="vl" style="--d:1s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <g transform="translate(166 18) scale(1.2)"><path class="vl" style="--d:1.15s" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/></g>
+          <circle class="vb" style="--d:1.2s" cx="8" cy="318" r="3.5"/><circle class="vb" style="--d:1.25s" cx="324" cy="200" r="3.5"/>
+        </svg>
+        <svg class="card-art" viewBox="0 0 200 170" aria-hidden="true">
+          <circle class="disc" cx="100" cy="86" r="74"/>
+          <path class="ln" d="M60 160C70 130 84 104 104 84S136 50 150 36"/>
+          <path class="ln" d="M86 112C74 100 60 96 48 98"/>
+          <path class="ln" d="M120 70C132 76 146 78 156 72"/>
+          <path class="lf" d="M48 98C38 90 36 76 44 68C52 78 52 90 48 98Z"/>
+          <path class="lf2" d="M156 72C168 70 174 58 170 48C160 52 154 62 156 72Z"/>
+          <path class="lf" d="M104 84C96 70 98 56 110 50C114 64 112 76 104 84Z"/>
+          <path class="lf2" d="M76 132C62 132 54 122 56 112C68 112 76 120 76 132Z"/>
+          <!-- jasmine stars -->
+          <g class="pt">
+            <path transform="translate(150 36)" d="M0-14C3-6 3-4 0 0C-3-4-3-6 0-14ZM13-4C6 0 4 1 0 0C3-3 5-4 13-4ZM8 11C3 4 2 2 0 0C4 1 5 3 8 11ZM-8 11C-5 3-4 1 0 0C-2 2-3 4-8 11ZM-13-4C-5-4-3-3 0 0C-4 1-6 0-13-4Z"/>
+            <path transform="translate(122 60) scale(.8) rotate(20)" d="M0-14C3-6 3-4 0 0C-3-4-3-6 0-14ZM13-4C6 0 4 1 0 0C3-3 5-4 13-4ZM8 11C3 4 2 2 0 0C4 1 5 3 8 11ZM-8 11C-5 3-4 1 0 0C-2 2-3 4-8 11ZM-13-4C-5-4-3-3 0 0C-4 1-6 0-13-4Z"/>
+            <path transform="translate(88 104) scale(.9) rotate(-15)" d="M0-14C3-6 3-4 0 0C-3-4-3-6 0-14ZM13-4C6 0 4 1 0 0C3-3 5-4 13-4ZM8 11C3 4 2 2 0 0C4 1 5 3 8 11ZM-8 11C-5 3-4 1 0 0C-2 2-3 4-8 11ZM-13-4C-5-4-3-3 0 0C-4 1-6 0-13-4Z"/>
+            <path transform="translate(70 138) scale(.7) rotate(10)" d="M0-14C3-6 3-4 0 0C-3-4-3-6 0-14ZM13-4C6 0 4 1 0 0C3-3 5-4 13-4ZM8 11C3 4 2 2 0 0C4 1 5 3 8 11ZM-8 11C-5 3-4 1 0 0C-2 2-3 4-8 11ZM-13-4C-5-4-3-3 0 0C-4 1-6 0-13-4Z"/>
+          </g>
+          <circle class="au" cx="150" cy="36" r="2.2"/><circle class="au" cx="122" cy="60" r="1.8"/><circle class="au" cx="88" cy="104" r="2"/><circle class="au" cx="70" cy="138" r="1.6"/>
+          <path class="gl" d="M40 40C52 34 60 40 70 34M36 52C48 46 56 52 66 46" stroke-dasharray="3 4"/>
+        </svg>
+        <h3 id="b3">Brume de Seine</h3>
+        <p class="fr">Seine Mist &middot; <span lang="fr">thé vert au jasmin</span></p>
+        <p>Green tea scented with jasmine blossoms and a cool leaf of garden mint, pale as the morning river under the bridges.</p>
+        <p class="price">The pot &middot; 1 fr. 30</p>
+      </article>
+    </div>
+  </section>
+
+  <svg class="divider" viewBox="0 0 520 40" aria-hidden="true">
+    <path class="ln" d="M10 20C60 20 90 32 130 26S190 10 222 18"/>
+    <path class="ln" d="M510 20C460 20 430 32 390 26S330 10 298 18"/>
+    <path class="ln" d="M222 18C232 22 236 30 230 34S218 32 222 26"/>
+    <path class="ln" d="M298 18C288 22 284 30 290 34S302 32 298 26"/>
+    <path class="lf" d="M260 36C252 28 250 18 260 6C270 18 268 28 260 36Z"/>
+    <circle class="gl" cx="260" cy="20" r="3"/>
+    <circle class="gl" cx="130" cy="26" r="2"/><circle class="gl" cx="390" cy="26" r="2"/>
+  </svg>
+
+  <div class="lower">
+    <section class="panel" aria-labelledby="menu-h">
+      <p class="kicker">Afternoon tea &middot; from three o’clock</p>
+      <h2 id="menu-h">Le Goûter <em>for two, or for one</em></h2>
+      <ul class="menu-list">
+        <li><span class="dish">Madeleines, still warm<small>scented with orange-flower water</small></span><span class="lead" aria-hidden="true"></span><span class="cost">0 fr. 50</span></li>
+        <li><span class="dish">Cucumber &amp; chervil sandwiches<small>on buttered pain de mie</small></span><span class="lead" aria-hidden="true"></span><span class="cost">0 fr. 75</span></li>
+        <li><span class="dish">Tarte aux mirabelles<small>golden plums from Lorraine</small></span><span class="lead" aria-hidden="true"></span><span class="cost">0 fr. 90</span></li>
+        <li><span class="dish">Pain d’épices<small>with candied orange peel</small></span><span class="lead" aria-hidden="true"></span><span class="cost">0 fr. 70</span></li>
+        <li><span class="dish">Tartine of salted butter &amp; radishes<small>a Parisian habit</small></span><span class="lead" aria-hidden="true"></span><span class="cost">0 fr. 60</span></li>
+        <li><span class="dish">The Grand Plateau, for two<small>two pots, and a little of everything</small></span><span class="lead" aria-hidden="true"></span><span class="cost">3 fr. 50</span></li>
+      </ul>
+      <p class="menu-note">Prices are imaginary, like the house itself.</p>
+    </section>
+
+    <aside class="panel contact" aria-labelledby="contact-h">
+      <svg class="emblem" viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="disc" cx="60" cy="60" r="50"/>
+        <circle class="gl" cx="60" cy="60" r="44" stroke-width="1" stroke-dasharray="1.5 4"/>
+        <path class="ln" d="M22 92C30 84 26 72 34 66S50 64 50 56" stroke-width="1.4"/>
+        <path class="ln" d="M98 92C90 84 94 72 86 66S70 64 70 56" stroke-width="1.4"/>
+        <g class="lf">
+          <path transform="translate(30 76) rotate(-40) scale(.8)" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/>
+          <path transform="translate(90 76) rotate(40) scale(.8)" d="M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z"/>
+        </g>
+        <!-- monogram M L in the house lettering -->
+        <g transform="translate(28 34) scale(.42)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 98Q10 100 11 92L11 14Q11 4 19 9L33 72L47 9Q55 4 55 14L55 92Q56 100 62 98" stroke="var(--line)" stroke-width="13"/>
+          <path d="M4 98Q10 100 11 92L11 14Q11 4 19 9L33 72L47 9Q55 4 55 14L55 92Q56 100 62 98" stroke="var(--gilt)" stroke-width="6.5"/>
+        </g>
+        <g transform="translate(62 44) scale(.34)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9Q14 2 14 14L14 86Q14 95 24 95L38 95Q48 95 48 86" stroke="var(--line)" stroke-width="15"/>
+          <path d="M6 9Q14 2 14 14L14 86Q14 95 24 95L38 95Q48 95 48 86" stroke="var(--gilt)" stroke-width="7.5"/>
+        </g>
+      </svg>
+      <p class="kicker">Visit the salon</p>
+      <h2 id="contact-h">Maison Lierre</h2>
+      <address class="addr">7, passage du Lierre-d’Or<br>Paris, near the Opéra</address>
+      <p class="hours">Every day from three until seven o’clock.<br>Closed on Sunday mornings for blending.</p>
+      <p class="tel">Téléphone 118-27</p>
+      <button type="button" class="reserve" id="reserve">Reserve a table</button>
+      <p class="reserve-note" id="reserve-note" aria-live="polite"></p>
+    </aside>
+  </div>
+
+  <footer class="colophon">
+    <span>Maison Lierre &middot; 1899</span>
+    Maison Lierre, its founder, address and prices are fictional. This page is an original homage to the Art Nouveau poster; nothing here is copied from a real work.
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = reduceMQ.matches;
+  function el(name, attrs, parent) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  let seed = 1899;
+  function rand() {
+    seed = (seed + 0x6D2B79F5) >>> 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  const IVY = 'M0 0C-4-3-10-4-11-10C-12-15-7-17-5-15C-6-20-2-24 0-26C2-24 6-20 5-15C7-17 12-15 11-10C10-4 4-3 0 0Z';
+
+  /* ================================================================
+     House lettering: monoline capitals with curled terminals
+     (cap height 100, drawn as strokes)
+     ================================================================ */
+  const GLYPHS = {
+    M: { w: 66, d: ['M4 98Q10 100 11 92L11 14Q11 4 19 9L33 72L47 9Q55 4 55 14L55 92Q56 100 62 98'] },
+    A: { w: 58, d: ['M3 98Q9 99 11 90L27 8Q29 1 31 8L47 90Q49 99 55 98', 'M17 60Q29 51 41 60'] },
+    I: { w: 28, d: ['M4 7Q14 13 24 7', 'M14 10L14 90', 'M4 94Q14 88 24 94'] },
+    S: { w: 52, d: ['M46 16Q40 3 26 4Q9 6 11 25Q13 40 28 48Q46 57 44 77Q42 97 24 96Q9 95 5 81'] },
+    O: { w: 58, d: ['M29 4C10 4 6 30 6 50C6 74 12 96 29 96C46 96 52 74 52 50C52 30 48 4 29 4Z'] },
+    N: { w: 60, d: ['M4 98Q10 100 11 91L11 12Q11 3 18 10L44 90Q48 99 49 89L49 14Q49 3 57 7'] },
+    L: { w: 50, d: ['M6 9Q14 2 14 14L14 86Q14 95 24 95L38 95Q48 95 48 86'] },
+    E: { w: 52, d: ['M48 17Q42 4 30 4Q8 4 8 50Q8 96 30 96Q42 96 49 84', 'M8 51L34 51Q42 51 41 43'] },
+    R: { w: 56, d: ['M11 97L11 12Q11 4 19 4L29 4Q49 4 49 25Q49 47 28 47L11 47', 'M28 47Q40 49 42 70Q44 94 54 95'] }
+  };
+  function setWord(g, word, cx, top, scale, delay0) {
+    const gap = 13;
+    let width = 0;
+    for (const ch of word) width += GLYPHS[ch].w + gap;
+    width -= gap;
+    let x = cx - width * scale / 2;
+    let d = delay0;
+    for (const ch of word) {
+      const gl = GLYPHS[ch];
+      const lg = el('g', { transform: 'translate(' + x.toFixed(1) + ' ' + top + ') scale(' + scale + ')' }, g);
+      for (const layer of ['under', 'over', 'hi']) {
+        for (const pd of gl.d) {
+          const p = el('path', { d: pd, class: layer + ' draw', pathLength: 1 }, lg);
+          p.style.setProperty('--d', (d + (layer === 'hi' ? 0.35 : layer === 'over' ? 0.12 : 0)).toFixed(2) + 's');
+          if (layer === 'hi') p.setAttribute('transform', 'translate(-1.2 -1.4)');
+        }
+      }
+      x += (gl.w + gap) * scale;
+      d += 0.07;
+    }
+  }
+
+  /* ================================================================
+     Hero: rays, mosaic halo, glints, lilies, ivy, title
+     ================================================================ */
+  const CX = 490, CY = 330;
+  function buildHalo() {
+    const rays = document.getElementById('halo-rays');
+    for (let k = 0; k < 96; k++) {
+      const a = k / 96 * Math.PI * 2;
+      const long = k % 2 === 0;
+      const r0 = 262, r1 = long ? 330 : 298;
+      const w = long ? 0.012 : 0.007;
+      const p = [
+        [CX + Math.cos(a - w) * r0, CY + Math.sin(a - w) * r0],
+        [CX + Math.cos(a) * r1, CY + Math.sin(a) * r1],
+        [CX + Math.cos(a + w) * r0, CY + Math.sin(a + w) * r0]
+      ];
+      el('path', { d: 'M' + p.map(q => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('L') + 'Z', fill: 'var(--gilt)', opacity: long ? 0.55 : 0.35 }, rays);
+    }
+    const ring = document.getElementById('halo-ring');
+    el('circle', { cx: CX, cy: CY, r: 256, fill: 'none', stroke: 'var(--gilt)', 'stroke-width': 2 }, ring);
+    el('circle', { cx: CX, cy: CY, r: 184, fill: 'none', stroke: 'var(--line)', 'stroke-width': 2 }, ring);
+    // tesserae: four rows of hand-set tiles, each a little askew
+    const rows = [[196, 11], [214, 12.5], [232, 13.5], [248, 9]];
+    const cols = ['var(--gilt)', 'var(--sage)', 'var(--olive)', 'var(--gilt)', '#e3cf7a', 'var(--sage)', 'var(--terra)'];
+    const tiles = [];
+    rows.forEach(([r, s], ri) => {
+      const n = Math.floor(Math.PI * 2 * r / (s + 3.2));
+      for (let k = 0; k < n; k++) {
+        const a = (k + (ri % 2) * 0.5) / n * 360;
+        const jitter = (rand() - 0.5) * 7;
+        let fill = cols[Math.floor(rand() * cols.length)];
+        if (ri === 3) fill = k % 2 ? 'var(--gilt)' : 'var(--line-2)';
+        if (ri === 1 && k % 6 === 0) fill = 'var(--terra)';
+        const t = el('rect', {
+          class: 'tess', x: (CX - s / 2).toFixed(1), y: (CY - r - s / 2).toFixed(1), width: s.toFixed(1), height: (s * (ri === 3 ? 0.8 : 1)).toFixed(1), rx: 1.2,
+          fill, stroke: 'rgba(38,70,83,.35)', 'stroke-width': 0.6,
+          transform: 'rotate(' + (a + jitter * 0.12).toFixed(2) + ' ' + CX + ' ' + CY + ') rotate(' + jitter.toFixed(1) + ' ' + CX + ' ' + (CY - r) + ')'
+        }, ring);
+        tiles.push([a, r]);
+      }
+    });
+    // tiny gold dots between the rows
+    for (let k = 0; k < 120; k++) {
+      const a = k / 120 * Math.PI * 2;
+      el('circle', { cx: (CX + Math.cos(a) * 205).toFixed(1), cy: (CY + Math.sin(a) * 205).toFixed(1), r: 1.1, fill: 'var(--line)', opacity: 0.5 }, ring);
+    }
+    // glints
+    const gg = document.getElementById('glints');
+    const glints = [];
+    for (let k = 0; k < 7; k++) {
+      const holder = el('g', {}, gg);
+      const g = el('g', { class: 'glint' }, holder);
+      el('path', { d: 'M0-11L2.2-2.2 11 0 2.2 2.2 0 11-2.2 2.2-11 0-2.2-2.2Z', fill: '#fff6cf' }, g);
+      el('circle', { r: 2.2, fill: '#ffffff' }, g);
+      g.holder = holder;
+      glints.push(g);
+    }
+    let gi = 0;
+    function sparkle() {
+      if (!reduced && !document.hidden) {
+        const g = glints[gi++ % glints.length];
+        const t = tiles[Math.floor(rand() * tiles.length)];
+        const a = (t[0] - 90) * Math.PI / 180;
+        g.holder.setAttribute('transform', 'translate(' + (CX + Math.cos(a) * t[1]).toFixed(1) + ' ' + (CY + Math.sin(a) * t[1]).toFixed(1) + ')');
+        g.classList.remove('on');
+        void g.getBoundingClientRect();
+        g.classList.add('on');
+      }
+      setTimeout(sparkle, 380 + rand() * 900);
+    }
+    setTimeout(sparkle, 1400);
+  }
+
+  function petalPath(len, wid, curl) {
+    // a lily petal with a whiplash tip that curls outward
+    return 'M0 0C' + (-wid) + ' ' + (-len * 0.3) + ' ' + (-wid * 1.1) + ' ' + (-len * 0.75) + ' ' + (curl * 0.3) + ' ' + (-len) +
+      'C' + (curl) + ' ' + (-len * 1.02) + ' ' + (curl * 1.3) + ' ' + (-len * 0.9) + ' ' + (curl * 0.9) + ' ' + (-len * 0.84) +
+      'C' + (wid * 0.9) + ' ' + (-len * 0.7) + ' ' + (wid * 0.8) + ' ' + (-len * 0.3) + ' 0 0Z';
+  }
+  function buildLily(g, mirror) {
+    const s = mirror ? -1 : 1;
+    const root = el('g', { transform: 'translate(' + (mirror ? 980 : 0) + ' 0) scale(' + s + ' 1)' }, g);
+    const sway = el('g', { class: 'sway' + (mirror ? ' b' : '') }, root);
+    sway.style.transformOrigin = '150px 700px';
+    // the stem rises in a long whiplash
+    const stem = 'M150 712C140 620 176 560 150 470S132 330 176 250';
+    el('path', { d: stem, class: 'ln draw', 'stroke-width': 4, pathLength: 1, style: '--d:.1s' }, sway);
+    el('path', { d: 'M150 712C140 620 176 560 150 470', class: 'gl draw', 'stroke-width': 1.2, pathLength: 1, style: '--d:.4s', transform: 'translate(5 0)' }, sway);
+    // long blade leaves
+    const leaves = [
+      'M152 640C110 610 84 560 90 500C108 548 128 588 154 612Z',
+      'M150 560C196 540 222 490 218 430C200 476 180 516 152 536Z',
+      'M150 470C112 452 94 408 100 360C116 398 132 430 152 450Z'
+    ];
+    leaves.forEach((d, i) => { const p = el('path', { d, class: (i % 2 ? 'lf2' : 'lf') + ' bloom' }, sway); p.style.setProperty('--d', (0.5 + i * 0.15) + 's'); });
+    // a bud on a side stem
+    el('path', { d: 'M160 420C190 400 210 376 214 344', class: 'ln draw', 'stroke-width': 2.2, pathLength: 1, style: '--d:.7s' }, sway);
+    const bud = el('path', { d: 'M214 344C204 326 206 300 220 286C232 302 230 326 214 344Z', class: 'pt bloom' }, sway);
+    bud.style.setProperty('--d', '1.1s');
+    // the flower: five petals opening from the throat
+    const head = el('g', { transform: 'translate(176 250) rotate(12) scale(1.3)' }, sway);
+    const angles = [-74, -38, 0, 38, 74];
+    angles.forEach((a, i) => {
+      const len = i === 2 ? 92 : i === 1 || i === 3 ? 88 : 72;
+      const w = el('g', { transform: 'rotate(' + a + ')' }, head);
+      const p = el('path', { d: petalPath(len, 19, (a < 0 ? -1 : 1) * 20 + (a === 0 ? 12 : 0)), class: 'pt bloom' }, w);
+      p.style.setProperty('--d', (0.9 + Math.abs(i - 2) * 0.08) + 's');
+      el('path', { d: 'M0-6C' + (a * 0.02) + ' ' + (-len * 0.4) + ' ' + (a * 0.03) + ' ' + (-len * 0.6) + ' ' + (a * 0.05) + ' ' + (-len * 0.72), class: 'gl draw', 'stroke-width': 1.1, pathLength: 1, transform: 'rotate(' + a + ')', style: '--d:1.3s' }, head);
+    });
+    // stamens
+    for (let k = -2; k <= 2; k++) {
+      const a = k * 13;
+      el('path', { d: 'M0-4C' + (k * 4) + ' -40 ' + (k * 8) + ' -60 ' + (k * 11) + ' -74', class: 'ln draw', 'stroke-width': 1.2, pathLength: 1, style: '--d:1.4s' }, head);
+      const aw = el('g', { transform: 'rotate(' + a + ' ' + (k * 11) + ' -78)' }, head);
+      const an = el('ellipse', { cx: k * 11, cy: -78, rx: 3.2, ry: 6, class: 'an bloom' }, aw);
+      an.style.setProperty('--d', '1.6s');
+    }
+    el('circle', { cx: 0, cy: 0, r: 7, fill: 'var(--leaf)', stroke: 'var(--line)', 'stroke-width': 1.2 }, head);
+  }
+
+  function buildHeroIvy() {
+    const g = document.getElementById('hero-ivy');
+    // two garlands sweep beneath the halo and meet under the ribbon
+    const paths = [
+      'M250 468C270 520 300 548 330 562',
+      'M730 468C710 520 680 548 650 562',
+      'M300 180C320 130 370 96 420 90',
+      'M680 180C660 130 610 96 560 90'
+    ];
+    paths.forEach((d, i) => el('path', { d, class: 'ln draw', 'stroke-width': 2.2, pathLength: 1, style: '--d:' + (0.5 + i * 0.1) + 's' }, g));
+    const leafAt = [[262, 500, -40], [292, 538, -10], [326, 560, 20], [718, 500, 40], [688, 538, 10], [654, 560, -20], [316, 142, -60], [370, 102, -20], [664, 142, 60], [610, 102, 20]];
+    leafAt.forEach(([x, y, r], i) => {
+      const w = el('g', { transform: 'translate(' + x + ' ' + y + ') rotate(' + r + ') scale(1.25)' }, g);
+      const p = el('path', { d: IVY, class: (i % 3 === 1 ? 'lf2' : 'lf') + ' bloom' }, w);
+      p.style.setProperty('--d', (1 + i * 0.05).toFixed(2) + 's');
+    });
+    // berries
+    [[306, 552], [674, 552], [420, 92], [560, 92]].forEach(([x, y], i) => {
+      const c = el('circle', { cx: x, cy: y, r: 4, class: 'an bloom' }, g);
+      c.style.setProperty('--d', (1.4 + i * 0.05) + 's');
+    });
+  }
+
+  function buildTitle() {
+    const g = document.getElementById('title-letters');
+    setWord(g, 'MAISON', CX, 222, 0.86, 0.15);
+    setWord(g, 'LIERRE', CX, 336, 0.86, 0.55);
+    // a small gilt rule between the words, with a leaf at its heart
+    el('path', { d: 'M404 322C446 314 470 318 482 322M498 322C510 318 534 314 576 322', class: 'draw', pathLength: 1, fill: 'none', stroke: 'var(--gilt)', 'stroke-width': 2, style: '--d:.9s' }, g);
+    const lg = el('g', { transform: 'translate(490 330) scale(.7)' }, g);
+    const lp = el('path', { d: IVY, class: 'lf bloom' }, lg);
+    lp.style.setProperty('--d', '1.2s');
+  }
+
+  /* ================================================================
+     The frame: rules, corner whiplashes, lilies, climbing ivy
+     ================================================================ */
+  const frame = document.getElementById('frame');
+  function buildFrame() {
+    frame.replaceChildren();
+    const W = window.innerWidth, H = window.innerHeight;
+    const phone = W < 640;
+    frame.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    const root = el('g', { class: 'glow-group' }, frame);
+    const i1 = phone ? 8 : 12, i2 = phone ? 13 : 20, nr = phone ? 16 : 28;
+    // outer rule
+    el('rect', { x: i1, y: i1, width: W - i1 * 2, height: H - i1 * 2, rx: 4, class: 'ln draw', 'stroke-width': phone ? 1.6 : 2.2, pathLength: 1 }, root);
+    // inner gilt rule with notched corners
+    const n = nr;
+    const d = 'M' + (i2 + n) + ' ' + i2 + 'H' + (W - i2 - n) + 'A' + n + ' ' + n + ' 0 0 0 ' + (W - i2) + ' ' + (i2 + n) +
+      'V' + (H - i2 - n) + 'A' + n + ' ' + n + ' 0 0 0 ' + (W - i2 - n) + ' ' + (H - i2) +
+      'H' + (i2 + n) + 'A' + n + ' ' + n + ' 0 0 0 ' + i2 + ' ' + (H - i2 - n) +
+      'V' + (i2 + n) + 'A' + n + ' ' + n + ' 0 0 0 ' + (i2 + n) + ' ' + i2 + 'Z';
+    el('path', { d, class: 'gl draw', 'stroke-width': 1.2, pathLength: 1, style: '--d:.2s' }, root);
+    // corners (drawn once, mirrored)
+    const corners = [[0, 0, 1, 1], [W, 0, -1, 1], [0, H, 1, -1], [W, H, -1, -1]];
+    corners.forEach(([x, y, sx, sy], ci) => {
+      const g = el('g', { transform: 'translate(' + x + ' ' + y + ') scale(' + sx + ' ' + sy + ')' }, root);
+      const k = phone ? 0.62 : 1;
+      const inner = el('g', { transform: 'scale(' + k + ')' }, g);
+      const del = 0.35 + ci * 0.1;
+      // whiplash along the top edge, curling into a spiral
+      el('path', { d: 'M26 34C80 30 128 44 164 32C188 24 190 6 172 6C158 6 158 22 168 22', class: 'ln draw', 'stroke-width': 2, pathLength: 1, style: '--d:' + del + 's' }, inner);
+      el('path', { d: 'M34 26C30 80 44 128 32 164C24 188 6 190 6 172C6 158 22 158 22 168', class: 'ln draw', 'stroke-width': 2, pathLength: 1, style: '--d:' + (del + 0.1) + 's' }, inner);
+      el('path', { d: 'M40 40C70 70 96 78 124 76', class: 'gl draw', 'stroke-width': 1.3, pathLength: 1, style: '--d:' + (del + 0.2) + 's' }, inner);
+      // a lily bud at the tip
+      const bud = el('path', { d: 'M124 76C132 64 150 62 160 70C150 80 136 84 124 76Z', class: 'pt bloom' }, inner);
+      bud.style.setProperty('--d', (del + 0.9) + 's');
+      // ivy leaves
+      [[92, 40, -110], [42, 96, 200], [66, 60, 135]].forEach(([lx, ly, r], i) => {
+        const w = el('g', { transform: 'translate(' + lx + ' ' + ly + ') rotate(' + r + ') scale(.95)' }, inner);
+        const p = el('path', { d: IVY, class: 'lf bloom' }, w);
+        p.style.setProperty('--d', (del + 0.8 + i * 0.1) + 's');
+      });
+      el('circle', { cx: 30, cy: 30, r: 5, class: 'dot' }, inner);
+      el('circle', { cx: 30, cy: 30, r: 9, class: 'gl', 'stroke-width': 1 }, inner);
+    });
+    if (phone) return;
+    // climbing ivy up both sides (desktop and tablet only)
+    for (const side of [0, 1]) {
+      const g = el('g', { transform: side ? 'translate(' + W + ' 0) scale(-1 1)' : '' }, root);
+      const sw = el('g', { class: 'sway' + (side ? ' b' : '') }, g);
+      sw.style.transformOrigin = '30px ' + H + 'px';
+      const top = Math.max(210, H * 0.28), bottom = H - 190;
+      if (bottom - top < 120) continue;
+      let dd = 'M34 ' + bottom;
+      const steps = Math.max(3, Math.round((bottom - top) / 70));
+      for (let s = 1; s <= steps; s++) {
+        const y = bottom - (bottom - top) * s / steps;
+        const x = 34 + (s % 2 ? 12 : -6);
+        dd += 'S' + (x + (s % 2 ? 10 : -8)).toFixed(1) + ' ' + (y + 30).toFixed(1) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1);
+      }
+      el('path', { d: dd, class: 'ln draw', 'stroke-width': 1.8, pathLength: 1, style: '--d:.8s' }, sw);
+      for (let s = 1; s <= steps; s++) {
+        const y = bottom - (bottom - top) * (s - 0.5) / steps;
+        const x = 34 + (s % 2 ? 8 : -2);
+        const w = el('g', { transform: 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + (s % 2 ? 70 : 110) + ') scale(' + (0.8 + (s % 3) * 0.12).toFixed(2) + ')' }, sw);
+        const p = el('path', { d: IVY, class: 'lf bloom' }, w);
+        p.style.setProperty('--d', (1.2 + s * 0.08).toFixed(2) + 's');
+      }
+    }
+    // top and bottom cartouches
+    for (const [y, flip] of [[i2, 1], [H - i2, -1]]) {
+      const g = el('g', { transform: 'translate(' + W / 2 + ' ' + y + ') scale(1 ' + flip + ')' }, root);
+      el('path', { d: 'M-90 0C-60 0-46 16-22 14C-8 13-4 4 0 0C4 4 8 13 22 14C46 16 60 0 90 0', class: 'ln draw', 'stroke-width': 1.6, pathLength: 1, style: '--d:.6s' }, g);
+      el('path', { d: 'M-22 14C-30 24-18 32-10 26M22 14C30 24 18 32 10 26', class: 'gl draw', 'stroke-width': 1.2, pathLength: 1, style: '--d:1s' }, g);
+      const leaf = el('path', { d: 'M0 30C-7 22-7 12 0 4C7 12 7 22 0 30Z', class: 'lf bloom' }, g);
+      leaf.style.setProperty('--d', '1.2s');
+    }
+  }
+
+  /* ================================================================
+     Day / Salon
+     ================================================================ */
+  const modeBtn = document.getElementById('mode');
+  const modeLbl = document.getElementById('mode-lbl');
+  const haloDisc = document.getElementById('halo-disc');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  function setMode(salon, save) {
+    document.body.classList.toggle('salon', salon);
+    modeBtn.setAttribute('aria-pressed', salon ? 'true' : 'false');
+    modeBtn.setAttribute('aria-label', salon ? 'Switch to the Day palette' : 'Switch to the Salon evening palette');
+    modeLbl.textContent = salon ? 'Salon' : 'Day';
+    haloDisc.setAttribute('fill', salon ? 'url(#halo-fill-salon)' : 'url(#halo-fill)');
+    if (meta) meta.setAttribute('content', salon ? '#1d3843' : '#fefae0');
+    if (save) { try { localStorage.setItem('maison-lierre-mode', salon ? 'salon' : 'day'); } catch (e) { /* ignore */ } }
+  }
+  modeBtn.addEventListener('click', () => setMode(!document.body.classList.contains('salon'), true));
+
+  /* reservation: a gentle fictional reply */
+  const notes = [
+    'A marble table by the window is yours at four o’clock.',
+    'The corner banquette under the painted vines awaits you.',
+    'Madame Varenne will keep the kettle warm.'
+  ];
+  let ni = 0;
+  document.getElementById('reserve').addEventListener('click', () => {
+    document.getElementById('reserve-note').textContent = notes[ni++ % notes.length] + ' (A pretend reservation.)';
+  });
+
+  /* touch: tap a blend card to grow its vines (focus does the work) */
+  for (const card of document.querySelectorAll('.blend')) {
+    card.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') card.focus(); });
+  }
+
+  /* ---------------- start ---------------- */
+  let stored = null;
+  try { stored = localStorage.getItem('maison-lierre-mode'); } catch (e) { stored = null; }
+  setMode(stored === 'salon', false);
+  buildHalo();
+  buildLily(document.getElementById('lily-left'), false);
+  buildLily(document.getElementById('lily-right'), true);
+  buildHeroIvy();
+  buildTitle();
+  buildFrame();
+  // on phones, crop the hero's empty margins so the lettering reads larger
+  const heroArt = document.getElementById('hero-art');
+  function fitHero() { heroArt.setAttribute('viewBox', window.innerWidth < 640 ? '70 20 840 690' : '0 0 980 720'); }
+  fitHero();
+  let rt = 0, lastW = window.innerWidth, lastH = window.innerHeight;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    // rebuild right away so the frame always fits; skip the draw-on the second time
+    const W = window.innerWidth, H = window.innerHeight;
+    if (W === lastW && H === lastH) return;
+    lastW = W; lastH = H;
+    fitHero();
+    frame.classList.add('static');
+    buildFrame();
+    for (const p of frame.querySelectorAll('.draw, .bloom')) { p.style.animationDuration = '.01s'; p.style.animationDelay = '0s'; }
+  });
+  reduceMQ.addEventListener && reduceMQ.addEventListener('change', (e) => { reduced = e.matches; });
+})();
+</script>
+</body>
+</html>

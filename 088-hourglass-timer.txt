@@ -1,0 +1,37 @@
+TITLE: Tempus — Hourglass Timer
+FILE: 088-hourglass-timer.html
+
+=== PROMPT (exact prompt used) ===
+Build "Tempus — Hourglass Timer", a beautiful focus timer with a physically simulated hourglass. Two glass bulbs drawn in SVG with realistic reflections inside a turned-wood and brass frame (#6b4226, #c9a227); sand simulated as particles (or a cellular sand grid) flowing through the neck: the top pile drains with a conical dip, a thin stream falls, and a mound builds in the lower bulb with grains tumbling down its slopes. Warm desert-glass palette: sand #e3b778, glass tint #e8f4f8, dusk background #2d1b3d → #d98d62. Set the duration with elegant preset chips (1, 5, 15, 25 min) or a custom input; the flow rate adapts so the sand runs out exactly on time. Click the hourglass (or a flip button) to flip it with a smooth 180° rotation — the sand keeps flowing with gravity reversed. Remaining time appears as a large, thin numeral with a progress arc; a gentle chime plays at the end (Web Audio). Pause/resume. Typography: classic serif numerals with old-style figures.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Tempus is a focus timer built around a physically simulated hourglass standing in a desert at dusk. The sky runs from violet #2d1b3d to apricot #d98d62, with a low sun glowing through the glass, layered dunes, faint stars and drifting dust motes. The hourglass has a turned-wood (#6b4226) and brass (#c9a227) frame: two carved caps with grain lines and brass knobs, three turned posts with brass rings (the back one seen faintly through the glass), and brass collars where the bulbs meet the caps. Its SVG glass bulbs carry soft tint, inner shading and long specular reflections. Inside, every grain of sand (#e3b778 family) is simulated. The top pile drains into a conical crater, a thin continuous stream falls through the neck, and a mound builds below with grains tumbling down its slopes. Beside it is an elegant panel: a letter-spaced TEMPUS mark; a large, light classic-serif numeral (old-style figures where the font provides them) inside a ticked dial with a sand-gold progress arc; brass-rimmed preset chips (1, 5, 15, 25 min); a custom-minutes field; and Pause/Start, Flip, Reset and chime controls.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- One bulb-profile function (a straight 0.82-slope funnel near the neck, clipped by a sine-power dome) drives both the SVG glass outline and the sand grid mask, so the grains always sit exactly inside the drawn glass.
+- The sand is a cellular automaton on an 85×201 grid, with per-grain colour, free-fall velocity (up to 5 cells per step, so the stream accelerates and thins), and two passes per row. Straight falls are resolved first, so voids climb vertically and the top pile forms a proper central crater. Then blocked grains tumble diagonally, with random friction for natural 45° slopes.
+- A neck "gate" makes the timing exact. Each frame the target number of grains still above the neck is total × remaining / duration, and only the surplus may cross, so the top bulb empties precisely when the clock reaches zero at any preset. Pausing closes the gate and the stream stops.
+- Time is anchored to a wall-clock end timestamp, with a 500 ms background watchdog, so the countdown and chime stay correct in hidden tabs. The sand catches up at full flow when you return.
+- Flip: the whole assembly (back SVG, sand canvas and front SVG) rotates 180° with an eased CSS transform. Gravity reverses at the half-way point, and the remaining time becomes the elapsed time, exactly as in a real hourglass. Sand in the new top bulb then drains again.
+- Rendering: each frame is written to a 32-bit ImageData at grid resolution and scaled up crisply. Per-column depth shading lightens the surface grains and darkens the buried ones for volume, and a continuous highlighted thread is drawn from the neck to the pile top while sand runs.
+- Craft details: turned posts generated from a radius profile via Catmull-Rom to Bézier curves, brass gradients, wood-grain strokes, clip-pathed inner rim shading, per-bulb gradient reflections, and a ground shadow.
+- The dial has 60 generated ticks with quarter marks, a gradient arc whose stroke-dashoffset tracks remaining time, and a glowing end-dot. It pulses when time is up, and the browser tab title mirrors the countdown.
+
+=== INTERACTION MODEL ===
+- Preset chips (aria-pressed) and a custom-minutes form (1–180) set the duration and refill the top bulb. Start/Pause toggles the flow. Reset refills. "Turn again" appears when all the sand is below.
+- Flip with the Flip button, a click or tap on the hourglass itself, or the keyboard (the hourglass is a focusable role="button" responding to Enter and Space).
+- Keyboard shortcuts: Space starts or pauses, F flips, R resets, 1–4 choose presets. Status changes are announced through a polite live region.
+- At zero a gentle synthesized two-note bell chime plays: inharmonic partials with exponential decay and a soft delay tail, via Web Audio. The AudioContext is only created after a user gesture, and a bell toggle button (aria-pressed) mutes it.
+- Responsive: side-by-side on desktop, and stacked on phones with the brand on top, the hourglass, then the dial and controls. Reduced motion makes the flip instant and removes the decorative drift.

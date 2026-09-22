@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Senbazuru — Fold a Paper Crane</title>
+<meta name="description" content="An animated, step-by-step origami crane: a square of patterned washi folds in true 3D through eight stages — triangle, square base, petal folds, bird base, narrowing, neck and tail, head and wings — then takes flight.">
+<meta name="theme-color" content="#f7f3ec">
+<style>
+  :root{
+    --paper:#f7f3ec;
+    --paper-2:#efe8dc;
+    --indigo:#264653;
+    --indigo-soft:#58717a;
+    --coral:#e76f51;
+    --hair:rgba(38,70,83,.16);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",P052,"URW Palladio L",Georgia,serif;
+    --sans:"Helvetica Neue","Avenir Next","Segoe UI","Nimbus Sans",Arial,sans-serif;
+    --ease:cubic-bezier(.2,.75,.25,1);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    min-height:100vh;
+    background:var(--paper);
+    color:var(--indigo);
+    font-family:var(--serif);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  button{font:inherit;color:inherit}
+  :focus-visible{outline:1.5px solid var(--coral);outline-offset:4px}
+
+  .page{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns:minmax(290px,400px) minmax(0,1fr);
+    grid-template-rows:auto minmax(0,1fr) auto auto;
+    grid-template-areas:
+      "head  head"
+      "panel stage"
+      "panel rail"
+      "foot  foot";
+    column-gap:clamp(24px,4vw,72px);
+    padding:clamp(22px,3.6vw,48px) clamp(18px,4.6vw,72px) 22px;
+  }
+
+  /* ───────── masthead ───────── */
+  .head{grid-area:head;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+  .kicker,.label{font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;color:var(--indigo-soft)}
+  .kicker{margin:0 0 10px}
+  .kicker b{color:var(--coral);font-weight:600}
+  .title{margin:0;font-weight:400;font-size:clamp(26px,2.6vw,38px);letter-spacing:.01em;line-height:1.05}
+  .title i{font-style:italic;color:var(--indigo-soft)}
+  .head-note{margin:0 0 4px;max-width:34ch;text-align:right;font-size:14px;line-height:1.5;color:var(--indigo-soft);font-style:italic}
+
+  /* ───────── left panel ───────── */
+  .panel{grid-area:panel;align-self:center;display:flex;flex-direction:column;padding:24px 0}
+  .numeral-wrap{position:relative;height:clamp(118px,14vw,208px);margin-left:-.06em}
+  .numeral{position:absolute;left:0;bottom:0;margin:0;font-weight:300;font-size:clamp(132px,16vw,236px);line-height:.78;letter-spacing:-.02em;
+    color:transparent;-webkit-text-stroke:1.1px var(--indigo);font-variant-numeric:lining-nums;white-space:nowrap;
+    transition:opacity .5s var(--ease), transform .7s var(--ease)}
+  .numeral.out{opacity:0;transform:translateY(14px)}
+  .numeral sup{font-size:.15em;-webkit-text-stroke:0;color:var(--coral);letter-spacing:.2em;vertical-align:.1em;margin-left:.25em;font-family:var(--sans);font-weight:500}
+  .stepof{margin:26px 0 6px}
+  .stepname{margin:0;font-weight:400;font-style:italic;font-size:clamp(24px,2.3vw,32px);line-height:1.1}
+  .instr{margin:12px 0 0;font-size:clamp(16px,1.35vw,19px);line-height:1.5;max-width:30ch;color:#3b5963;min-height:3em}
+  .controls{display:flex;align-items:center;gap:12px;margin-top:30px}
+  .ctl{appearance:none;width:48px;height:48px;border-radius:50%;border:1px solid var(--hair);background:transparent;display:grid;place-items:center;cursor:pointer;
+    transition:border-color .3s, background .3s, transform .3s var(--ease)}
+  .ctl svg{width:20px;height:20px;fill:none;stroke:var(--indigo);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+  .ctl:hover{border-color:var(--indigo);background:#fffdf8}
+  .ctl:active{transform:scale(.95)}
+  .ctl[disabled]{opacity:.35;cursor:default;background:transparent;border-color:var(--hair)}
+  .auto{appearance:none;height:48px;padding:0 20px 0 16px;border-radius:24px;border:1px solid var(--hair);background:transparent;cursor:pointer;
+    display:flex;align-items:center;gap:10px;font-family:var(--sans);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--indigo);transition:border-color .3s, background .3s}
+  .auto:hover{border-color:var(--indigo);background:#fffdf8}
+  .auto .ad{width:8px;height:8px;border-radius:50%;border:1px solid var(--coral);transition:background .3s}
+  .auto[aria-pressed="true"] .ad{background:var(--coral);animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+
+  .washi{margin-top:34px}
+  .washi .label{margin:0 0 12px}
+  .swatches{display:flex;gap:18px}
+  .sw{appearance:none;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:9px}
+  .sw canvas{width:46px;height:46px;display:block;transition:transform .5s var(--ease), box-shadow .4s;box-shadow:0 1px 2px rgba(38,70,83,.15)}
+  .sw span{font-family:var(--sans);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--indigo-soft);padding-bottom:4px;border-bottom:1px solid transparent;transition:color .3s,border-color .3s}
+  .sw:hover canvas{transform:translateY(-2px) rotate(-4deg)}
+  .sw[aria-checked="true"] span{color:var(--indigo);border-bottom-color:var(--coral)}
+  .sw[aria-checked="true"] canvas{box-shadow:0 0 0 1px var(--paper),0 0 0 2px var(--coral)}
+
+  /* ───────── stage ───────── */
+  .stage{grid-area:stage;position:relative;min-height:420px;height:min(66vh,660px);align-self:center;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;outline:none;overflow:hidden}
+  .stage.drag{cursor:grabbing}
+  .stage:focus-visible{outline:1.5px solid var(--coral);outline-offset:-6px}
+  .sun{position:absolute;left:50%;top:47%;width:min(62%,470px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(231,111,81,.085) 0%, rgba(231,111,81,.055) 52%, rgba(231,111,81,0) 71%);pointer-events:none}
+  .floor{position:absolute;left:50%;top:86%;width:64%;height:1px;transform:translateX(-50%);background:linear-gradient(90deg,rgba(38,70,83,0),rgba(38,70,83,.14),rgba(38,70,83,0));pointer-events:none}
+  .shadow{position:absolute;left:50%;top:86%;width:260px;height:34px;margin:-17px 0 0 -130px;border-radius:50%;
+    background:radial-gradient(closest-side, rgba(38,56,64,.26), rgba(38,56,64,.1) 55%, rgba(38,56,64,0));pointer-events:none;will-change:transform,opacity}
+  .viewport{position:absolute;inset:0;perspective:1500px;perspective-origin:50% 42%;overflow:hidden;pointer-events:none}
+  .scene{position:absolute;left:50%;top:46%;width:0;height:0;transform-style:preserve-3d}
+  .face{position:absolute;left:0;top:0;transform-origin:0 0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+  .face canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+  .face i{position:absolute;inset:0;display:block;background:#10242c;opacity:0}
+  .face i.lit{background:#fffaf0}
+  .counter{position:absolute;left:50%;top:91%;margin:0;transform:translate(-50%,8px);text-align:center;opacity:0;transition:opacity 1.2s var(--ease), transform 1.2s var(--ease);pointer-events:none;white-space:nowrap}
+  .counter.on{opacity:1;transform:translate(-50%,0)}
+  .counter .c{font-size:22px;font-style:italic;letter-spacing:.02em}
+  .counter .c b{font-weight:400;color:var(--coral);font-style:normal}
+  .counter .label{display:block;margin-top:6px;font-size:9px}
+  .orbit-hint{position:absolute;right:4px;top:6px;margin:0;display:flex;align-items:center;gap:8px;transition:opacity .8s}
+  .orbit-hint svg{width:18px;height:18px;fill:none;stroke:var(--indigo-soft);stroke-width:1.1}
+  .stage.moved .orbit-hint{opacity:.35}
+
+  /* ───────── rail ───────── */
+  .rail{grid-area:rail;padding:6px 0 4px}
+  .rail ol{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));max-width:560px;position:relative}
+  .rail ol::before{content:"";position:absolute;left:6.25%;right:6.25%;top:11px;height:1px;background:var(--hair)}
+  .rail .fill{position:absolute;left:6.25%;top:11px;height:1px;background:var(--indigo);width:0;transition:width .6s var(--ease)}
+  .rail li{display:flex;justify-content:center}
+  .dot{appearance:none;border:0;background:none;padding:4px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+  .dot i{display:block;width:15px;height:15px;border-radius:50%;border:1px solid var(--indigo);background:var(--paper);transition:background .35s, transform .35s var(--ease), border-color .35s}
+  .dot span{font-family:var(--sans);font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--indigo-soft);white-space:nowrap;opacity:.0;transition:opacity .3s}
+  .dot.done i{background:var(--indigo)}
+  .dot[aria-current="step"] i{background:var(--coral);border-color:var(--coral);transform:scale(1.15)}
+  .dot[aria-current="step"] span,.dot:hover span,.dot:focus-visible span{opacity:1}
+  .dot[aria-current="step"] span{color:var(--indigo)}
+
+  /* ───────── footer ───────── */
+  .foot{grid-area:foot;display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--hair)}
+  .foot p{margin:0}
+  .hanko{display:flex;align-items:center;gap:12px}
+  .hanko svg{width:34px;height:34px;flex:none}
+  .keys{display:flex;gap:16px;flex-wrap:wrap}
+  .keys kbd{font-family:var(--sans);font-size:9px;border:1px solid var(--hair);border-radius:3px;padding:2px 5px;margin-right:4px;letter-spacing:.08em;color:var(--indigo)}
+
+  /* ───────── phones and small tablets ───────── */
+  @media (max-width:860px){
+    .page{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "stage" "rail" "panel" "foot";padding:20px 16px 18px}
+    .head{flex-direction:column;align-items:flex-start;gap:8px}
+    .head-note{display:none}
+    .stage{height:min(96vw,430px);min-height:300px;margin-top:6px}
+    .panel{padding:10px 0 4px;display:grid;grid-template-columns:auto 1fr;column-gap:18px;align-items:end}
+    .numeral-wrap{grid-row:1 / span 2;height:96px;width:auto}
+    .numeral{position:relative;font-size:112px}
+    .numeral sup{display:none}
+    .stepof{margin:0 0 4px}
+    .stepname{font-size:23px}
+    .instr{grid-column:1 / -1;margin-top:14px;max-width:none;min-height:0;font-size:17px}
+    .controls{grid-column:1 / -1;margin-top:20px}
+    .washi{grid-column:1 / -1;margin-top:24px}
+    .rail .dot span{display:none}
+    .rail ol{max-width:none}
+    .foot{flex-direction:column;align-items:flex-start}
+    .orbit-hint{top:auto;bottom:6px;right:0}
+    .counter{top:88%}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .numeral,.counter,.sw canvas,.dot i,.rail .fill{transition:none}
+    .auto[aria-pressed="true"] .ad{animation:none}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="head">
+    <div>
+      <p class="kicker"><b>Senbazuru</b> · one thousand cranes</p>
+      <h1 class="title">Fold a Paper Crane <i>— in eight quiet steps</i></h1>
+    </div>
+    <p class="head-note">Legend says a thousand folded cranes grant a wish. Every crane begins the same way: with one square.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="stepName">
+    <div class="numeral-wrap" aria-hidden="true"><p class="numeral" id="numeral">01<sup>/08</sup></p></div>
+    <p class="stepof label" id="stepOf">Step 1 of 8</p>
+    <h2 class="stepname" id="stepName">The square</h2>
+    <p class="instr" id="instr" aria-live="polite">Lay the washi flat, patterned side facing you.</p>
+    <div class="controls">
+      <button type="button" class="ctl" id="prevBtn" aria-label="Previous step">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg>
+      </button>
+      <button type="button" class="ctl" id="nextBtn" aria-label="Next step">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5 13 10l-5.5 5.5"/></svg>
+      </button>
+      <button type="button" class="auto" id="autoBtn" aria-pressed="false"><span class="ad" aria-hidden="true"></span><span id="autoLabel">Auto-play</span></button>
+    </div>
+    <div class="washi">
+      <p class="label" id="washiLabel">Washi pattern</p>
+      <div class="swatches" role="radiogroup" aria-labelledby="washiLabel" id="swatches">
+        <button type="button" class="sw" role="radio" aria-checked="true" data-kind="seigaiha" tabindex="0"><canvas width="92" height="92" aria-hidden="true"></canvas><span>Seigaiha</span></button>
+        <button type="button" class="sw" role="radio" aria-checked="false" data-kind="asanoha" tabindex="-1"><canvas width="92" height="92" aria-hidden="true"></canvas><span>Asanoha</span></button>
+        <button type="button" class="sw" role="radio" aria-checked="false" data-kind="shippo" tabindex="-1"><canvas width="92" height="92" aria-hidden="true"></canvas><span>Shippō</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="stage" id="stage" tabindex="0" aria-label="The paper model in three dimensions. Drag to orbit, double-click to reset the view.">
+    <div class="sun" aria-hidden="true"></div>
+    <div class="floor" aria-hidden="true"></div>
+    <div class="shadow" id="shadow" aria-hidden="true"></div>
+    <div class="viewport" aria-hidden="true"><div class="scene" id="scene"></div></div>
+    <p class="counter" id="counter" aria-live="polite"><span class="c"><b id="count">1</b> of 1000</span><span class="label">cranes folded here</span></p>
+    <p class="orbit-hint label" aria-hidden="true"><svg viewBox="0 0 20 20"><ellipse cx="10" cy="10" rx="8" ry="3.2"/><path d="M15.5 5.2l2.2 2.2-2.9.9"/></svg>drag to orbit</p>
+  </section>
+
+  <nav class="rail" aria-label="Folding steps">
+    <ol id="rail"><li class="fill" aria-hidden="true" id="railFill"></li></ol>
+  </nav>
+
+  <footer class="foot">
+    <div class="hanko">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="2" y="2" width="36" height="36" rx="3" fill="#e76f51"/>
+        <rect x="5" y="5" width="30" height="30" rx="1.5" fill="none" stroke="#f7f3ec" stroke-width="1.2"/>
+        <path d="M8 24.5 17 21l3-9 2.2 8.6L32 16.5l-8.6 7.4 2.4 5.6-5.4-3.9-6.8 1.8 3.8-3z" fill="#f7f3ec"/>
+      </svg>
+      <p class="label">folded in true 3D · every facet a hinge</p>
+    </div>
+    <div class="keys label"><span><kbd>←</kbd><kbd>→</kbd>step</span><span><kbd>P</kbd>auto-play</span><span><kbd>Home</kbd>unfold</span></div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ════════════════ geometry: a tiny rigid-origami engine ════════════════
+     The paper is a square in its own coordinates (a diamond of half-diagonal 1).
+     Each facet carries a rigid 3×4 transform. A fold rotates the selected facets
+     by π about a crease line; facets crossing the line are split first.         */
+  var A = 1 - Math.SQRT1_2;                        // 0.2929 — kite / petal proportions
+  var Q = (1 - A) * Math.tan(Math.PI / 16);        // narrowing fold hits the shoulder line here
+  var S = 200;                                     // CSS px per model unit
+  var EPS = 0.0024;                                // spacing between paper layers (model units)
+  var reduce = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+
+  function mId(){ return [1,0,0, 0,1,0, 0,0,1, 0,0,0]; }
+  function mMul(P,B,out){
+    var r = out || new Array(12), i, j;
+    var b0=B[0],b1=B[1],b2=B[2],b3=B[3],b4=B[4],b5=B[5],b6=B[6],b7=B[7],b8=B[8],b9=B[9],b10=B[10],b11=B[11];
+    for(i=0;i<3;i++){
+      var p0=P[i*3], p1=P[i*3+1], p2=P[i*3+2];
+      r[i*3]   = p0*b0 + p1*b3 + p2*b6;
+      r[i*3+1] = p0*b1 + p1*b4 + p2*b7;
+      r[i*3+2] = p0*b2 + p1*b5 + p2*b8;
+      r[9+i]   = p0*b9 + p1*b10 + p2*b11 + P[9+i];
+    }
+    return r;
+  }
+  function mRot(px,py,pz, ux,uy,uz, th, out){
+    var c=Math.cos(th), s=Math.sin(th), C=1-c, R = out || new Array(12);
+    R[0]=c+ux*ux*C; R[1]=ux*uy*C-uz*s; R[2]=ux*uz*C+uy*s;
+    R[3]=uy*ux*C+uz*s; R[4]=c+uy*uy*C; R[5]=uy*uz*C-ux*s;
+    R[6]=uz*ux*C-uy*s; R[7]=uz*uy*C+ux*s; R[8]=c+uz*uz*C;
+    R[9]=px-(R[0]*px+R[1]*py+R[2]*pz); R[10]=py-(R[3]*px+R[4]*py+R[5]*pz); R[11]=pz-(R[6]*px+R[7]*py+R[8]*pz);
+    return R;
+  }
+  function ap(M,x,y){ return [M[0]*x+M[1]*y+M[9], M[3]*x+M[4]*y+M[10], M[6]*x+M[7]*y+M[11]]; }
+
+  var facets = [{poly:[[0,-1],[1,0],[0,1],[-1,0]], M:mId(), L:0, snaps:[], steps:[null], cur:[], tag:''}];
+  function cm(f){ var x=0,y=0; for(var i=0;i<f.poly.length;i++){ var p=ap(f.M,f.poly[i][0],f.poly[i][1]); x+=p[0]; y+=p[1]; } return [x/f.poly.length, y/f.poly.length]; }
+  function clone(f, poly){ return {poly:poly, M:f.M, L:f.L, snaps:f.snaps.slice(), steps:f.steps.slice(), cur:f.cur.slice(), tag:f.tag}; }
+  function split(f, side){
+    var E=1e-9, s=[], pos=false, neg=false, i;
+    for(i=0;i<f.poly.length;i++){ var p=ap(f.M,f.poly[i][0],f.poly[i][1]); s[i]=side(p[0],p[1]); if(s[i]>E) pos=true; if(s[i]<-E) neg=true; }
+    if(!(pos && neg)) return [f];
+    var a=[], b=[], n=f.poly.length;
+    for(i=0;i<n;i++){
+      var j=(i+1)%n, vi=f.poly[i], vj=f.poly[j], si=s[i], sj=s[j];
+      if(si>=-E) a.push(vi); if(si<=E) b.push(vi);
+      if((si>E && sj<-E) || (si<-E && sj>E)){ var t=si/(si-sj), m=[vi[0]+(vj[0]-vi[0])*t, vi[1]+(vj[1]-vi[1])*t]; a.push(m); b.push(m); }
+    }
+    return [clone(f,a), clone(f,b)];
+  }
+  function fold(o){
+    var p=o.a, dx=o.b[0]-p[0], dy=o.b[1]-p[1], dl=Math.hypot(dx,dy), ux=dx/dl, uy=dy/dl;
+    var side=function(x,y){ return ux*(y-p[1]) - uy*(x-p[0]); };
+    var refS = o.ref ? (side(o.ref[0],o.ref[1])>0?1:-1) : 0;
+    var ang = refS===o.swing ? Math.PI : -Math.PI;         // +π/2 lifts the ref side toward +z when refS>0
+    var R = mRot(p[0],p[1],0, ux,uy,0, Math.PI);
+    var rec = {px:p[0], py:p[1], pz:0, ux:ux, uy:uy, uz:0, ang:ang, w0:o.w[0], w1:o.w[1]};
+    var out=[];
+    facets.forEach(function(f){
+      if(!o.pick(f, cm(f))){ out.push(f); return; }
+      split(f, side).forEach(function(g){
+        if(refS){ var c=cm(g); if((side(c[0],c[1])>0?1:-1)===refS){ g.M=mMul(R,g.M); g.cur.push(rec); if(o.tag) g.tag=o.tag; } }
+        out.push(g);
+      });
+    });
+    facets=out;
+  }
+  function snapshot(relayer){
+    facets.forEach(function(f){ if(relayer) f.L = relayer(f, f.L, f.cur); });
+    var vals=[]; facets.forEach(function(f){ var v=+f.L.toFixed(6); if(vals.indexOf(v)<0) vals.push(v); });
+    vals.sort(function(a,b){ return a-b; });
+    var rank=function(v){ return vals.indexOf(+v.toFixed(6)); };
+    var n = facets[0].snaps.length;
+    facets.forEach(function(f){
+      var M=f.M.slice(); M[11]=rank(f.L)*EPS;
+      if(n>0){
+        var E=f.snaps[n-1].M.slice();
+        f.cur.forEach(function(r){ E=mMul(mRot(r.px,r.py,r.pz,r.ux,r.uy,r.uz,r.ang),E); });
+        f.steps[n] = {ops:f.cur, zfix:M[11]-E[11], post:null};
+      }
+      f.snaps.push({M:M, L:f.L});
+      f.cur=[];
+    });
+    return rank;
+  }
+  var all=function(){ return true; };
+  var lower=function(c){ return c[1] > A + 1e-6; };
+  var isL=function(){ var s=[].slice.call(arguments); return function(f){ return s.indexOf(f.L)>=0; }; };
+
+  // 1 · the square
+  snapshot(null);
+  // 2 · triangle: mountain-fold the top half behind
+  fold({a:[-1,0], b:[1,0], ref:[0,-.5], pick:all, swing:-1, w:[0,1]});
+  snapshot(function(f,L,o){ return o.length ? -1 : 0; });
+  // 3 · square base: reverse-fold both side corners inside
+  fold({a:[0,0], b:[1,1], ref:[.6,.2], pick:all, swing:-1, w:[0,.78]});
+  fold({a:[0,0], b:[-1,1], ref:[-.6,.2], pick:all, swing:-1, w:[.22,1]});
+  snapshot(function(f,L,o){ return o.length ? (L===0?2:1) : (L===0?3:0); });
+  // 4 · petal fold, front: kite the sides in, then lift the point
+  fold({a:[0,1], b:[A,A], ref:[.5,.5], pick:isL(3,2), swing:1, w:[0,.42]});
+  fold({a:[0,1], b:[-A,A], ref:[-.5,.5], pick:isL(3,2), swing:1, w:[0,.42]});
+  fold({a:[-1,A], b:[1,A], ref:[0,.9], pick:isL(3), swing:1, w:[.44,1]});
+  snapshot(function(f,L,o){ if(L===3) return o.length ? (o.length>1?7:8) : 3; if(L===2) return o.length?4:2; return L; });
+  // 5 · petal fold, back → bird base
+  // (the camera swings round to the back while these happen, so they start a little later)
+  fold({a:[0,1], b:[A,A], ref:[.5,.5], pick:isL(0,1), swing:-1, w:[.3,.62]});
+  fold({a:[0,1], b:[-A,A], ref:[-.5,.5], pick:isL(0,1), swing:-1, w:[.3,.62]});
+  fold({a:[-1,A], b:[1,A], ref:[0,.9], pick:isL(0), swing:-1, w:[.64,1]});
+  snapshot(function(f,L,o){ if(L===0) return o.length ? (o.length>1?-4:-5) : 0; if(L===1) return o.length?-1:1; return L; });
+  // 6 · narrow the legs, front then back
+  fold({a:[-1,A], b:[1,A], ref:null, pick:isL(2,1), w:[0,1]});
+  // (the camera starts this step behind the model, so the back is narrowed first)
+  fold({a:[0,1], b:[Q,A], ref:[A,A], pick:function(f,c){ return (f.L===2||f.L===4) && lower(c); }, swing:1, w:[.5,1]});
+  fold({a:[0,1], b:[-Q,A], ref:[-A,A], pick:function(f,c){ return (f.L===2||f.L===4) && lower(c); }, swing:1, w:[.5,1]});
+  fold({a:[0,1], b:[Q,A], ref:[A,A], pick:function(f,c){ return (f.L===1||f.L===-1) && lower(c); }, swing:-1, w:[0,.5]});
+  fold({a:[0,1], b:[-Q,A], ref:[-A,A], pick:function(f,c){ return (f.L===1||f.L===-1) && lower(c); }, swing:-1, w:[0,.5]});
+  snapshot(function(f,L,o){ return o.length ? ({'2':6,'4':5,'1':-3,'-1':-2})[String(L)] : L; });
+  // 7 · inside-reverse-fold the legs up: neck and tail
+  var BETA = 18.85*Math.PI/180, Y0 = .42;
+  fold({a:[0,Y0], b:[Math.cos(BETA), Y0+Math.sin(BETA)], ref:[.02,.98], pick:function(f,c){ return c[0]>1e-6; }, swing:-1, w:[0,.64], tag:'neck'});
+  fold({a:[0,Y0], b:[-Math.cos(BETA), Y0+Math.sin(BETA)], ref:[-.02,.98], pick:function(f,c){ return c[0]<-1e-6; }, swing:-1, w:[.36,1], tag:'tail'});
+  snapshot(function(f,L,o){ return o.length ? 1.5+(1.5-L)*.08 : L; });
+  // 8 · reverse-fold the head, then open the wings
+  function refl(pt,a,u){ var vx=pt[0]-a[0], vy=pt[1]-a[1], d=vx*u[0]+vy*u[1]; return [a[0]+2*d*u[0]-vx, a[1]+2*d*u[1]-vy]; }
+  var TIP = refl([0,1],[0,Y0],[Math.cos(BETA),Math.sin(BETA)]);
+  var TN = Math.atan2(TIP[1]-Y0, TIP[0]);
+  var K = [TIP[0]-.15*Math.cos(TN), TIP[1]-.15*Math.sin(TN)];
+  var HG = (22*Math.PI/180 + TN)/2;
+  fold({a:K, b:[K[0]+Math.cos(HG), K[1]+Math.sin(HG)], ref:TIP, pick:function(f){ return f.tag==='neck'; }, swing:-1, w:[0,.42], tag:'head'});
+  fold({a:[-1,A], b:[1,A], ref:null, pick:function(f){ return !f.tag; }, w:[0,1]});
+  var rank8 = snapshot(function(f,L,o){ return o.length ? 1.5+(1.5-L)*.05 : L; });
+  var ZMID = (rank8(1)+rank8(2))/2*EPS;
+  var PHI = 64*Math.PI/180;
+  var LAST = facets[0].snaps.length-1;           // 7
+  facets.forEach(function(f){
+    var c=cm(f), sn=f.snaps[LAST];
+    f.wing = 0;
+    if(f.tag || !(c[1] < A-1e-6)) return;
+    f.wing = f.L>=2 ? -1 : 1;                     // front wing tips toward the viewer
+    var post = {px:0, py:A, pz:ZMID, ux:1, uy:0, uz:0, ang:f.wing*PHI, w0:.38, w1:1};
+    f.steps[LAST].post = post;
+    sn.M = mMul(mRot(0,A,ZMID,1,0,0,f.wing*PHI), sn.M);
+  });
+  var NST = LAST + 1;
+
+  /* per-stage framing: model centre and extent from each snapshot */
+  var frames = [];
+  for(var st=0; st<NST; st++){
+    var mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+    facets.forEach(function(f){ f.poly.forEach(function(v){ var p=ap(f.snaps[st].M,v[0],v[1]); if(p[0]<mnx)mnx=p[0]; if(p[0]>mxx)mxx=p[0]; if(p[1]<mny)mny=p[1]; if(p[1]>mxy)mxy=p[1]; }); });
+    frames.push({cx:(mnx+mxx)/2, cy:(mny+mxy)/2, w:mxx-mnx, h:mxy-mny});
+  }
+  frames[LAST] = {cx:.02, cy:.2, w:.92, h:.92};
+  // camera per stage: [rotateX, rotateY, zoom boost]
+  // stage 5 is seen from behind (the model is "turned over"); the camera keeps turning the same way back to the front
+  var CAMS = [[16,-26,1],[14,-30,1.02],[12,-26,1.05],[12,-22,1],[10,154,1],[10,336,1],[8,340,1.02],[-26,390,1.04]];
+
+  var STEPS = [
+    {name:'The square',     text:'Lay the washi flat, patterned side facing you.'},
+    {name:'Triangle',       text:'Fold the top corner behind to meet the bottom corner.'},
+    {name:'Square base',    text:'Reverse-fold both side corners inside, down to the point.'},
+    {name:'Petal fold',     text:'Fold the lower edges in, then lift the point up along the crease.'},
+    {name:'Bird base',      text:'Turn the model over and petal-fold the back: the bird base.'},
+    {name:'Narrowing',      text:'Fold the lower edges to the centre line, front and back.'},
+    {name:'Neck & tail',    text:'Inside-reverse-fold both slender points up between the layers.'},
+    {name:'Crane',          text:'Reverse-fold a small head, then open the wings and let it fly.'}
+  ];
+
+  /* ════════════════ washi textures ════════════════ */
+  var INDIGO='#264653', CREAM='#f4ecdc', CORAL='#e76f51';
+  var dpr = Math.min(window.devicePixelRatio||1, 2);
+  var RM = Math.round(S * Math.max(2, dpr*1.25));   // texture px per model unit
+  var texFront = document.createElement('canvas'), texBack = document.createElement('canvas');
+  texFront.width = texFront.height = texBack.width = texBack.height = 2*RM;
+
+  function rng(seed){ return function(){ seed = (seed*1664525 + 1013904223) >>> 0; return seed/4294967296; }; }
+  function fibers(g, h, n, cols, seed){
+    var r = rng(seed);
+    for(var i=0;i<n;i++){
+      var x=(r()*2-1)*h, y=(r()*2-1)*h, len=4+r()*26, a=r()*Math.PI*2, bend=(r()-.5)*.8;
+      g.strokeStyle = cols[i%cols.length]; g.lineWidth = .5 + r()*1.1;
+      g.beginPath(); g.moveTo(x,y);
+      g.quadraticCurveTo(x+Math.cos(a+bend)*len*.5, y+Math.sin(a+bend)*len*.5, x+Math.cos(a)*len, y+Math.sin(a)*len);
+      g.stroke();
+    }
+  }
+  function drawSeigaiha(g, h, unit){
+    var r = unit, rows = Math.ceil((2*h)/(r*.5))+4, cols = Math.ceil((2*h)/(2*r))+3;
+    for(var j=0;j<rows;j++){
+      var y = -h - r + j*r*.5, off = (j%2) ? r : 0;
+      for(var i=-1;i<cols;i++){
+        var x = -h + i*2*r + off;
+        g.fillStyle = CREAM; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill();
+        // a slim indigo rim, then fine concentric waves
+        g.fillStyle = INDIGO; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.arc(x,y,r*.93,0,Math.PI*2,true); g.fill();
+        g.strokeStyle = INDIGO;
+        for(var k=1;k<5;k++){
+          var rr = r*(.93 - k*.19);
+          g.lineWidth = Math.max(1, r*.028);
+          g.beginPath(); g.arc(x,y,Math.max(1,rr),0,Math.PI*2); g.stroke();
+        }
+        g.fillStyle = 'rgba(38,70,83,.10)'; g.beginPath(); g.arc(x,y,r*.74,0,Math.PI*2); g.arc(x,y,r*.55,0,Math.PI*2,true); g.fill();
+      }
+    }
+  }
+  function drawAsanoha(g, h, a){
+    var e2x=a/2, e2y=a*Math.sqrt(3)/2, n=Math.ceil(2*h/e2y)+4, m=Math.ceil(2*h/a)+6;
+    g.strokeStyle = INDIGO; g.lineWidth = Math.max(1.2, a*.028); g.lineCap='round';
+    g.beginPath();
+    for(var j=-2;j<n;j++){
+      for(var i=-m;i<m;i++){
+        var px = -h + i*a + j*e2x, py = -h + j*e2y;
+        if(px < -h-2*a || px > h+2*a) continue;
+        var tri = [[[px,py],[px+a,py],[px+e2x,py+e2y]], [[px+a,py],[px+a+e2x,py+e2y],[px+e2x,py+e2y]]];
+        for(var t=0;t<2;t++){
+          var T=tri[t], cx=(T[0][0]+T[1][0]+T[2][0])/3, cy=(T[0][1]+T[1][1]+T[2][1])/3;
+          g.moveTo(T[0][0],T[0][1]); g.lineTo(T[1][0],T[1][1]); g.lineTo(T[2][0],T[2][1]); g.closePath();
+          for(var v=0;v<3;v++){ g.moveTo(T[v][0],T[v][1]); g.lineTo(cx,cy); }
+        }
+      }
+    }
+    g.stroke();
+    // a faint indigo wash inside alternate stars for depth
+    g.globalAlpha = .07; g.fillStyle = INDIGO;
+    for(var jj=-2;jj<n;jj+=2){ for(var ii=-m;ii<m;ii+=2){
+      var qx = -h + ii*a + jj*e2x, qy = -h + jj*e2y; if(qx < -h-2*a || qx > h+2*a) continue;
+      g.beginPath(); g.moveTo(qx,qy); g.lineTo(qx+a,qy); g.lineTo(qx+e2x,qy+e2y); g.closePath(); g.fill();
+    } }
+    g.globalAlpha = 1;
+  }
+  function drawShippo(g, h, s0){
+    var r = s0/2, n = Math.ceil(2*h/s0)+3;
+    g.strokeStyle = INDIGO; g.lineWidth = Math.max(1.2, s0*.03);
+    for(var pass=0; pass<2; pass++){
+      for(var j=-1;j<n;j++){ for(var i=-1;i<n;i++){
+        var x = -h + (i + pass*.5)*s0, y = -h + (j + pass*.5)*s0;
+        g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.stroke();
+      } }
+    }
+    // four-petal centres and tiny kernels
+    g.fillStyle = INDIGO;
+    for(var jj=-1;jj<n;jj++){ for(var ii=-1;ii<n;ii++){
+      var cx = -h + (ii+.5)*s0, cy = -h + jj*s0;
+      g.beginPath(); g.arc(cx,cy,s0*.07,0,Math.PI*2); g.fill();
+      g.beginPath(); g.arc(-h+ii*s0, -h+(jj+.5)*s0, s0*.07, 0, Math.PI*2); g.fill();
+    } }
+    g.globalAlpha = .09;
+    for(var j2=-1;j2<n;j2++){ for(var i2=-1;i2<n;i2++){
+      g.beginPath(); g.arc(-h+i2*s0, -h+j2*s0, r*.34, 0, Math.PI*2); g.fill();
+    } }
+    g.globalAlpha = 1;
+  }
+  function paintSquare(g, size, kind, back){
+    // g is already translated to the square centre and rotated; square spans ±h
+    var h = size/2;
+    g.save();
+    g.beginPath(); g.rect(-h,-h,size,size); g.clip();
+    if(back){
+      var grad = g.createLinearGradient(-h,-h,h,h); grad.addColorStop(0,'#ea7a5d'); grad.addColorStop(1,'#e26849');
+      g.fillStyle = grad; g.fillRect(-h,-h,size,size);
+      fibers(g, h, Math.round(size*1.2), ['rgba(255,236,220,.16)','rgba(140,46,24,.10)','rgba(255,214,190,.12)'], 7);
+    } else {
+      g.fillStyle = CREAM; g.fillRect(-h,-h,size,size);
+      if(kind==='seigaiha') drawSeigaiha(g, h, size/11);
+      else if(kind==='asanoha') drawAsanoha(g, h, size/7.5);
+      else drawShippo(g, h, size/8);
+      fibers(g, h, Math.round(size*.9), ['rgba(255,252,242,.22)','rgba(38,70,83,.06)','rgba(160,130,90,.06)'], 3);
+    }
+    // the paper's own edge, faintly darker, so stacked layers read clearly
+    g.lineWidth = Math.max(2, size*.0035);
+    g.strokeStyle = back ? 'rgba(150,52,30,.28)' : 'rgba(38,70,83,.3)';
+    g.strokeRect(-h+g.lineWidth/2,-h+g.lineWidth/2,size-g.lineWidth,size-g.lineWidth);
+    g.restore();
+  }
+  function paintTextures(kind){
+    [[texFront,false],[texBack,true]].forEach(function(pair){
+      var c=pair[0], g=c.getContext('2d');
+      g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,c.width,c.height);
+      g.translate(RM,RM); g.rotate(Math.PI/4);
+      paintSquare(g, Math.SQRT2*RM, kind, pair[1]);
+      g.setTransform(1,0,0,1,0,0);
+    });
+  }
+
+  /* ════════════════ DOM faces ════════════════ */
+  var scene = document.getElementById('scene');
+  facets.forEach(function(f){
+    var mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+    f.poly.forEach(function(v){ mnx=Math.min(mnx,v[0]); mxx=Math.max(mxx,v[0]); mny=Math.min(mny,v[1]); mxy=Math.max(mxy,v[1]); });
+    var pad = 1.5/S;
+    f.bx=mnx-pad; f.by=mny-pad; f.bw=mxx-mnx+2*pad; f.bh=mxy-mny+2*pad;
+    // clip polygon grown ~0.6px outward so coplanar neighbours meet without hairline seams
+    var gx=0, gy=0; f.poly.forEach(function(v){ gx+=v[0]; gy+=v[1]; }); gx/=f.poly.length; gy/=f.poly.length;
+    var grow = .6/S, fr=[], bk=[];
+    f.poly.forEach(function(v){
+      var dx=v[0]-gx, dy=v[1]-gy, d=Math.hypot(dx,dy)||1;
+      var x=(v[0]+dx/d*grow-f.bx)*S, y=(v[1]+dy/d*grow-f.by)*S;
+      fr.push(x.toFixed(2)+'px '+y.toFixed(2)+'px');
+      bk.push((f.bw*S-x).toFixed(2)+'px '+y.toFixed(2)+'px');
+    });
+    f.front = makeFace(f, 'polygon('+fr.join(',')+')');
+    f.back  = makeFace(f, 'polygon('+bk.join(',')+')');
+  });
+  function makeFace(f, clip){
+    var el = document.createElement('div'); el.className='face';
+    el.style.width = (f.bw*S).toFixed(2)+'px'; el.style.height = (f.bh*S).toFixed(2)+'px';
+    el.style.clipPath = clip; el.style.webkitClipPath = clip;
+    var c = document.createElement('canvas');
+    c.width = Math.max(2, Math.ceil(f.bw*RM)); c.height = Math.max(2, Math.ceil(f.bh*RM));
+    var sh = document.createElement('i');
+    el.appendChild(c); el.appendChild(sh); scene.appendChild(el);
+    return {el:el, c:c, sh:sh, lit:false, a:-1};
+  }
+  function paintFaces(){
+    facets.forEach(function(f){
+      var sx=(f.bx+1)*RM, sy=(f.by+1)*RM, sw=f.bw*RM, shh=f.bh*RM;
+      var g=f.front.c.getContext('2d');
+      g.clearRect(0,0,f.front.c.width,f.front.c.height);
+      g.drawImage(texFront, sx, sy, sw, shh, 0, 0, f.front.c.width, f.front.c.height);
+      var b=f.back.c.getContext('2d');
+      b.setTransform(1,0,0,1,0,0); b.clearRect(0,0,f.back.c.width,f.back.c.height);
+      b.setTransform(-1,0,0,1,f.back.c.width,0);
+      b.drawImage(texBack, sx, sy, sw, shh, 0, 0, f.back.c.width, f.back.c.height);
+      b.setTransform(1,0,0,1,0,0);
+    });
+  }
+
+  /* ════════════════ pose evaluation ════════════════ */
+  var tmpA = new Array(12), tmpB = new Array(12), tmpR = new Array(12);
+  function win(s,a,b){ return s<=a?0 : s>=b?1 : (s-a)/(b-a); }
+  function ease(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+  function pose(f, pos, flap, out){
+    var k = Math.min(LAST-1, Math.floor(pos)), s = pos - k, n = k+1;
+    var M = tmpA, i;
+    if(s <= 0){ var src=f.snaps[k].M; for(i=0;i<12;i++) M[i]=src[i]; }
+    else {
+      var st = f.steps[n], src0 = f.snaps[k].M;
+      for(i=0;i<12;i++) M[i]=src0[i];
+      for(var o=0;o<st.ops.length;o++){
+        var r=st.ops[o], e=ease(win(s,r.w0,r.w1));
+        if(e<=0) continue;
+        mRot(r.px,r.py,r.pz,r.ux,r.uy,r.uz,r.ang*e,tmpR);
+        mMul(tmpR,M,tmpB); for(i=0;i<12;i++) M[i]=tmpB[i];
+      }
+      M[11] += st.zfix*ease(s);
+      if(st.post){
+        var pe=ease(win(s,st.post.w0,st.post.w1));
+        if(pe>0){ var p=st.post; mRot(p.px,p.py,p.pz,p.ux,p.uy,p.uz,p.ang*pe,tmpR); mMul(tmpR,M,tmpB); for(i=0;i<12;i++) M[i]=tmpB[i]; }
+      }
+    }
+    if(flap && f.wing){
+      mRot(0,A,ZMID,1,0,0,f.wing*flap,tmpR); mMul(tmpR,M,tmpB); for(i=0;i<12;i++) M[i]=tmpB[i];
+    }
+    for(i=0;i<12;i++) out[i]=M[i];
+    return out;
+  }
+
+  /* ════════════════ rendering ════════════════ */
+  var stage = document.getElementById('stage'), shadowEl = document.getElementById('shadow');
+  var W = new Array(12);
+  var LIGHT = (function(){ var x=-.42,y=-.68,z=.6, l=Math.hypot(x,y,z); return [x/l,y/l,z/l]; })();
+  var view = {ax:16, ay:-26, zoom:1, cx:0, cy:0};
+  var user = {ax:0, ay:0, vx:0, vy:0};
+  var pos = 0, target = 0, flapAmp = 0, flapT = 0, spin = 0, lastPoseKey = '';
+  var stageW = 800, stageH = 600;
+
+  function fmt(v){ return (Math.abs(v)<1e-7?0:v).toFixed(5); }
+  function faceMatrix(M, f, back){
+    var bx = back ? f.bx+f.bw : f.bx, by=f.by;
+    var tx = S*(M[0]*bx + M[1]*by + M[9]), ty = S*(M[3]*bx + M[4]*by + M[10]), tz = S*(M[6]*bx + M[7]*by + M[11]);
+    var sg = back ? -1 : 1;
+    return 'matrix3d('+fmt(sg*M[0])+','+fmt(sg*M[3])+','+fmt(sg*M[6])+',0,'+fmt(M[1])+','+fmt(M[4])+','+fmt(M[7])+',0,'+
+      fmt(sg*M[2])+','+fmt(sg*M[5])+','+fmt(sg*M[8])+',0,'+tx.toFixed(3)+','+ty.toFixed(3)+','+tz.toFixed(3)+',1)';
+  }
+  function shade(face, d){
+    // d = cosine between facet normal and the light, in view space
+    var lit = d > .78, a;
+    if(lit) a = Math.min(.22, (d-.78)*.9);
+    else a = Math.min(.5, Math.pow(Math.max(0,(.78-d))/1.78, 1.15)*.62);
+    if(face.lit !== lit){ face.lit = lit; face.sh.className = lit ? 'lit' : ''; }
+    var q = Math.round(a*100)/100;
+    if(face.a !== q){ face.a = q; face.sh.style.opacity = q; }
+  }
+  function camAt(p){
+    var k = Math.min(LAST-1, Math.floor(p)), s = ease(p-k), a = CAMS[k], b = CAMS[k+1], fa = frames[k], fb = frames[k+1];
+    if(p >= LAST){ a=b=CAMS[LAST]; fa=fb=frames[LAST]; s=0; }
+    var fit = function(fr, boost){ return Math.min(stageW*.8/(fr.w*S), stageH*.76/(fr.h*S), 2.35) * boost; };
+    view.ax = a[0] + (b[0]-a[0])*s;
+    view.ay = a[1] + (b[1]-a[1])*s;
+    view.zoom = fit(fa,a[2]) + (fit(fb,b[2]) - fit(fa,a[2]))*s;
+    view.cx = fa.cx + (fb.cx-fa.cx)*s;
+    view.cy = fa.cy + (fb.cy-fa.cy)*s;
+    view.w = fa.w + (fb.w-fa.w)*s;
+  }
+  function render(now){
+    camAt(pos);
+    var sway = reduce ? 0 : Math.sin(now/4200)*3.2;
+    var ax = view.ax + user.ax, ay = view.ay + user.ay + sway + spin;
+    var bob = flapAmp * (reduce ? 0 : Math.sin(now/900)*9);
+    scene.style.transform = 'translate3d(0,'+bob.toFixed(2)+'px,0) scale('+view.zoom.toFixed(4)+') rotateX('+ax.toFixed(3)+'deg) rotateY('+ay.toFixed(3)+'deg) translate3d('+(-view.cx*S).toFixed(2)+'px,'+(-view.cy*S).toFixed(2)+'px,0)';
+    // view rotation for lighting: RX(ax)·RY(ay)
+    var rx = ax*Math.PI/180, ry = ay*Math.PI/180, cxr=Math.cos(rx), sxr=Math.sin(rx), cyr=Math.cos(ry), syr=Math.sin(ry);
+    var flap = flapAmp>0.001 ? flapAmp*(reduce ? 0 : Math.sin(flapT)*0.36) : 0;
+    var poseKey = pos.toFixed(5)+'|'+flap.toFixed(4);
+    var movePose = poseKey !== lastPoseKey; lastPoseKey = poseKey;
+    for(var i=0;i<facets.length;i++){
+      var f = facets[i];
+      if(movePose || !f.W){ f.W = pose(f, pos, flap, f.W || new Array(12));
+        f.front.el.style.transform = faceMatrix(f.W, f, false);
+        f.back.el.style.transform  = faceMatrix(f.W, f, true);
+      }
+      var M = f.W, nx=M[2], ny=M[5], nz=M[8];
+      // RY then RX
+      var x1 = cyr*nx + syr*nz, z1 = -syr*nx + cyr*nz;
+      var y2 = cxr*ny - sxr*z1, z2 = sxr*ny + cxr*z1;
+      var d = x1*LIGHT[0] + y2*LIGHT[1] + z2*LIGHT[2];
+      if(z2 >= 0) shade(f.front, d); else shade(f.back, -d);
+    }
+    // ground shadow follows the model's width and the crane's float
+    var sw = Math.max(.5, (view.w||1)) * S * view.zoom / 260;
+    var lift = flapAmp * (reduce ? 0 : (Math.sin(now/900)+1)*.5);
+    shadowEl.style.transform = 'scale('+(sw*(1-lift*.18)).toFixed(3)+','+(1-lift*.2).toFixed(3)+')';
+    shadowEl.style.opacity = (.95 - lift*.35).toFixed(3);
+  }
+
+  /* ════════════════ UI state ════════════════ */
+  var numeral = document.getElementById('numeral'), stepOf = document.getElementById('stepOf'), stepName = document.getElementById('stepName'), instr = document.getElementById('instr');
+  var prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), autoBtn = document.getElementById('autoBtn'), autoLabel = document.getElementById('autoLabel');
+  var rail = document.getElementById('rail'), railFill = document.getElementById('railFill'), counter = document.getElementById('counter'), countEl = document.getElementById('count');
+  var dots = [];
+  STEPS.forEach(function(s, i){
+    var li = document.createElement('li');
+    var b = document.createElement('button'); b.type='button'; b.className='dot';
+    b.setAttribute('aria-label','Step '+(i+1)+': '+s.name);
+    b.innerHTML = '<i></i><span>'+s.name+'</span>';
+    b.addEventListener('click', function(){ stopAuto(); go(i); });
+    li.appendChild(b); rail.appendChild(li); dots.push(b);
+  });
+  var shownStep = -1, numT = 0;
+  function showStep(i){
+    if(i===shownStep) return; shownStep = i;
+    var st = STEPS[i], nn = (i<9?'0':'')+(i+1);
+    stepOf.textContent = 'Step '+(i+1)+' of 8';
+    stepName.textContent = st.name;
+    instr.textContent = st.text;
+    numeral.classList.add('out');
+    clearTimeout(numT);
+    numT = setTimeout(function(){ numeral.innerHTML = nn+'<sup>/08</sup>'; numeral.classList.remove('out'); }, reduce ? 0 : 260);
+    dots.forEach(function(d, k){ d.classList.toggle('done', k<i); if(k===i) d.setAttribute('aria-current','step'); else d.removeAttribute('aria-current'); });
+    railFill.style.width = (i/7*87.5)+'%';
+    prevBtn.disabled = i===0; nextBtn.disabled = i===LAST;
+  }
+  function go(i){ target = Math.max(0, Math.min(LAST, i)); showStep(target); holdT = 0; }
+
+  /* the thousand-crane counter */
+  var COUNT_KEY = 'senbazuru.cranes.v1', cranes = 0, counted = false;
+  try{ cranes = parseInt(localStorage.getItem(COUNT_KEY)||'0',10) || 0; }catch(e){ cranes = 0; }
+  function completeCrane(){
+    if(counted) return; counted = true;
+    cranes = Math.min(1000, cranes+1);
+    try{ localStorage.setItem(COUNT_KEY, String(cranes)); }catch(e){}
+    countEl.textContent = cranes;
+    counter.classList.add('on');
+  }
+
+  /* auto-play */
+  var auto = false, holdT = 0;
+  function setAuto(on){
+    auto = on; autoBtn.setAttribute('aria-pressed', on?'true':'false');
+    autoLabel.textContent = on ? 'Pause' : 'Auto-play';
+    holdT = 0;
+  }
+  function stopAuto(){ if(auto) setAuto(false); }
+  autoBtn.addEventListener('click', function(){ setAuto(!auto); if(auto && target===LAST && pos===LAST){ holdT = 99; } });
+  prevBtn.addEventListener('click', function(){ stopAuto(); go(target-1); });
+  nextBtn.addEventListener('click', function(){ stopAuto(); go(target+1); });
+
+  document.addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var tag = e.target && e.target.tagName;
+    if(e.key==='ArrowRight'){ e.preventDefault(); stopAuto(); go(target+1); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); stopAuto(); go(target-1); }
+    else if(e.key==='Home'){ e.preventDefault(); stopAuto(); go(0); }
+    else if(e.key==='End'){ e.preventDefault(); stopAuto(); go(LAST); }
+    else if(e.key==='p' || e.key==='P' || (e.key===' ' && tag!=='BUTTON')){ e.preventDefault(); setAuto(!auto); }
+  });
+
+  /* washi pattern picker */
+  var KIND_KEY = 'senbazuru.washi.v1', kind = 'seigaiha';
+  try{ var k0 = localStorage.getItem(KIND_KEY); if(k0==='seigaiha'||k0==='asanoha'||k0==='shippo') kind = k0; }catch(e){}
+  var sws = [].slice.call(document.querySelectorAll('.sw'));
+  function paintSwatch(btn){
+    var c = btn.querySelector('canvas'), g = c.getContext('2d'), n = c.width;
+    g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,n,n);
+    g.translate(n/2,n/2); g.rotate(Math.PI/4);
+    var size = n/Math.SQRT2*.98, h=size/2;
+    g.save(); g.beginPath(); g.rect(-h,-h,size,size); g.clip();
+    g.fillStyle=CREAM; g.fillRect(-h,-h,size,size);
+    var kd = btn.dataset.kind;
+    if(kd==='seigaiha') drawSeigaiha(g,h,size/4.2); else if(kd==='asanoha') drawAsanoha(g,h,size/2.6); else drawShippo(g,h,size/2.6);
+    g.restore();
+    g.setTransform(1,0,0,1,0,0);
+  }
+  function setKind(k, focus){
+    kind = k;
+    sws.forEach(function(b){ var on=b.dataset.kind===k; b.setAttribute('aria-checked', on?'true':'false'); b.tabIndex = on?0:-1; if(on&&focus) b.focus(); });
+    paintTextures(kind); paintFaces();
+    try{ localStorage.setItem(KIND_KEY, kind); }catch(e){}
+  }
+  sws.forEach(function(b, i){
+    paintSwatch(b);
+    b.addEventListener('click', function(){ if(b.dataset.kind!==kind) setKind(b.dataset.kind); });
+    b.addEventListener('keydown', function(e){
+      var d = (e.key==='ArrowRight'||e.key==='ArrowDown') ? 1 : (e.key==='ArrowLeft'||e.key==='ArrowUp') ? -1 : 0;
+      if(!d) return; e.preventDefault(); e.stopPropagation();
+      setKind(sws[(i+d+sws.length)%sws.length].dataset.kind, true);
+    });
+  });
+
+  /* orbit by dragging */
+  var drag = null;
+  stage.addEventListener('pointerdown', function(e){
+    drag = {x:e.clientX, y:e.clientY, id:e.pointerId, t:performance.now()};
+    user.vx = user.vy = 0;
+    try{ stage.setPointerCapture(e.pointerId); }catch(err){}
+    stage.classList.add('drag');
+  });
+  stage.addEventListener('pointermove', function(e){
+    if(!drag || e.pointerId!==drag.id) return;
+    var dx = e.clientX-drag.x, dy = e.clientY-drag.y, now = performance.now(), dt = Math.max(8, now-drag.t);
+    drag.x = e.clientX; drag.y = e.clientY; drag.t = now;
+    user.ay += dx*.42; user.ax = Math.max(-70, Math.min(70, user.ax - dy*.36));
+    user.vy = dx*.42/dt*16; user.vx = -dy*.36/dt*16;
+    if(Math.abs(dx)+Math.abs(dy) > 2) stage.classList.add('moved');
+  });
+  function endDrag(){ if(!drag) return; drag=null; stage.classList.remove('drag'); }
+  stage.addEventListener('pointerup', endDrag);
+  stage.addEventListener('pointercancel', endDrag);
+  stage.addEventListener('lostpointercapture', endDrag);
+  stage.addEventListener('dblclick', function(){ resetView = true; });
+  stage.addEventListener('keydown', function(e){
+    var step = 6;
+    if(e.key==='w'||e.key==='W'){ user.ax = Math.max(-70,user.ax+step); }
+    else if(e.key==='s'||e.key==='S'){ user.ax = Math.min(70,user.ax-step); }
+    else if(e.key==='a'||e.key==='A'){ user.ay -= step; }
+    else if(e.key==='d'||e.key==='D'){ user.ay += step; }
+    else if(e.key==='0'){ resetView = true; }
+  });
+  var resetView = false;
+
+  function measure(){ stageW = stage.clientWidth || 800; stageH = stage.clientHeight || 600; }
+  window.addEventListener('resize', measure);
+  if(window.ResizeObserver){ try{ new ResizeObserver(measure).observe(stage); }catch(e){} }
+
+  /* ════════════════ main loop ════════════════ */
+  var DUR = reduce ? 1.1 : 2.7, FAST = reduce ? .35 : .72, last = 0, autoDelay = reduce ? 1e9 : .55;
+  var bootT = 0;
+  function frame(now){
+    requestAnimationFrame(frame);
+    if(document.hidden) { last = 0; return; }
+    var dt = last ? Math.min(.05, (now-last)/1000) : .016; last = now;
+    bootT += dt;
+
+    // auto-play director
+    if(!auto && autoDelay < 1e8 && bootT > autoDelay){ autoDelay = 1e9; setAuto(true); holdT = 1; }
+    if(auto && pos===target){
+      holdT += dt;
+      var hold = target===LAST ? 6.5 : .9;
+      if(holdT > hold){ holdT = 0; if(target===LAST) go(0); else go(target+1); }
+    }
+
+    // advance the fold
+    if(pos !== target){
+      var dist = target-pos, speed = (Math.abs(dist) > 1.001 ? 1/FAST : 1/DUR);
+      var stepv = Math.sign(dist)*speed*dt;
+      pos = Math.abs(stepv) >= Math.abs(dist) ? target : pos + stepv;
+      if(pos < LAST) { counted = false; counter.classList.remove('on'); }
+    }
+    if(pos === LAST && target === LAST) completeCrane();
+
+    // flight
+    var wantFlap = (pos===LAST && target===LAST) ? 1 : 0;
+    flapAmp += (wantFlap - flapAmp) * Math.min(1, dt*(wantFlap ? 1.1 : 6));
+    if(flapAmp < .0005) flapAmp = 0;
+    flapT += dt*2.1;
+
+    // the finished crane turns slowly on its own, like a mobile in a draught
+    if(wantFlap && !drag && !reduce){ spin += dt*9*Math.min(1, flapAmp*1.4); if(spin > 180) spin -= 360; }
+    else if(!wantFlap){ spin += (0 - spin)*Math.min(1, dt*2.2); if(Math.abs(spin) < .01) spin = 0; }
+
+    // orbit inertia and reset
+    if(!drag){
+      if(resetView){ user.ax*=.86; user.ay*=.86; if(Math.abs(user.ax)+Math.abs(user.ay)<.05){ user.ax=user.ay=0; resetView=false; } }
+      else if(Math.abs(user.vx)+Math.abs(user.vy) > .01){ user.ay += user.vy; user.ax = Math.max(-70, Math.min(70, user.ax+user.vx)); user.vx*=.92; user.vy*=.92; }
+    }
+    render(now);
+  }
+
+  /* ════════════════ boot ════════════════ */
+  setKind(kind);
+  showStep(0);
+  measure();
+  render(0);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

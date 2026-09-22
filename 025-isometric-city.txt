@@ -1,0 +1,40 @@
+TITLE: Pocket Metropolis
+FILE: 025-isometric-city.html
+
+=== PROMPT (exact prompt used) ===
+Create "Pocket Metropolis", an isometric tiny-city builder toy. A canvas-rendered isometric grid (12×12 on desktop, fitted on mobile) in soft pastels: grass #a8d5a2, water #7ec8e3, roads #d6d0c4, and buildings in peach #ffb5a7, blush #fcd5ce, mint #b8e0d2 and lavender #cdb4db, with gentle ambient-occlusion shading on each block face. A bottom toolbar places houses, towers, trees, parks, roads and water; buildings pop in with a squash-and-stretch bounce. Little cars travel along connected road tiles and tiny people stroll in parks. A day/night cycle slowly shifts the lighting (sky gradient behind, windows lighting up at night, glowing streetlamps). A stats bubble shows population and happiness (parks near homes increase it). Interaction: click/tap tiles to place; right-click/long-press to bulldoze with a puff of dust; drag to pan; pinch/scroll to zoom; "Random town" seeds a charming city. Persist to localStorage. Typography: a rounded, friendly sans.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Pocket Metropolis is a small pastel city-builder that fits in your pocket. A 12×12 isometric island floats in a soft sky, with grassy tiles on a layered soil base and a blurred shadow underneath. Every object is drawn procedurally on a single canvas: gabled houses in peach, blush, mint and lavender with chimneys and doors, and pastel towers with window grids, pilasters and rooftop tanks, gardens or blinking antennas. There are round-canopy trees that sway, parks with winding paths, flowerbeds, fountains, benches and strollers, and roads that auto-join their markings, sidewalks and zebra crossings. Water tiles have sandy banks and drifting glints. Little cars keep to the right-hand lane of connected roads. A slow day/night cycle moves the sun and moon along an arc, tints every surface through an ambient-light model, flips side-lighting and shadow direction between morning and evening, and at night lights up windows, streetlamps, antennas and headlights. The HUD is set in a rounded, friendly sans and rendered as cream cards: a title card with a sun/moon dial clock, a speech-bubble stats card whose drawn face smiles or frowns with happiness, and a raised pastel toolbar.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Hand-rolled isometric projection on canvas with a camera transform (pan and zoom around the cursor), back-to-front painter's sorting of buildings, trees, lamps, cars and walkers by depth, and ground/shadow passes drawn first
+- Box primitive with per-face lighting: side faces take sun-dependent factors and vertical ambient-occlusion gradients toward the ground, plus a soft edge highlight; contact AO under building bases
+- Directional cast shadows projected on the ground; their length and direction follow the sun's elevation and azimuth
+- Keyframed day/night model: ambient RGB multiplies every material; sky gradients, twinkling stars, a sun with bloom, a crescent moon and drifting clouds
+- Emissive night layer: lit windows (hash-seeded on/off pattern), lamp light pools and halos, antenna beacons and car headlights, composited with 'lighter'
+- Auto-tiling roads from a neighbour bitmask: dashed centre lines, sidewalks and curb corners where the road ends, zebra crossings at junctions, and a roundabout on a lone tile
+- Squash-and-stretch pop-in (volume-preserving scale around the tile base), with a cascade from the centre on "Random town", expanding ground rings, and dust-puff particles when bulldozing
+- Procedurally generated towns: a meandering river with a bridge, two avenues and a cross street, towers near the centre, houses along roads, parks next to homes, and trees along riverbanks
+- Inline SVG isometric tool icons, a rotating sun/moon dial, and an animated smile path in the stats bubble
+
+=== INTERACTION MODEL ===
+- Click or tap a tile to build with the selected tool (House, Tower, Tree, Park, Road, Water); building on the same type again re-rolls its look
+- Right-click or long-press (touch, with a haptic tick where available) to bulldoze with a puff of dust; the Bulldoze tool also works with a plain click
+- Drag to pan, mouse wheel or pinch to zoom around the pointer; hovering shows a dashed tile cursor and a translucent ghost of the building
+- Stats bubble: population comes from houses and towers; happiness is weighted by residents and rises with nearby parks, trees and water and road access, and drops for houses crowded by towers
+- Clock controls: pause/resume and 1×/6×/24× speed; "Random town" seeds a new city; the sound toggle controls synthesized pops and dust noise (Web Audio, created on the first gesture)
+- Keyboard: 1–7 select tools, arrows move a tile cursor on the focused map, Enter/Space builds, Delete/Backspace bulldozes, +/− zoom, R for a random town
+- The town, the day count and the time of day persist in guarded localStorage; animation pauses when the tab is hidden; reduced motion slows traffic and time and skips the bounce and glints

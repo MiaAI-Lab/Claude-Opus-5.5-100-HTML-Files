@@ -1,0 +1,38 @@
+TITLE: Mercury
+FILE: 010-liquid-mercury.html
+
+=== PROMPT (exact prompt used) ===
+Create "MERCURY", a hero page for a fictional generative-audio studio whose centrepiece is a liquid chrome blob. On near-black (#050506), render a metaball cluster (canvas or SVG gooey filter) shaded as polished liquid metal — environment-map-like banding in silvers (#e8ecf1, #9aa3ad) and deep blacks with a thin iridescent rim (cyan → magenta → gold). The blobs orbit, merge and split organically; the cursor acts as a magnet, pulling a droplet that stretches and then snaps back with viscous easing. A giant wordmark "MERCURY" in a wide, heavy sans with a chrome gradient fill and a slow specular sweep; the blob passes behind and in front of letters (layering). Minimal navigation, a one-line manifesto, three glass "capability" chips, and a CTA button whose hover makes a small droplet drip from it. Interaction: pointer magnetism, click to split a droplet off, scrolling gently shrinks the blob into the corner. Tasteful, luxurious, silky 60fps; reduced motion shows a static sculpted frame.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+A luxurious hero page for MERCURY, a fictional generative-audio studio. On a near-black (#050506) stage, a live WebGL fragment shader renders a cluster of liquid-chrome droplets: a heavy core lobe with two inner lobes, six orbiting satellites on tilted 3D rings, a pointer-driven tendril and click-spawned droplets. The giant wide, heavy "MERCURY" wordmark is drawn inside the same shader as polished chrome with a bevel, a hard horizon line and a slow specular sweep, so the metal can genuinely pass behind and in front of the letters: satellites cross in front on one side of their orbit and behind on the other, while the core drifts through the letter plane over time. Around it, a quiet editorial frame: minimal mono navigation with a sound toggle, a serif-italic one-line manifesto, three frosted-glass capability chips, a chrome CTA that drips a droplet on hover, and accurate mercury facts in the corners (Hg, 80, 200.592 u, liquid from −38.83 °C to 356.73 °C). Below the hero, a studio statement, a list of fictional "selected pours" and a contact block; as you scroll, the sculpture shrinks into the bottom-right corner and stays with you.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Single full-screen WebGL fragment shader (one triangle), sized to the viewport × devicePixelRatio (capped at 2) with a pixel budget and a conservative quality governor.
+- Droplets as a smooth union (log-sum-exp) of C1 sphere-cap height profiles: every droplet is a perfect mirror sphere, and necks/fillets form only where droplets touch, with no seams between merged lobes.
+- Analytic normals from the union's gradient, reflected into a procedural studio environment: silver sky (#e8ecf1 / #9aa3ad), a wobbling hard horizon, black floor, overhead rig band, three softboxes and dark pillars, rotated by pointer position.
+- A thin iridescent rim (cyan → magenta → gold) on the silhouette plus a 2 px outer rim glow and soft halo; crease occlusion where lobes meet; a pointer-steered specular highlight.
+- Wordmark rasterised once into a texture with three channels (crisp coverage, bevel blur, wide blur via the shadowBlur trick and additive compositing); the shader derives bevel normals, a chrome horizon gradient, iridescent bevel tint and a moving specular sweep from it.
+- Per-pixel depth compositing: each droplet carries a z value from its 3D orbit; the metal is layered over or under the letters accordingly, with cast shadows and a dark contact line so the letters stay legible over the metal.
+- Gooey SVG filter (blur + alpha threshold, composited atop) on the chrome CTA pill so its hover droplet necks off and falls.
+- Glass chips with backdrop-filter, inset highlights and an iridescent masked border on hover; an iridescent gradient accent in the manifesto; dithering to prevent banding.
+
+=== INTERACTION MODEL ===
+- Pointer magnetism: near the sculpture, a five-bead tendril springs out toward the cursor (stiffer at the root, lazier at the tip), stretches into a neck and snaps back with underdamped, viscous spring easing; the whole cluster also leans toward the pointer.
+- Click (or tap) anywhere that isn't a control to split a droplet off: it flies toward the click, coasts with drag, is pulled back and re-absorbed. The "." key does the same from the keyboard.
+- Scrolling eases the sculpture down to the bottom-right corner at about a quarter of its size; clicking the corner droplet returns to the top.
+- Sound toggle (nav) and "Hear it breathe" button start a synthesized Web Audio drone (open fifths through a breathing low-pass with echo) whose filter follows pull and pointer speed; droplets "plip" when they split and "gloop" when absorbed. Silent until you opt in; mute anytime.
+- "Commission a pour" scrolls to contact; "Copy address" copies a non-URL address with a clipboard fallback and a toast.
+- Live readout of droplet count and pull; rendering pauses when the tab is hidden; prefers-reduced-motion shows a single composed still frame with no animation.

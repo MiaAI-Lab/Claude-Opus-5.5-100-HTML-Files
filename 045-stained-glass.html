@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vitrail — Stained Glass Generator</title>
+<meta name="description" content="Design a Gothic stained-glass window: jewel-toned Voronoi panes, lead came that reflows as you drag, a rose-window mode, and coloured sunlight falling across a stone floor.">
+<meta name="theme-color" content="#16120f">
+<style>
+  :root {
+    --ruby: #9b111e;
+    --sapphire: #0f52ba;
+    --emerald: #046307;
+    --amber: #ffbf00;
+    --amethyst: #9966cc;
+    --lead: #1a1a1a;
+    --stone: #3a332d;
+    --night: #16120f;
+    --ivory: #efe6d6;
+    --ivory-2: #c9bda9;
+    --ivory-3: #8f8474;
+    --gold: #c9a24a;
+    --gold-2: #e8c872;
+    --rule: rgba(239, 230, 214, .14);
+    --inscr: "Trajan Pro", "Trajan", "Cinzel", "Optima", "Palatino Linotype", Palatino, "Book Antiqua", P052, "URW Palladio L", serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", P052, Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--night); color: var(--ivory); font-family: var(--serif); -webkit-font-smoothing: antialiased; }
+  body { min-height: 100vh; overflow-x: hidden; }
+
+  .app {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 440px);
+    height: 100vh;
+    min-height: 620px;
+  }
+
+  /* ---------- the chapel ---------- */
+  .scene {
+    position: relative;
+    overflow: hidden;
+    background: #1b1714;
+    touch-action: none;
+  }
+  .scene canvas, .scene svg.tracery { position: absolute; left: 0; top: 0; display: block; }
+  #wall { z-index: 0; }
+  #light { z-index: 1; mix-blend-mode: screen; transition: opacity .6s ease; }
+  #motes { z-index: 2; pointer-events: none; mix-blend-mode: screen; }
+  #glass { z-index: 3; cursor: crosshair; outline: none; }
+  #glass.lancet { clip-path: url(#clip-lancet); }
+  #glass.rose { clip-path: url(#clip-rose); }
+  #handles { z-index: 6; pointer-events: none; }
+  #spill { z-index: 5; pointer-events: none; mix-blend-mode: screen; }
+  svg.tracery { z-index: 4; pointer-events: none; overflow: visible; }
+  #glass.grab { cursor: grabbing; }
+  #glass.over-site { cursor: grab; }
+
+  /* ---------- the panel ---------- */
+  .panel {
+    position: relative;
+    background:
+      radial-gradient(120% 60% at 0% 0%, rgba(201, 162, 74, .08), transparent 60%),
+      linear-gradient(180deg, #1d1814, #15110e);
+    border-left: 1px solid rgba(201, 162, 74, .18);
+    padding: clamp(24px, 4vh, 44px) clamp(22px, 2.6vw, 38px) 28px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .masthead { display: flex; align-items: flex-start; gap: 12px; }
+  .initial { width: 92px; height: 92px; flex: none; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .5)); }
+  .masthead h1 {
+    margin: 0;
+    font-family: var(--inscr);
+    font-weight: 400;
+    font-size: clamp(40px, 3.6vw, 54px);
+    letter-spacing: .16em;
+    line-height: .95;
+    padding-top: 6px;
+    color: var(--ivory);
+  }
+  .masthead h1 .v { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .masthead .sub {
+    margin: 10px 0 0 3px;
+    font-family: var(--inscr);
+    font-size: 11px;
+    letter-spacing: .27em;
+    white-space: nowrap;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .lede {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.62;
+    color: var(--ivory-2);
+  }
+  .lede em { color: var(--ivory); font-style: italic; }
+  .rule { height: 1px; background: linear-gradient(90deg, rgba(201, 162, 74, .55), rgba(201, 162, 74, 0)); border: 0; margin: 2px 0; }
+
+  .group { display: grid; gap: 10px; }
+  .group h2 {
+    margin: 0;
+    font-family: var(--inscr);
+    font-weight: 400;
+    font-size: 11.5px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--ivory-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .group h2 output { font-family: var(--serif); letter-spacing: .02em; text-transform: none; font-size: 13px; color: var(--gold-2); font-style: italic; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn {
+    appearance: none;
+    font: inherit;
+    font-size: 14px;
+    color: var(--ivory);
+    background: rgba(239, 230, 214, .04);
+    border: 1px solid rgba(239, 230, 214, .16);
+    border-radius: 3px;
+    padding: 10px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    transition: background .25s ease, border-color .25s ease, color .25s ease, transform .2s ease;
+  }
+  .btn:hover { background: rgba(239, 230, 214, .09); border-color: rgba(201, 162, 74, .6); }
+  .btn:active { transform: translateY(1px); }
+  .btn[aria-pressed="true"] {
+    background: linear-gradient(180deg, rgba(201, 162, 74, .26), rgba(201, 162, 74, .12));
+    border-color: var(--gold);
+    color: #fff5dc;
+  }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .palettes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pal { justify-content: flex-start; padding: 9px 10px; font-size: 13.5px; }
+  .swatch { display: flex; width: 44px; height: 16px; border-radius: 2px; overflow: hidden; flex: none; box-shadow: 0 0 0 1.5px #111, 0 0 0 2.5px rgba(239, 230, 214, .15); }
+  .swatch i { flex: 1; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #6a4a7a, #e0a44a 30%, #fff1c9 50%, #e0a44a 70%, #7a3f4a);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .6);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #6a4a7a, #e0a44a 30%, #fff1c9 50%, #e0a44a 70%, #7a3f4a);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #fff8e1, #ffcf5c 45%, #d9921c);
+    box-shadow: 0 0 0 2px #1a1a1a, 0 0 16px 4px rgba(255, 200, 90, .45);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #fff8e1, #ffcf5c 45%, #d9921c);
+    box-shadow: 0 0 0 2px #1a1a1a, 0 0 16px 4px rgba(255, 200, 90, .45);
+  }
+  .sunlabels { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ivory-3); font-style: italic; margin-top: -4px; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .actions .btn { flex-direction: column; gap: 5px; padding: 10px 6px 9px; font-size: 12.5px; }
+  .ledger {
+    margin: 0;
+    font-family: var(--inscr);
+    font-size: 12px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ivory-2);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .ledger b { color: var(--gold-2); font-weight: 400; }
+  .ledger .dot { width: 4px; height: 4px; background: var(--gold); transform: rotate(45deg); }
+  .tip { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ivory-3); }
+  .tip kbd { font: inherit; color: var(--ivory-2); border-bottom: 1px solid var(--rule); }
+  .colophon {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ivory-3);
+    font-style: italic;
+  }
+  :focus-visible { outline: 2px solid var(--gold-2); outline-offset: 3px; }
+  #glass:focus-visible { outline: none; }
+  .scene:focus-within .focus-note { opacity: 1; }
+  .focus-note {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    z-index: 6;
+    font-size: 12px;
+    color: var(--ivory-2);
+    background: rgba(0, 0, 0, .55);
+    padding: 6px 12px;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity .3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast {
+    position: absolute;
+    left: 50%;
+    top: 16px;
+    transform: translate(-50%, -8px);
+    z-index: 7;
+    background: rgba(14, 11, 9, .82);
+    border: 1px solid rgba(201, 162, 74, .4);
+    color: var(--ivory);
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity .35s ease, transform .35s ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  @media (max-width: 860px) {
+    .app { display: block; height: auto; min-height: 0; }
+    .scene { height: 76vh; min-height: 520px; max-height: 720px; }
+    .panel { border-left: 0; border-top: 1px solid rgba(201, 162, 74, .18); padding: 26px 18px 32px; }
+    .initial { width: 76px; height: 76px; }
+    .masthead h1 { font-size: 40px; }
+  }
+  @media (max-width: 380px) {
+    .palettes { grid-template-columns: 1fr; }
+    .masthead h1 { font-size: 34px; letter-spacing: .12em; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- equilateral pointed arch, in the glass canvas's own bounding box (width : height = 0.4) -->
+    <clipPath id="clip-lancet" clipPathUnits="objectBoundingBox">
+      <path d="M0 1V0.3464A1 0.4 0 0 1 0.5 0A1 0.4 0 0 1 1 0.3464V1Z"/>
+    </clipPath>
+    <clipPath id="clip-rose" clipPathUnits="objectBoundingBox">
+      <circle cx="0.5" cy="0.5" r="0.5"/>
+    </clipPath>
+  </defs>
+</svg>
+
+<div class="app">
+  <main class="scene" id="scene">
+    <canvas id="wall" aria-hidden="true"></canvas>
+    <canvas id="light" aria-hidden="true"></canvas>
+    <canvas id="motes" aria-hidden="true"></canvas>
+    <canvas id="glass" class="lancet" tabindex="0" role="img" aria-label="Stained glass window. Click the glass to split a pane, drag a seed to move the leading, right-click a pane to remove it. With the window focused, press N for a new design and R to relax the leading."></canvas>
+    <svg class="tracery" id="tracery" aria-hidden="true">
+      <defs>
+        <linearGradient id="g-roll" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#8d8174"/>
+          <stop offset=".45" stop-color="#5d5349"/>
+          <stop offset="1" stop-color="#2a241f"/>
+        </linearGradient>
+        <linearGradient id="g-roll-2" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#7a6e62"/>
+          <stop offset=".5" stop-color="#4a4139"/>
+          <stop offset="1" stop-color="#231e1a"/>
+        </linearGradient>
+        <linearGradient id="g-shaft" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#2b2520"/>
+          <stop offset=".35" stop-color="#8a7e71"/>
+          <stop offset=".6" stop-color="#5a5047"/>
+          <stop offset="1" stop-color="#231e1a"/>
+        </linearGradient>
+        <linearGradient id="g-sill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#8c8073"/>
+          <stop offset=".3" stop-color="#5d544b"/>
+          <stop offset="1" stop-color="#2a241f"/>
+        </linearGradient>
+        <radialGradient id="g-reveal" cx=".5" cy=".45" r=".6">
+          <stop offset=".55" stop-color="#4b3f33"/>
+          <stop offset="1" stop-color="#1c1714"/>
+        </radialGradient>
+        <linearGradient id="g-spoke" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#2a241f"/>
+          <stop offset=".45" stop-color="#9a8d7e"/>
+          <stop offset="1" stop-color="#3a322b"/>
+        </linearGradient>
+      </defs>
+      <g id="tr-lancet"></g>
+      <g id="tr-rose"></g>
+    </svg>
+    <canvas id="spill" aria-hidden="true"></canvas>
+    <canvas id="handles" aria-hidden="true"></canvas>
+    <p class="toast" id="toast" role="status"></p>
+    <p class="focus-note" aria-hidden="true">N new design &middot; R relax &middot; M switch window &middot; P palette</p>
+  </main>
+
+  <aside class="panel" aria-label="Vitrail controls">
+    <header class="masthead">
+      <svg class="initial" viewBox="0 0 100 100" role="img" aria-labelledby="initial-t">
+        <title id="initial-t">Illuminated initial V</title>
+        <defs>
+          <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fff0b8"/>
+            <stop offset=".3" stop-color="#e3b94f"/>
+            <stop offset=".62" stop-color="#b8872a"/>
+            <stop offset=".8" stop-color="#f0cf6e"/>
+            <stop offset="1" stop-color="#8f6519"/>
+          </linearGradient>
+          <pattern id="diaper" width="10" height="10" patternUnits="userSpaceOnUse">
+            <rect width="10" height="10" fill="#123f8f"/>
+            <path d="M5 1.5L6.2 5 5 8.5 3.8 5z" fill="#0c2f6e"/>
+            <circle cx="0" cy="0" r="1" fill="#e3b94f"/>
+            <circle cx="10" cy="0" r="1" fill="#e3b94f"/>
+            <circle cx="0" cy="10" r="1" fill="#e3b94f"/>
+            <circle cx="10" cy="10" r="1" fill="#e3b94f"/>
+            <circle cx="5" cy="5" r=".7" fill="#f6efe0"/>
+          </pattern>
+        </defs>
+        <rect x="2" y="2" width="96" height="96" fill="url(#gold)"/>
+        <rect x="6" y="6" width="88" height="88" fill="#6d0c16"/>
+        <rect x="9" y="9" width="82" height="82" fill="url(#diaper)"/>
+        <rect x="9" y="9" width="82" height="82" fill="none" stroke="#e3b94f" stroke-width=".8"/>
+        <!-- vine tendrils -->
+        <g fill="none" stroke="#f6efe0" stroke-width="1.6" stroke-linecap="round">
+          <path d="M14 86C20 70 12 58 22 50s20-4 18-16-14-10-14-4 8 6 10 1"/>
+          <path d="M86 86C80 72 90 62 80 54s-18-2-16-14 12-12 14-6-6 7-9 3"/>
+        </g>
+        <g fill="#2e9e46">
+          <ellipse cx="18" cy="68" rx="4.5" ry="2.2" transform="rotate(-50 18 68)"/>
+          <ellipse cx="31" cy="46" rx="4.5" ry="2.2" transform="rotate(20 31 46)"/>
+          <ellipse cx="84" cy="70" rx="4.5" ry="2.2" transform="rotate(50 84 70)"/>
+          <ellipse cx="70" cy="47" rx="4.5" ry="2.2" transform="rotate(-20 70 47)"/>
+        </g>
+        <g fill="#d8262f">
+          <circle cx="26" cy="31" r="2.3"/><circle cx="74" cy="35" r="2.3"/><circle cx="50" cy="88" r="2"/>
+        </g>
+        <!-- the letter: a thick left stroke, a hairline right stroke, bracketed serifs -->
+        <path d="M17 17H44V21.5Q38.5 21.8 39.8 26L52.5 64 63.4 29Q65.2 22.3 58 21.5V17H83V21.5Q77.2 22 74.6 29L55.8 83H47.2L27.3 27.5Q25.6 22 17 21.5Z" fill="url(#gold)" stroke="#3a2608" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M30 24L48 74" stroke="#fff6cf" stroke-width="1.1" opacity=".7" fill="none"/>
+      </svg>
+      <div>
+        <h1><span class="v">V</span>ITRAIL</h1>
+        <p class="sub">Stained Glass Generator</p>
+      </div>
+    </header>
+
+    <p class="lede">Each pane is a <em>Voronoi cell</em>: the piece of glass closer to its own seed than to any other. Move a seed and the lead came flows after it, the way a glazier redraws the full-size cartoon before a single piece is cut.</p>
+    <hr class="rule">
+
+    <section class="group" aria-labelledby="h-window">
+      <h2 id="h-window">Window</h2>
+      <div class="seg">
+        <button type="button" class="btn" id="mode-lancet" aria-pressed="true">
+          <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M5 16V7.2A4 4 0 0 1 9 2a4 4 0 0 1 4 5.2V16z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 11h8M9 7v9" stroke="currentColor" stroke-width=".7" opacity=".6"/></svg>
+          Lancet
+        </button>
+        <button type="button" class="btn" id="mode-rose" aria-pressed="false">
+          <svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width=".9"/><path d="M9 2v4.6M9 11.4V16M2 9h4.6M11.4 9H16M4 4l3.3 3.3M10.7 10.7L14 14M14 4l-3.3 3.3M7.3 10.7L4 14" stroke="currentColor" stroke-width=".7" opacity=".7"/></svg>
+          Rose
+        </button>
+      </div>
+    </section>
+
+    <section class="group" aria-labelledby="h-glass">
+      <h2 id="h-glass">Glass</h2>
+      <div class="palettes" id="palettes">
+        <button type="button" class="btn pal" data-pal="jewel" aria-pressed="true"><span class="swatch" aria-hidden="true"><i style="background:#9b111e"></i><i style="background:#0f52ba"></i><i style="background:#046307"></i><i style="background:#ffbf00"></i><i style="background:#9966cc"></i></span>Jewel box</button>
+        <button type="button" class="btn pal" data-pal="chartres" aria-pressed="false"><span class="swatch" aria-hidden="true"><i style="background:#0a2f7a"></i><i style="background:#0f52ba"></i><i style="background:#1f63c9"></i><i style="background:#9b111e"></i><i style="background:#d9a300"></i></span>Chartres blues</button>
+        <button type="button" class="btn pal" data-pal="sunset" aria-pressed="false"><span class="swatch" aria-hidden="true"><i style="background:#5b1a4a"></i><i style="background:#b0203a"></i><i style="background:#e8562a"></i><i style="background:#ff9f1c"></i><i style="background:#ffd166"></i></span>Sunset</button>
+        <button type="button" class="btn pal" data-pal="pastel" aria-pressed="false"><span class="swatch" aria-hidden="true"><i style="background:#a0c4ff"></i><i style="background:#bdb2ff"></i><i style="background:#ffc6ff"></i><i style="background:#caffbf"></i><i style="background:#fdffb6"></i></span>Modern pastel</button>
+      </div>
+    </section>
+
+    <section class="group" aria-labelledby="h-sun">
+      <h2><label id="h-sun" for="sun">Sun angle</label><output id="sun-out" for="sun">38° &middot; morning</output></h2>
+      <input type="range" id="sun" min="0" max="100" value="30" step="1" aria-describedby="sun-hint">
+      <div class="sunlabels" id="sun-hint"><span>east &middot; dawn</span><span>noon</span><span>west &middot; dusk</span></div>
+    </section>
+
+    <section class="group" aria-label="Actions">
+      <div class="actions">
+        <button type="button" class="btn" id="btn-new">
+          <svg viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 2l2 4.5 4.8.4-3.7 3.1 1.2 4.7L9 12.2 4.7 14.7l1.2-4.7L2.2 6.9 7 6.5z"/></svg>
+          New design
+        </button>
+        <button type="button" class="btn" id="btn-relax">
+          <svg viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 9c2-4 4-4 7 0s5 4 7 0"/><path d="M2 13c2-4 4-4 7 0s5 4 7 0" opacity=".5"/></svg>
+          Relax leading
+        </button>
+        <button type="button" class="btn" id="btn-save">
+          <svg viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M9 2.5v8.5M5.5 7.5L9 11l3.5-3.5M3 13.5v2h12v-2"/></svg>
+          Save PNG
+        </button>
+      </div>
+    </section>
+
+    <p class="ledger" aria-live="polite"><span><b id="n-panes">0</b> panes</span><span class="dot" aria-hidden="true"></span><span><b id="n-joints">0</b> lead joints</span></p>
+    <p class="tip"><kbd>Click</kbd> the glass to split a pane. <kbd>Drag</kbd> a seed to move the leading. <kbd>Right-click</kbd> or long-press a pane to lift it out. In rose mode every change is repeated around the circle.</p>
+    <p class="colophon">The deep blue of Chartres, the famous <span lang="fr">bleu de Chartres</span>, came from cobalt-coloured glass set in lead in the twelfth and thirteenth centuries. These panes are cut from arithmetic instead.</p>
+  </aside>
+</div>
+<p class="sr-only" id="status" aria-live="polite"></p>
+
+<script>
+(() => {
+  'use strict';
+
+  const scene = document.getElementById('scene');
+  const wallC = document.getElementById('wall'), lightC = document.getElementById('light');
+  const motesC = document.getElementById('motes'), glassC = document.getElementById('glass');
+  const handC = document.getElementById('handles');
+  const spillC = document.getElementById('spill');
+  const sctx = spillC.getContext('2d');
+  const wctx = wallC.getContext('2d'), lctx = lightC.getContext('2d'), mctx = motesC.getContext('2d');
+  const gctx = glassC.getContext('2d'), hctx = handC.getContext('2d');
+  const tracery = document.getElementById('tracery');
+  const trLancet = document.getElementById('tr-lancet'), trRose = document.getElementById('tr-rose');
+  const sunInput = document.getElementById('sun'), sunOut = document.getElementById('sun-out');
+  const statusEl = document.getElementById('status'), toastEl = document.getElementById('toast');
+  const nPanes = document.getElementById('n-panes'), nJoints = document.getElementById('n-joints');
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = reduceMQ.matches;
+
+  /* ---------------- helpers ---------------- */
+  let seed = (Date.now() ^ 0x9e3779b9) >>> 0;
+  function rand() {
+    seed = (seed + 0x6D2B79F5) >>> 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  function hexRGB(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function hash2(x, y) {
+    let h = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+  function vnoise(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = hash2(xi, yi), b = hash2(xi + 1, yi), c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+  function announce(m) { statusEl.textContent = m; }
+  let toastT = 0;
+  function toast(m) { toastEl.textContent = m; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 1500); }
+
+  /* ---------------- palettes ---------------- */
+  const PALETTES = {
+    jewel: { name: 'Jewel box', cols: [['#9b111e', 1], ['#0f52ba', 1.1], ['#046307', 0.8], ['#ffbf00', 0.75], ['#9966cc', 0.8]] },
+    chartres: { name: 'Chartres blues', cols: [['#0a2f7a', 1.2], ['#0f52ba', 1.5], ['#1f63c9', 0.9], ['#9b111e', 0.8], ['#d9a300', 0.28], ['#046307', 0.18], ['#d9dfe6', 0.12]] },
+    sunset: { name: 'Sunset', cols: [['#5b1a4a', 0.6], ['#b0203a', 1], ['#e8562a', 1], ['#ff9f1c', 1], ['#ffd166', 0.7], ['#7a2a8c', 0.4]] },
+    pastel: { name: 'Modern pastel', cols: [['#a0c4ff', 1], ['#bdb2ff', 1], ['#ffc6ff', 1], ['#caffbf', 1], ['#fdffb6', 0.8], ['#ffd6a5', 0.8], ['#9bf6ff', 0.7]] }
+  };
+  let palKey = 'jewel';
+  function pickColor(key01) {
+    const cols = PALETTES[palKey].cols;
+    let total = 0;
+    for (const c of cols) total += c[1];
+    let x = key01 * total;
+    for (const c of cols) { if ((x -= c[1]) <= 0) return c[0]; }
+    return cols[cols.length - 1][0];
+  }
+
+  /* ================================================================
+     Geometry
+     ================================================================ */
+  let SW = 0, SH = 0, DPR = 1;
+  let mode = 'lancet';
+  const win = { x: 0, y: 0, w: 0, h: 0, floorTop: 0, sill: 0 };
+
+  function layout() {
+    const r = scene.getBoundingClientRect();
+    SW = Math.max(200, Math.round(r.width));
+    SH = Math.max(300, Math.round(r.height));
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    const narrow = SW < 520;
+    if (mode === 'lancet') {
+      win.h = Math.round(Math.min(SH * (narrow ? 0.56 : 0.56), 600, (SW * 0.8) / 0.4));
+      win.w = Math.round(win.h * 0.4);
+      // leave headroom for the hood mould above the apex
+      win.y = Math.round(Math.max(SH * 0.06, win.w * 0.41 + 14));
+    } else {
+      win.w = win.h = Math.round(Math.min(SH * 0.5, SW * (narrow ? 0.8 : 0.62), 540));
+      win.y = Math.round(SH * (narrow ? 0.08 : 0.075));
+    }
+    win.x = Math.round(SW / 2 - win.w / 2);
+    win.sill = Math.round(Math.max(34, SH * 0.06));
+    win.floorTop = win.y + win.h + win.sill;
+    for (const c of [wallC, lightC, motesC, spillC]) {
+      c.width = Math.round(SW * DPR); c.height = Math.round(SH * DPR);
+      c.style.width = SW + 'px'; c.style.height = SH + 'px';
+    }
+    const pad = 14;
+    handC.width = Math.round((win.w + pad * 2) * DPR); handC.height = Math.round((win.h + pad * 2) * DPR);
+    handC.style.width = (win.w + pad * 2) + 'px'; handC.style.height = (win.h + pad * 2) + 'px';
+    handC.style.left = (win.x - pad) + 'px'; handC.style.top = (win.y - pad) + 'px';
+    glassC.width = Math.round(win.w * DPR); glassC.height = Math.round(win.h * DPR);
+    glassC.style.width = win.w + 'px'; glassC.style.height = win.h + 'px';
+    glassC.style.left = win.x + 'px'; glassC.style.top = win.y + 'px';
+    glassC.className = mode;
+    tracery.setAttribute('width', SW); tracery.setAttribute('height', SH);
+    tracery.setAttribute('viewBox', '0 0 ' + SW + ' ' + SH);
+    boundary = mode === 'lancet' ? lancetPoly(0, 0, win.w, win.h, 28) : circlePoly(win.w / 2, win.h / 2, win.w / 2, 72);
+    drawWall();
+    buildTracery();
+  }
+
+  // outline polygons in window-local pixels (convex, clockwise on screen)
+  function lancetPoly(x, y, w, h, n) {
+    const s = y + w * 0.8660254;
+    const pts = [[x, y + h], [x, s]];
+    for (let k = 1; k <= n; k++) { const a = Math.PI - (Math.PI / 3) * k / n; pts.push([x + w + w * Math.cos(a), s - w * Math.sin(a)]); }
+    for (let k = 1; k <= n; k++) { const a = Math.PI / 3 - (Math.PI / 3) * k / n; pts.push([x + w * Math.cos(a), s - w * Math.sin(a)]); }
+    pts.push([x + w, y + h]);
+    return pts;
+  }
+  function circlePoly(cx, cy, r, n) {
+    const pts = [];
+    for (let k = 0; k < n; k++) { const a = -Math.PI / 2 + k / n * Math.PI * 2; pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); }
+    return pts;
+  }
+  let boundary = [];
+
+  function insideConvex(poly, x, y) {
+    // works for either winding: all cross products share a sign
+    let sign = 0;
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i], b = poly[(i + 1) % poly.length];
+      const c = (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]);
+      if (c !== 0) { if (sign === 0) sign = Math.sign(c); else if (Math.sign(c) !== sign) return false; }
+    }
+    return true;
+  }
+
+  /* half-plane clip: keep points p with nx*px + ny*py <= c */
+  function clipPoly(poly, nx, ny, c) {
+    const out = [];
+    const n = poly.length;
+    for (let i = 0; i < n; i++) {
+      const a = poly[i], b = poly[(i + 1) % n];
+      const da = nx * a[0] + ny * a[1] - c, db = nx * b[0] + ny * b[1] - c;
+      if (da <= 0) out.push(a);
+      if ((da < 0 && db > 0) || (da > 0 && db < 0)) {
+        const t = da / (da - db);
+        out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+      }
+    }
+    return out;
+  }
+
+  /* Voronoi by half-plane clipping, nearest neighbours first with an early exit */
+  function voronoi(pts, bounds) {
+    const n = pts.length;
+    const cells = new Array(n);
+    const order = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const pi = pts[i];
+      for (let j = 0; j < n; j++) order[j] = j;
+      const d2 = (j) => { const dx = pts[j][0] - pi[0], dy = pts[j][1] - pi[1]; return dx * dx + dy * dy; };
+      order.sort((a, b) => d2(a) - d2(b));
+      let poly = bounds;
+      for (let q = 0; q < n; q++) {
+        const j = order[q];
+        if (j === i) continue;
+        const pj = pts[j];
+        const dd = d2(j);
+        // the bisector cannot touch the cell if the neighbour is farther than twice its farthest corner
+        let far = 0;
+        for (const v of poly) { const dx = v[0] - pi[0], dy = v[1] - pi[1], e = dx * dx + dy * dy; if (e > far) far = e; }
+        if (dd > 4 * far) break;
+        if (dd < 1e-9) continue;
+        const nx = pj[0] - pi[0], ny = pj[1] - pi[1];
+        const c = (nx * (pj[0] + pi[0]) + ny * (pj[1] + pi[1])) / 2;
+        poly = clipPoly(poly, nx, ny, c);
+        if (poly.length < 3) break;
+      }
+      cells[i] = poly.length >= 3 ? poly : null;
+    }
+    return cells;
+  }
+  function centroid(poly) {
+    let a = 0, cx = 0, cy = 0;
+    for (let i = 0; i < poly.length; i++) {
+      const p = poly[i], q = poly[(i + 1) % poly.length];
+      const cr = p[0] * q[1] - q[0] * p[1];
+      a += cr; cx += (p[0] + q[0]) * cr; cy += (p[1] + q[1]) * cr;
+    }
+    if (Math.abs(a) < 1e-9) return [poly[0][0], poly[0][1], 0];
+    return [cx / (3 * a), cy / (3 * a), Math.abs(a / 2)];
+  }
+
+  /* ================================================================
+     Designs: free seeds for the lancet, symmetric orbits for the rose
+     ================================================================ */
+  let seeds = [];   // lancet: {u, v, q, t0, fu, fv, tu, tv}
+  let orbits = [];  // rose: {r, th, n, q, anim}
+
+  function newLancet() {
+    seeds = [];
+    const target = 84;
+    const minD = 0.074;
+    let guard = 0;
+    while (seeds.length < target && guard++ < 6000) {
+      const u = rand(), v = rand();
+      const x = u * win.w, y = v * win.h;
+      if (!insideConvex(boundary, x, y)) continue;
+      // slightly smaller panes up in the arch, larger lower down
+      const md = minD * (0.75 + 0.35 * v);
+      let ok = true;
+      for (const s of seeds) {
+        const dx = (s.u - u) * 0.4, dy = s.v - v; // in units of the window height
+        if (dx * dx + dy * dy < md * md) { ok = false; break; }
+      }
+      if (ok) seeds.push({ u, v, q: rand() });
+    }
+  }
+  function newRose() {
+    const rings = [[1, 0], [6, 0.17], [12, 0.33], [12, 0.47], [24, 0.62], [24, 0.78], [36, 0.93]];
+    orbits = rings.map((r, idx) => ({ n: r[0], r: r[1], th: idx % 2 ? Math.PI / r[0] : 0, q: rand(), ring: idx }));
+    // a little asymmetry of radius so each design differs
+    for (const o of orbits) if (o.n > 1) { o.r = clamp(o.r + (rand() - 0.5) * 0.05, 0.1, 0.96); o.th += (rand() - 0.5) * 0.2; }
+  }
+
+  function sitePoints() {
+    const pts = [];
+    const now = performance.now();
+    if (mode === 'lancet') {
+      for (const s of seeds) {
+        let u = s.u, v = s.v;
+        if (s.anim) {
+          const p = clamp((now - s.anim.t0) / s.anim.dur, 0, 1);
+          const e = 1 - Math.pow(1 - p, 3);
+          u = lerp(s.anim.fu, s.anim.tu, e); v = lerp(s.anim.fv, s.anim.tv, e);
+          if (p >= 1) { s.u = s.anim.tu; s.v = s.anim.tv; s.anim = null; } else { s.u = u; s.v = v; }
+        }
+        pts.push([u * win.w, v * win.h]);
+      }
+    } else {
+      const R = win.w / 2;
+      for (const o of orbits) {
+        if (o.anim) {
+          const p = clamp((now - o.anim.t0) / o.anim.dur, 0, 1);
+          const e = 1 - Math.pow(1 - p, 3);
+          o.r = lerp(o.anim.fr, o.anim.tr, e); o.th = lerp(o.anim.fth, o.anim.tth, e);
+          if (p >= 1) o.anim = null;
+        }
+        for (let k = 0; k < o.n; k++) {
+          const a = o.th + k * Math.PI * 2 / o.n;
+          const rr = o.n === 1 ? 0 : o.r * R;
+          pts.push([R + Math.cos(a) * rr, R + Math.sin(a) * rr]);
+        }
+      }
+    }
+    return pts;
+  }
+  function siteColorKey(idx) {
+    if (mode === 'lancet') {
+      const s = seeds[idx];
+      // spatially coherent colour families, jittered per pane
+      const f = vnoise(s.u * 3.1 + 11, s.v * 2.3 + 5) * 1.35 + s.q * 0.55;
+      return f - Math.floor(f);
+    }
+    let k = idx;
+    for (let o = 0; o < orbits.length; o++) {
+      if (k < orbits[o].n) {
+        const ob = orbits[o];
+        const f = ob.ring * 0.382 + ob.q * 0.7 + (ob.n >= 24 ? (k % 2) * 0.23 : 0);
+        return f - Math.floor(f);
+      }
+      k -= orbits[o].n;
+    }
+    return 0.5;
+  }
+  function orbitOfSite(idx) {
+    let k = idx;
+    for (let o = 0; o < orbits.length; o++) {
+      if (k < orbits[o].n) return [o, k];
+      k -= orbits[o].n;
+    }
+    return [0, 0];
+  }
+
+  /* ================================================================
+     Glass texture tile: mottled density, seeds (bubbles) and streaks
+     ================================================================ */
+  const TEX = 256;
+  const tex = document.createElement('canvas');
+  tex.width = tex.height = TEX;
+  (function makeTexture() {
+    const t = tex.getContext('2d');
+    const id = t.createImageData(TEX, TEX);
+    const d = id.data;
+    for (let y = 0; y < TEX; y++) {
+      for (let x = 0; x < TEX; x++) {
+        // tileable-ish mottling from value noise, plus fine grain
+        const n = vnoise(x / 34, y / 22) * 0.55 + vnoise(x / 11 + 40, y / 7 + 9) * 0.3 + hash2(x, y) * 0.15;
+        const v = 70 + n * 115;
+        const o = (x + y * TEX) * 4;
+        d[o] = d[o + 1] = d[o + 2] = v; d[o + 3] = 255;
+      }
+    }
+    t.putImageData(id, 0, 0);
+    // streaks from drawing the glass: long wavy strands
+    t.lineCap = 'round';
+    for (let k = 0; k < 46; k++) {
+      const y0 = rand() * TEX;
+      t.strokeStyle = rand() < 0.5 ? 'rgba(255,255,255,' + (0.08 + rand() * 0.12).toFixed(3) + ')' : 'rgba(0,0,0,' + (0.06 + rand() * 0.1).toFixed(3) + ')';
+      t.lineWidth = 0.6 + rand() * 2.2;
+      t.beginPath();
+      t.moveTo(-10, y0);
+      for (let x = 0; x <= TEX + 10; x += 16) t.lineTo(x, y0 + Math.sin(x * 0.03 + k) * 6 + (rand() - 0.5) * 2);
+      t.stroke();
+    }
+    // seeds: tiny trapped bubbles with a bright rim
+    for (let k = 0; k < 70; k++) {
+      const x = rand() * TEX, y = rand() * TEX, r = 0.6 + rand() * rand() * 3.2;
+      t.fillStyle = 'rgba(255,255,255,0.35)';
+      t.beginPath(); t.ellipse(x, y, r * 1.4, r, 0, 0, Math.PI * 2); t.fill();
+      t.fillStyle = 'rgba(0,0,0,0.35)';
+      t.beginPath(); t.ellipse(x + r * 0.3, y + r * 0.3, r * 0.9, r * 0.6, 0, 0, Math.PI * 2); t.fill();
+    }
+  })();
+
+  /* ================================================================
+     Sun
+     ================================================================ */
+  const sun = { az: 0, el: 40, t: 0.3 };
+  function updateSun() {
+    const t = +sunInput.value / 100;
+    sun.t = t;
+    sun.az = (t - 0.5) * 2;                              // -1 east … 1 west
+    sun.el = 16 + 38 * Math.sin(t * Math.PI);            // low at dawn and dusk
+    const mood = t < 0.18 ? 'dawn' : t < 0.42 ? 'morning' : t < 0.58 ? 'noon' : t < 0.82 ? 'afternoon' : 'dusk';
+    sunOut.textContent = Math.round(sun.el) + '° · ' + mood;
+  }
+
+  /* ================================================================
+     Rendering: glass
+     ================================================================ */
+  let cells = [], pts = [], colors = [];
+  let jointCount = 0;
+  const LEAD = () => Math.max(3.2, win.w * (mode === 'lancet' ? 0.026 : 0.012));
+
+  function shade(rgb, k) { return 'rgb(' + clamp(rgb[0] * k, 0, 255) + ',' + clamp(rgb[1] * k, 0, 255) + ',' + clamp(rgb[2] * k, 0, 255) + ')'; }
+  function tint(rgb, w) { return 'rgb(' + (rgb[0] + (255 - rgb[0]) * w | 0) + ',' + (rgb[1] + (255 - rgb[1]) * w | 0) + ',' + (rgb[2] + (255 - rgb[2]) * w | 0) + ')'; }
+
+  function computeCells() {
+    pts = sitePoints();
+    cells = voronoi(pts, boundary);
+    colors = pts.map((p, i) => {
+      const base = hexRGB(pickColor(siteColorKey(i)));
+      const q = mode === 'lancet' ? seeds[i].q : orbits[orbitOfSite(i)[0]].q;
+      const k = 0.86 + ((q * 7.13) % 1) * 0.3;
+      return [clamp(base[0] * k, 0, 255), clamp(base[1] * k, 0, 255), clamp(base[2] * k, 0, 255)];
+    });
+  }
+
+  function hotspot() {
+    // where the sun sits behind the glass, in window pixels
+    return [win.w * (0.5 - sun.az * 0.38), win.h * (0.18 + (1 - (sun.el - 16) / 38) * 0.42)];
+  }
+
+  function drawGlass() {
+    const g = gctx;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, win.w, win.h);
+    g.fillStyle = '#1a1a1a';
+    tracePoly(g, boundary); g.fill();
+    const hot = hotspot();
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      if (!c) continue;
+      const rgb = colors[i];
+      const [cx, cy, area] = centroid(c);
+      const rad = Math.sqrt(area / Math.PI) * 1.5 + 4;
+      const gx = cx + (hot[0] - cx) * 0.18, gy = cy + (hot[1] - cy) * 0.18;
+      const gr = g.createRadialGradient(gx, gy, rad * 0.05, cx, cy, rad);
+      gr.addColorStop(0, tint(rgb, 0.3));
+      gr.addColorStop(0.5, shade(rgb, 1.03));
+      gr.addColorStop(1, shade(rgb, 0.7));
+      tracePoly(g, c);
+      g.fillStyle = gr;
+      g.fill();
+      // texture: each pane its own cut of the sheet, rotated
+      g.save();
+      g.clip();
+      g.globalCompositeOperation = 'overlay';
+      g.globalAlpha = 0.72;
+      const q = mode === 'lancet' ? seeds[i].q : orbits[orbitOfSite(i)[0]].q + i * 0.013;
+      g.translate(cx, cy);
+      g.rotate(q * 6.283);
+      const sc = 0.7 + (q * 3.7 % 1) * 0.6;
+      g.scale(sc, sc);
+      g.drawImage(tex, -TEX / 2 - (q * 97 % 60), -TEX / 2 - (q * 53 % 60));
+      g.restore();
+    }
+    // the sun itself, glowing through
+    g.save();
+    tracePoly(g, boundary); g.clip();
+    g.globalCompositeOperation = 'screen';
+    const hs = g.createRadialGradient(hot[0], hot[1], 0, hot[0], hot[1], win.w * 0.75);
+    const warm = 0.28 + 0.18 * Math.sin(sun.t * Math.PI);
+    hs.addColorStop(0, 'rgba(255,246,220,' + warm.toFixed(3) + ')');
+    hs.addColorStop(0.35, 'rgba(255,220,160,' + (warm * 0.35).toFixed(3) + ')');
+    hs.addColorStop(1, 'rgba(255,200,140,0)');
+    g.fillStyle = hs;
+    g.fillRect(0, 0, win.w, win.h);
+    g.restore();
+    // lead came: dark channel, flat face, a catch of light on the upper edge
+    const lead = LEAD();
+    g.lineJoin = 'round';
+    g.lineCap = 'round';
+    g.beginPath();
+    for (const c of cells) if (c) addPoly(g, c);
+    g.strokeStyle = '#1a1a1a';
+    g.lineWidth = lead;
+    g.stroke();
+    g.strokeStyle = '#2e2b28';
+    g.lineWidth = lead * 0.42;
+    g.stroke();
+    g.save();
+    g.translate(-0.5, -0.7);
+    g.strokeStyle = 'rgba(255,240,215,0.2)';
+    g.lineWidth = Math.max(0.8, lead * 0.16);
+    g.stroke();
+    g.restore();
+    // solder joints where came meets came
+    const seen = new Map();
+    for (const c of cells) {
+      if (!c) continue;
+      for (const v of c) {
+        const key = Math.round(v[0] * 0.5) + ',' + Math.round(v[1] * 0.5);
+        if (!seen.has(key)) seen.set(key, v);
+      }
+    }
+    jointCount = seen.size;
+    for (const v of seen.values()) {
+      if (!insideConvex(boundary, v[0], v[1])) continue;
+      g.fillStyle = '#252220';
+      g.beginPath(); g.ellipse(v[0], v[1], lead * 0.62, lead * 0.52, 0.4, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(255,238,210,0.22)';
+      g.beginPath(); g.arc(v[0] - lead * 0.18, v[1] - lead * 0.2, lead * 0.18, 0, Math.PI * 2); g.fill();
+    }
+    // outer frame came
+    tracePoly(g, boundary);
+    g.strokeStyle = '#141414';
+    g.lineWidth = lead * 2.4;
+    g.stroke();
+    nPanes.textContent = cells.filter(Boolean).length;
+    nJoints.textContent = jointCount;
+  }
+  function tracePoly(g, p) { g.beginPath(); addPoly(g, p); }
+  function addPoly(g, p) {
+    g.moveTo(p[0][0], p[0][1]);
+    for (let k = 1; k < p.length; k++) g.lineTo(p[k][0], p[k][1]);
+    g.closePath();
+  }
+
+  /* ================================================================
+     Rendering: light on the wall, in the air, on the floor
+     ================================================================ */
+  const LS = 0.34; // light buffer scale
+  const lbuf = document.createElement('canvas'), lbuf2 = document.createElement('canvas');
+  const lb = lbuf.getContext('2d'), lb2 = lbuf2.getContext('2d');
+
+  function floorMatrix() {
+    // window-local (X, Y) -> screen, casting each point down along the sun ray onto the floor
+    const tanE = Math.tan(sun.el * Math.PI / 180);
+    const floorH = SH - win.floorTop;
+    const k = clamp(floorH * 0.8 * Math.tan(54 * Math.PI / 180) / (win.h + win.sill), 0.2, 0.62);
+    const shear = sun.az * 0.75;
+    const A = 1, B = 0, Cc = -shear / tanE, D = -k / tanE;
+    const E = win.x + shear * (win.h + win.sill) / tanE;
+    const F = win.floorTop + k * (win.h + win.sill) / tanE;
+    return [A, B, Cc, D, E, F];
+  }
+
+  function paintFlat(g, alphaBoost) {
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      if (!c) continue;
+      const rgb = colors[i];
+      g.fillStyle = 'rgb(' + clamp(rgb[0] * alphaBoost + 30, 0, 255) + ',' + clamp(rgb[1] * alphaBoost + 24, 0, 255) + ',' + clamp(rgb[2] * alphaBoost + 16, 0, 255) + ')';
+      tracePoly(g, c);
+      g.fill();
+    }
+  }
+
+  function drawLight() {
+    const w = Math.max(1, Math.round(SW * LS)), h = Math.max(1, Math.round(SH * LS));
+    if (lbuf.width !== w || lbuf.height !== h) { lbuf.width = lbuf2.width = w; lbuf.height = lbuf2.height = h; }
+    lb.setTransform(1, 0, 0, 1, 0, 0);
+    lb.clearRect(0, 0, w, h);
+    lb.globalCompositeOperation = 'lighter';
+    const m = floorMatrix();
+    const strength = 0.55 + 0.45 * Math.sin(sun.t * Math.PI);
+    // shafts of coloured air between the glass and the floor
+    const steps = 14;
+    for (let s = 1; s <= steps; s++) {
+      const t = s / (steps + 1);
+      lb.setTransform(LS * lerp(1, m[0], t), 0, LS * lerp(0, m[2], t), LS * lerp(1, m[3], t), LS * lerp(win.x, m[4], t), LS * lerp(win.y, m[5], t));
+      lb.globalAlpha = 0.085 * strength * (0.55 + t * 0.6);
+      paintFlat(lb, 1);
+    }
+    // the pool of light on the floor
+    lb.setTransform(LS * m[0], LS * m[1], LS * m[2], LS * m[3], LS * m[4], LS * m[5]);
+    lb.globalAlpha = 0.6 * strength + 0.08;
+    paintFlat(lb, 1.05);
+    // the lead lines cast their own thin shadows through the pool
+    lb.globalCompositeOperation = 'destination-out';
+    lb.globalAlpha = 0.55;
+    lb.lineJoin = 'round';
+    lb.lineWidth = LEAD() * 0.9;
+    lb.strokeStyle = '#000';
+    lb.beginPath();
+    for (const c of cells) if (c) addPoly(lb, c);
+    lb.stroke();
+    lb.globalCompositeOperation = 'lighter';
+    // blur the whole light buffer
+    lb2.setTransform(1, 0, 0, 1, 0, 0);
+    lb2.clearRect(0, 0, w, h);
+    lb2.filter = 'blur(' + Math.max(1.4, 2.8 * LS * (SW / 1000 + 0.5)).toFixed(1) + 'px)';
+    lb2.drawImage(lbuf, 0, 0);
+    lb2.filter = 'none';
+    // halo on the wall around the window
+    const g = lctx;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, SW, SH);
+    g.save();
+    g.globalAlpha = 0.5;
+    g.filter = 'blur(' + Math.round(win.w * 0.16) + 'px)';
+    g.translate(win.x + win.w / 2, win.y + win.h / 2);
+    g.scale(1.18, 1.08);
+    g.translate(-win.w / 2, -win.h / 2);
+    paintFlat(g, 0.9);
+    g.restore();
+    g.filter = 'none';
+    // floor clip: the pool only lands below the wall line; the shafts fade in the air
+    g.save();
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(lbuf2, 0, 0, w, h, 0, 0, SW, SH);
+    g.restore();
+    // warm sheen where the light pool falls, a touch of bloom
+    const [fx, fy] = applyM(m, win.w / 2, win.h * 0.5);
+    const bloom = g.createRadialGradient(fx, fy, 0, fx, fy, win.w * 1.3);
+    bloom.addColorStop(0, 'rgba(255,220,170,' + (0.1 * strength).toFixed(3) + ')');
+    bloom.addColorStop(1, 'rgba(255,220,170,0)');
+    g.fillStyle = bloom;
+    g.fillRect(0, win.floorTop, SW, SH - win.floorTop);
+    motesZone = { m };
+    // coloured light spilling onto the carved stone around the glass
+    const sp = sctx;
+    sp.setTransform(DPR, 0, 0, DPR, 0, 0);
+    sp.clearRect(0, 0, SW, SH);
+    sp.save();
+    sp.beginPath();
+    sp.rect(0, 0, SW, SH);
+    sp.moveTo(win.x + boundary[0][0], win.y + boundary[0][1]);
+    for (let k = boundary.length - 1; k >= 0; k--) sp.lineTo(win.x + boundary[k][0], win.y + boundary[k][1]);
+    sp.closePath();
+    sp.clip('evenodd');
+    sp.globalAlpha = 0.34 * strength + 0.12;
+    sp.filter = 'blur(' + Math.round(Math.max(6, win.w * 0.07)) + 'px)';
+    sp.translate(win.x + win.w / 2, win.y + win.h / 2);
+    sp.scale(1.16, 1.06);
+    sp.translate(-win.w / 2, -win.h / 2);
+    paintFlat(sp, 0.95);
+    sp.restore();
+    sp.filter = 'none';
+  }
+  function applyM(m, x, y) { return [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]; }
+
+  /* ================================================================
+     The wall: ashlar masonry, the floor in perspective
+     ================================================================ */
+  function drawWall() {
+    const g = wctx;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const ft = win.floorTop;
+    // wall
+    const wg = g.createLinearGradient(0, 0, 0, ft);
+    wg.addColorStop(0, '#221d19');
+    wg.addColorStop(0.6, '#2f2823');
+    wg.addColorStop(1, '#27211c');
+    g.fillStyle = wg;
+    g.fillRect(0, 0, SW, ft);
+    const rowH = Math.max(26, Math.round(SH * 0.052));
+    let row = 0;
+    for (let y = ft; y > -rowH; y -= rowH, row++) {
+      let x = -((row * 37) % 90);
+      while (x < SW) {
+        const bw = rowH * (1.6 + hash2(row, x | 0) * 1.4);
+        const tone = 0.85 + hash2(x | 0, row + 3) * 0.3;
+        const r = 58 * tone, gg = 50 * tone, b = 43 * tone;
+        const sg = g.createLinearGradient(0, y - rowH, 0, y);
+        sg.addColorStop(0, 'rgb(' + (r * 1.08 | 0) + ',' + (gg * 1.08 | 0) + ',' + (b * 1.08 | 0) + ')');
+        sg.addColorStop(1, 'rgb(' + (r * 0.86 | 0) + ',' + (gg * 0.86 | 0) + ',' + (b * 0.86 | 0) + ')');
+        g.fillStyle = sg;
+        g.fillRect(x + 1.5, y - rowH + 1.5, bw - 3, rowH - 3);
+        // tooling marks and pits
+        g.fillStyle = 'rgba(0,0,0,0.12)';
+        for (let k = 0; k < 5; k++) {
+          const px = x + 4 + hash2(k, (x | 0) + row) * (bw - 8), py = y - rowH + 4 + hash2(row + k, x | 0) * (rowH - 8);
+          g.beginPath(); g.arc(px, py, 0.6 + hash2(k, row) * 1.4, 0, Math.PI * 2); g.fill();
+        }
+        g.fillStyle = 'rgba(255,240,220,0.04)';
+        g.fillRect(x + 1.5, y - rowH + 1.5, bw - 3, 2);
+        x += bw;
+      }
+    }
+    // floor: flagstones converging toward a vanishing point
+    const fh = SH - ft;
+    const fg = g.createLinearGradient(0, ft, 0, SH);
+    fg.addColorStop(0, '#2a241f');
+    fg.addColorStop(1, '#171310');
+    g.fillStyle = fg;
+    g.fillRect(0, ft, SW, fh);
+    const vpx = SW / 2, vpy = ft - SH * 0.9;
+    g.strokeStyle = 'rgba(0,0,0,0.5)';
+    g.lineWidth = 1.2;
+    for (let k = -14; k <= 14; k++) {
+      const bx = SW / 2 + k * SW * 0.09;
+      const t = (ft - vpy) / (SH - vpy);
+      g.beginPath();
+      g.moveTo(vpx + (bx - vpx) * t, ft);
+      g.lineTo(bx, SH);
+      g.stroke();
+    }
+    let yy = ft, gap = Math.max(10, fh * 0.1);
+    while (yy < SH) {
+      g.beginPath(); g.moveTo(0, yy); g.lineTo(SW, yy); g.stroke();
+      yy += gap; gap *= 1.35;
+    }
+    // speckle for texture
+    for (let k = 0; k < SW * SH / 900; k++) {
+      const x = hash2(k, 7) * SW, y = hash2(k, 11) * SH;
+      g.fillStyle = hash2(k, 3) < 0.5 ? 'rgba(255,240,220,0.035)' : 'rgba(0,0,0,0.12)';
+      g.fillRect(x, y, 1.2, 1.2);
+    }
+    // wall base shadow line
+    const bs = g.createLinearGradient(0, ft - 16, 0, ft + 26);
+    bs.addColorStop(0, 'rgba(0,0,0,0)');
+    bs.addColorStop(0.4, 'rgba(0,0,0,0.45)');
+    bs.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = bs;
+    g.fillRect(0, ft - 16, SW, 42);
+    // vignette
+    const vg = g.createRadialGradient(SW / 2, SH * 0.42, Math.min(SW, SH) * 0.25, SW / 2, SH * 0.5, Math.hypot(SW, SH) * 0.62);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.62)');
+    g.fillStyle = vg;
+    g.fillRect(0, 0, SW, SH);
+  }
+
+  /* ================================================================
+     Tracery: carved mouldings, colonnettes, sill (SVG, rebuilt on layout)
+     ================================================================ */
+  function el(name, attrs, parent) {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function lancetD(x, y, w, h, d) {
+    // outline offset outward by d: same arc centres, radius w + d
+    const s = y + w * 0.8660254;
+    const r = w + d;
+    const apexY = s - Math.sqrt(r * r - (w / 2) * (w / 2));
+    return 'M' + (x - d) + ' ' + (y + h) + 'V' + s + 'A' + r + ' ' + r + ' 0 0 1 ' + (x + w / 2) + ' ' + apexY +
+      'A' + r + ' ' + r + ' 0 0 1 ' + (x + w + d) + ' ' + s + 'V' + (y + h);
+  }
+  function buildTracery() {
+    trLancet.replaceChildren();
+    trRose.replaceChildren();
+    const x = win.x, y = win.y, w = win.w, h = win.h;
+    const u = Math.max(4, w * (mode === 'lancet' ? 0.05 : 0.012));
+    if (mode === 'lancet') {
+      trRose.style.display = 'none';
+      trLancet.style.display = '';
+      const g = trLancet;
+      // deep splayed reveal
+      el('path', { d: lancetD(x, y, w, h, u * 5.4) + 'Z ' + lancetD(x, y, w, h, 0) + 'Z', fill: 'url(#g-reveal)', 'fill-rule': 'evenodd' }, g);
+      // concentric rolls, each lit from the upper left
+      const rolls = [[u * 0.9, u * 1.4, 'url(#g-roll)'], [u * 2.6, u * 1.1, 'url(#g-roll-2)'], [u * 4.1, u * 1.6, 'url(#g-roll)'], [u * 5.6, u * 1.0, 'url(#g-roll-2)']];
+      for (const r of rolls) {
+        el('path', { d: lancetD(x, y, w, h, r[0]), fill: 'none', stroke: '#15110e', 'stroke-width': r[1] + 2 }, g);
+        el('path', { d: lancetD(x, y, w, h, r[0]), fill: 'none', stroke: r[2], 'stroke-width': r[1] }, g);
+      }
+      // hood mould with label stops
+      el('path', { d: lancetD(x, y, w, h, u * 7), fill: 'none', stroke: '#15110e', 'stroke-width': u * 1.6 }, g);
+      el('path', { d: lancetD(x, y, w, h, u * 7), fill: 'none', stroke: 'url(#g-roll)', 'stroke-width': u * 1.1 }, g);
+      const sY = y + w * 0.8660254;
+      for (const sx of [x - u * 7, x + w + u * 7]) {
+        el('rect', { x: sx - u * 1.1, y: sY - u * 0.2, width: u * 2.2, height: u * 1.8, rx: u * 0.4, fill: 'url(#g-roll)', stroke: '#15110e', 'stroke-width': 1 }, g);
+      }
+      // voussoir joints across the outer band
+      const s = y + w * 0.8660254;
+      const jg = el('g', { stroke: 'rgba(10,8,6,0.75)', 'stroke-width': 1.2 }, g);
+      for (let k = 1; k < 9; k++) {
+        const aL = Math.PI - (Math.PI / 3) * k / 9;
+        const cxL = x + w, r0 = w + u * 3.5, r1 = w + u * 6.4;
+        el('line', { x1: cxL + r0 * Math.cos(aL), y1: s - r0 * Math.sin(aL), x2: cxL + r1 * Math.cos(aL), y2: s - r1 * Math.sin(aL) }, jg);
+        const aR = (Math.PI / 3) * k / 9;
+        el('line', { x1: x + r0 * Math.cos(aR), y1: s - r0 * Math.sin(aR), x2: x + r1 * Math.cos(aR), y2: s - r1 * Math.sin(aR) }, jg);
+      }
+      // colonnettes with capitals and bases
+      for (const side of [-1, 1]) {
+        const cx = side < 0 ? x - u * 3.3 : x + w + u * 3.3;
+        const top = s + u * 0.4, bot = y + h;
+        el('rect', { x: cx - u * 0.8, y: top + u * 1.6, width: u * 1.6, height: bot - top - u * 2.6, fill: 'url(#g-shaft)' }, g);
+        const cap = 'M' + (cx - u * 1.5) + ' ' + top + 'H' + (cx + u * 1.5) + 'L' + (cx + u * 0.9) + ' ' + (top + u * 1.7) + 'H' + (cx - u * 0.9) + 'Z';
+        el('path', { d: cap, fill: 'url(#g-roll)', stroke: '#15110e', 'stroke-width': 1 }, g);
+        for (let q = -1; q <= 1; q++) el('circle', { cx: cx + q * u * 0.75, cy: top + u * 0.8, r: u * 0.35, fill: '#6f6358' }, g);
+        el('rect', { x: cx - u * 1.3, y: bot - u * 1.2, width: u * 2.6, height: u * 1.2, fill: 'url(#g-roll-2)', stroke: '#15110e', 'stroke-width': 1 }, g);
+      }
+      // sill: a sloping weathered ledge
+      const sd = 'M' + (x - u * 7.5) + ' ' + (y + h) + 'H' + (x + w + u * 7.5) + 'L' + (x + w + u * 8.6) + ' ' + (y + h + u * 2.2) + 'H' + (x - u * 8.6) + 'Z';
+      el('path', { d: sd, fill: 'url(#g-sill)', stroke: '#15110e', 'stroke-width': 1.2 }, g);
+      el('rect', { x: x - u * 8.6, y: y + h + u * 2.2, width: w + u * 17.2, height: u * 1.2, fill: '#1c1714' }, g);
+    } else {
+      trLancet.style.display = 'none';
+      trRose.style.display = '';
+      const g = trRose;
+      const cx = x + w / 2, cy = y + h / 2, R = w / 2;
+      el('circle', { cx, cy, r: R + u * 4.5, fill: 'none', stroke: '#2a231e', 'stroke-width': u * 9 }, g);
+      const rolls = [[u * 1.2, u * 2, 'url(#g-roll)'], [u * 3.6, u * 1.6, 'url(#g-roll-2)'], [u * 6, u * 2.4, 'url(#g-roll)'], [u * 8.4, u * 1.4, 'url(#g-roll-2)']];
+      for (const r of rolls) {
+        el('circle', { cx, cy, r: R + r[0], fill: 'none', stroke: '#15110e', 'stroke-width': r[1] + 2 }, g);
+        el('circle', { cx, cy, r: R + r[0], fill: 'none', stroke: r[2], 'stroke-width': r[1] }, g);
+      }
+      // stone spokes over the glass, a carved hub, and cusped foils at the rim
+      const sp = el('g', {}, g);
+      for (let k = 0; k < 12; k++) {
+        const a = k / 12 * Math.PI * 2 - Math.PI / 2;
+        const r0 = R * 0.3, r1 = R * 1.0;
+        const nx = -Math.sin(a), ny = Math.cos(a), ww = u * 0.75;
+        const d = 'M' + (cx + Math.cos(a) * r0 + nx * ww) + ' ' + (cy + Math.sin(a) * r0 + ny * ww) +
+          'L' + (cx + Math.cos(a) * r1 + nx * ww * 1.3) + ' ' + (cy + Math.sin(a) * r1 + ny * ww * 1.3) +
+          'L' + (cx + Math.cos(a) * r1 - nx * ww * 1.3) + ' ' + (cy + Math.sin(a) * r1 - ny * ww * 1.3) +
+          'L' + (cx + Math.cos(a) * r0 - nx * ww) + ' ' + (cy + Math.sin(a) * r0 - ny * ww) + 'Z';
+        el('path', { d, fill: 'url(#g-spoke)', stroke: '#120f0c', 'stroke-width': 1.2, transform: '' }, sp);
+      }
+      el('circle', { cx, cy, r: R * 0.3, fill: 'none', stroke: '#15110e', 'stroke-width': u * 2.8 }, g);
+      el('circle', { cx, cy, r: R * 0.3, fill: 'none', stroke: 'url(#g-roll)', 'stroke-width': u * 2 }, g);
+      el('circle', { cx, cy, r: R * 0.1, fill: 'url(#g-roll)', stroke: '#15110e', 'stroke-width': 1.5 }, g);
+      for (let k = 0; k < 8; k++) {
+        const a = k / 8 * Math.PI * 2;
+        el('circle', { cx: cx + Math.cos(a) * R * 0.06, cy: cy + Math.sin(a) * R * 0.06, r: R * 0.022, fill: '#3a322b' }, g);
+      }
+      // cusps: small arcs biting in from the rim between spokes
+      let cd = '';
+      for (let k = 0; k < 24; k++) {
+        const a0 = k / 24 * Math.PI * 2 - Math.PI / 2, a1 = (k + 1) / 24 * Math.PI * 2 - Math.PI / 2;
+        const p0 = [cx + Math.cos(a0) * R, cy + Math.sin(a0) * R], p1 = [cx + Math.cos(a1) * R, cy + Math.sin(a1) * R];
+        const cr = R * Math.sin(Math.PI / 24) * 1.05;
+        cd += 'M' + p0[0] + ' ' + p0[1] + 'A' + cr + ' ' + cr + ' 0 0 0 ' + p1[0] + ' ' + p1[1];
+      }
+      el('path', { d: cd, fill: 'none', stroke: '#15110e', 'stroke-width': u * 2.2 }, g);
+      el('path', { d: cd, fill: 'none', stroke: 'url(#g-spoke)', 'stroke-width': u * 1.3 }, g);
+      // a small sill beneath
+      const by = y + h + u * 9;
+      el('path', { d: 'M' + (cx - R * 0.55) + ' ' + by + 'H' + (cx + R * 0.55) + 'L' + (cx + R * 0.6) + ' ' + (by + u * 2.4) + 'H' + (cx - R * 0.6) + 'Z', fill: 'url(#g-sill)', stroke: '#15110e', 'stroke-width': 1 }, g);
+    }
+  }
+
+  /* ================================================================
+     Seed handles (shown while hovering or dragging)
+     ================================================================ */
+  let showHandles = false, hoverSite = -1, dragSite = -1;
+  function drawHandles() {
+    const g = hctx, pad = 14;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, win.w + pad * 2, win.h + pad * 2);
+    if (!showHandles) return;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const on = i === hoverSite || i === dragSite;
+      g.beginPath();
+      g.arc(p[0] + pad, p[1] + pad, on ? 6 : 3.4, 0, Math.PI * 2);
+      g.fillStyle = on ? 'rgba(255,244,214,0.95)' : 'rgba(255,244,214,0.55)';
+      g.fill();
+      g.lineWidth = 1.4;
+      g.strokeStyle = 'rgba(20,16,12,0.9)';
+      g.stroke();
+      if (on) {
+        g.beginPath();
+        g.arc(p[0] + pad, p[1] + pad, 11, 0, Math.PI * 2);
+        g.strokeStyle = 'rgba(255,230,170,0.55)';
+        g.lineWidth = 1;
+        g.stroke();
+      }
+    }
+  }
+
+  /* ================================================================
+     Dust motes drifting in the shafts
+     ================================================================ */
+  const motes = [];
+  for (let k = 0; k < 90; k++) motes.push({ t: rand(), u: rand(), v: rand(), s: 0.5 + rand() * 1.4, ph: rand() * 6.28, sp: 0.2 + rand() * 0.6 });
+  let motesZone = null;
+  function drawMotes(now) {
+    const g = mctx;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, SW, SH);
+    if (!motesZone || reduced) return;
+    const m = motesZone.m;
+    const strength = 0.55 + 0.45 * Math.sin(sun.t * Math.PI);
+    for (const d of motes) {
+      // a mote rides the ray from a point on the glass toward its patch on the floor
+      d.t += 0.00022 * d.sp;
+      if (d.t > 0.95) { d.t = 0.05; d.u = rand(); d.v = rand(); }
+      const X = d.u * win.w, Y = d.v * win.h;
+      const fx = m[0] * X + m[2] * Y + m[4], fy = m[1] * X + m[3] * Y + m[5];
+      const wx = win.x + X, wy = win.y + Y;
+      const x = lerp(wx, fx, d.t) + Math.sin(now * 0.0004 * d.sp + d.ph) * 6;
+      const y = lerp(wy, fy, d.t) + Math.cos(now * 0.0003 * d.sp + d.ph) * 4;
+      const a = Math.sin(d.t * Math.PI) * (0.35 + 0.35 * Math.sin(now * 0.002 + d.ph)) * strength;
+      if (a <= 0.02) continue;
+      g.fillStyle = 'rgba(255,236,200,' + a.toFixed(3) + ')';
+      g.beginPath(); g.arc(x, y, d.s, 0, Math.PI * 2); g.fill();
+    }
+  }
+
+  /* ================================================================
+     Frame scheduling
+     ================================================================ */
+  let dirtyGlass = true, dirtyLight = true, animUntil = 0;
+  function markDirty(light) { dirtyGlass = true; if (light !== false) dirtyLight = true; }
+  let raf = 0, lightTimer = 0;
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    const animating = now < animUntil || relaxing > 0;
+    if (relaxing > 0) relaxStep();
+    if (dirtyGlass || animating) {
+      computeCells();
+      drawGlass();
+      drawHandles();
+      dirtyGlass = false;
+      // the light layers are heavier: refresh them at most ~15 times a second while things move
+      if (now - lightTimer > 66 || !animating) { dirtyLight = true; }
+    }
+    if (dirtyLight) { drawLight(); dirtyLight = false; lightTimer = now; }
+    drawMotes(now);
+    if (!reduced) {
+      // clouds passing: the light breathes
+      const b = 0.9 + 0.1 * Math.sin(now * 0.00031) * Math.sin(now * 0.00017 + 1.3);
+      lightC.style.opacity = b.toFixed(3);
+    }
+  }
+  function start() { if (!raf) raf = requestAnimationFrame(frame); }
+  function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
+
+  /* ================================================================
+     Interaction
+     ================================================================ */
+  function localPoint(e) {
+    const r = glassC.getBoundingClientRect();
+    return [e.clientX - r.left, e.clientY - r.top];
+  }
+  function nearestSite(x, y, maxD) {
+    let best = -1, bd = maxD * maxD;
+    for (let i = 0; i < pts.length; i++) {
+      const dx = pts[i][0] - x, dy = pts[i][1] - y, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+  }
+  function cellAt(x, y) {
+    let best = -1, bd = Infinity;
+    for (let i = 0; i < pts.length; i++) {
+      const dx = pts[i][0] - x, dy = pts[i][1] - y, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+  }
+
+  function addSeedAt(x, y) {
+    if (!insideConvex(boundary, x, y)) return;
+    const from = cellAt(x, y);
+    const now = performance.now();
+    const dur = reduced ? 1 : 520;
+    if (mode === 'lancet') {
+      if (seeds.length >= 180) { toast('The window is full of glass'); return; }
+      const s = seeds[from];
+      // the new pane is born inside the old one and slides out: a smooth split
+      const fu = s.u + (x / win.w - s.u) * 0.02, fv = s.v + (y / win.h - s.v) * 0.02;
+      seeds.push({ u: fu, v: fv, q: rand(), anim: { t0: now, dur, fu, fv, tu: x / win.w, tv: y / win.h } });
+      // nudge the parent a little the other way
+      const pu = s.u - (x / win.w - s.u) * 0.18, pv = s.v - (y / win.h - s.v) * 0.18;
+      if (insideConvex(boundary, pu * win.w, pv * win.h)) s.anim = { t0: now, dur, fu: s.u, fv: s.v, tu: pu, tv: pv };
+    } else {
+      if (orbits.length >= 12) { toast('The rose is complete'); return; }
+      const R = win.w / 2;
+      const dx = x - R, dy = y - R;
+      const r = Math.hypot(dx, dy) / R, th = Math.atan2(dy, dx);
+      const [oi, k] = orbitOfSite(from);
+      const o = orbits[oi];
+      const n = 12;
+      const fth = o.th + k * Math.PI * 2 / o.n;
+      orbits.push({ n, r: o.n === 1 ? 0.02 : o.r, th: fth, q: rand(), ring: orbits.length + 1,
+        anim: { t0: now, dur, fr: o.n === 1 ? 0.02 : o.r, tr: clamp(r, 0.05, 0.97), fth, tth: th } });
+    }
+    animUntil = now + dur + 40;
+    markDirty();
+    announce('Split a pane. ' + (mode === 'lancet' ? seeds.length : pts.length + 12) + ' panes.');
+  }
+
+  function removeSeed(i) {
+    if (mode === 'lancet') {
+      if (seeds.length <= 6) return;
+      seeds.splice(i, 1);
+    } else {
+      const [oi] = orbitOfSite(i);
+      if (orbits[oi].n === 1 || orbits.length <= 3) return;
+      orbits.splice(oi, 1);
+    }
+    markDirty();
+    announce('Removed a pane.');
+  }
+
+  let drag = null, pressTimer = 0;
+  glassC.addEventListener('pointerdown', (e) => {
+    if (e.button === 2) return;
+    const [x, y] = localPoint(e);
+    const hit = nearestSite(x, y, e.pointerType === 'mouse' ? 11 : 18);
+    try { glassC.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    drag = { id: e.pointerId, site: hit, sx: x, sy: y, moved: false, longDone: false };
+    if (hit >= 0) {
+      dragSite = hit; showHandles = true;
+      glassC.classList.add('grab');
+      if (mode === 'lancet') seeds[hit].anim = null; else orbits[orbitOfSite(hit)[0]].anim = null;
+      markDirty(false);
+    }
+    if (e.pointerType !== 'mouse') {
+      pressTimer = setTimeout(() => {
+        if (drag && !drag.moved) { drag.longDone = true; removeSeed(cellAt(x, y)); dragSite = -1; }
+      }, 560);
+    }
+  });
+  glassC.addEventListener('pointermove', (e) => {
+    const [x, y] = localPoint(e);
+    if (!drag) {
+      if (e.pointerType === 'mouse') {
+        showHandles = true;
+        const h = nearestSite(x, y, 11);
+        if (h !== hoverSite) { hoverSite = h; drawHandles(); }
+        glassC.classList.toggle('over-site', h >= 0);
+      }
+      return;
+    }
+    if (Math.hypot(x - drag.sx, y - drag.sy) > 4) { drag.moved = true; clearTimeout(pressTimer); }
+    if (drag.site < 0 || !drag.moved) return;
+    // keep the seed inside the window
+    let px = x, py = y;
+    if (!insideConvex(boundary, px, py)) {
+      const cx = win.w / 2, cy = mode === 'lancet' ? win.h * 0.6 : win.h / 2;
+      for (let k = 0; k < 20 && !insideConvex(boundary, px, py); k++) { px = lerp(px, cx, 0.12); py = lerp(py, cy, 0.12); }
+    }
+    if (mode === 'lancet') {
+      seeds[drag.site].u = px / win.w; seeds[drag.site].v = py / win.h;
+    } else {
+      const R = win.w / 2;
+      const [oi, k] = orbitOfSite(drag.site);
+      const o = orbits[oi];
+      if (o.n > 1) {
+        o.r = clamp(Math.hypot(px - R, py - R) / R, 0.04, 0.98);
+        o.th = Math.atan2(py - R, px - R) - k * Math.PI * 2 / o.n;
+      }
+    }
+    markDirty();
+  });
+  function endDrag(e) {
+    if (!drag || drag.id !== e.pointerId) return;
+    clearTimeout(pressTimer);
+    const [x, y] = localPoint(e);
+    if (e.type === 'pointerup' && !drag.moved && !drag.longDone && drag.site < 0) addSeedAt(x, y);
+    drag = null; dragSite = -1;
+    glassC.classList.remove('grab');
+    if (e.pointerType !== 'mouse') showHandles = false;
+    drawHandles();
+    dirtyLight = true;
+  }
+  glassC.addEventListener('pointerup', endDrag);
+  glassC.addEventListener('pointercancel', endDrag);
+  glassC.addEventListener('pointerleave', (e) => {
+    if (!drag && e.pointerType === 'mouse') { showHandles = false; hoverSite = -1; drawHandles(); glassC.classList.remove('over-site'); }
+  });
+  glassC.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const [x, y] = localPoint(e);
+    if (insideConvex(boundary, x, y)) removeSeed(cellAt(x, y));
+  });
+
+  /* ---------------- relax (Lloyd iterations, animated) ---------------- */
+  let relaxing = 0;
+  function relaxStep() {
+    relaxing--;
+    if (mode === 'lancet') {
+      for (let i = 0; i < seeds.length; i++) {
+        const c = cells[i];
+        if (!c) continue;
+        const [cx, cy] = centroid(c);
+        seeds[i].u = lerp(seeds[i].u, cx / win.w, 0.2);
+        seeds[i].v = lerp(seeds[i].v, cy / win.h, 0.2);
+      }
+    } else {
+      const R = win.w / 2;
+      let idx = 0;
+      for (const o of orbits) {
+        const c = cells[idx];
+        if (o.n > 1 && c) {
+          const [cx, cy] = centroid(c);
+          o.r = lerp(o.r, clamp(Math.hypot(cx - R, cy - R) / R, 0.05, 0.97), 0.2);
+          const target = Math.atan2(cy - R, cx - R);
+          let dth = target - o.th;
+          while (dth > Math.PI) dth -= Math.PI * 2;
+          while (dth < -Math.PI) dth += Math.PI * 2;
+          o.th += dth * 0.2;
+        }
+        idx += o.n;
+      }
+    }
+    dirtyGlass = true;
+  }
+
+  /* ---------------- controls ---------------- */
+  const modeBtns = { lancet: document.getElementById('mode-lancet'), rose: document.getElementById('mode-rose') };
+  function setMode(m) {
+    if (m === mode) return;
+    mode = m;
+    modeBtns.lancet.setAttribute('aria-pressed', m === 'lancet' ? 'true' : 'false');
+    modeBtns.rose.setAttribute('aria-pressed', m === 'rose' ? 'true' : 'false');
+    layout();
+    if (m === 'lancet' && !seeds.length) newLancet();
+    if (m === 'rose' && !orbits.length) newRose();
+    markDirty();
+    announce(m === 'lancet' ? 'Lancet window.' : 'Rose window, radially symmetric.');
+  }
+  modeBtns.lancet.addEventListener('click', () => setMode('lancet'));
+  modeBtns.rose.addEventListener('click', () => setMode('rose'));
+
+  const palBtns = Array.from(document.querySelectorAll('.pal'));
+  function setPalette(k) {
+    palKey = k;
+    for (const b of palBtns) b.setAttribute('aria-pressed', b.dataset.pal === k ? 'true' : 'false');
+    markDirty();
+    announce(PALETTES[k].name + ' palette.');
+  }
+  for (const b of palBtns) b.addEventListener('click', () => setPalette(b.dataset.pal));
+
+  sunInput.addEventListener('input', () => { updateSun(); markDirty(); });
+
+  document.getElementById('btn-new').addEventListener('click', newDesign);
+  function newDesign() {
+    if (mode === 'lancet') newLancet(); else newRose();
+    relaxing = reduced ? 0 : 6;
+    markDirty();
+    toast('A new cartoon for the glazier');
+    announce('New design.');
+  }
+  document.getElementById('btn-relax').addEventListener('click', relax);
+  function relax() {
+    relaxing = reduced ? 8 : 40;
+    if (reduced) { while (relaxing > 0) { computeCells(); relaxStep(); } }
+    markDirty();
+    announce('Relaxing the leading.');
+  }
+  document.getElementById('btn-save').addEventListener('click', () => {
+    try {
+      const out = document.createElement('canvas');
+      const scale = 2;
+      out.width = Math.round(win.w * scale); out.height = Math.round(win.h * scale);
+      const o = out.getContext('2d');
+      o.save();
+      o.scale(scale / DPR, scale / DPR);
+      o.beginPath();
+      const b = boundary;
+      o.moveTo(b[0][0] * DPR, b[0][1] * DPR);
+      for (let k = 1; k < b.length; k++) o.lineTo(b[k][0] * DPR, b[k][1] * DPR);
+      o.closePath();
+      o.clip();
+      o.drawImage(glassC, 0, 0);
+      o.restore();
+      out.toBlob((blob) => {
+        if (!blob) { toast('Saving is not available here'); return; }
+        const a = document.createElement('a');
+        a.download = 'vitrail-' + mode + '.png';
+        const toHref = URL.createObjectURL.bind(URL);
+        a.href = toHref(blob);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        const dropHref = URL.revokeObjectURL.bind(URL);
+        setTimeout(() => dropHref(a.href), 4000);
+        toast('Window saved as PNG');
+      }, 'image/png');
+    } catch (err) { toast('Saving is not available here'); }
+  });
+
+  glassC.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'n') newDesign();
+    else if (k === 'r') relax();
+    else if (k === 'm') setMode(mode === 'lancet' ? 'rose' : 'lancet');
+    else if (k === 'p') { const ks = Object.keys(PALETTES); setPalette(ks[(ks.indexOf(palKey) + 1) % ks.length]); }
+    else if (k === 'arrowleft' || k === 'arrowright') { sunInput.value = clamp(+sunInput.value + (k === 'arrowleft' ? -4 : 4), 0, 100); updateSun(); markDirty(); e.preventDefault(); }
+  });
+
+  let resizeT = 0;
+  window.addEventListener('resize', () => { layout(); markDirty(); clearTimeout(resizeT); resizeT = setTimeout(() => { layout(); markDirty(); }, 120); });
+  reduceMQ.addEventListener && reduceMQ.addEventListener('change', (e) => { reduced = e.matches; });
+
+  /* ---------------- start ---------------- */
+  updateSun();
+  layout();
+  newLancet();
+  // a few quick relaxations give the first design an even, glazier-like rhythm
+  for (let k = 0; k < 3; k++) { computeCells(); relaxStep(); relaxing = 0; }
+  markDirty();
+  start();
+})();
+</script>
+</body>
+</html>

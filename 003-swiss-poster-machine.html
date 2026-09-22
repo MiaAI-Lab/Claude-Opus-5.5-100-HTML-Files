@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RASTER — Swiss Poster Machine</title>
+<meta name="description" content="RASTER is a generative poster machine in the International Typographic Style: a strict modular grid, signal red and black on off-white paper, recomposed from a new numbered seed with every click.">
+<meta name="theme-color" content="#f2efe8">
+<style>
+:root{
+  --paper:#f2efe8;
+  --ink:#111111;
+  --red:#e30613;
+  --cyan:#00a0dc;
+  --strip:50px;
+  --m:32px;
+  --sans:"Helvetica Neue", Helvetica, Arial, "Nimbus Sans", "Liberation Sans", sans-serif;
+  --ease:cubic-bezier(.77,0,.18,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--sans);
+  overflow:hidden;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;
+  transition:background-color .5s var(--ease),color .5s var(--ease);
+}
+body.inv{--paper:#111111;--ink:#f2efe8}
+
+/* ---------- the sheet ---------- */
+#sheet{
+  position:fixed;left:0;top:0;right:0;bottom:var(--strip);
+  overflow:hidden;background:var(--paper);isolation:isolate;
+  cursor:crosshair;user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  transition:background-color .5s var(--ease);
+}
+#sheet:focus-visible{outline:2px solid var(--red);outline-offset:-6px}
+#layer{position:absolute;inset:0}
+.el{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform,opacity;opacity:0}
+.shape{mix-blend-mode:multiply;transition:background-color .5s var(--ease),border-color .5s var(--ease)}
+body.inv .shape,body.inv .ov{mix-blend-mode:screen}
+.circ{border-radius:50%}
+.ring{border-radius:50%;border-style:solid;background:transparent}
+.qd{border-top-left-radius:100%}
+.qr{border-style:solid;border-color:transparent;border-top-left-radius:100%;background:transparent}
+.ln{white-space:pre;line-height:1;font-kerning:normal;transition:color .5s var(--ease)}
+.ov{mix-blend-mode:multiply}
+.blk,#meas{white-space:normal;overflow-wrap:break-word;font-family:var(--sans);font-kerning:normal;transition:color .5s var(--ease)}
+.blk b,#meas b{font-weight:700}
+.blk .en,#meas .en{font-weight:400}
+#meas{position:absolute;left:0;top:0;visibility:hidden;pointer-events:none}
+
+/* paper tooth */
+#grain{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:4;opacity:.07;mix-blend-mode:multiply}
+body.inv #grain{mix-blend-mode:screen;opacity:.05}
+
+/* ---------- construction grid ---------- */
+#grid{position:absolute;inset:0;pointer-events:none;z-index:6;opacity:0;transition:opacity .35s var(--ease)}
+.show-grid #grid{opacity:1}
+.gcol{position:absolute;background:rgba(0,160,220,.075);border-left:1px solid rgba(0,160,220,.8);border-right:1px solid rgba(0,160,220,.8);transform:scaleY(0);transform-origin:50% 0;transition:transform .7s var(--ease);transition-delay:calc(var(--i) * 28ms)}
+.grow{position:absolute;border-top:1px solid rgba(0,160,220,.5);border-bottom:1px solid rgba(0,160,220,.5);transform:scaleX(0);transform-origin:0 50%;transition:transform .7s var(--ease);transition-delay:calc(var(--i) * 34ms + 120ms)}
+.show-grid .gcol{transform:scaleY(1)}
+.show-grid .grow{transform:scaleX(1)}
+.gnum{position:absolute;font:700 9px/1 var(--sans);color:var(--cyan);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.gcrop{position:absolute;width:14px;height:14px;border-color:var(--cyan);border-style:solid;border-width:0}
+.gcrop.tl{border-left-width:1px;border-top-width:1px}
+.gcrop.tr{border-right-width:1px;border-top-width:1px}
+.gcrop.bl{border-left-width:1px;border-bottom-width:1px}
+.gcrop.br{border-right-width:1px;border-bottom-width:1px}
+.gspec{position:absolute;font:700 9px/1 var(--sans);letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;white-space:nowrap}
+#xh,#xv{position:absolute;left:0;top:0;background:var(--cyan);pointer-events:none;opacity:0;transition:opacity .2s}
+#xh{height:1px;width:100%}
+#xv{width:1px;height:100%}
+#xl{position:absolute;left:0;top:0;font:700 9px/1 var(--sans);letter-spacing:.1em;color:#fff;background:var(--cyan);padding:4px 5px 3px;opacity:0;transition:opacity .2s;white-space:nowrap}
+.show-grid.hover #xh,.show-grid.hover #xv,.show-grid.hover #xl{opacity:.9}
+
+/* ---------- control strip ---------- */
+#strip{
+  position:fixed;left:0;right:0;bottom:0;height:var(--strip);z-index:10;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:0 calc(var(--m) - 10px);
+  background:var(--paper);color:var(--ink);
+  border-top:1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  transition:background-color .5s var(--ease),color .5s var(--ease);
+}
+.brand{display:flex;align-items:baseline;gap:10px;padding-left:10px;min-width:0;white-space:nowrap}
+.brand b{font-size:13px;letter-spacing:.02em;display:flex;align-items:center;gap:7px}
+.brand b::before{content:"";width:9px;height:9px;background:var(--red);display:inline-block}
+.brand span{font-size:11px;opacity:.72}
+.hint{font-size:10.5px;letter-spacing:.04em;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hint kbd{font:700 10.5px/1 var(--sans);color:var(--ink);letter-spacing:.02em}
+.hint kbd.k{display:inline-block;min-width:15px;text-align:center;padding:2px 3px 1px;margin:0 1px;background:color-mix(in srgb, var(--ink) 9%, transparent)}
+.controls{display:flex;align-items:center;gap:2px}
+.btn{
+  appearance:none;-webkit-appearance:none;background:none;border:0;color:inherit;cursor:pointer;
+  font:700 11px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;
+  padding:11px 10px;position:relative;display:inline-flex;align-items:center;gap:7px;border-radius:0;
+}
+.btn::after{content:"";position:absolute;left:10px;right:10px;bottom:5px;height:2px;background:var(--red);transform:scaleX(0);transform-origin:0 50%;transition:transform .35s var(--ease)}
+.btn:hover::after{transform:scaleX(1)}
+.btn:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+.btn .sq{width:9px;height:9px;border:1.5px solid currentColor;display:inline-block;transition:background-color .3s var(--ease),border-color .3s}
+.btn[aria-pressed="true"] .sq{background:var(--red);border-color:var(--red)}
+.btn.arrow{font-size:15px;padding:9px 10px;letter-spacing:0}
+.btn.arrow::after{left:8px;right:8px}
+.edition{display:inline-flex;align-items:center;gap:6px;padding:0 6px;font:700 13px/1 var(--sans);white-space:nowrap}
+.edition .no{font-size:11px;letter-spacing:.06em}
+.odo{display:inline-flex;height:13px;overflow:hidden;font-variant-numeric:tabular-nums}
+.dg{display:flex;flex-direction:column;transition:transform .7s var(--ease)}
+.dg span{display:block;height:13px;line-height:13px;text-align:center;width:.62em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.sep{width:1px;height:18px;background:currentColor;opacity:.25;margin:0 6px}
+
+@media (max-width:980px){ .hint{display:none} }
+@media (max-width:560px){
+  :root{--strip:56px}
+  .brand span{display:none}
+  .btn{padding:12px 7px;letter-spacing:.06em}
+  .btn{font-size:10px;gap:5px}
+  .btn .sq{width:9px;height:9px}
+  .sep{margin:0 3px}
+  #strip{padding:0 6px}
+  .brand{padding-left:10px}
+}
+@media (max-width:360px){ .brand b{font-size:12px} .edition .no{display:none} }
+@media (prefers-reduced-motion:reduce){
+  .gcol,.grow,.dg{transition:none}
+}
+@media print{
+  #strip,#grid,#grain{display:none}
+  #sheet{bottom:0}
+}
+</style>
+</head>
+<body>
+<main id="sheet" tabindex="0" aria-label="Poster. Click, tap or press Space to recompose.">
+  <div id="layer"></div>
+  <canvas id="grain" aria-hidden="true"></canvas>
+  <div id="grid" aria-hidden="true"></div>
+</main>
+
+<footer id="strip">
+  <div class="brand"><b>RASTER</b><span>Swiss Poster Machine</span></div>
+  <p class="hint">Click or <kbd class="k">Space</kbd> to recompose &nbsp;·&nbsp; <kbd class="k">←</kbd><kbd class="k">→</kbd> editions &nbsp;·&nbsp; <kbd class="k">R</kbd> random &nbsp;·&nbsp; <kbd class="k">G</kbd> grid &nbsp;·&nbsp; <kbd class="k">I</kbd> invert</p>
+  <nav class="controls" aria-label="Poster controls">
+    <button type="button" class="btn arrow" id="prevBtn" aria-label="Previous edition">←</button>
+    <span class="edition" aria-hidden="true"><span class="no">No.</span><span class="odo" id="odo"></span></span>
+    <button type="button" class="btn arrow" id="nextBtn" aria-label="Next edition">→</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button type="button" class="btn" id="gridBtn" aria-pressed="false" aria-label="Show construction grid"><span class="sq" aria-hidden="true"></span><span class="lbl">Grid</span></button>
+    <button type="button" class="btn" id="invBtn" aria-pressed="false" aria-label="Invert to black ground"><span class="sq" aria-hidden="true"></span><span class="lbl">Invert</span></button>
+  </nav>
+</footer>
+<div id="meas" aria-hidden="true"></div>
+<p id="live" class="sr" aria-live="polite"></p>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   RASTER — a poster machine in the International Typographic Style
+   Every edition number is a seed. Same rules, new order.
+   ============================================================ */
+
+var doc = document, root = doc.documentElement, body = doc.body;
+var sheet = doc.getElementById('sheet'), layer = doc.getElementById('layer');
+var gridEl = doc.getElementById('grid'), meas = doc.getElementById('meas'), live = doc.getElementById('live');
+var SANS = '"Helvetica Neue", Helvetica, Arial, "Nimbus Sans", "Liberation Sans", sans-serif';
+var RM = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches:false };
+
+var store = {
+  get: function(k){ try { return window.localStorage.getItem('raster.' + k); } catch(e){ return null; } },
+  set: function(k, v){ try { window.localStorage.setItem('raster.' + k, v); } catch(e){} }
+};
+
+/* ---------- palette: signal red, black, white on off-white ---------- */
+var inverted = false;
+var PAL = { paper:['#f2efe8','#111111'], ink:['#111111','#f2efe8'], red:['#e30613','#e30613'], white:['#ffffff','#ffffff'] };
+function col(k){ return PAL[k][inverted ? 1 : 0]; }
+
+/* ---------- seeded randomness ---------- */
+function rng(seed){
+  var a = (Math.imul(seed ^ 0x5bd1e995, 2654435761) ^ 0x9e3779b9) >>> 0;
+  function f(){
+    a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  for (var i = 0; i < 5; i++) f();
+  return {
+    f: f,
+    int: function(lo, hi){ return lo + Math.floor(f() * (hi - lo + 1)); },
+    pick: function(arr){ return arr[Math.floor(f() * arr.length)]; },
+    chance: function(p){ return f() < p; }
+  };
+}
+
+/* ---------- copy (original; the programme is fictional) ---------- */
+var WORDS = [
+  ['klang','son','suono','sound'], ['raum','espace','spazio','space'], ['zeit','temps','tempo','time'],
+  ['licht','lumière','luce','light'], ['form','forme','forma','form'], ['mass','mesure','misura','measure'],
+  ['linie','ligne','linea','line'], ['punkt','point','punto','point'], ['rhythmus','rythme','ritmo','rhythm'],
+  ['ordnung','ordre','ordine','order'], ['stille','silence','silenzio','silence'], ['farbe','couleur','colore','colour'],
+  ['kontrast','contraste','contrasto','contrast'], ['raster','grille','griglia','grid'], ['takt','mesure','battuta','bar'],
+  ['fläche','surface','superficie','surface'], ['bewegung','mouvement','movimento','movement']
+];
+var EVENTS = [
+  { de:'Konzertreihe für neue Musik', en:'Concert series for new music', place:'Grosser Saal' },
+  { de:'Ausstellung · Das Raster als Haltung', en:'Exhibition · The grid as an attitude', place:'Halle 2' },
+  { de:'Vortragsreihe · Proportion und Zufall', en:'Lectures · Proportion and chance', place:'Auditorium' },
+  { de:'Festwoche für Gestaltung', en:'A festival week of design', place:'Hof und Halle' },
+  { de:'Filmreihe · Bewegung und Stillstand', en:'Film series · Motion and stillness', place:'Kino im Hof' },
+  { de:'Werkstattgespräche · Schrift', en:'Workshop talks · Type', place:'Druckerei' },
+  { de:'Kammermusik im Raster', en:'Chamber music on the grid', place:'Kleiner Saal' }
+];
+var SENT = [
+  'The grid is not a cage. It is a quiet agreement between every element on the sheet about where it may stand.',
+  'Twelve columns, one measure. Proportion does the talking; ornament waits outside.',
+  'Type set flush left and ragged right reads like speech: each line ends where the thought allows.',
+  'Red is used once, and loudly. Black carries the argument. The paper keeps the silence between them.',
+  'Every edition is recomposed from a single number. Same rules, new order, no two sheets alike.',
+  'Objectivity is a discipline, not a style: clarity for the reader first, expression second.',
+  'A circle on the grid becomes an event, a bar becomes a beat, an empty module becomes a rest.',
+  'Composition is arithmetic made visible. Contrast of scale turns the arithmetic into drama.',
+  'Look at the margins. They are as considered as the marks, and they hold the whole sheet in tension.',
+  'Nothing is centred out of habit. Every alignment is a decision you could defend in one sentence.',
+  'The smallest text on the sheet is set with the same care as the largest word.'
+];
+var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+var DAYS = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+var SIGS = ['2/4','3/4','4/4','5/4','6/8','7/8','9/8'];
+
+function shuffle(a, r){ for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(r.f() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function pad4(n){ n = String(n); while (n.length < 4) n = '0' + n; return n; }
+
+function content(n, r){
+  var w = r.pick(WORDS), up = r.chance(.26);
+  var cs = function(t){ return up ? t.toUpperCase() : t; };
+  var ev = r.pick(EVENTS);
+  var month = r.int(0, 11), day = r.int(1, 28);
+  var dt = new Date(2027, month, day);
+  var pool = shuffle(SENT.slice(), r);
+  return {
+    w: { de:cs(w[0]), fr:cs(w[1]), it:cs(w[2]), en:w[3] },
+    ev: ev, day: String(day), month: MONTHS[month], wd: DAYS[dt.getDay()],
+    time: r.pick(['18.30','19.00','19.30','20.00','20.15']),
+    sig: r.pick(SIGS), s1: pool.slice(0, 3), s2: pool.slice(3, 6), ed: pad4(n)
+  };
+}
+
+/* ---------- type metrics (canvas) ---------- */
+var mc = doc.createElement('canvas').getContext('2d');
+var mcache = {};
+var hasLS = mc && ('letterSpacing' in mc);
+function metrics(text, weight, ls){
+  var key = weight + '|' + ls + '|' + text;
+  if (mcache[key]) return mcache[key];
+  var S = 200;
+  mc.font = weight + ' ' + S + 'px ' + SANS;
+  if (hasLS) mc.letterSpacing = (ls * S) + 'px';
+  var t = mc.measureText(text);
+  var adv = t.width, rr = t.actualBoundingBoxRight;
+  if (!hasLS){ adv += ls * S * text.length; rr += ls * S * (text.length - 1); }
+  var fa = (typeof t.fontBoundingBoxAscent === 'number') ? t.fontBoundingBoxAscent : S * 0.93;
+  var fd = (typeof t.fontBoundingBoxDescent === 'number') ? t.fontBoundingBoxDescent : S * 0.24;
+  if (hasLS) mc.letterSpacing = '0px';
+  var m = { l: t.actualBoundingBoxLeft / S, r: rr / S, a: t.actualBoundingBoxAscent / S, d: t.actualBoundingBoxDescent / S, fa: fa / S, fd: fd / S, adv: adv / S };
+  mcache[key] = m;
+  return m;
+}
+
+/* ---------- the grid ---------- */
+var W = 0, H = 0, C = 12, R = 7, M = 32, G = 14, CW = 0, RH = 0, P = false, BF = 11;
+function geometry(){
+  var r = sheet.getBoundingClientRect();
+  W = r.width; H = r.height;
+  P = W < 640 || W / H < 0.82;
+  C = P ? 6 : 12;
+  M = Math.round(Math.max(15, Math.min(64, Math.min(W, H) * 0.046)));
+  G = Math.round(Math.max(7, Math.min(20, W * 0.0115)));
+  var iw = W - 2 * M, ih = H - 2 * M;
+  CW = (iw - (C - 1) * G) / C;
+  R = Math.max(4, Math.min(16, Math.round((ih + G) / (CW + G))));
+  RH = (ih - (R - 1) * G) / R;
+  BF = Math.max(10, Math.min(14, W * 0.0078));
+  root.style.setProperty('--m', M + 'px');
+}
+function X(c){ return M + c * (CW + G); }
+function Y(r){ return M + r * (RH + G); }
+function SW(n){ return n * CW + (n - 1) * G; }
+function SH(n){ return n * RH + (n - 1) * G; }
+function bx(c, r, w, h){ return { x:X(c), y:Y(r), w:SW(w), h:SH(h) }; }
+function zb(z){ return bx(z.c, z.r, z.w, z.h); }
+function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+function colAt(x){ return clamp(Math.round((x - M) / (CW + G)), 0, C - 1); }
+function hit(a, b){ return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0; }
+
+/* ---------- layout states ---------- */
+var ST = {};
+function sh(id, c, x, y, w, h, rot, ex){
+  var s = { cx:x + w / 2, cy:y + h / 2, w:w, h:h, r:rot || 0, col:c };
+  if (ex) for (var k in ex) s[k] = ex[k];
+  ST[id] = s;
+  return { x0:x, y0:y, x1:x + w, y1:y + h };
+}
+
+/* A single line of type, fitted (or sized) into box B, optionally rotated,
+   aligned by its actual ink — so a numeral sits exactly on the grid line. */
+function line(id, text, B, o){
+  o = o || {};
+  var weight = o.weight || 700, ls = (o.ls == null) ? -0.035 : o.ls, rot = o.rot || 0;
+  var m = metrics(text, weight, ls);
+  var iw = m.l + m.r, ih = m.a + m.d;
+  var vert = (rot % 180) !== 0;
+  var F = o.fs || (vert ? Math.min(B.w / ih, B.h / iw) : Math.min(B.w / iw, B.h / ih));
+  if (o.maxF) F = Math.min(F, o.maxF);
+  if (o.fs){ var len = vert ? B.h : B.w; if (iw * F > len) F = len / iw; }
+  var ew = Math.ceil(m.adv * F + 6), eh = F;
+  var base = (F - (m.fa + m.fd) * F) / 2 + m.fa * F;
+  var ix0 = -m.l * F, ix1 = m.r * F, iy0 = base - m.a * F, iy1 = base + m.d * F;
+  var dx = (ix0 + ix1) / 2 - ew / 2, dy = (iy0 + iy1) / 2 - eh / 2;
+  var IW = vert ? (iy1 - iy0) : (ix1 - ix0), IH = vert ? (ix1 - ix0) : (iy1 - iy0);
+  var ax = o.ax || 0, ay = o.ay || 0;
+  var tcx = B.x + ax * (B.w - IW) + IW / 2, tcy = B.y + ay * (B.h - IH) + IH / 2;
+  var th = rot * Math.PI / 180, c = Math.cos(th), s = Math.sin(th);
+  ST[id] = { cx:tcx - (dx * c - dy * s), cy:tcy - (dx * s + dy * c), w:ew, h:eh, r:rot, col:o.col || 'ink', fs:F, lh:1, weight:weight, ls:ls, text:text };
+  return { x0:tcx - IW / 2, y0:tcy - IH / 2, x1:tcx + IW / 2, y1:tcy + IH / 2, F:F };
+}
+
+/* A flush-left block whose cap height hangs from the top of its module. */
+function block(id, html, B, fs, lh, o){
+  o = o || {};
+  var weight = o.weight || 400, h, capTop, tries = 0;
+  for (;;){
+    var m = metrics('H', weight, 0), L = lh * fs;
+    capTop = (L - (m.fa + m.fd) * fs) / 2 + (m.fa - m.a) * fs;
+    meas.style.width = B.w + 'px'; meas.style.fontSize = fs + 'px'; meas.style.lineHeight = L + 'px';
+    meas.style.fontWeight = weight; meas.style.letterSpacing = (o.ls || 0) + 'em';
+    meas.innerHTML = html;
+    h = Math.ceil(meas.offsetHeight);
+    if (!o.maxH || h - capTop <= o.maxH || tries > 8) break;
+    fs *= 0.94; tries++;
+  }
+  ST[id] = { cx:B.x + B.w / 2, cy:B.y - capTop + h / 2, w:B.w, h:h, r:0, col:o.col || 'ink', fs:fs, lh:lh, weight:weight, ls:o.ls || 0, html:html };
+  return { h:h - capTop, y1:B.y - capTop + h, fs:fs };
+}
+
+function fitBody(id, sents, B, fs){
+  var n = sents.length, res;
+  while (n >= 1){
+    var html = sents.slice(0, n).join(' ');
+    res = block(id, html, B, fs, 1.34);
+    if (res.h <= B.h + 1 || n === 1) break;
+    n--;
+  }
+  return res;
+}
+
+/* ============================================================
+   MOTIFS — each fills the display zone D (in grid modules)
+   ============================================================ */
+
+/* Zahl — a numeral as tall as the zone, a red sun overprinting it */
+function mNumeral(D, r, cx){
+  var B = zb(D), right = r.chance(.5);
+  var ink = line('g0', cx.day, B, { ax:right ? 1 : 0, ay:1, ls:-0.045 });
+  var k = clamp(Math.round(Math.min(D.w, D.h) * r.pick([.5, .6, .7])), 2, Math.min(D.w, D.h));
+  var dia = Math.min(SW(k), SH(k));
+  var cc = right ? colAt(ink.x0) - Math.round(k * 0.55) : colAt(ink.x1) - Math.round(k * 0.45);
+  cc = clamp(cc, D.c, D.c + D.w - k);
+  var top = r.chance(.7);
+  var cy = top ? B.y : B.y + Math.floor((D.h - k) / 2) * (RH + G);
+  var circ = sh('c0', 'red', X(cc), cy, dia, dia);
+  if (r.chance(.65)){
+    var rd = dia * 0.64;
+    sh('k0', 'red', X(cc) + (dia - rd) / 2, cy + (dia - rd) / 2, rd, rd, 0, { bw:Math.max(2, G * 0.4) });
+  }
+  var dd = Math.max(6, dia * 0.07);
+  sh('d0', 'ink', X(cc) + dia / 2 - dd / 2, cy + dia / 2 - dd / 2, dd, dd);
+  /* quarter disc in the free corner */
+  var qs = Math.min(SW(2), SH(2));
+  var freeW = right ? ink.x0 - B.x : B.x + B.w - ink.x1;
+  if (freeW > qs + G * 0.5){
+    var qx = right ? B.x : B.x + B.w - qs, qy = B.y + B.h - qs;
+    var q = { x0:qx, y0:qy, x1:qx + qs, y1:qy + qs };
+    if (!hit(q, ink) && !hit(q, circ)) sh('q0', 'ink', qx, qy, qs, qs, right ? 90 : 0);
+  }
+  /* a hairline staff above the quarter disc */
+  if (freeW > CW * 1.5){
+    var sx = right ? B.x : ink.x1 + G, sw = freeW - G;
+    var sy0 = top ? circ.y1 + G * 1.2 : B.y;
+    for (var i = 0; i < 5; i++){
+      var yy = sy0 + i * Math.max(7, G * 0.8);
+      var bar = { x0:sx, y0:yy, x1:sx + sw, y1:yy + 2 };
+      if (!hit(bar, ink) && yy < B.y + B.h - qs - G) sh('b' + i, 'ink', sx, yy, sw, Math.max(1.5, W / 900));
+    }
+  }
+}
+
+/* Drei Sprachen — one idea stacked in German, French and Italian, justified to the zone */
+function mStack(D, r, cx){
+  var B = zb(D);
+  var words = [cx.w.de, cx.w.fr, cx.w.it], langs = ['DE', 'FR', 'IT'];
+  var cols = r.pick([['ink','red','ink'], ['red','ink','ink'], ['ink','ink','red']]);
+  var dotRow = D.h >= 4;
+  var avail = B.h - (dotRow ? RH + G : 0), gapMin = G * 0.9;
+  var Fs, hs, sum, sc, nw = 3;
+  function measureStack(){
+    Fs = []; hs = []; sum = 0;
+    for (var i = 0; i < nw; i++){
+      var m = metrics(words[i], 700, -0.035);
+      Fs[i] = B.w / (m.l + m.r); hs[i] = (m.a + m.d) * Fs[i]; sum += hs[i];
+    }
+    sc = Math.min(1, (avail - gapMin * (nw - 1)) / sum);
+  }
+  measureStack();
+  if (sc < 0.8){ nw = 2; measureStack(); }
+  var gap = sc < 1 ? gapMin : Math.min(RH * 0.9, (avail - sum) / (nw - 1));
+  var right = r.chance(.3), y = B.y, i;
+  for (i = 0; i < nw; i++){
+    var res = line('g' + i, words[i], { x:B.x, y:y, w:B.w, h:hs[i] * sc + 1 }, { fs:Fs[i] * sc, ax:right ? 1 : 0, ay:0, col:cols[i] });
+    /* tiny language key hung at the cap line, only where the margin is free */
+    var free = right ? res.x0 - B.x : B.x + B.w - res.x1;
+    if (free > BF * 4) line('l' + i, langs[i], { x:right ? B.x : res.x1 + G, y:res.y0, w:free - G, h:BF * 1.4 }, { fs:BF * 0.8, ax:right ? 0 : 1, ay:0, ls:0.16, weight:700, col:cols[i] === 'red' ? 'red' : 'ink' });
+    y = res.y1 + gap;
+  }
+  if (dotRow){
+    var row = D.r + D.h - 1, cell = Math.min(CW, RH), n = Math.min(D.w, 12);
+    for (var j = 0; j < n; j++){
+      var t = (j + 1) / n, idx = right ? n - 1 - j : j;
+      var dia = cell * (0.16 + 0.84 * t * t);
+      sh('d' + j, j === n - 1 ? 'red' : 'ink', X(D.c + idx) + (CW - dia) / 2, Y(row) + (RH - dia) / 2, dia, dia);
+    }
+  }
+}
+
+/* Bogen — concentric quarter arcs radiating from a corner */
+function mArcs(D, r, cx){
+  var B = zb(D), wide = B.w >= B.h;
+  var k = wide ? Math.min(D.h, D.w - 3) : Math.min(D.w, D.h - 2);
+  k = Math.max(2, k);
+  var side = Math.min(SW(k), SH(k));
+  var cn = r.pick(P ? ['bl','br'] : ['bl','br','tl','tr']);
+  var L = cn.charAt(1) === 'l', Tp = cn.charAt(0) === 't';
+  var sx = L ? B.x : B.x + B.w - side, sy = Tp ? B.y : B.y + B.h - side;
+  var px = L ? sx : sx + side, py = Tp ? sy : sy + side;
+  var rot = cn === 'br' ? 0 : cn === 'bl' ? 90 : cn === 'tl' ? 180 : 270;
+  function pos(rad){ return cn === 'br' ? [px - rad, py - rad] : cn === 'bl' ? [px, py - rad] : cn === 'tl' ? [px, py] : [px - rad, py]; }
+  var step = side / 7, p0 = pos(step * 1.05);
+  sh('q0', 'red', p0[0], p0[1], step * 1.05, step * 1.05, rot);
+  var reds = r.int(1, 4);
+  for (var i = 0; i < 6; i++){
+    var rad = step * (i + 2), p = pos(rad);
+    var t = step * r.pick([.16, .28, .42, .58, .74]);
+    sh('a' + i, i === reds ? 'red' : 'ink', p[0], p[1], rad, rad, rot, { bw:Math.max(2, t) });
+  }
+  var WB;
+  if (wide){ var cw = D.w - k; WB = bx(L ? D.c + k : D.c, D.r, cw, D.h); if (cw > 1){ WB.x += L ? G * 0 : 0; } }
+  else { var rh = D.h - k; WB = bx(D.c, Tp ? D.r + k : D.r, D.w, rh); }
+  if (WB.w > CW * 0.9 && WB.h > RH * 0.6){
+    var vert = WB.w < WB.h * 0.62;
+    var g = line('g0', cx.w.de, WB, { rot:vert ? -90 : 0, ax:L ? 1 : 0, ay:Tp ? 1 : 0, col:'ink' });
+    /* the gloss in red, small, hung from the word */
+    if (!vert){
+      var gy = Tp ? g.y0 - BF * 2.4 : g.y1 + G * 0.9;
+      if (gy > WB.y - 1 && gy + BF * 1.6 < WB.y + WB.h + 1) line('g1', '(' + cx.w.en + ')', { x:WB.x, y:gy, w:WB.w, h:BF * 1.6 }, { fs:BF * 1.5, ax:L ? 1 : 0, ay:0, col:'red', ls:0 });
+    }
+  }
+}
+
+/* Kreis — a red disc, a black moon, a word across the base */
+function mCircle(D, r, cx){
+  var B = zb(D);
+  var wr = Math.max(1, Math.round(D.h * (P ? 0.24 : 0.34)));
+  var WB = bx(D.c, D.r + D.h - wr, D.w, wr);
+  var right = r.chance(.5);
+  var w1 = line('g0', cx.w.de, WB, { ax:right ? 1 : 0, ay:1, col:'ink' });
+  var k = Math.min(D.w - (D.w > 6 ? 1 : 0), D.h);
+  var dia = Math.min(SW(k), SH(k));
+  var left = r.chance(.5);
+  var ccol = left ? D.c : D.c + D.w - k;
+  var cxp = X(ccol);
+  /* the disc sinks until its lower edge sits in the middle of the word */
+  var cyp = Math.max(B.y, (w1.y0 + w1.y1) / 2 - dia);
+  sh('c0', 'red', cxp, cyp, dia, dia);
+  var ring = dia * r.pick([.46, .58, .7]);
+  sh('k0', 'red', cxp + (dia - ring) / 2, cyp + (dia - ring) / 2, ring, ring, 0, { bw:Math.max(2, G * 0.45) });
+  var sd = dia * r.pick([.26, .32, .38]);
+  var sx = left ? cxp + dia - sd * 0.62 : cxp - sd * 0.38;
+  sx = clamp(sx, B.x, B.x + B.w - sd);
+  var sy = Math.max(B.y, cyp - sd * 0.3);
+  if (sy + sd < w1.y0 - G) sh('c1', 'ink', sx, sy, sd, sd);
+  /* a vertical red bar marking the axis of the disc */
+  var bw = Math.max(3, CW * 0.12);
+  var bxp = left ? cxp + dia + G : cxp - G - bw;
+  if (bxp > B.x && bxp + bw < B.x + B.w){
+    var bh = w1.y0 - G - B.y;
+    if (bh > RH) sh('b0', 'red', bxp, B.y, bw, bh);
+  }
+}
+
+/* Takt — a time signature above a score of bars */
+function mBars(D, r, cx){
+  var B = zb(D);
+  var tr = Math.max(1, Math.round(D.h * 0.46));
+  var right = r.chance(.5);
+  var sig = line('g0', cx.sig, bx(D.c, D.r, D.w, tr), { ax:right ? 1 : 0, ay:0, col:'ink', ls:-0.02 });
+  var r0 = D.r + tr, bh = D.h - tr, n = Math.min(D.w, 12);
+  var widths = [1, .5, .5, .5, .25, .25, .12];
+  /* the bar line every beat hangs from or rises toward */
+  sh('r2', 'ink', B.x, Y(r0) - G / 2 - 1, B.w, Math.max(2, W / 720));
+  var blackAt = r.int(0, n - 1);
+  for (var j = 0; j < n; j++){
+    var wv = r.pick(widths), w = Math.max(3, CW * wv);
+    var hr = r.int(1, bh), hang = r.chance(.28);
+    var x = right ? X(D.c + j) + CW - w : X(D.c + j);
+    var y = hang ? Y(r0) : Y(r0 + bh - hr);
+    sh('b' + j, (j === blackAt || j === (blackAt + 5) % n) ? 'ink' : 'red', x, y, w, SH(hr));
+  }
+  /* one quarter disc resting on the last bar line */
+  var qs = Math.min(CW, RH), qx = right ? X(D.c) : X(D.c + D.w - 1), qy = Y(D.r + tr - 1) + RH - qs;
+  if (!hit({ x0:qx - G, y0:qy, x1:qx + qs + G, y1:qy + qs }, sig)) sh('q0', 'red', qx, qy, qs, qs, right ? 90 : 0);
+}
+
+/* Senkrecht — a word climbing a strip, a halftone field of dots beside it */
+function mVertical(D, r, cx){
+  var sw = D.w >= 7 ? 3 : 2, left = r.chance(.5);
+  var SB = bx(left ? D.c : D.c + D.w - sw, D.r, sw, D.h);
+  var red = r.chance(.4);
+  line('g0', cx.w.de, SB, { rot:-90, ax:left ? 0 : 1, ay:1, col:red ? 'red' : 'ink' });
+  var fc = left ? D.c + sw : D.c, fw = D.w - sw, fh = D.h;
+  var fx = r.int(0, fw - 1), fy = r.int(0, fh - 1);
+  var md = Math.hypot(Math.max(fx, fw - 1 - fx), Math.max(fy, fh - 1 - fy)) || 1;
+  var cell = Math.min(CW, RH), k = 0, curve = r.pick([1.2, 1.6, 2.2]);
+  for (var j = 0; j < fh; j++) for (var i = 0; i < fw; i++){
+    if (k >= 48) break;
+    var d = Math.hypot(i - fx, j - fy) / md;
+    var dia = cell * (0.08 + 0.92 * Math.pow(1 - d, curve));
+    var focal = (i === fx && j === fy);
+    sh('d' + k, focal ? 'red' : 'ink', X(fc + i) + (CW - dia) / 2, Y(D.r + j) + (RH - dia) / 2, dia, dia);
+    k++;
+  }
+}
+
+/* Diagonale — three bars crossing the zone, the word held in a quiet corner */
+function mDiagonal(D, r, cx){
+  var B = zb(D), right = r.chance(.5);
+  var wr = Math.max(1, Math.round(D.h * 0.3));
+  var WB = bx(D.c, D.r, D.w, wr);
+  var w1 = line('g0', cx.w.de, WB, { ax:right ? 1 : 0, ay:0, col:'ink' });
+  var top = w1.y1 + G * 1.5, h = B.y + B.h - top;
+  if (h < RH) return;
+  var ang = r.pick([-30, -36, -42, 30, 36]);
+  var cs = Math.min(SW(2), SH(2)) * 0.9;
+  /* a band of parallel bars, the largest rotated rectangle that fits the free region */
+  var x0 = right ? B.x + cs + G * 2 : B.x, x1 = right ? B.x + B.w : B.x + B.w - cs - G * 2, y0 = top, y1 = B.y + B.h;
+  var rw = x1 - x0, rh = y1 - y0;
+  var th = [RH * 0.52, Math.max(3, RH * 0.12), RH * 0.86, Math.max(3, RH * 0.12)];
+  var cols = r.chance(.5) ? ['red', 'ink', 'red', 'ink'] : ['ink', 'red', 'red', 'ink'];
+  var gp = G * 0.9, band = th[0] + th[1] + th[2] + th[3] + gp * 3;
+  var rad = ang * Math.PI / 180, cs1 = Math.abs(Math.cos(rad)), sn1 = Math.abs(Math.sin(rad));
+  var L = Math.min((rw - band * sn1) / cs1, (rh - band * cs1) / sn1);
+  if (L < RH) return;
+  var cxp = (x0 + x1) / 2, cyp = (y0 + y1) / 2;
+  var ux = Math.cos(rad), uy = Math.sin(rad), nx = -uy, ny = ux;
+  var lens = [1, 0.8, 1, 0.58], acc = -band / 2;
+  for (var i = 0; i < 4; i++){
+    var o = acc + th[i] / 2; acc += th[i] + gp;
+    var len = L * lens[i], shift = (len - L) / 2;
+    var ccx = cxp + nx * o + ux * shift, ccy = cyp + ny * o + uy * shift;
+    sh('b' + (i + 6), cols[i], ccx - len / 2, ccy - th[i] / 2, len, th[i], ang);
+  }
+  sh('c1', 'ink', right ? B.x : B.x + B.w - cs, B.y + B.h - cs, cs, cs);
+}
+
+var MOTIFS = [
+  { name:'Zahl', en:'numeral', fn:mNumeral },
+  { name:'Drei Sprachen', en:'three languages', fn:mStack },
+  { name:'Bogen', en:'arcs', fn:mArcs },
+  { name:'Kreis', en:'circle', fn:mCircle },
+  { name:'Takt', en:'bars', fn:mBars },
+  { name:'Senkrecht', en:'vertical', fn:mVertical },
+  { name:'Diagonale', en:'diagonal', fn:mDiagonal }
+];
+
+/* ---------- small type: headline, date, body, marks ---------- */
+function textZone(T, orient, r, cx, ruleY){
+  var hf = BF * (P ? 1.5 : 1.78), df = hf;
+  var head = '<b>' + cx.ev.de + '</b><br><span class="en">' + cx.ev.en + '</span>';
+  var dateTxt = cx.day + '. ' + cx.month + ' 2027<br>' + cx.wd + ', ' + cx.time + ' Uhr';
+  var meta = ('Haus Raster · ' + cx.ev.place + ' · Eintritt frei').toUpperCase();
+  var panel = r.chance(.45);
+  var rw = Math.max(1.5, W / 900);
+
+  function dateAt(Bx){
+    var pad = Math.max(6, G * 0.7);
+    if (panel){
+      var inner = { x:Bx.x + pad, y:Bx.y + pad, w:Bx.w - 2 * pad, h:Bx.h - 2 * pad };
+      var res = block('date', dateTxt, inner, df, 1.14, { weight:700, col:'white', maxH:inner.h });
+      if (res.h <= inner.h + 2){ sh('pan', 'red', Bx.x, Bx.y, Bx.w, Bx.h); return; }
+    }
+    block('date', dateTxt, Bx, df, 1.14, { weight:700, col:'red', maxH:Bx.h });
+  }
+
+  if (orient === 'tall'){
+    block('head', head, bx(T.c, T.r, T.w, 2), hf, 1.12, { weight:400, maxH:SH(2) });
+    dateAt(bx(T.c, T.r + 2, T.w, 1));
+    var br = T.r + T.h - 3;
+    sh('r1', 'ink', X(T.c), Y(br) - G / 2 - rw / 2, SW(T.w), rw);
+    if (T.w >= 4){
+      fitBody('body1', cx.s1, bx(T.c, br, 2, 2), BF);
+      fitBody('body2', cx.s2, bx(T.c + 2, br, T.w - 2, 2), BF);
+    } else fitBody('body1', cx.s1, bx(T.c, br, T.w, 2), BF);
+    var MB = bx(T.c, T.r + T.h - 1, T.w, 1);
+    var mk1 = line('mark', 'No. ' + cx.ed, MB, { fs:BF * 1.9, ax:0, ay:1, ls:-0.01 });
+    var mt = line('meta', meta, MB, { fs:BF * 0.78, ax:1, ay:1, ls:0.12, weight:700 });
+    if (mt.x0 < mk1.x1 + G){
+      /* not enough room side by side: the imprint climbs above the edition mark */
+      line('meta', meta, { x:MB.x, y:MB.y, w:MB.w, h:mk1.y0 - MB.y - G * 0.8 }, { fs:BF * 0.78, ax:0, ay:1, ls:0.12, weight:700 });
+    }
+  } else if (!P){
+    sh('r1', 'ink', X(T.c), ruleY - rw / 2, SW(T.w), rw);
+    var q = Math.floor(T.w / 4);
+    block('head', head, bx(T.c, T.r, q, T.h), hf, 1.12, { maxH:SH(T.h) - BF * 3 });
+    dateAt(bx(T.c + q, T.r, q, 1));
+    fitBody('body1', cx.s1, bx(T.c + 2 * q, T.r, q, T.h), BF);
+    fitBody('body2', cx.s2, bx(T.c + 3 * q, T.r, T.w - 3 * q, T.h), BF);
+    line('mark', 'No. ' + cx.ed, bx(T.c, T.r, q, T.h), { fs:BF * 1.9, ax:0, ay:1, ls:-0.01 });
+    if (T.h > 1) line('meta', meta, bx(T.c + q, T.r + 1, q, T.h - 1), { fs:BF * 0.78, ax:0, ay:1, ls:0.12, weight:700 });
+  } else {
+    sh('r1', 'ink', X(T.c), ruleY - rw / 2, SW(T.w), rw);
+    block('head', head, bx(T.c, T.r, T.w, 1), hf, 1.12, { maxH:SH(1) });
+    var half = Math.floor(T.w / 2);
+    dateAt(bx(T.c, T.r + 1, half, 1));
+    line('mark', 'No. ' + cx.ed, bx(T.c + half, T.r + 1, T.w - half, 1), { fs:BF * 1.9, ax:1, ay:1, ls:-0.01 });
+    var bh = Math.max(1, T.h - 2);
+    fitBody('body1', cx.s1, bx(T.c, T.r + 2, half, bh), BF);
+    fitBody('body2', cx.s2, bx(T.c + half, T.r + 2, T.w - half, bh), BF);
+  }
+}
+
+function caption(K, cx, red){
+  var txt = ('Weltformat F4 · 895 × 1280 mm · Offset in Rot und Schwarz · Raster Edition ' + cx.ed + ' · fiktives Programm / a fictional programme').toUpperCase();
+  line('cap', txt, zb(K), { rot:-90, fs:BF * 0.76, ax:0, ay:1, ls:0.14, weight:700, col:red ? 'red' : 'ink' });
+}
+
+/* ---------- compose an edition ---------- */
+function compose(n){
+  ST = {};
+  var r = rng(n), cx = content(n, r), D, T, K, orient, ruleY = 0;
+  if (!P){
+    var split = r.pick(['L','R','L','R','T','B','T']);
+    if (split === 'L' || split === 'R'){
+      var tw = r.chance(.5) ? 3 : 4, dw = C - 1 - tw;
+      if (split === 'L'){ D = { c:0, r:0, w:dw, h:R }; K = { c:dw, r:0, w:1, h:R }; T = { c:dw + 1, r:0, w:tw, h:R }; }
+      else { T = { c:0, r:0, w:tw, h:R }; K = { c:tw, r:0, w:1, h:R }; D = { c:tw + 1, r:0, w:dw, h:R }; }
+      orient = 'tall';
+    } else {
+      var th = R >= 9 ? 3 : 2, dh = R - th, capL = r.chance(.5);
+      var dr = split === 'T' ? 0 : th;
+      D = { c:capL ? 1 : 0, r:dr, w:C - 1, h:dh };
+      K = { c:capL ? 0 : C - 1, r:dr, w:1, h:dh };
+      T = { c:0, r:split === 'T' ? dh : 0, w:C, h:th };
+      ruleY = split === 'T' ? Y(dh) - G / 2 : Y(th) - G / 2;
+      orient = 'wide';
+    }
+  } else {
+    var tht = R >= 12 ? 4 : 3, dht = R - tht, topD = r.chance(.72), capLt = r.chance(.5);
+    D = { c:capLt ? 1 : 0, r:topD ? 0 : tht, w:C - 1, h:dht };
+    K = { c:capLt ? 0 : C - 1, r:D.r, w:1, h:dht };
+    T = { c:0, r:topD ? dht : 0, w:C, h:tht };
+    ruleY = topD ? Y(dht) - G / 2 : Y(tht) - G / 2;
+    orient = 'wide';
+  }
+  var motif = MOTIFS[Math.floor(r.f() * MOTIFS.length)];
+  motif.fn(D, r, cx);
+  textZone(T, orient, r, cx, ruleY);
+  caption(K, cx, r.chance(.3));
+  return { cx:cx, motif:motif };
+}
+
+/* ============================================================
+   RENDER — a pool of elements that slide, turn and re-set
+   ============================================================ */
+var ALL = [], BYID = {};
+function mk(id, cls, isText){
+  var el = doc.createElement('div');
+  el.className = 'el ' + cls;
+  if (!isText) el.setAttribute('aria-hidden', 'true');
+  layer.appendChild(el);
+  var o = { id:id, el:el, cls:cls, text:!!isText, v:null, tw:null, key:null, ns:null, bw:1, bh:1 };
+  ALL.push(o); BYID[id] = o;
+  return o;
+}
+(function buildPool(){
+  var i;
+  mk('pan', 'shape rect');
+  mk('c0', 'shape circ'); mk('k0', 'shape ring'); mk('c1', 'shape circ'); mk('k1', 'shape ring');
+  for (i = 0; i < 6; i++) mk('a' + i, 'shape qr');
+  for (i = 0; i < 3; i++) mk('q' + i, 'shape qd');
+  for (i = 0; i < 12; i++) mk('b' + i, 'shape rect');
+  for (i = 0; i < 48; i++) mk('d' + i, 'shape circ');
+  mk('r1', 'shape rect'); mk('r2', 'shape rect');
+  mk('g0', 'ln ov', true); mk('g1', 'ln ov', true); mk('g2', 'ln ov', true);
+  mk('cap', 'ln', true); mk('mark', 'ln', true); mk('meta', 'ln', true);
+  mk('l0', 'ln', true); mk('l1', 'ln', true); mk('l2', 'ln', true);
+  mk('head', 'blk', true); mk('date', 'blk', true); mk('body1', 'blk', true); mk('body2', 'blk', true);
+})();
+
+function paint(o){
+  var ns = o.ns; if (!ns) return;
+  var s = o.el.style, c = col(ns.col);
+  if (o.text){ s.color = c; return; }
+  if (o.cls.indexOf('ring') >= 0){ s.borderColor = c; s.borderWidth = ns.bw + 'px'; }
+  else if (o.cls.indexOf('qr') >= 0){ s.borderTopColor = c; s.borderLeftColor = c; s.borderWidth = ns.bw + 'px 0 0 ' + ns.bw + 'px'; }
+  else s.backgroundColor = c;
+}
+
+function ease(p){ return p < .5 ? 8 * p * p * p * p : 1 - Math.pow(-2 * p + 2, 4) / 2; }
+function easeOut(p){ return 1 - Math.pow(1 - p, 4); }
+function lerp(a, b, t){ return a + (b - a) * t; }
+function lerpV(a, b, t){
+  return { cx:lerp(a.cx, b.cx, t), cy:lerp(a.cy, b.cy, t), w:lerp(a.w, b.w, t), h:lerp(a.h, b.h, t), r:lerp(a.r, b.r, t), o:lerp(a.o, b.o, t), s:lerp(a.s, b.s, t), k:lerp(a.k, b.k, t) };
+}
+function copyV(v, over){ var c = { cx:v.cx, cy:v.cy, w:v.w, h:v.h, r:v.r, o:v.o, s:v.s, k:v.k }; if (over) for (var k in over) c[k] = over[k]; return c; }
+function vNow(o, now){
+  if (o.tw){
+    var tw = o.tw, p = clamp((now - tw.t0) / tw.dur, 0, 1);
+    return lerpV(tw.from, tw.to, (tw.fn || ease)(p));
+  }
+  return o.v;
+}
+function write(o, v){
+  var sx = (v.w / o.bw) * v.s, sy = (v.h / o.bh) * v.s, s = o.el.style;
+  s.transform = 'translate(' + v.cx.toFixed(2) + 'px,' + v.cy.toFixed(2) + 'px) rotate(' + v.r.toFixed(3) + 'deg) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ') translate(' + (-o.bw / 2).toFixed(2) + 'px,' + (-o.bh / 2).toFixed(2) + 'px)';
+  s.opacity = v.o.toFixed(3);
+  if (o.text){
+    if (v.k >= 0.999) s.clipPath = 'none';
+    else { var e = (-8 + v.k * 118).toFixed(2); s.clipPath = 'polygon(-8% -40%, ' + e + '% -40%, ' + e + '% 140%, -8% 140%)'; }
+  }
+}
+function nearAngle(from, to){ var d = ((from - to) % 360 + 540) % 360 - 180; return to + d; }
+
+var ghosts = [];
+function ghost(o, now){
+  var g = o.el.cloneNode(true);
+  g.setAttribute('aria-hidden', 'true');
+  layer.appendChild(g);
+  ghosts.push({ el:g, t0:now, dur:300, o0:parseFloat(o.el.style.opacity) || 1 });
+}
+function clearGhosts(){ for (var i = 0; i < ghosts.length; i++) ghosts[i].el.remove(); ghosts.length = 0; }
+
+var raf = 0;
+function kick(){ if (!raf) raf = requestAnimationFrame(tick); }
+function tick(now){
+  raf = 0;
+  var active = false, i;
+  for (i = 0; i < ALL.length; i++){
+    var o = ALL[i]; if (!o.tw) continue;
+    var tw = o.tw, p = clamp((now - tw.t0) / tw.dur, 0, 1);
+    write(o, lerpV(tw.from, tw.to, (tw.fn || ease)(p)));
+    if (p >= 1){ o.v = tw.to; o.tw = null; } else active = true;
+  }
+  for (i = ghosts.length - 1; i >= 0; i--){
+    var g = ghosts[i], q = clamp((now - g.t0) / g.dur, 0, 1);
+    g.el.style.opacity = (g.o0 * (1 - q)).toFixed(3);
+    if (q >= 1){ g.el.remove(); ghosts.splice(i, 1); } else active = true;
+  }
+  if (active) kick();
+}
+
+function commit(animate){
+  var now = performance.now(), idx = 0;
+  if (RM.matches) animate = false;
+  clearGhosts();
+  for (var i = 0; i < ALL.length; i++){
+    var o = ALL[i], ns = ST[o.id], cur = vNow(o, now);
+    var wasVis = !!(cur && cur.o > 0.02 && cur.s > 0.02);
+    if (ns){
+      var changed = false;
+      if (o.text){
+        var key = ns.html != null ? 'h' + ns.html : 't' + ns.text;
+        if (key !== o.key){
+          if (animate && wasVis) ghost(o, now);
+          if (ns.html != null) o.el.innerHTML = ns.html; else o.el.textContent = ns.text;
+          o.key = key; changed = true;
+        }
+        var s = o.el.style;
+        s.fontSize = ns.fs + 'px'; s.lineHeight = (ns.lh * ns.fs) + 'px';
+        s.fontWeight = ns.weight; s.letterSpacing = (ns.ls || 0) + 'em';
+      }
+      o.ns = ns; paint(o);
+      o.el.style.width = ns.w + 'px'; o.el.style.height = ns.h + 'px';
+      o.bw = Math.max(0.01, ns.w); o.bh = Math.max(0.01, ns.h);
+      var to = { cx:ns.cx, cy:ns.cy, w:ns.w, h:ns.h, r:ns.r, o:1, s:1, k:1 };
+      if (!animate){ o.tw = null; o.v = to; write(o, to); continue; }
+      var from, dur = 860, delay = Math.min(idx * 9, 320), fn = ease;
+      if (!wasVis){
+        from = o.text ? copyV(to, { k:0 }) : copyV(to, { s:0, o:0 });
+        if (o.text){ dur = 700; delay += 180; fn = easeOut; }
+      } else if (o.text && changed){
+        from = copyV(to, { k:0 }); dur = 700; delay += 200; fn = easeOut;
+      } else {
+        from = copyV(cur, { k:1 }); from.r = nearAngle(cur.r, to.r);
+      }
+      o.tw = { from:from, to:to, t0:now + delay, dur:dur, fn:fn };
+      write(o, from);
+      idx++;
+    } else {
+      o.ns = null;
+      if (!cur){ o.el.style.opacity = 0; continue; }
+      if (!animate || !wasVis){ o.tw = null; o.v = copyV(cur, { o:0 }); write(o, o.v); continue; }
+      var end = o.text ? copyV(cur, { o:0 }) : copyV(cur, { s:0, o:0 });
+      o.tw = { from:copyV(cur), to:end, t0:now + Math.min(idx * 6, 200), dur:o.text ? 260 : 560, fn:ease };
+      idx++;
+    }
+  }
+  kick();
+}
+
+/* ---------- grid overlay ---------- */
+function buildGrid(){
+  var h = '', i;
+  for (i = 0; i < C; i++){
+    h += '<div class="gcol" style="--i:' + i + ';left:' + X(i).toFixed(1) + 'px;top:' + M + 'px;width:' + CW.toFixed(1) + 'px;height:' + (H - 2 * M).toFixed(1) + 'px"></div>';
+    h += '<span class="gnum" style="left:' + (X(i) + 2).toFixed(1) + 'px;top:' + Math.max(3, M - 13) + 'px">' + (i + 1) + '</span>';
+  }
+  for (i = 0; i < R; i++){
+    h += '<div class="grow" style="--i:' + i + ';left:' + M + 'px;top:' + Y(i).toFixed(1) + 'px;width:' + (W - 2 * M).toFixed(1) + 'px;height:' + RH.toFixed(1) + 'px"></div>';
+    h += '<span class="gnum" style="left:' + Math.max(2, M - 14) + 'px;top:' + (Y(i) + 2).toFixed(1) + 'px">' + String.fromCharCode(65 + i) + '</span>';
+  }
+  var cm = Math.max(4, M - 20);
+  h += '<span class="gcrop tl" style="left:' + cm + 'px;top:' + cm + 'px"></span>';
+  h += '<span class="gcrop tr" style="left:' + (W - cm - 14) + 'px;top:' + cm + 'px"></span>';
+  h += '<span class="gcrop bl" style="left:' + cm + 'px;top:' + (H - cm - 14) + 'px"></span>';
+  h += '<span class="gcrop br" style="left:' + (W - cm - 14) + 'px;top:' + (H - cm - 14) + 'px"></span>';
+  h += '<span class="gspec" style="right:' + M + 'px;top:' + (H - M + Math.max(4, Math.min(12, M * 0.3))) + 'px">' + C + ' × ' + R + ' modules · gutter ' + G + ' px · margin ' + M + ' px</span>';
+  h += '<div id="xh"></div><div id="xv"></div><div id="xl"></div>';
+  gridEl.innerHTML = h;
+}
+
+/* ---------- edition counter ---------- */
+var odo = doc.getElementById('odo');
+(function(){
+  var h = '';
+  for (var i = 0; i < 4; i++){
+    h += '<span class="dg">';
+    for (var d = 0; d < 10; d++) h += '<span>' + d + '</span>';
+    h += '</span>';
+  }
+  odo.innerHTML = h;
+})();
+function setOdo(ed){
+  var cols = odo.children;
+  for (var i = 0; i < 4; i++) cols[i].style.transform = 'translateY(' + (-13 * Number(ed.charAt(i))) + 'px)';
+}
+
+/* ---------- state + controls ---------- */
+var edition = 417, gridOn = false, lastInfo = null;
+(function initState(){
+  var hsh = (location.hash || '').replace('#', '');
+  if (/^\d{1,4}$/.test(hsh) && Number(hsh) > 0) edition = Number(hsh);
+  else { var s = Number(store.get('edition')); if (s > 0 && s < 10000) edition = s; }
+  gridOn = store.get('grid') === '1';
+  inverted = store.get('inv') === '1';
+})();
+
+function render(animate){
+  geometry();
+  lastInfo = compose(edition);
+  commit(animate);
+  buildGrid();
+}
+function announce(){
+  var ed = pad4(edition), cx = lastInfo.cx;
+  setOdo(ed);
+  live.textContent = 'Edition number ' + ed + ': ' + lastInfo.motif.en + ' composition, ' + cx.w.de + ', ' + cx.ev.en + '.';
+  sheet.setAttribute('aria-label', 'Poster, edition ' + ed + ' (' + lastInfo.motif.en + '). Click, tap or press Space to recompose.');
+  store.set('edition', String(edition));
+  try { history.replaceState(null, '', '#' + ed); } catch(e){}
+}
+function go(n){
+  edition = ((n - 1) % 9999 + 9999) % 9999 + 1;
+  render(true);
+  announce();
+}
+function next(){ go(edition + 1); }
+function prev(){ go(edition - 1); }
+function random(){ go(1 + Math.floor(Math.random() * 9999)); }
+
+function setGrid(on){
+  gridOn = on;
+  sheet.classList.toggle('show-grid', on);
+  var b = doc.getElementById('gridBtn');
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  store.set('grid', on ? '1' : '0');
+}
+function setInv(on){
+  inverted = on;
+  body.classList.toggle('inv', on);
+  doc.getElementById('invBtn').setAttribute('aria-pressed', on ? 'true' : 'false');
+  for (var i = 0; i < ALL.length; i++) paint(ALL[i]);
+  var tc = doc.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute('content', on ? '#111111' : '#f2efe8');
+  store.set('inv', on ? '1' : '0');
+}
+
+sheet.addEventListener('click', function(){ next(); });
+doc.getElementById('nextBtn').addEventListener('click', next);
+doc.getElementById('prevBtn').addEventListener('click', prev);
+doc.getElementById('gridBtn').addEventListener('click', function(){ setGrid(!gridOn); });
+doc.getElementById('invBtn').addEventListener('click', function(){ setInv(!inverted); });
+
+doc.addEventListener('keydown', function(e){
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  var onBtn = e.target && e.target.tagName === 'BUTTON';
+  var k = e.key;
+  if ((k === ' ' || k === 'Enter') && !onBtn){ e.preventDefault(); if (e.shiftKey) prev(); else next(); }
+  else if (k === 'ArrowRight'){ e.preventDefault(); next(); }
+  else if (k === 'ArrowLeft'){ e.preventDefault(); prev(); }
+  else if (k === 'g' || k === 'G'){ setGrid(!gridOn); }
+  else if (k === 'i' || k === 'I'){ setInv(!inverted); }
+  else if (k === 'r' || k === 'R'){ random(); }
+});
+
+/* crosshair readout while the grid is showing */
+sheet.addEventListener('pointermove', function(e){
+  if (!gridOn) return;
+  var rc = sheet.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top;
+  var xh = doc.getElementById('xh'), xv = doc.getElementById('xv'), xl = doc.getElementById('xl');
+  if (!xh) return;
+  sheet.classList.add('hover');
+  xh.style.transform = 'translateY(' + Math.round(y) + 'px)';
+  xv.style.transform = 'translateX(' + Math.round(x) + 'px)';
+  var c = clamp(Math.floor((x - M + G / 2) / (CW + G)), 0, C - 1), rr = clamp(Math.floor((y - M + G / 2) / (RH + G)), 0, R - 1);
+  xl.textContent = 'COL ' + (c + 1) + ' · ROW ' + String.fromCharCode(65 + rr);
+  var lx = Math.min(x + 10, W - 90), ly = Math.min(y + 10, H - 24);
+  xl.style.transform = 'translate(' + Math.round(lx) + 'px,' + Math.round(ly) + 'px)';
+});
+sheet.addEventListener('pointerleave', function(){ sheet.classList.remove('hover'); });
+
+/* paper tooth: one noise tile, repeated across a canvas the size of the sheet */
+var grainCv = doc.getElementById('grain'), grainTile = null;
+function paintGrain(){
+  try {
+    if (!grainTile){
+      grainTile = doc.createElement('canvas'); grainTile.width = grainTile.height = 160;
+      var x = grainTile.getContext('2d'), id = x.createImageData(160, 160), d = id.data;
+      for (var i = 0; i < d.length; i += 4){ var v = 120 + Math.random() * 135; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+      x.putImageData(id, 0, 0);
+    }
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    grainCv.width = Math.round(W * dpr); grainCv.height = Math.round(H * dpr);
+    var g = grainCv.getContext('2d');
+    g.fillStyle = g.createPattern(grainTile, 'repeat');
+    g.fillRect(0, 0, grainCv.width, grainCv.height);
+  } catch(e){}
+}
+
+window.addEventListener('resize', function(){ render(false); paintGrain(); });
+window.addEventListener('hashchange', function(){
+  var hsh = (location.hash || '').replace('#', '');
+  if (/^\d{1,4}$/.test(hsh) && Number(hsh) !== edition && Number(hsh) > 0) go(Number(hsh));
+});
+
+setInv(inverted);
+setGrid(gridOn);
+render(true);
+paintGrain();
+announce();
+})();
+</script>
+</body>
+</html>

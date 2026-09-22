@@ -1,0 +1,42 @@
+TITLE: Carriage Return — A Typewriter for Letters
+FILE: 029-typewriter-letters.html
+
+=== PROMPT (exact prompt used) ===
+Build "Carriage Return — A Typewriter for Letters", an interactive typewriter writing experience featuring a fictional machine, the "Marlowe 44". A three-quarter illustrated typewriter (SVG; mint-green enamel #9fc9b6 with cream keys and chrome details) sits at the bottom, and a sheet of textured paper (#faf6ec) feeds out above it. Typing on the physical keyboard (or tapping on-screen keys) stamps characters onto the paper with realistic imperfections: slight baseline jitter, varied ink density, an occasional faint double strike, ribbon texture. The carriage visibly shifts left as you type, a bell dings near the right margin, and Enter triggers a carriage return with the lever animation and a line feed. Synthesized sounds (Web Audio clicks and bell) after the first gesture, with a mute toggle. Typography: a typewriter monospace stack ("Courier Prime", "American Typewriter", "Courier New", "Nimbus Mono PS", monospace). Extras: a red/black ribbon toggle, "New sheet" pulls the paper out with an animation, and "Save letter" downloads a PNG of the page. A warm desk background with wood-grain gradients and soft lamplight.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Carriage Return puts a fictional mint-green portable, the Marlowe 44, on a lamplit walnut desk. It is drawn in hand-written SVG in a slight three-quarter view: an enamel shell (#9fc9b6) with a darker side cheek, chrome-rimmed cream keys on visible stems, ribbon spools in chrome cups, a fan of typebars in the basket and a script badge. A sheet of #faf6ec paper stands in the machine the way paper really does. The unfed rear part leans back behind the platen in perspective, while the typed front part rises from the platen and grows a line at a time. Every keystroke stamps a character onto a 2× paper canvas with deliberate imperfections, and the carriage (platen, knobs, bail, margin scale and paper) steps left under a fixed printing point. The bell rings six spaces from the margin; Return swings the chrome lever and glides the carriage home with a line feed. The desk is procedural walnut planks with knots and a dried coffee ring, lit by a warm lamp and drifting dust motes. Beside the machine sit a ruled operator's index card, a pencil and a shipping tag that tracks the sheet, line, column and keystrokes. The first sheet arrives already dated, with a short salutation.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Layered machine: rear sheet, platen, front sheet, bail/scale/knobs/lever, body and printing point are separate absolutely positioned layers that move together, so the paper really sits between platen and bail
+- Rear sheet in CSS perspective (rotateX) whose height shrinks as lines feed; the front sheet is a clipped canvas that translates up one line per Return, with a curl shadow where it wraps the platen
+- Character stamping: each glyph is drawn onto a small offscreen plate with ink bleed (shadow blur), a slight random rotation and baseline jitter, then a fabric-ribbon weave is knocked out with destination-out; some strikes print lighter on one half; the plate is multiplied onto the paper at varied density, with occasional faint double strikes
+- Deterministic per-stroke seeds, so a restored letter re-stamps identically
+- Procedural paper: cloudy formation, about 900 curved fibres, speckle grain, edge toning and a faint fictional "Marlowe Bond" watermark
+- Carriage motion by transform with an escapement-snap easing, and a slower overshooting glide on return; on narrow phones the travel is split between the carriage and the printing point so the sheet stays on screen
+- A margin scale built at runtime so its ticks line up exactly with paper columns, a bell marker, and a red column pointer
+- SVG gradients for chrome, enamel, the rubber platen and cream key caps; a typebar strike flash and a spark at the printing point; a "ding" flourish that floats up at the bell
+- Procedural walnut desk canvas (planks, sine-warped grain, knots, seams), lamplight radial gradients, and a rAF dust-mote layer that pauses when the tab is hidden
+
+=== INTERACTION MODEL ===
+- Type on a physical keyboard: printable keys stamp characters, Space advances, Enter is a carriage return plus line feed, Backspace steps back without erasing (overstrike like a real machine), Tab jumps to the next five-space stop
+- Tap or click the illustrated keys (with Shift and Shift Lock), the space bar, or the carriage-return lever itself
+- On phones, tap the sheet or "Keys" to type with the native keyboard through a hidden textarea
+- The margin locks at column 48: further keys pile up at the margin until you return; the bell sounds once per line near the end
+- Ribbon switch: Black or Red changes the ink of later keystrokes and raises the ribbon vibrator
+- Sound: Web Audio key clacks (filtered noise plus a pitch-dropping thump), space thud, a multi-partial bell, a ratchet-and-slide carriage return and a paper swoosh; it starts on the first gesture, and the mute state is remembered
+- New sheet pulls the paper up and out, then feeds a fresh numbered sheet; Save letter downloads the paper canvas as a PNG
+- The letter, carriage position, ribbon and sheet number persist in localStorage (guarded); reduced motion shortens every transition and animation

@@ -1,0 +1,39 @@
+TITLE: Dusk Meadow — Fireflies
+FILE: 061-firefly-meadow.html
+
+=== PROMPT (exact prompt used) ===
+Create "Dusk Meadow — Fireflies", a tranquil canvas scene. A meadow at dusk: a sky gradient from deep indigo (#141b41) to a very soft dusty rose at the horizon (#e8a0a0), layered silhouettes of rolling hills and a treeline in near-black greens (#0b1a12), and a foreground of hundreds of grass blades swaying in a noise-driven wind field and bending away from the pointer. About 120 fireflies wander with boids-like motion, each blinking on its own rhythm in warm yellow-green (#e8ff8a) with bloom, and slowly synchronising their flashes over time (Kuramoto-style coupling) — a quiet emergent delight. The pointer is a gentle lantern: fireflies drift toward it when it is held still and scatter when it moves fast. A crescent moon rises slowly and stars appear as the sky darkens. Minimal controls at the bottom-left that fade when idle: sync strength, wind, and sound (synthesized crickets). Title in a delicate italic serif.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"Dusk Meadow — Fireflies" is a quiet, full-screen canvas landscape: a sky that slowly deepens from indigo #141b41 to a dusty-rose horizon #e8a0a0, stars that appear one by one as it darkens, a thin crescent moon with faint earthshine rising over layered hills, and a treeline of rounded canopies and spires in near-black greens (#0b1a12). A pale mist drifts along the meadow floor, and the foreground is a thicket of tall grass silhouettes swaying in a travelling wind. About 120 fireflies drift through three depth bands, blinking warm yellow-green #e8ff8a with bloom, and over roughly a minute they find each other and begin to flash together, lighting the whole meadow in shared pulses. The title is set in a delicate italic serif, with one accurate line about synchronous fireflies. A small, translucent control card in the bottom-left fades away when you leave it alone.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Depth-ordered compositing: sky gradient → stars → moon → pre-rendered land layer → drifting mist (screen) → far fireflies → back grass → mid fireflies → ambient light → front grass with rim stroke → lantern core → near fireflies → vignette
+- Time of day: the sky gradient is interpolated each frame between dusk and night palettes, a warm afterglow fades, and stars fade in by per-star brightness thresholds with twinkle; occasional meteors once it is dark enough
+- Crescent moon painted offscreen: a textured disc carved with destination-out, a faint earthshine disc, shadow-blur halo and a large soft glow; it rises along a gentle arc over several minutes
+- Land painted once per resize: sine-summed ridges with atmospheric colour steps, procedurally built treeline (clustered canopy circles, stepped conifer spires), and a rolling meadow whose distant grass catches the last light
+- Grass: several hundred blades as tapered quadratic-curve paths, batched into one path per layer and filled with vertical gradients; each blade is a damped spring driven by a value-noise wind field with travelling waves and gusts, plus a radial push away from the lantern
+- Fireflies: boids-style separation, cohesion and alignment plus wander, soft vertical bounds and depth drift; asymmetric flash pulses (quick rise, slower decay) drawn additively from a bloom sprite with a bright core
+- Emergent synchrony: locally coupled Kuramoto oscillators (neighbours within a sight radius) plus a small global mean-field term, with coupling that ramps up over the first minute, so unison grows slowly instead of snapping; a live "in unison" meter shows the order parameter
+- Collective light: the meadow gets a soft additive wash proportional to how many fireflies are lit at once, so synchronized flashes light the whole field
+
+=== INTERACTION MODEL ===
+- The pointer (or a finger) is a lantern: a warm glow that parts the grass around it
+- Hold the lantern still and nearby fireflies drift in and circle it; move it quickly and they scatter
+- Sync slider sets the coupling strength (0 lets every firefly keep its own rhythm); Wind slider sets the strength of the wind field and the wind sound
+- "Crickets" toggle (off by default) starts a Web Audio scene: five synthesized crickets, each a sine voice gated into pulse trains with its own pitch, rhythm and stereo position, over a soft filtered-noise breeze
+- Controls fade to near-invisible after a few idle seconds and return on pointer movement, key presses or focus; all controls are keyboard-accessible with visible focus rings
+- The loop and audio pause while the tab is hidden; prefers-reduced-motion halves the grass sway, slows the fireflies, softens flashes and the shared meadow glow, stops twinkling and meteors, and slows the passage of time

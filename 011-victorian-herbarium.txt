@@ -1,0 +1,41 @@
+TITLE: Herbarium Imaginarium
+FILE: 011-victorian-herbarium.html
+
+=== PROMPT (exact prompt used) ===
+Design "Herbarium Imaginarium", a Victorian botanical specimen cabinet of procedurally grown plants that do not exist. Aged paper (#efe6d2 with foxing spots and fibre texture from layered radial gradients), sepia ink (#4a3622), faded botanical greens (#6b7f4e, #9aa77a) and madder-red accents for seeds and berries. Each specimen card shows a plant grown by an L-system/recursive branching algorithm and drawn in SVG with ink-like stroke variation, leaves, buds and occasional flowers; a paper tape strip "holding" the stem; a handwritten-feeling label in an italic serif with an invented Latin binomial (generated from syllable lists), a collection date and a specimen number. A grid of six specimens on desktop, one or two on mobile. Interaction: "Collect a new specimen" grows a plant stroke by stroke (animated stroke-dashoffset); clicking a card opens it large in a lightbox with a magnifying-loupe hover; a "Press" button toggles a flattened pressed-flower look (desaturated, slightly translucent). Typography: "Iowan Old Style", Palatino, "P052", Georgia, serif, with italic labels and ornamental rules.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Herbarium Imaginarium is laid out as the index card and open drawer of a Victorian specimen cabinet. A sticky left panel carries a brass drawer-label holder, the title in Palatino-style roman and italic, an ornamental rule with a madder lozenge, a drop-capped introduction, the two actions, a dotted-leader ledger and an index of the drawer. To its right, six herbarium sheets sit in a 3 × 2 grid, sized so that the whole drawer fits one desktop screen. Each sheet is aged paper (#f6efdd with a procedural fibre tile and random foxing) carrying a plant that exists nowhere else. The plant is grown by a small parametric L-system with six growth habits (spike, much-branched shrub, umbellifer, fern, climbing vine, rosette with scapes) and inked in SVG in sepia and faded botanical greens, with madder berries and seeds. Gummed paper tape straps the stems, and every sheet has a printed-and-handwritten label with a generated Latin binomial, an accession stamp, a centimetre scale bar and sometimes a seed packet or a determination slip. Everything is clearly fictional: the plants, collectors, localities and names are all invented.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Parametric L-system (production rules with parameters, stochastic variants and terminal rules) followed by a turtle interpreter with tropism (upward growth, or gravity for arching fern fronds and vines), angle jitter, width taper and slightly curved (quadratic) internodes
+- Six habits with distinct grammars: racemes of nodding bells or star flowers, a fractal forking shrub with berry clusters, compound umbels of florets, bipinnate fern fronds with sori and coiled croziers, a tendrilled climber with drooping berry clusters, and a basal rosette with daisy heads or dandelion-like seed clocks
+- Leaf blades built from shape-profile functions (lanceolate, ovate, cordate, lobed, pinnatifid, orbicular, spathulate, linear, oblong pinnules), with sawtooth serration, curl, asymmetry, a petiole, a watercolour half-wash, a midrib and lateral veins
+- Ink stroke variation: tapering stems drawn segment by segment with round caps, a lighter offset highlight line on thick stems, and an SVG drop-shadow that lifts the fresh plant off the page
+- Stroke-by-stroke growth using pathLength=1 with stroke-dashoffset animations; each segment's delay comes from its distance from the root, so the ink travels at one steady speed; leaves unfurl and flowers bloom through CSS scale and rotate on nested SVG groups
+- Roots in three characters (fibrous, taproot, scaly rhizome) with clinging soil crumbs; they grow down while the shoot grows up
+- Paper: a seamless fibre texture drawn on a canvas at runtime, layered radial-gradient foxing both on the viewport and on each sheet, and inset edge toning
+- Mounting furniture drawn in SVG: zigzag-cut translucent tape with a shadow offset, a double-ruled label with dotted handwriting lines, an imperfect madder accession stamp that "thumps" down, a scale bar, a folded seed packet and an annotated determination slip
+- The "pressed" state interpolates a matching filter list (drop-shadow, saturate, sepia, contrast, brightness) plus opacity, so the plants fade into a flat, translucent, dried look while the tape and labels stay crisp
+- A FLIP reflow when a new sheet is collected: the new sheet is laid down, the others slide one place along, and the oldest is "filed away" as a fading ghost
+- A brass loupe (conic-gradient rim, wooden handle, glass highlight) that shows a 2.6× live clone of the vector sheet, so it stays sharp at any zoom
+
+=== INTERACTION MODEL ===
+- "Collect a new specimen" (or N) grows a new random-habit plant in the first slot over about four seconds: roots and stems ink in, then leaves unfurl, flowers bloom, tape is applied and the label and stamp appear
+- Clicking a sheet, or its entry in the drawer index, opens a lightbox with the enlarged sheet and collector's notes: habit, leaves, flowers, height read from the scale bar, date, locality, collector and a whimsical field note
+- In the lightbox, hovering the sheet shows the magnifying loupe. On touch screens, pressing and dragging shows the loupe floated above the finger
+- The Previous and Next buttons or ← → turn through the sheets. Esc, the × button or a click on the backdrop closes the lightbox. Focus is trapped inside the dialog and returned when it closes
+- "Press the sheets" (or P, also in the lightbox) toggles the pressed look with a brief squash of every sheet, and the state is remembered in localStorage (guarded with try/catch)
+- Hovering a card straightens and lifts it. Focus rings are visible, and prefers-reduced-motion skips the growth, reflow and squash animations

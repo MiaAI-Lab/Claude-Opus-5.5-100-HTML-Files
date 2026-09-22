@@ -1,0 +1,38 @@
+TITLE: The Last Keepers
+FILE: 008-lighthouse-longform.html
+
+=== PROMPT (exact prompt used) ===
+Design a long-read editorial feature: "The Last Keepers — Life at the Edge of the Light", a fictional magazine story about lighthouse keepers. Write original, evocative literary prose (~900 words), impressionistic rather than presenting invented facts as real history. Typography-led: a classic book serif ("Iowan Old Style", "Palatino Linotype", Palatino, "P052", Georgia, serif) for body text at a comfortable measure, a large Didone-feeling headline, an ornamental drop cap, small-caps bylines, pull quotes that break the column, and marginal notes on wide screens. Palette: cream paper #f6f1e7, ink navy #14213d, signal red #c0392b, fog grey. Hero: a full-bleed SVG illustration of a lighthouse on rocks at dusk with a rotating light beam that sweeps across the headline and a gently animated sea. Scroll storytelling: sections fade and rise in; a reading-progress bar styled as a lighthouse beam; a section where the background shifts from dusk to night as you scroll; and an illustrated "anatomy of a lens" figure (Fresnel lens rings) that assembles on scroll. Footnotes pop up on click. Must read beautifully on phones.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+"The Last Keepers" is a long-read feature from the fictional Tidewater Quarterly. It is typography-led: Iowan Old Style / Palatino body text at a ~62-character measure on cream paper (#f6f1e7), ink-navy (#14213d) type, signal-red (#c0392b) accents and fog-grey rules. The first frame is a full-bleed SVG dusk seascape with a red-and-white banded lighthouse on basalt, a cottage with woodsmoke, a steamer on the horizon, gulls, drifting fog and a live sea. Its rotating lamp throws two beams, and the light really lands on the headline: a lit copy of the Didone headline is clipped to the beam's shape every frame, so the letters glow wherever the beam crosses them. The original ~900-word impressionistic story then runs through four chapters: an ornamental boxed drop cap, small-caps bylines and run-ins, pull quotes that break out of the column, and marginal notes that float into the right margin on wide screens. "The Watch" is a sticky scene that turns from dusk to night as you scroll, with a keeper's clock and log. "The Lens" is an engraved-style plate of a Fresnel lens, in section and elevation, that assembles itself as you scroll. The page closes with endnotes, a note that the story is fiction, and a navy colophon.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Hand-built inline SVG dusk scene (sky and sea gradients, sun glow, banded tower with directional shading, lantern halo, rocks with rim light, cottage, steamer, gulls, foam), re-framed in JS for every aspect ratio. On portrait screens the camera pulls back into an extended sky so the tower sits small at the right and clears the headline.
+- The beam is modelled as a projected rotation: each of the two opposite beams has a length of |cos θ|, gets brighter as it turns toward the viewer, and a flare plus a full-hero light wash fire when a beam points straight at you.
+- The beam lights the headline through two duplicate headline layers (core and penumbra), each with a per-frame CSS clip-path polygon that matches the beam cone in the headline's own coordinates.
+- The sea is seven rAF-animated wave-crest paths (sums of sines with perspective-scaled amplitude and wavelength) with moving dash patterns for glinting crests, plus a foreground swell, shimmering sun-glitter bars and pulsing foam.
+- The reading-progress bar is a lighthouse beam: a small SVG lighthouse in the navy masthead throws a widening clip-path cone, with a glowing tip and a red hairline that grows with progress. The current chapter name appears at the right.
+- Dusk to night: a sticky 100vh sky whose three gradient stops, sea colour and cloud tint are interpolated from scroll progress. Stars fade in, a moon rises with glitter on the water, a distant lighthouse turns on the horizon, and a Didone clock runs from 19:40 to 04:40.
+- The Fresnel plate is two SVGs (section and elevation). Prisms, rings, frame and lamp fly in with back-eased translate, rotate and scale tied to scroll position. Red rays draw in with pathLength dash offsets, then lettered callouts and a "level beam" wash fade in.
+- Editorial details: a boxed engraved drop cap with conic-gradient light rays and a red corner, Roman chapter numerals in italic Didone, small-caps run-ins, hanging red quotation marks, a diamond ornament on pull-quote rules, wave-edged transitions between paper and sky, and a canvas-painted paper grain.
+- Sections fade and rise in via IntersectionObserver. All motion pauses offscreen or when the tab is hidden. Reduced motion freezes the beam and sea and turns the reveals into plain fades.
+
+=== INTERACTION MODEL ===
+- Scroll drives everything: the beam progress bar, the chapter label in the masthead, reveal-on-scroll, the dusk-to-night sky, clock and log, and the lens assembly (which reverses when you scroll back).
+- Footnote markers are buttons that open a small dark note card anchored under the reference (a bottom sheet on phones). It closes with the × button, a click outside or Escape, which returns focus to the marker. The endnotes list has back-links to each reference.
+- Each pull quote has a copy button that uses the clipboard with a textarea fallback (both guarded) and shows a small toast.
+- "Begin reading" scrolls to the standfirst. "Return to the light" in the colophon scrolls back to the top. The masthead brand links to the top.
+- The keyboard works throughout, with red focus-visible rings. Glyphs are aria-hidden and the prose is marked up as article, sections, asides and figures.

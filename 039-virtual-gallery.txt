@@ -1,0 +1,49 @@
+TITLE: Galerie Nocturne
+FILE: 039-virtual-gallery.html
+
+=== PROMPT (exact prompt used) ===
+Build "Galerie Nocturne", a walk-through virtual museum room in CSS 3D. A corridor with a polished marble floor (CSS gradients plus reflection), warm walls (#e9e2d6), soft ceiling spotlights casting pools of light, and eight framed paintings hung on the side walls. Each painting is an original generative artwork rendered on canvas and seeded so it is stable: a colour-field piece, a primary-colour grid, a geometric abstraction, a pointillist sunset, a flow field, an op-art piece, an ink landscape and a gold mosaic. Gilded or slim black frames with museum placards (title, fictional artist, year, medium). Navigation: arrow keys/WASD or on-screen buttons move the camera along the corridor with smooth easing; clicking a painting walks up to it and shows it frontally with a detail card; Escape steps back. A small floor-plan minimap shows your position. Typography: a museum-grade sans for placards and a classic serif for the title. On phones, fall back to a swipeable wall of the same framed works.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Galerie Nocturne is a small museum corridor after closing time, built entirely in CSS 3D. Warm plaster walls (#e9e2d6 where the light falls) stand in darkness, lit only by ceiling track spots. Each spot throws a scallop of light down the wall and a pale beam through the air. A polished black-and-white marble floor reflects the room. Eight original generative paintings hang on alternating walls, each drawn on canvas from a fixed seed so it is identical on every visit: a pointillist harbour sunset, a primary-colour grid, a soft colour-field painting, a bulging op-art checkerboard, an ink-wash mountain hanging scroll, a Bauhaus-style geometric abstraction, a plotter-style flow field, and a gold mosaic sun. Works sit in gilded frames with bead mouldings or in slim black frames with silk or white mats, and each has a crisp museum placard. The titles are set in a Didot/Bodoni-class serif, and the placards and interface in a Helvetica-class sans. All artists, dates and works are fictional.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A true CSS 3D room: walls, floor, ceiling and end wall are planes in one preserve-3d world. A single camera transform (translateZ(perspective) · pitch · yaw · translate) makes it walkable.
+- Floor reflections come from real mirrored geometry. A second copy of the walls and paintings sits under a scaleY(-1) group reflected about the floor plane, and a semi-transparent procedural marble texture lets it show through.
+- Lighting is layered gradients: per-painting elliptical wall scallops, floor light pools, ceiling fixtures with halos, clip-path light-beam planes that fade out in close-up, a camera-relative depth fog, and a vignette.
+- Procedural textures: canvas fBm Perlin marble with veins and grout lines, and a plaster grain tile. Both are exported as data URLs and layered with CSS gradients.
+- Eight generative painters on canvas using a seeded PRNG and Perlin noise:
+  - divisionist dot sampling with complementary accents
+  - recursive grid subdivision with brush texture
+  - feathered, layered colour fields
+  - supersampled per-pixel lens-warped checkerboard
+  - per-column ink-wash gradients with dry-brush texture, pines and a seal
+  - multiply-blended geometric shapes
+  - a 1,400-line flow field that swirls around a hidden disc
+  - gold, lapis and red tesserae laid in concentric rings
+- Gilded frames use layered inset shadows and a masked bead ring. A sheen band slides across the gold frames and mosaic as the camera moves.
+- Placards and the end-wall title are built at 4× and scaled down inside the 3D context so their text stays sharp up close.
+- The camera uses exponential easing with speed caps, subtle head-bob, idle sway and pointer parallax.
+
+=== INTERACTION MODEL ===
+- ↑/W and ↓/S walk the corridor; hold for continuous walking. ←/A and →/D turn to look at either wall. The mouse wheel and a vertical drag also walk, and a horizontal drag turns.
+- Clicking a painting walks up to it and turns to face it, framing the work and its placard beside a detail card with title, fictional artist, year, medium, size, a curatorial note and the seed. Prev/Next or ←/→ glide to neighbouring works, even across the corridor. Escape, Step back or ↓ return to the centre line.
+- Clicking the floor walks to that spot. Clicking a wall approaches the nearest work on it. Clicking the end wall walks to the end of the room.
+- Enter or the View button approaches the work you are facing. The top-right label always names the nearest work, and keys 1–8 jump straight to a work.
+- An on-screen pad has hold-to-walk and turn buttons for touch and mouse. Keyboard activation takes discrete steps.
+- The floor-plan minimap shows the corridor, colour-coded painting positions, and your position with a view cone. Its marks and the I–VIII index buttons are clickable.
+- On phones (≤720 px) the page switches to a swipeable, scroll-snapped wall of the same framed works under spotlights, with placards, dots and prev/next buttons. Tapping a work opens a bottom sheet with a larger image and the full card.
+- Reduced motion makes camera moves near-instant and removes the bob, sway and fades.

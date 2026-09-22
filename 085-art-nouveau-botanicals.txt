@@ -1,0 +1,37 @@
+TITLE: Maison Lierre — Paris 1899
+FILE: 085-art-nouveau-botanicals.html
+
+=== PROMPT (exact prompt used) ===
+Design "Maison Lierre — Botanical Teas, Paris 1899" (a fictional tea house) as an Art Nouveau poster page in the spirit of the era's great poster artists (original artwork, nothing copied). Palette: muted sage #a3b18a, olive #588157, antique gold #c9a227, terracotta #bc6c25, cream #fefae0, deep teal #264653. The page is framed by an ornate SVG border of whiplash curves, stylised lilies and ivy that draw themselves on load and sway gently; a circular halo motif with radiating mosaic sits behind the title; flowing, organic panels hold the content (the house's story, three signature blends, an afternoon-tea menu, a contact card). Decorative initials and dividers. Typography: a serif stack plus custom SVG-drawn title lettering with curved terminals. Interaction: hovering a blend grows vines around its card; a subtle gold sparkle on the halo; a toggle between "Day" (cream) and "Salon" (deep teal with glowing gold lines). Graceful responsiveness: the border simplifies on phones.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Maison Lierre is an Art Nouveau poster page for a fictional botanical tea house in Paris, 1899. It is an original homage to the era's great poster artists, not a copy of any of them. A fixed ornamental frame wraps the viewport: a teal outer rule, a gilt inner rule with notched corners, whiplash corner flourishes ending in spirals and lily buds, ivy climbing both sides, and small cartouches at top and bottom. All of it draws itself on load and sways gently. At the centre of the hero, "MAISON LIERRE" is set in custom SVG lettering: monoline capitals with curled terminals, drawn on in teal and gold. It sits inside a circular halo of hand-set mosaic tesserae ringed by sunburst rays, with gold glints sparkling across the tiles. Two tall stylised lilies with whiplash petals, stamens and blade leaves flank the halo, and ivy garlands wreathe it above a curved ribbon reading "Botanical Teas · Paris 1899". Below, organic panels with gilt-and-olive double borders hold the house's story, which opens on an illuminated drop cap. Three arch-topped cards present the signature blends with botanical vignettes (chamomile and lime blossom, a scalloped rose, jasmine sprays), and vines grow around a card when you hover it. There is an afternoon-tea menu with dotted leaders and period franc prices, and a calling-card contact panel with an "ML" monogram. A toggle switches between "Day" (cream paper) and "Salon" (deep teal with glowing gold lines). On phones the frame simplifies to the rules and small corner flourishes.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Custom SVG title lettering: nine hand-built glyphs (M, A, I, S, O, N, L, E, R) set by a tiny layout routine, rendered in three stroke layers (teal outline, gold core, offset highlight) and drawn on with pathLength-normalised stroke-dashoffset
+- Mosaic halo generated at runtime: four rows of slightly askew tesserae in sage, olive, gold and terracotta, rows of tiny dots, 96 alternating sunburst rays, a slow counter-rotation of the ring and the rays, and randomly timed star glints
+- Stylised lilies built procedurally (whiplash petal paths with curled tips, stamens with terracotta anthers, blade leaves and buds), mirrored on both sides and swaying from their roots
+- A fixed viewport frame rebuilt on resize: double rules with notched corners, mirrored whiplash corners, climbing ivy with trilobed leaves, cartouches; draw-on and bloom animations are staggered with CSS custom-property delays
+- Day/Salon theming through CSS custom properties; in Salon mode the gold linework glows through stacked drop-shadow filters, and the halo disc swaps gradients
+- Arch-topped cards and organic panels made with elliptical border-radius and layered box-shadow rings (gilt / paper / olive)
+- Hover vines on each blend: pathLength-normalised vine strokes grow around the card, then ivy leaves and berries spring in with staggered transitions
+- Text on a curved path for the ribbon, dotted-leader menu rows, an illuminated drop cap floated into the first paragraph, and ornamental SVG dividers
+
+=== INTERACTION MODEL ===
+- Day / Salon toggle (aria-pressed); the choice is remembered in guarded localStorage and the theme-color meta updates with it
+- Hovering or keyboard-focusing a blend card lifts it and grows ivy around its arch; a tap on touch screens focuses the card to do the same
+- "Reserve a table" answers with a gentle, clearly pretend confirmation announced through a live region
+- Everything is semantic HTML (header, sections, articles, aside, address, footer) with a visually hidden H1 and a hidden letter behind the drop cap for screen readers
+- Motion: draw-on and bloom on load, swaying lilies and ivy, halo rotation and sparkles; prefers-reduced-motion shows the finished artwork with all motion off

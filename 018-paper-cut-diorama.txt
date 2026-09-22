@@ -1,0 +1,38 @@
+TITLE: Foxglove Hollow
+FILE: 018-paper-cut-diorama.html
+
+=== PROMPT (exact prompt used) ===
+Design "Foxglove Hollow", a layered paper-cut forest diorama. Seven to nine stacked layers of hand-cut-looking paper (SVG paths with slightly irregular edges) — distant hills, pines, a winding river, mushrooms, ferns, a small fox and foreground grasses — each casting a soft drop shadow onto the layer behind it so the scene has real depth. Day palette: sage #9bb89b, moss #5f7f5b, deep teal #274e52, ochre #d9a45b, burnt orange #c8642d, cream sky #f3e8d2. Night palette: indigo layers, tiny glowing windows, fireflies and a paper moon. Subtle paper grain from procedural noise. Interaction: pointer movement creates parallax between layers (touch-drag on mobile); a day/night toggle recolours every layer with a staggered transition; clicking the fox makes it hop to a new spot; paper leaves drift gently. The title sits on a small paper tag hanging from a string, in a warm serif. The composition must recompute nicely for portrait screens.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Foxglove Hollow is a full-screen paper theatre: nine sheets of scissor-cut paper stacked inside a dark teal board frame with a deckle-edged cream mat, each sheet throwing a soft shadow onto the one behind it. From back to front: a cream sky, pale far hills, a rolling hill with tiny pines and two cottages, a sage pine ridge, a meadow crossed by a winding river, moss pines on two banks, towering deep-teal pines that frame the hollow, the ochre forest floor (burrow, mushroom clusters, ferns, pebbles, fallen leaves and the fox) and a foreground fringe of grass and burnt-orange foxgloves. The sun, clouds, moon and stars hang from threads like a little fly-system, and the title is written on a luggage tag swinging from a string. Every shape is generated at runtime from a seeded random cut, so the composition recomputes from scratch for portrait or landscape screens rather than just scaling.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Runtime SVG geometry: hills, banks, pines, mushrooms, ferns, grass blades and foxgloves are built as polygons whose edges are subdivided and nudged sideways, so every outline looks hand-cut; all polygons are winding-normalised so overlapping pieces fuse into one sheet
+- One seeded PRNG drives the whole cut, so a resize re-lays out the same forest for the new aspect ratio, and "Recut" draws a new one
+- Per-sheet depth from CSS drop-shadow filters, with a 1px light top edge standing in for the cut paper rim; shadow colour switches from warm brown to deep indigo at night
+- Procedural paper grain: a noise-and-fibre canvas tile becomes an SVG pattern overlaid on each sheet, so the grain moves with its sheet
+- Day/night recolour through CSS fill transitions with a per-sheet transition-delay, so night spreads from the back of the box to the front; the sky crossfades, windows glow through a radial gradient, river glints twinkle and mushroom spots turn bioluminescent
+- Hanging sun, clouds, moon and paper stars ride up and down on strings with an anticipating, overshooting cubic-bezier and swing on staggered CSS pendulums; pinprick stars twinkle in the night sky
+- Canvas fireflies drawn from a pre-rendered glow sprite (pollen motes by day), pooled DOM paper leaves with 3D flutter, and a damped-pendulum title tag
+- The fox is a hand-drawn multi-piece SVG with SMIL tail wag and blink; hops use squash, stretch, an arc and a burst of paper dust on landing
+
+=== INTERACTION MODEL ===
+- Mouse movement parallaxes the nine sheets (touch-drag on phones); when idle the view drifts gently on its own
+- Click or tap the fox (or focus it and press Enter/Space, or press F) to make it hop to a new spot along the ground
+- The Day/Night paper switch (or N) re-colours every sheet with a staggered transition, raises the sun and clouds, and lowers the moon and stars; the choice is remembered in localStorage (guarded)
+- Clicking anywhere else shakes loose a small burst of paper leaves; pointer speed swings the title tag
+- "Recut" generates a new seeded forest and replays the layers sliding into the box
+- Arrow keys look around; a polite live region announces hops and day/night changes; prefers-reduced-motion removes the idle drift, intro, swinging and most drifting motion; the animation loop pauses while the tab is hidden

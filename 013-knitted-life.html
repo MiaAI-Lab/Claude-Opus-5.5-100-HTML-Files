@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Woolgathering — Conway's Game of Life, Knitted in Fair Isle</title>
+<meta name="description" content="Conway's Game of Life worked as living Fair Isle knitting: every cell a shaded knit stitch, every generation a new row, hanging from wooden needles beside balls of wool.">
+<meta name="theme-color" content="#e9dcc5">
+<style>
+:root{
+  --oat:#e9dcc5; --cream:#f6efe2; --rust:#b5502b; --mustard:#d9a441; --forest:#2f5d50;
+  --ink:#3a2819; --ink-soft:#6e5439; --rule:#d3c09c;
+  --page:#e9dcc5;
+  --g:#f6efe2; --g-d:#d8cdb9;
+  --ya:#b5502b; --ya-d:#7a3419; --ya-l:#d27a5c;
+  --yb:#d9a441; --yb-d:#a2761f; --yb-l:#ecc77c;
+  --yc:#2f5d50; --yc-d:#1c3a32; --yc-l:#5a8b7d;
+  --display:"Cooper Black","Cooper","Cooper Std",Georgia,"URW Bookman","Bookman Old Style",serif;
+  --text:Georgia,"URW Bookman","Bookman Old Style","P052","Palatino Linotype",serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{
+  margin:0;min-height:100vh;color:var(--ink);font-family:var(--text);
+  background-color:var(--page);
+  background-image:
+    radial-gradient(1100px 700px at 18% -10%,rgba(255,252,244,.55),transparent 62%),
+    radial-gradient(900px 600px at 110% 110%,rgba(120,80,40,.10),transparent 60%),
+    repeating-linear-gradient(90deg,rgba(110,80,45,.035) 0 1px,transparent 1px 4px),
+    repeating-linear-gradient(0deg,rgba(110,80,45,.03) 0 1px,transparent 1px 5px);
+  transition:background-color .7s ease;
+}
+.page{max-width:1340px;margin:0 auto;padding:0 clamp(16px,4vw,56px) 40px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--cream);padding:8px 14px;border-radius:999px;z-index:20}
+.skip:focus{left:12px}
+
+/* ---------- masthead ---------- */
+.masthead{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:10px 52px;padding:28px 0 8px}
+.kicker{grid-column:1/-1;margin:0;display:flex;align-items:center;gap:12px;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft)}
+.kicker svg{width:26px;height:14px;flex:none}
+.title-wrap{position:relative}
+h1{
+  margin:0;font-family:var(--display);font-weight:700;font-size:clamp(46px,6.2vw,86px);line-height:.92;
+  letter-spacing:-.012em;color:var(--ya);
+  text-shadow:0 1px 0 rgba(255,255,255,.35),0 3px 0 rgba(90,40,18,.18),0 10px 24px rgba(90,40,18,.12);
+  transition:color .7s ease;
+}
+.squiggle{display:block;width:min(100%,420px);height:22px;margin-top:4px;overflow:visible}
+.squiggle path{fill:none;stroke:var(--ya);stroke-width:3;stroke-linecap:round;stroke-dasharray:7 6;opacity:.75;transition:stroke .7s}
+.lede{margin:0 0 10px;justify-self:end;max-width:52ch;font-style:italic;font-size:17px;line-height:1.55;color:var(--ink-soft)}
+.lede b{font-style:normal;font-weight:700;color:var(--ink)}
+
+/* ---------- studio ---------- */
+.studio{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:34px;align-items:start}
+.hanging{position:relative;padding:26px 38px 118px;min-width:0}
+.slot{display:flex;justify-content:center;min-width:0}
+#knit{display:block;touch-action:none;cursor:crosshair;outline:none;border-radius:6px}
+#knit:focus-visible{box-shadow:0 0 0 3px var(--cream),0 0 0 6px var(--ya)}
+.rig{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:3}
+.strand{fill:none;stroke:var(--ya);stroke-width:3.2;stroke-linecap:round;transition:stroke .7s}
+.strand-hi{fill:none;stroke:var(--ya-l);stroke-width:1.1;stroke-linecap:round;stroke-dasharray:2 3;opacity:.8;transition:stroke .7s}
+.balls{position:absolute;right:0;bottom:2px;width:236px;height:auto;z-index:2;pointer-events:none;overflow:visible}
+.balls .wa{fill:var(--ya)} .balls .wa-d{stroke:var(--ya-d)} .balls .wa-l{stroke:var(--ya-l)}
+.balls .wb{fill:var(--yb)} .balls .wb-d{stroke:var(--yb-d)} .balls .wb-l{stroke:var(--yb-l)}
+.balls .wc{fill:var(--yc)} .balls .wc-d{stroke:var(--yc-d)} .balls .wc-l{stroke:var(--yc-l)}
+.balls circle,.balls ellipse,.balls path{transition:fill .7s,stroke .7s}
+.wraps ellipse,.wraps path{fill:none;stroke-width:1.5;opacity:.7}
+.caption{position:absolute;left:40px;bottom:38px;max-width:calc(100% - 330px);margin:0;font-size:14px;line-height:1.5;font-style:italic;color:var(--ink-soft)}
+.caption strong{font-style:normal;font-weight:700;color:var(--ink);letter-spacing:.02em}
+
+/* ---------- ball band / controls ---------- */
+.card{
+  position:relative;background:#fbf6ec;border-radius:26px;padding:0 24px 22px;margin-top:14px;
+  box-shadow:0 1px 0 #fff inset,0 2px 0 #dccaa8,0 22px 44px -22px rgba(80,45,15,.45);
+}
+.card::after{content:"";position:absolute;inset:8px;border:2px dashed rgba(122,70,34,.22);border-radius:20px;pointer-events:none}
+.band{margin:0 -24px 18px;padding:18px 26px 16px;border-radius:26px 26px 0 0;background:#3a2819;color:#f6efe2;position:relative;overflow:hidden}
+.band::after{content:"";position:absolute;left:0;right:0;bottom:0;height:7px;background:linear-gradient(90deg,var(--ya) 0 33.3%,var(--yb) 33.3% 66.6%,var(--yc) 66.6%);transition:background .7s}
+.band-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.band-brand{font-family:var(--display);font-size:21px;letter-spacing:.01em}
+.band small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.78;white-space:nowrap}
+.band-row+.band-row{margin-top:7px}
+.band-row:last-child{padding-bottom:8px}
+.band-way{font-size:14px;opacity:.92}
+.care{display:flex;gap:8px;align-items:center}
+.care svg{width:20px;height:16px;opacity:.85}
+.card h2,.card legend{font-family:var(--text);font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft);margin:0;padding:0}
+.counter-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.counter-head output{font-family:var(--display);font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+#rowCanvas{display:block;width:100%;border-radius:10px;box-shadow:0 1px 0 rgba(255,255,255,.8),0 6px 14px -6px rgba(70,40,15,.45)}
+.status{margin:10px 0 0;font-style:italic;font-size:14.5px;color:var(--ink-soft);min-height:1.5em}
+.status b{font-style:normal;color:var(--ink)}
+.section{margin-top:18px;padding-top:16px;border-top:1px solid var(--rule)}
+.transport{display:flex;align-items:center;gap:14px}
+button{font:inherit;color:inherit}
+.btn-play{
+  position:relative;flex:none;width:68px;height:68px;border-radius:50%;border:0;cursor:pointer;
+  background:radial-gradient(circle at 34% 30%,var(--ya-l),var(--ya) 55%,var(--ya-d));color:#fff8ec;
+  box-shadow:0 3px 0 var(--ya-d),0 10px 18px -6px rgba(80,30,10,.55);transition:transform .15s,box-shadow .15s,background .7s;
+}
+.btn-play::after{content:"";position:absolute;inset:6px;border-radius:50%;border:2px dashed rgba(255,248,236,.55)}
+.btn-play:hover{transform:translateY(-1px)}
+.btn-play:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ya-d),0 4px 10px -6px rgba(80,30,10,.55)}
+.btn-play svg{width:26px;height:26px;display:block;margin:auto}
+.btn-play .i-play{display:none}
+.btn-play[aria-pressed="false"] .i-play{display:block}
+.btn-play[aria-pressed="false"] .i-pause{display:none}
+.wool-btn{
+  position:relative;cursor:pointer;border:2px solid #cdb893;background:linear-gradient(#fffaf1,#f1e6d2);
+  border-radius:999px;padding:11px 18px;font-size:15px;line-height:1.1;color:var(--ink);
+  box-shadow:0 2px 0 #c2a97f,0 8px 14px -10px rgba(80,50,20,.6);transition:transform .15s,box-shadow .15s,border-color .2s;
+}
+.wool-btn::after{content:"";position:absolute;inset:3px;border-radius:999px;border:1.5px dashed rgba(122,70,34,.25);pointer-events:none}
+.wool-btn:hover{transform:translateY(-1px);border-color:#b99d6f}
+.wool-btn:active{transform:translateY(1px);box-shadow:0 1px 0 #c2a97f}
+.transport .wool-btn{flex:1}
+.pace{margin-top:16px}
+.pace label{display:flex;justify-content:space-between;font-size:14px;color:var(--ink-soft)}
+.pace label span{font-style:italic}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:6px 0 0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:7px;background:repeating-linear-gradient(120deg,var(--yb) 0 3px,var(--yb-d) 3px 4px,var(--yb-l) 4px 6px);box-shadow:inset 0 1px 1px rgba(0,0,0,.2)}
+input[type=range]::-moz-range-track{height:7px;border-radius:7px;background:repeating-linear-gradient(120deg,var(--yb) 0 3px,var(--yb-d) 3px 4px,var(--yb-l) 4px 6px)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-9px;border-radius:50%;border:0;background:repeating-linear-gradient(62deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3.5px),radial-gradient(circle at 35% 32%,var(--ya-l),var(--ya) 60%,var(--ya-d));box-shadow:0 2px 4px rgba(60,25,5,.45)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 32%,var(--ya-l),var(--ya) 60%,var(--ya-d));box-shadow:0 2px 4px rgba(60,25,5,.45)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+fieldset.section{padding-top:16px}
+.motifs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.motif{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;padding:10px 10px 11px;border-radius:18px}
+.motif::after{border-radius:15px}
+.motif canvas{width:100%;max-width:120px;height:38px;flex:none;border-radius:8px;background:var(--g);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),inset 0 2px 4px rgba(60,30,10,.12);transition:background .7s}
+.motif span{font-size:14.5px;line-height:1.15}
+.motif small{display:block;margin-top:2px;font-size:11.5px;font-style:italic;color:var(--ink-soft)}
+.ways{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.way{position:relative}
+.way input{position:absolute;opacity:0;width:1px;height:1px}
+.way label{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:14px;border:2px solid transparent;cursor:pointer;font-size:13px;line-height:1.15;transition:background .2s,border-color .2s}
+.way label:hover{background:rgba(122,70,34,.07)}
+.way input:checked+label{border-color:var(--ink);background:#fff9ef}
+.way input:focus-visible+label{outline:3px solid var(--ya);outline-offset:2px}
+.way svg{width:40px;height:30px;flex:none}
+.opts .row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;font-size:14.5px}
+.opts .row>span{color:var(--ink)}
+.opts .row small{display:block;font-size:12px;font-style:italic;color:var(--ink-soft)}
+.switch{position:relative;flex:none;width:52px;height:30px}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.switch i{position:absolute;inset:0;border-radius:999px;background:#e2d4ba;box-shadow:inset 0 2px 3px rgba(60,35,10,.25);transition:background .25s}
+.switch i::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fffaf0,#e8d9bd);box-shadow:0 2px 3px rgba(60,35,10,.35);transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
+.switch input:checked+i{background:var(--yc)}
+.switch input:checked+i::after{transform:translateX(22px)}
+.switch input:focus-visible+i{outline:3px solid var(--ya);outline-offset:2px}
+.seg{display:flex;flex:none;border-radius:999px;background:#e8dbc2;padding:3px;box-shadow:inset 0 2px 3px rgba(60,35,10,.18)}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg label{padding:6px 12px;border-radius:999px;font-size:13px;cursor:pointer;transition:background .2s,color .2s}
+.seg input:checked+label{background:#fffaf1;box-shadow:0 1px 2px rgba(60,35,10,.25)}
+.seg input:focus-visible+label{outline:3px solid var(--ya);outline-offset:1px}
+.pill{flex:none;cursor:pointer;border-radius:999px;border:2px solid #cdb893;background:#fffaf1;padding:6px 12px;font-size:13px;display:flex;align-items:center;gap:6px}
+.pill svg{width:16px;height:16px}
+.pill[aria-pressed="true"]{background:var(--yc);border-color:var(--yc);color:#fbf6ec}
+.keys{margin:18px 0 0;font-size:12.5px;line-height:1.7;color:var(--ink-soft)}
+kbd{font-family:"Menlo","Consolas","DejaVu Sans Mono",monospace;font-size:11px;padding:1px 6px;border-radius:6px;background:#efe3cc;border:1px solid #d8c49f;border-bottom-width:2px;color:var(--ink)}
+button:focus-visible,.wool-btn:focus-visible,.pill:focus-visible{outline:3px solid var(--ya);outline-offset:3px}
+.colophon{margin:26px 0 0;padding-top:18px;border-top:1px dashed var(--rule);display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 30px;font-size:13px;line-height:1.6;color:var(--ink-soft)}
+.colophon p{margin:0;max-width:78ch}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:1060px){
+  .studio{grid-template-columns:1fr}
+  .card{max-width:640px;width:100%;margin:0 auto}
+}
+@media (max-width:720px){
+  .masthead{grid-template-columns:1fr;gap:8px;padding-top:20px}
+  .lede{justify-self:start;font-size:15px;margin:2px 0 0}
+  .kicker{font-size:10.5px;letter-spacing:.22em}
+  .hanging{padding:20px 14px 104px}
+  .balls{width:158px;right:-4px}
+  .caption{left:14px;bottom:20px;max-width:calc(100% - 172px);font-size:12.5px}
+  .card{padding:0 16px 18px}
+  .band{margin:0 -16px 16px;padding:16px 18px 14px}
+  .band-brand{font-size:18px}
+  .motifs{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#controls">Skip to the pattern controls</a>
+<div class="page">
+  <header class="masthead">
+    <p class="kicker">
+      <svg viewBox="0 0 26 14" aria-hidden="true"><path d="M2 2 L7 12 L12 2 M14 2 L19 12 L24 2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      A pattern that knits itself
+    </p>
+    <div class="title-wrap">
+      <h1>Woolgathering</h1>
+      <svg class="squiggle" viewBox="0 0 420 22" aria-hidden="true"><path d="M2 12 C 40 2, 70 20, 110 11 S 180 3, 220 12 S 300 20, 340 10 C 362 5, 380 6, 392 12 C 402 17, 398 22, 390 18 C 383 14, 392 6, 418 9"/></svg>
+    </div>
+    <p class="lede">Conway's Game of Life, worked in stockinette. Every generation is a new row: a stitch is knitted in yarn when <b>exactly three</b> neighbours are yarn, it stays on the needle with <b>two or three</b>, and otherwise it slips back into the ground colour.</p>
+  </header>
+
+  <main class="studio">
+    <section class="hanging" id="hanging" aria-label="The knitted fabric">
+      <div class="slot" id="slot">
+        <canvas id="knit" tabindex="0" role="img" aria-label="Knitted Game of Life fabric. Draw or erase stitches with a pointer, or focus and use the arrow keys and Enter."></canvas>
+      </div>
+      <svg class="rig" id="rig" aria-hidden="true">
+        <defs>
+          <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f1d9ae"/>
+            <stop offset=".35" stop-color="#d7ae74"/>
+            <stop offset=".7" stop-color="#a9763f"/>
+            <stop offset="1" stop-color="#7a4f25"/>
+          </linearGradient>
+          <radialGradient id="knob" cx=".35" cy=".3" r=".75">
+            <stop offset="0" stop-color="#e7a07c"/>
+            <stop offset=".55" stop-color="#a24a2a"/>
+            <stop offset="1" stop-color="#5b2512"/>
+          </radialGradient>
+          <pattern id="grain" patternUnits="userSpaceOnUse" width="46" height="10">
+            <path d="M0 3 C 12 2, 24 4.5, 46 3 M0 7 C 16 8, 30 6, 46 7.4" fill="none" stroke="#6b421d" stroke-opacity=".22" stroke-width=".8"/>
+          </pattern>
+          <pattern id="loopPat" patternUnits="userSpaceOnUse" width="15" height="40">
+            <path id="loopBack" d="" fill="none" stroke="rgba(40,22,8,.35)" stroke-width="4.2" stroke-linecap="round"/>
+            <path id="loopFront" d="" fill="none" stroke="#f6efe2" stroke-width="3.1" stroke-linecap="round"/>
+            <path id="loopHi" d="" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1" stroke-linecap="round"/>
+          </pattern>
+        </defs>
+        <path class="strand" id="strand" d=""/>
+        <path class="strand-hi" id="strandHi" d=""/>
+        <g id="needle">
+          <path id="needleShadow" d="" fill="rgba(60,35,12,.22)"/>
+          <path id="needleBody" d="" fill="url(#wood)"/>
+          <path id="needleGrain" d="" fill="url(#grain)"/>
+          <rect id="loopRow" x="0" y="0" width="0" height="0" fill="url(#loopPat)"/>
+          <circle id="needleKnob" cx="0" cy="0" r="9" fill="url(#knob)"/>
+          <ellipse id="knobHi" cx="0" cy="0" rx="3" ry="2" fill="rgba(255,240,220,.7)"/>
+        </g>
+      </svg>
+      <svg class="balls" id="balls" viewBox="0 0 260 170" aria-hidden="true">
+        <defs>
+          <radialGradient id="ballShade" cx=".36" cy=".3" r=".78">
+            <stop offset="0" stop-color="#fff" stop-opacity=".38"/>
+            <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
+            <stop offset=".8" stop-color="#1a0c02" stop-opacity=".18"/>
+            <stop offset="1" stop-color="#1a0c02" stop-opacity=".42"/>
+          </radialGradient>
+          <linearGradient id="wood2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#e9cc9c"/><stop offset=".5" stop-color="#c79a61"/><stop offset="1" stop-color="#8d5f31"/>
+          </linearGradient>
+          <clipPath id="clipA"><circle cx="160" cy="96" r="58"/></clipPath>
+          <clipPath id="clipB"><circle cx="70" cy="126" r="40"/></clipPath>
+          <clipPath id="clipC"><circle cx="228" cy="140" r="27"/></clipPath>
+        </defs>
+        <ellipse cx="150" cy="163" rx="118" ry="7" fill="rgba(60,35,12,.2)"/>
+        <!-- two needles pushed through the big ball -->
+        <g transform="rotate(-58 160 96)">
+          <rect x="96" y="92.5" width="170" height="7" rx="3.5" fill="url(#wood2)"/>
+          <circle cx="94" cy="96" r="8" fill="#2f5d50"/><circle cx="91" cy="93" r="2.4" fill="rgba(255,255,255,.55)"/>
+        </g>
+        <g transform="rotate(-118 160 96)">
+          <rect x="100" y="92.5" width="160" height="7" rx="3.5" fill="url(#wood2)"/>
+          <circle cx="98" cy="96" r="8" fill="#d9a441"/><circle cx="95" cy="93" r="2.4" fill="rgba(255,255,255,.55)"/>
+        </g>
+        <!-- big ball -->
+        <circle class="wa" cx="160" cy="96" r="58"/>
+        <g class="wraps" clip-path="url(#clipA)">
+          <g id="spinA">
+            <ellipse class="wa-d" cx="160" cy="96" rx="60" ry="14" transform="rotate(-32 160 96)"/>
+            <ellipse class="wa-d" cx="160" cy="96" rx="60" ry="27" transform="rotate(-32 160 96)"/>
+            <ellipse class="wa-d" cx="160" cy="96" rx="60" ry="40" transform="rotate(-32 160 96)"/>
+            <ellipse class="wa-l" cx="160" cy="96" rx="60" ry="20" transform="rotate(-32 160 96)"/>
+            <ellipse class="wa-l" cx="160" cy="96" rx="60" ry="34" transform="rotate(-32 160 96)"/>
+            <ellipse class="wa-d" cx="160" cy="96" rx="60" ry="10" transform="rotate(38 160 96)"/>
+            <ellipse class="wa-d" cx="160" cy="96" rx="60" ry="22" transform="rotate(38 160 96)"/>
+            <ellipse class="wa-l" cx="160" cy="96" rx="60" ry="16" transform="rotate(38 160 96)"/>
+            <ellipse class="wa-d" cx="160" cy="96" rx="60" ry="30" transform="rotate(84 160 96)"/>
+            <ellipse class="wa-l" cx="160" cy="96" rx="60" ry="46" transform="rotate(84 160 96)"/>
+          </g>
+        </g>
+        <circle cx="160" cy="96" r="58" fill="url(#ballShade)"/>
+        <!-- medium ball -->
+        <circle class="wb" cx="70" cy="126" r="40"/>
+        <g class="wraps" clip-path="url(#clipB)">
+          <ellipse class="wb-d" cx="70" cy="126" rx="42" ry="9" transform="rotate(28 70 126)"/>
+          <ellipse class="wb-d" cx="70" cy="126" rx="42" ry="19" transform="rotate(28 70 126)"/>
+          <ellipse class="wb-d" cx="70" cy="126" rx="42" ry="29" transform="rotate(28 70 126)"/>
+          <ellipse class="wb-l" cx="70" cy="126" rx="42" ry="14" transform="rotate(28 70 126)"/>
+          <ellipse class="wb-l" cx="70" cy="126" rx="42" ry="24" transform="rotate(28 70 126)"/>
+          <ellipse class="wb-d" cx="70" cy="126" rx="42" ry="12" transform="rotate(-50 70 126)"/>
+          <ellipse class="wb-l" cx="70" cy="126" rx="42" ry="24" transform="rotate(-50 70 126)"/>
+        </g>
+        <circle cx="70" cy="126" r="40" fill="url(#ballShade)"/>
+        <path class="wb-d" d="M34 146 C 22 150, 14 160, 4 158" fill="none" stroke-width="2.4" stroke-linecap="round"/>
+        <!-- small ball -->
+        <circle class="wc" cx="228" cy="140" r="27"/>
+        <g class="wraps" clip-path="url(#clipC)">
+          <ellipse class="wc-d" cx="228" cy="140" rx="29" ry="7" transform="rotate(-20 228 140)"/>
+          <ellipse class="wc-d" cx="228" cy="140" rx="29" ry="15" transform="rotate(-20 228 140)"/>
+          <ellipse class="wc-l" cx="228" cy="140" rx="29" ry="11" transform="rotate(-20 228 140)"/>
+          <ellipse class="wc-d" cx="228" cy="140" rx="29" ry="10" transform="rotate(60 228 140)"/>
+          <ellipse class="wc-l" cx="228" cy="140" rx="29" ry="20" transform="rotate(60 228 140)"/>
+        </g>
+        <circle cx="228" cy="140" r="27" fill="url(#ballShade)"/>
+      </svg>
+      <p class="caption" id="caption"><strong>Stockinette, flat.</strong> 49 stitches × 45 rows, worked in four shades. Press play, or draw on the fabric to add your own stitches.</p>
+    </section>
+
+    <aside class="card" id="controls" aria-label="Pattern controls">
+      <div class="band">
+        <div class="band-row"><span class="band-brand">Woolgathering Mills</span>
+          <span class="care" aria-hidden="true">
+            <svg viewBox="0 0 20 16"><path d="M2 4 L4 13 H16 L18 4 M2 4 C5 6,7 2,10 4 S15 2,18 4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 9 C9 7,11 7,12 9" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+            <svg viewBox="0 0 20 16"><path d="M3 3 L10 14 L17 3 Z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5 3 L15 13 M15 3 L5 13" stroke="currentColor" stroke-width="1.2"/></svg>
+          </span>
+        </div>
+        <div class="band-row"><small>100% Conway wool · 4-ply · hand wash</small></div>
+        <div class="band-row"><em class="band-way" id="bandWay">Hebridean Hearth</em><small>Dye lot B3/S23</small></div>
+      </div>
+
+      <section aria-labelledby="counterLbl">
+        <div class="counter-head"><h2 id="counterLbl">Row counter</h2><output id="rowNum" aria-live="off">0000</output></div>
+        <canvas id="rowCanvas" role="img" aria-label="Knitted row counter showing row 0"></canvas>
+        <p class="status" id="status" aria-live="polite">Casting on…</p>
+      </section>
+
+      <div class="section">
+        <div class="transport">
+          <button type="button" class="btn-play" id="playBtn" aria-pressed="true" aria-label="Pause knitting">
+            <svg class="i-pause" viewBox="0 0 26 26" aria-hidden="true"><rect x="6" y="5" width="5" height="16" rx="2" fill="currentColor"/><rect x="15" y="5" width="5" height="16" rx="2" fill="currentColor"/></svg>
+            <svg class="i-play" viewBox="0 0 26 26" aria-hidden="true"><path d="M8 4.5 L21 13 L8 21.5 Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="wool-btn" id="stepBtn">Knit one row</button>
+        </div>
+        <div class="pace">
+          <label for="speed">Pace <span id="speedOut">8 rows a second</span></label>
+          <input type="range" id="speed" min="1" max="30" step="1" value="8">
+        </div>
+        <div class="pair">
+          <button type="button" class="wool-btn" id="randBtn" title="Scatter a mirrored random motif">Randomise</button>
+          <button type="button" class="wool-btn" id="clearBtn">Clear</button>
+        </div>
+      </div>
+
+      <fieldset class="section">
+        <legend>Motifs</legend>
+        <div class="motifs">
+          <button type="button" class="wool-btn motif" data-preset="glider"><canvas width="240" height="76" aria-hidden="true"></canvas><span>Gliders<small>a flock, in the round</small></span></button>
+          <button type="button" class="wool-btn motif" data-preset="pulsar"><canvas width="240" height="76" aria-hidden="true"></canvas><span>Pulsar<small>beats every 3 rows</small></span></button>
+          <button type="button" class="wool-btn motif" data-preset="gun"><canvas width="240" height="76" aria-hidden="true"></canvas><span>Glider gun<small>Gosper, 1970</small></span></button>
+          <button type="button" class="wool-btn motif" data-preset="snow"><canvas width="240" height="76" aria-hidden="true"></canvas><span>Snowflake<small>an eightfold star</small></span></button>
+        </div>
+      </fieldset>
+
+      <fieldset class="section">
+        <legend>Colourway</legend>
+        <div class="ways" id="ways">
+          <div class="way"><input type="radio" name="way" id="way0" value="0" checked><label for="way0"><svg viewBox="0 0 40 30" aria-hidden="true"><rect x="1" y="1" width="38" height="28" rx="7" fill="#f6efe2" stroke="#d8c9ad"/><circle cx="13" cy="15" r="8" fill="#b5502b"/><circle cx="24" cy="12" r="6" fill="#d9a441"/><circle cx="29" cy="20" r="5.5" fill="#2f5d50"/></svg>Hebridean Hearth</label></div>
+          <div class="way"><input type="radio" name="way" id="way1" value="1"><label for="way1"><svg viewBox="0 0 40 30" aria-hidden="true"><rect x="1" y="1" width="38" height="28" rx="7" fill="#eeeae0" stroke="#d3d1c7"/><circle cx="13" cy="15" r="8" fill="#23395b"/><circle cx="24" cy="12" r="6" fill="#7aa6b8"/><circle cx="29" cy="20" r="5.5" fill="#3d6e68"/></svg>Shetland Sea</label></div>
+          <div class="way"><input type="radio" name="way" id="way2" value="2"><label for="way2"><svg viewBox="0 0 40 30" aria-hidden="true"><rect x="1" y="1" width="38" height="28" rx="7" fill="#f1e7d6" stroke="#d8c9ad"/><circle cx="13" cy="15" r="8" fill="#6d3b5e"/><circle cx="24" cy="12" r="6" fill="#9aa246"/><circle cx="29" cy="20" r="5.5" fill="#4b3526"/></svg>Heather &amp; Peat</label></div>
+          <div class="way"><input type="radio" name="way" id="way3" value="3"><label for="way3"><svg viewBox="0 0 40 30" aria-hidden="true"><rect x="1" y="1" width="38" height="28" rx="7" fill="#22324a" stroke="#18243a"/><circle cx="13" cy="15" r="8" fill="#f3ead8"/><circle cx="24" cy="12" r="6" fill="#c8413a"/><circle cx="29" cy="20" r="5.5" fill="#d9a441"/></svg>Midwinter Night</label></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="section opts">
+        <legend>Finishing</legend>
+        <div class="row"><span>Knit in the round<small>edges wrap like a tube</small></span><span class="switch"><input type="checkbox" id="wrap" aria-label="Knit in the round: wrap the edges"><i></i></span></div>
+        <div class="row"><span>Colour by</span>
+          <span class="seg" role="radiogroup" aria-label="Colour stitches by">
+            <input type="radio" name="cmode" id="cmBands" value="bands" checked><label for="cmBands">Fair Isle bands</label>
+            <input type="radio" name="cmode" id="cmAge" value="age"><label for="cmAge">Age</label>
+          </span>
+        </div>
+        <div class="row"><span>Needle clicks<small>soft wooden taps, one per row</small></span>
+          <button type="button" class="pill" id="soundBtn" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6 H5 L9 2.5 V13.5 L5 10 H2 Z" fill="currentColor"/><path id="waveIcon" d="M11.5 5.5 C13 7, 13 9, 11.5 10.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span id="soundLbl">Off</span></button>
+        </div>
+      </fieldset>
+
+      <p class="keys"><kbd>Space</kbd> play or pause · <kbd>N</kbd> one row · <kbd>R</kbd> randomise · <kbd>C</kbd> clear · <kbd>1</kbd>–<kbd>4</kbd> motifs. On the focused fabric, arrow keys move and <kbd>Enter</kbd> toggles a stitch.</p>
+    </aside>
+  </main>
+
+  <footer class="colophon">
+    <p>The Game of Life was devised by the mathematician John Horton Conway and introduced to the world in Martin Gardner's Scientific American column in October 1970. The glider gun is Bill Gosper's discovery from the same year: it fires a new glider every thirty generations.</p>
+    <p>Woolgathering Mills and its ball band are invented for this page. No sheep were consulted.</p>
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduce = mqReduce.matches;
+
+  /* ---------------- palettes ---------------- */
+  // g = ground yarn, g2 = the second ground used behind the wide forest bands, sh = the colour shadows fall toward
+  const PALETTES = [
+    { name: 'Hebridean Hearth', page: '#e9dcc5', g: '#f6efe2', g2: '#eadbbf', a: '#b5502b', b: '#d9a441', c: '#2f5d50', sh: '#3b1f0b' },
+    { name: 'Shetland Sea',     page: '#e1e0d8', g: '#eeeae0', g2: '#dde2de', a: '#23395b', b: '#7aa6b8', c: '#3d6e68', sh: '#15202e' },
+    { name: 'Heather & Peat',   page: '#e7dac7', g: '#f1e7d6', g2: '#e5d4c1', a: '#6d3b5e', b: '#9aa246', c: '#4b3526', sh: '#2c1422' },
+    { name: 'Midwinter Night',  page: '#dccfb9', g: '#22324a', g2: '#1a283d', a: '#f3ead8', b: '#c8413a', c: '#d9a441', sh: '#05080f' }
+  ];
+  let palIdx = 0;
+  let pal = PALETTES[0];
+
+  function hexRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function toHex(r, g, b) { return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join(''); }
+  function shade(hex, amt) {
+    const [r, g, b] = hexRgb(hex);
+    const t = amt < 0 ? 0 : 255, p = Math.abs(amt);
+    return toHex(r + (t - r) * p, g + (t - g) * p, b + (t - b) * p);
+  }
+  // darken toward the palette's own warm shadow instead of toward grey-black
+  function deepen(hex, p) {
+    const a = hexRgb(hex), b = hexRgb(pal.sh);
+    return toHex(a[0] + (b[0] - a[0]) * p, a[1] + (b[1] - a[1]) * p, a[2] + (b[2] - a[2]) * p);
+  }
+
+  /* ---------------- tiny PRNG ---------------- */
+  function mulberry(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+  /* ---------------- patterns ---------------- */
+  const PAT = {
+    glider: ['.O.', '..O', 'OOO'],
+    pulsar: [
+      '..OOO...OOO..', '.............', 'O....O.O....O', 'O....O.O....O', 'O....O.O....O', '..OOO...OOO..', '.............',
+      '..OOO...OOO..', 'O....O.O....O', 'O....O.O....O', 'O....O.O....O', '.............', '..OOO...OOO..'
+    ],
+    gun: [
+      '........................O...........',
+      '......................O.O...........',
+      '............OO......OO............OO',
+      '...........O...O....OO............OO',
+      'OO........O.....O...OO..............',
+      'OO........O...O.OO....O.O...........',
+      '..........O.....O.......O...........',
+      '...........O...O....................',
+      '............OO......................'
+    ],
+    snow: [
+      '..O.O.....O.O..', '...O..O.O..O...', 'O..O...O...O..O', '.OO....O....OO.', 'O....O.O.O....O',
+      '....O..O..O....', '.O...........O.', '..OOOO...OOOO..', '.O...........O.', '....O..O..O....',
+      'O....O.O.O....O', '.OO....O....OO.', 'O..O...O...O..O', '...O..O.O..O...', '..O.O.....O.O..'
+    ]
+  };
+
+  /* ---------------- world ---------------- */
+  const M = 6, K = 2;             // hidden margin (flat mode) and the absorbing ring width
+  let cols = 0, rows = 0, WW = 0, WH = 0;
+  let cur = null, nxt = null, age = null;
+  let vis = null, keyArr = null, varArr = null, offX = null, offY = null, rowKey = null;
+  let gen = 0, running = true, speed = 8, wrap = false, colorMode = 'bands';
+  let hashes = [], settledNote = '';
+  const wi = (c, r) => (r + M) * WW + (c + M);
+
+  function bandKeyFor(r) {
+    const d = Math.abs(r - (rows - 1) / 2);
+    // centre band, then a repeating sequence of peerie / wide bands, mirrored about the middle row
+    const seq = [[1, 5], [2, 2], [3, 7], [2, 2], [1, 7]];
+    let acc = 0, i = 0;
+    while (true) {
+      const s = i === 0 ? seq[0] : seq[1 + ((i - 1) % 4)];
+      acc += s[1];
+      if (d < acc) return s[0];
+      i++;
+    }
+  }
+  function ageKey(a) { return a < 2 ? 2 : a < 10 ? 1 : 3; }
+
+  function allocate(newCols, newRows) {
+    const oc = cols, or = rows, oldCur = cur, oldAge = age, oldVis = vis, oldKey = keyArr, oWW = WW;
+    cols = newCols; rows = newRows; WW = cols + 2 * M; WH = rows + 2 * M;
+    cur = new Uint8Array(WW * WH); nxt = new Uint8Array(WW * WH); age = new Uint16Array(WW * WH);
+    vis = new Float32Array(cols * rows); keyArr = new Uint8Array(cols * rows); varArr = new Uint8Array(cols * rows);
+    offX = new Float32Array(cols * rows); offY = new Float32Array(cols * rows); rowKey = new Uint8Array(rows);
+    for (let r = 0; r < rows; r++) rowKey[r] = bandKeyFor(r);
+    if (oldCur) {
+      const dx = Math.floor((cols - oc) / 2), dy = Math.floor((rows - or) / 2);
+      for (let r = 0; r < or; r++) for (let c = 0; c < oc; c++) {
+        const nc = c + dx, nr = r + dy;
+        if (nc < 0 || nr < 0 || nc >= cols || nr >= rows) continue;
+        const oi = (r + M) * oWW + (c + M);
+        cur[wi(nc, nr)] = oldCur[oi]; age[wi(nc, nr)] = oldAge[oi];
+        vis[nr * cols + nc] = oldVis[r * oc + c];
+        keyArr[nr * cols + nc] = oldKey[r * oc + c];
+      }
+    }
+    refreshKeys(true);
+  }
+
+  function refreshKeys(all) {
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const i = r * cols + c, w = wi(c, r);
+      if (colorMode === 'bands') keyArr[i] = rowKey[r];
+      else if (cur[w] || all) keyArr[i] = cur[w] ? ageKey(age[w]) : (keyArr[i] || 1);
+      if (!keyArr[i]) keyArr[i] = rowKey[r];
+    }
+  }
+
+  function step() {
+    if (wrap) {
+      for (let r = 0; r < rows; r++) {
+        const rU = (r - 1 + rows) % rows, rD = (r + 1) % rows;
+        for (let c = 0; c < cols; c++) {
+          const cL = (c - 1 + cols) % cols, cR = (c + 1) % cols;
+          const n = cur[wi(cL, rU)] + cur[wi(c, rU)] + cur[wi(cR, rU)] + cur[wi(cL, r)] + cur[wi(cR, r)] + cur[wi(cL, rD)] + cur[wi(c, rD)] + cur[wi(cR, rD)];
+          const w = wi(c, r), alive = cur[w];
+          nxt[w] = (n === 3 || (alive && n === 2)) ? 1 : 0;
+        }
+      }
+    } else {
+      for (let y = 0; y < WH; y++) {
+        const up = y > 0, dn = y < WH - 1, row = y * WW;
+        for (let x = 0; x < WW; x++) {
+          const i = row + x, lf = x > 0, rt = x < WW - 1;
+          let n = 0;
+          if (up) { n += cur[i - WW]; if (lf) n += cur[i - WW - 1]; if (rt) n += cur[i - WW + 1]; }
+          if (dn) { n += cur[i + WW]; if (lf) n += cur[i + WW - 1]; if (rt) n += cur[i + WW + 1]; }
+          if (lf) n += cur[i - 1]; if (rt) n += cur[i + 1];
+          nxt[i] = (n === 3 || (cur[i] && n === 2)) ? 1 : 0;
+        }
+      }
+      // the absorbing edge: gliders that leave the visible cloth are unravelled here
+      for (let y = 0; y < WH; y++) for (let x = 0; x < WW; x++) {
+        if (x < K || y < K || x >= WW - K || y >= WH - K) nxt[y * WW + x] = 0;
+      }
+    }
+    for (let i = 0; i < cur.length; i++) age[i] = nxt[i] ? (cur[i] ? Math.min(age[i] + 1, 60000) : 0) : 0;
+    const t = cur; cur = nxt; nxt = t;
+    gen++;
+    if (colorMode === 'age') refreshKeys(false);
+    afterStep();
+  }
+
+  function visibleHash() {
+    let h = 2166136261 >>> 0;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      if (cur[wi(c, r)]) { h ^= (r * 131 + c * 7 + 1); h = Math.imul(h, 16777619) >>> 0; }
+    }
+    return h;
+  }
+  function population() { let p = 0; for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) p += cur[wi(c, r)]; return p; }
+
+  const statusEl = $('#status'), rowNumEl = $('#rowNum');
+  let lastStatus = '', holdStatus = 0;
+  function setStatus(html, hold) {
+    const now = performance.now();
+    if (!hold && now < holdStatus) return;
+    if (hold) holdStatus = now + hold;
+    if (html !== lastStatus) { statusEl.innerHTML = html; lastStatus = html; }
+  }
+  function afterStep() {
+    const h = visibleHash();
+    hashes.unshift(h); if (hashes.length > 64) hashes.pop();
+    const period = updateStatus();
+    counterDirty = true;
+    tug = Math.min(1, tug + 0.55);
+    if (soundOn) needleClick();
+    // left alone, the page daydreams: once the cloth has settled for a while it casts on a new mirrored motif
+    settledGens = (period > 0 && period <= 3) || population() === 0 ? settledGens + 1 : 0;
+    if (!userTouched && settledGens > 90) { settledGens = 0; randomise(); setStatus('<i>Woolgathering…</i> a new motif drifts onto the needles.', 3500); }
+  }
+  let settledGens = 0, userTouched = false;
+  function updateStatus() {
+    const pop = population();
+    let msg, period = 0;
+    if (pop === 0) msg = gen === 0 ? 'An empty needle. Draw a few stitches, or choose a motif.' : 'The cloth is plain again: every stitch has slipped back to the ground colour.';
+    else {
+      for (let p = 1; p < hashes.length; p++) if (hashes[p] === hashes[0]) { period = p; break; }
+      const st = '<b>' + pop + '</b> stitches in yarn';
+      if (period === 1) msg = st + ' · settled into a still life.';
+      else if (period > 1) msg = st + ' · repeating every ' + period + ' rows.';
+      else msg = st + ' · still changing.';
+    }
+    setStatus(msg);
+    rowNumEl.textContent = String(gen).padStart(4, '0');
+    return period;
+  }
+  function resetHistory() { hashes = [visibleHash()]; counterDirty = true; updateStatus(); }
+
+  /* ---------------- placement ---------------- */
+  function clearWorld() { cur.fill(0); age.fill(0); }
+  function stamp(pat, c0, r0, transpose) {
+    for (let y = 0; y < pat.length; y++) for (let x = 0; x < pat[y].length; x++) {
+      if (pat[y][x] !== 'O') continue;
+      const c = c0 + (transpose ? y : x), r = r0 + (transpose ? x : y);
+      if (c < -M + K || r < -M + K || c >= cols + M - K || r >= rows + M - K) continue;
+      cur[wi(c, r)] = 1; age[wi(c, r)] = 0;
+    }
+  }
+  function setWrap(v) {
+    wrap = v; $('#wrap').checked = v;
+    if (wrap) { // clear the hidden margin so nothing lurks outside the tube
+      for (let y = 0; y < WH; y++) for (let x = 0; x < WW; x++) {
+        if (x < M || y < M || x >= WW - M || y >= WH - M) { cur[y * WW + x] = 0; age[y * WW + x] = 0; }
+      }
+    }
+    updateCaption();
+  }
+  function loadPreset(name) {
+    clearWorld(); gen = 0;
+    const cx = (cols - 1) / 2, cy = (rows - 1) / 2;
+    if (name === 'glider') {
+      setWrap(true);
+      const flock = [[0, 0], [7, 3], [3, 9], [12, 11], [9, -5], [16, 4]];
+      const ox = Math.round(cols * 0.18), oy = Math.round(rows * 0.2);
+      flock.forEach(([dx, dy], k) => {
+        // two phases of the same south-east glider, so the flock flaps out of step
+        stamp(k % 2 ? ['O.O', '.OO', '.O.'] : PAT.glider, ox + dx, oy + dy, false);
+      });
+    } else if (name === 'pulsar') {
+      setWrap(false);
+      stamp(PAT.pulsar, Math.round(cx - 6), Math.round(cy - 6), false);
+      if (cols >= 55) { stamp(PAT.pulsar, Math.round(cx - 6 - 18), Math.round(cy - 6), false); stamp(PAT.pulsar, Math.round(cx - 6 + 18), Math.round(cy - 6), false); }
+      else if (rows >= 55) { stamp(PAT.pulsar, Math.round(cx - 6), Math.round(cy - 6 - 18), false); stamp(PAT.pulsar, Math.round(cx - 6), Math.round(cy - 6 + 18), false); }
+    } else if (name === 'gun') {
+      setWrap(false);
+      if (cols >= 40) stamp(PAT.gun, 2, 2, false);
+      else stamp(PAT.gun, 2, 1, true);   // mirrored along the diagonal so it fits a narrow cloth
+    } else if (name === 'snow') {
+      setWrap(false);
+      stamp(PAT.snow, Math.round(cx - 7), Math.round(cy - 7), false);
+    }
+    refreshKeys(true); resetHistory(); markDirty();
+  }
+  function randomise() {
+    clearWorld(); gen = 0;
+    const rnd = mulberry((Math.random() * 1e9) | 0);
+    const hc = Math.floor(cols / 2), hr = Math.floor(rows / 2);
+    const cw2 = Math.floor(hc * 0.78), ch2 = Math.floor(hr * 0.78);
+    const dens = 0.28 + rnd() * 0.12;
+    for (let r = 0; r <= ch2; r++) for (let c = 0; c <= cw2; c++) {
+      if (rnd() > dens) continue;
+      const pts = [[hc + c, hr + r], [hc - c, hr + r], [hc + c, hr - r], [hc - c, hr - r]];
+      for (const [x, y] of pts) if (x >= 0 && y >= 0 && x < cols && y < rows) { cur[wi(x, y)] = 1; }
+    }
+    refreshKeys(true); resetHistory(); markDirty();
+  }
+  function clearAll() { clearWorld(); gen = 0; refreshKeys(true); resetHistory(); markDirty(); }
+  function setCell(c, r, v) {
+    const w = wi(c, r);
+    if (cur[w] === v) return;
+    cur[w] = v; age[w] = 0;
+    const i = r * cols + c;
+    keyArr[i] = colorMode === 'bands' ? rowKey[r] : ageKey(0);
+    hashes = [visibleHash()];
+    updateStatus(); markDirty();
+  }
+
+  /* ---------------- canvas geometry ---------------- */
+  const cv = $('#knit'), ctx = cv.getContext('2d');
+  const slot = $('#slot'), hanging = $('#hanging');
+  let dpr = 1, cw = 15, ch = 11.7, CW = 0, CH = 0, fx = 0, fy = 0, fw = 0, fh = 0;
+  let PAD = { l: 18, r: 18, t: 30, b: 42 };
+  let needleY = 0;
+  let sprites = [], staticCv = null, drapeCv = null, haloCv = null, haloCtx = null, haloImg = null;
+
+  function fold(u) {
+    const T = Math.PI * 2;
+    return 0.55 * Math.sin(u * T * 2.2 + 0.6) + 0.3 * Math.sin(u * T * 4.7 + 2.3) + 0.15 * Math.sin(u * T * 9.3 + 1.1);
+  }
+  const odd = (n) => (n % 2 ? n : n - 1);
+
+  function layout() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    const phone = window.innerWidth < 720;
+    PAD = phone ? { l: 10, r: 10, t: 26, b: 30 } : { l: 18, r: 18, t: 30, b: 42 };
+    const avail = Math.max(200, slot.clientWidth);
+    const target = phone ? 10.8 : 18;
+    let nc = odd(Math.max(21, Math.floor((avail - PAD.l - PAD.r) / target)));
+    cw = Math.min(20, (avail - PAD.l - PAD.r) / nc);
+    ch = cw * 0.78;
+    let hTarget;
+    if (phone) hTarget = Math.min(window.innerHeight * 0.52, 400);
+    else if (window.innerWidth < 1060) hTarget = Math.min(560, Math.max(360, window.innerHeight * 0.6));
+    else hTarget = Math.max(380, Math.min(640, window.innerHeight - 385));
+    let nr = odd(Math.max(25, Math.floor(hTarget / ch)));
+    if (nc !== cols || nr !== rows) allocate(nc, nr);
+    fw = cols * cw; fh = rows * ch;
+    CW = Math.ceil(fw + PAD.l + PAD.r); CH = Math.ceil(fh + PAD.t + PAD.b);
+    fx = (CW - fw) / 2; fy = PAD.t; needleY = PAD.t - (phone ? 9 : 12);
+    cv.style.width = CW + 'px'; cv.style.height = CH + 'px';
+    cv.width = Math.round(CW * dpr); cv.height = Math.round(CH * dpr);
+    // per-stitch irregularity and hem drape
+    const rnd = mulberry(1307);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const i = r * cols + c;
+      varArr[i] = (rnd() * 4) | 0;
+      const u = (c + 0.5) / cols, v = (r + 0.5) / rows;
+      offX[i] = (rnd() - 0.5) * cw * 0.05;
+      offY[i] = (rnd() - 0.5) * ch * 0.05 + fold(u) * ch * 0.42 * Math.pow(v, 1.6);
+    }
+    buildSprites(); buildStatic(); buildDrape(); buildHalo(); layoutRig(); buildCounter(); drawMotifIcons(); updateCaption();
+    markDirty();
+  }
+
+  /* ---------------- stitch sprites ---------------- */
+  function makeSprite(hex, w, h, seed) {
+    const rnd = mulberry(seed);
+    const sw = w * 1.7, sh = h * 2.4, ax = sw / 2, ay = h * 1.08;
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(sw * dpr); c.height = Math.ceil(sh * dpr);
+    const x = c.getContext('2d');
+    x.scale(dpr, dpr);
+    const dark = deepen(hex, 0.36), mid = deepen(hex, 0.1), light = shade(hex, 0.3), fuzz = shade(hex, 0.45);
+    const tilt = (rnd() - 0.5) * 0.09, fat = 1 + (rnd() - 0.5) * 0.07, tone = (rnd() - 0.5) * 0.06;
+    const base = shade(hex, tone);
+    for (const side of [-1, 1]) {
+      const bx = side * w * 0.03, by = h * 0.47, tx = side * w * 0.41, ty = -h * 0.74;
+      const mx = (bx + tx) / 2, my = (by + ty) / 2, len = Math.hypot(tx - bx, ty - by);
+      const ang = Math.atan2(tx - bx, -(ty - by)) + tilt * side;
+      const rx = w * 0.255 * fat, ry = len * 0.53;
+      x.save();
+      x.translate(ax + mx, ay + my); x.rotate(ang);
+      x.beginPath(); x.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+      x.shadowColor = 'rgba(25,12,2,.5)'; x.shadowBlur = 2.4 * dpr; x.shadowOffsetY = 0.9 * dpr; x.shadowOffsetX = 0.3 * dpr * side;
+      x.fillStyle = mid; x.fill();
+      x.shadowColor = 'transparent';
+      const g1 = x.createLinearGradient(-rx, 0, rx, 0);
+      g1.addColorStop(0, dark); g1.addColorStop(0.26, base); g1.addColorStop(side < 0 ? 0.5 : 0.58, light); g1.addColorStop(0.8, base); g1.addColorStop(1, dark);
+      x.fillStyle = g1; x.fill();
+      const g2 = x.createLinearGradient(0, -ry, 0, ry);
+      g2.addColorStop(0, 'rgba(40,18,4,.46)'); g2.addColorStop(0.24, 'rgba(40,18,4,0)'); g2.addColorStop(0.72, 'rgba(40,18,4,0)'); g2.addColorStop(1, 'rgba(40,18,4,.3)');
+      x.fillStyle = g2; x.fill();
+      // plies twisting around the strand
+      x.save(); x.clip();
+      const lw = Math.max(0.45, w * 0.045);
+      x.lineWidth = lw;
+      for (let k = -4; k <= 4; k++) {
+        const yy = k * ry * 0.24 + (rnd() - 0.5) * ry * 0.06;
+        x.strokeStyle = 'rgba(20,8,0,.17)';
+        x.beginPath(); x.moveTo(-rx, yy + rx * 0.8); x.lineTo(rx, yy - rx * 0.8); x.stroke();
+        x.strokeStyle = 'rgba(255,250,236,.15)';
+        x.beginPath(); x.moveTo(-rx, yy + rx * 0.8 + lw * 1.3); x.lineTo(rx, yy - rx * 0.8 + lw * 1.3); x.stroke();
+      }
+      x.restore();
+      // fuzz: loose fibres standing proud of the yarn
+      x.strokeStyle = fuzz; x.lineWidth = 0.5; x.globalAlpha = 0.42;
+      const nf = 7 + ((rnd() * 5) | 0);
+      for (let k = 0; k < nf; k++) {
+        const a = rnd() * Math.PI * 2;
+        const px = Math.cos(a) * rx * 0.96, py = Math.sin(a) * ry * 0.96;
+        let nx = Math.cos(a) / rx, ny = Math.sin(a) / ry; const nl = Math.hypot(nx, ny); nx /= nl; ny /= nl;
+        const L = (0.9 + rnd() * 2.4) * (w / 15);
+        x.beginPath(); x.moveTo(px, py);
+        x.quadraticCurveTo(px + nx * L * 0.6 + (rnd() - 0.5) * L, py + ny * L * 0.6 + (rnd() - 0.5) * L, px + nx * L + (rnd() - 0.5) * L * 0.8, py + ny * L + (rnd() - 0.5) * L * 0.8);
+        x.stroke();
+      }
+      x.globalAlpha = 1;
+      x.restore();
+    }
+    return { cv: c, w: sw, h: sh, ax, ay };
+  }
+  function buildSprites() {
+    const cols4 = [pal.g, pal.a, pal.b, pal.c, pal.g2];
+    sprites = cols4.map((hex, k) => [0, 1, 2, 3].map((v) => makeSprite(hex, cw, ch, 97 + k * 31 + v * 7)));
+  }
+
+  /* ---------------- static cloth layer (shadow, gaps, cast-on loops) ---------------- */
+  function fabricPath(x) {
+    x.beginPath();
+    x.moveTo(fx - cw * 0.12, fy - ch * 0.35);
+    x.lineTo(fx + fw + cw * 0.12, fy - ch * 0.35);
+    const last = rows - 1;
+    x.lineTo(fx + fw + cw * 0.12, fy + fh + offY[last * cols + cols - 1] - ch * 0.1);
+    for (let c = cols - 1; c >= 0; c--) {
+      const oy = offY[last * cols + c];
+      x.lineTo(fx + (c + 0.5) * cw, fy + fh + oy + ch * 0.22);
+    }
+    x.lineTo(fx - cw * 0.12, fy + fh + offY[last * cols] - ch * 0.1);
+    x.closePath();
+  }
+  function buildStatic() {
+    staticCv = staticCv || document.createElement('canvas');
+    staticCv.width = cv.width; staticCv.height = cv.height;
+    const x = staticCv.getContext('2d');
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, CW, CH);
+    const gap = deepen(pal.g, palIdx === 3 ? 0.55 : 0.42);
+    x.save();
+    fabricPath(x);
+    x.shadowColor = 'rgba(62,34,12,.38)'; x.shadowBlur = 22 * dpr; x.shadowOffsetX = 7 * dpr; x.shadowOffsetY = 14 * dpr;
+    x.fillStyle = gap; x.fill();
+    x.restore();
+    fabricPath(x); x.fillStyle = gap; x.fill();
+    // loops sitting on the needle (their fronts are drawn in SVG over the needle)
+    const lr = Math.max(4, cw * 0.36);
+    x.lineWidth = Math.max(2, cw * 0.2);
+    x.strokeStyle = deepen(pal.g, 0.3);
+    for (let c = 0; c < cols; c++) {
+      const cx = fx + (c + 0.5) * cw;
+      x.beginPath(); x.ellipse(cx, needleY + 1.5, lr, (fy - needleY) * 0.95 + 2, 0, 0, Math.PI * 2); x.stroke();
+    }
+  }
+
+  /* ---------------- drape shading ---------------- */
+  function buildDrape() {
+    const q = 3;
+    const w = Math.max(8, Math.ceil(fw / q)), h = Math.max(8, Math.ceil((fh + ch) / q));
+    drapeCv = drapeCv || document.createElement('canvas');
+    drapeCv.width = w; drapeCv.height = h;
+    const x = drapeCv.getContext('2d');
+    const img = x.createImageData(w, h), d = img.data;
+    const gl = hexRgb(pal.g), lum = (gl[0] * 0.3 + gl[1] * 0.59 + gl[2] * 0.11) / 255;
+    const lightK = lum < 0.4 ? 0.3 : 1;    // a sheen on dark navy wool is far subtler than on cream
+    for (let py = 0; py < h; py++) {
+      const v = py / h;
+      const depth = 0.3 + 0.7 * Math.pow(v, 1.15);
+      for (let px = 0; px < w; px++) {
+        const u = px / w;
+        const slope = (fold(u + 0.004) - fold(u - 0.004)) / 0.008;   // surface facing the window (left) is lit
+        let net = -slope * depth * 0.021;
+        net -= Math.max(0, 1 - v / 0.07) * 0.2;                        // shade tucked under the needle
+        net -= v * 0.05;                                               // heavier toward the hem
+        const edge = Math.min(u, 1 - u);
+        if (edge < 0.025) net -= (1 - edge / 0.025) * 0.16;            // selvedges curl a little
+        net += (1 - u) * 0.04 - 0.02;                                  // light falls from the left
+        const k = (py * w + px) * 4;
+        if (net >= 0) { d[k] = 255; d[k + 1] = 248; d[k + 2] = 232; d[k + 3] = Math.min(255, net * lightK * 255); }
+        else { d[k] = 42; d[k + 1] = 20; d[k + 2] = 6; d[k + 3] = Math.min(255, -net * 255); }
+      }
+    }
+    x.putImageData(img, 0, 0);
+  }
+  function buildHalo() {
+    haloCv = haloCv || document.createElement('canvas');
+    haloCv.width = cols; haloCv.height = rows;
+    haloCtx = haloCv.getContext('2d');
+    haloImg = haloCtx.createImageData(cols, rows);
+  }
+  let rgbKeys = [];
+  function updateRgbKeys() { rgbKeys = [pal.g, pal.a, pal.b, pal.c].map(hexRgb); }
+
+  /* ---------------- render ---------------- */
+  let dirty = true, hover = null, kbCursor = null, intro = null;
+  function markDirty() { dirty = true; }
+  function easeOutBack(t) { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+
+  function render(now) {
+    const x = ctx;
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.clearRect(0, 0, CW, CH);
+    let reveal = rows + 1;
+    if (intro !== null) {
+      reveal = (now - intro) / 22;
+      if (reveal > rows + 12) { intro = null; reveal = rows + 1; }
+    }
+    x.save();
+    if (reveal <= rows) { x.beginPath(); x.rect(0, 0, CW, fy + Math.max(0, reveal) * ch + ch); x.clip(); }
+    x.drawImage(staticCv, 0, 0, CW, CH);
+    x.restore();
+    // halo: coloured fibres peeking between the stitches
+    const d = haloImg.data;
+    for (let i = 0; i < cols * rows; i++) {
+      const v = vis[i], k = i * 4;
+      if (v > 0.01) { const rgb = rgbKeys[keyArr[i]]; d[k] = rgb[0]; d[k + 1] = rgb[1]; d[k + 2] = rgb[2]; d[k + 3] = v * 255; }
+      else d[k + 3] = 0;
+    }
+    haloCtx.putImageData(haloImg, 0, 0);
+    x.imageSmoothingEnabled = true;
+    x.globalAlpha = 0.85; x.drawImage(haloCv, fx, fy, fw, fh); x.globalAlpha = 1;
+
+    for (let r = rows - 1; r >= 0; r--) {
+      const sg = sprites[rowKey[r] === 3 ? 4 : 0];
+      let ra = 1, rdy = 0;
+      if (reveal <= rows) {
+        const t = Math.max(0, Math.min(1, reveal - r));
+        if (t <= 0) continue;
+        ra = t; rdy = (1 - t) * -ch * 0.8;
+      }
+      const cy0 = fy + (r + 0.5) * ch + rdy;
+      if (ra < 1) x.globalAlpha = ra;
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c, v = vis[i], vr = varArr[i];
+        const cx = fx + (c + 0.5) * cw + offX[i], cy = cy0 + offY[i];
+        if (v < 0.985) { const s = sg[vr]; x.drawImage(s.cv, cx - s.ax, cy - s.ay, s.w, s.h); }
+        if (v > 0.015) {
+          const s = sprites[keyArr[i]][vr];
+          if (v < 0.985) {
+            const sc = reduce ? 1 : 0.7 + 0.3 * easeOutBack(v);
+            x.globalAlpha = v * ra;
+            x.drawImage(s.cv, cx - s.ax * sc, cy - s.ay * sc, s.w * sc, s.h * sc);
+            x.globalAlpha = ra;
+          } else x.drawImage(s.cv, cx - s.ax, cy - s.ay, s.w, s.h);
+        }
+      }
+      x.globalAlpha = 1;
+    }
+    // mohair halo on top, very faint
+    x.globalAlpha = 0.14; x.drawImage(haloCv, fx, fy, fw, fh); x.globalAlpha = 1;
+    // drape
+    x.save(); fabricPath(x); x.clip();
+    x.drawImage(drapeCv, fx, fy, fw, fh + ch);
+    x.restore();
+    // pointer / keyboard cursor
+    const cur2 = kbCursor || hover;
+    if (cur2) {
+      const i = cur2.r * cols + cur2.c;
+      const cx = fx + (cur2.c + 0.5) * cw + offX[i], cy = fy + (cur2.r + 0.5) * ch + offY[i] - ch * 0.12;
+      x.lineWidth = 2.2; x.strokeStyle = 'rgba(40,20,5,.55)';
+      x.beginPath(); x.ellipse(cx, cy, cw * 0.62, ch * 0.9, 0, 0, Math.PI * 2); x.stroke();
+      x.lineWidth = 1.2; x.strokeStyle = 'rgba(255,250,240,.95)'; x.setLineDash([2.5, 2.5]);
+      x.beginPath(); x.ellipse(cx, cy, cw * 0.62, ch * 0.9, 0, 0, Math.PI * 2); x.stroke(); x.setLineDash([]);
+    }
+  }
+
+  /* ---------------- SVG rig: needle, loop fronts, working yarn ---------------- */
+  const rig = $('#rig'), balls = $('#balls');
+  let rigGeom = null, tug = 0, spin = 0;
+  function layoutRig() {
+    const hr = hanging.getBoundingClientRect(), cr = cv.getBoundingClientRect();
+    const W = hr.width, H = hr.height;
+    rig.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    const ox = cr.left - hr.left, oy = cr.top - hr.top;
+    const phone = window.innerWidth < 720;
+    const ny = oy + needleY, nr = phone ? 3.6 : 4.8;
+    const x0 = ox + fx - (phone ? 16 : 30), x1 = ox + fx + fw + (phone ? 20 : 40);
+    const tip = phone ? 16 : 26;
+    $('#needleBody').setAttribute('d', `M${x0} ${ny - nr} L${x1 - tip} ${ny - nr} Q${x1 - tip * 0.35} ${ny - nr * 0.7} ${x1} ${ny} Q${x1 - tip * 0.35} ${ny + nr * 0.7} ${x1 - tip} ${ny + nr} L${x0} ${ny + nr} Z`);
+    $('#needleGrain').setAttribute('d', `M${x0} ${ny - nr} L${x1 - tip} ${ny - nr} L${x1 - tip} ${ny + nr} L${x0} ${ny + nr} Z`);
+    $('#needleShadow').setAttribute('d', `M${x0 + 4} ${ny + nr * 0.8} L${x1 - tip} ${ny + nr * 0.8} L${x1 - 4} ${ny + nr * 1.9} L${x0 + 4} ${ny + nr * 2.6} Z`);
+    const kr = phone ? 7 : 10;
+    const knob = $('#needleKnob'); knob.setAttribute('cx', x0 - kr * 0.55); knob.setAttribute('cy', ny); knob.setAttribute('r', kr);
+    const hi = $('#knobHi'); hi.setAttribute('cx', x0 - kr * 0.85); hi.setAttribute('cy', ny - kr * 0.4); hi.setAttribute('rx', kr * 0.32); hi.setAttribute('ry', kr * 0.2);
+    // loop fronts: one diagonal strand crossing in front of the needle per stitch
+    const pat = $('#loopPat');
+    pat.setAttribute('width', cw); pat.setAttribute('height', 60);
+    pat.setAttribute('x', ox + fx); pat.setAttribute('y', ny - 30);
+    const lr = cw * 0.36, py = 30;
+    const dFront = `M${cw * 0.5 - lr * 0.95} ${py + nr + 4} C${cw * 0.5 - lr * 0.7} ${py + nr * 0.2}, ${cw * 0.5 + lr * 0.2} ${py - nr * 0.6}, ${cw * 0.5 + lr * 0.75} ${py - nr - 1.5}`;
+    ['#loopBack', '#loopFront'].forEach((id) => $(id).setAttribute('d', dFront));
+    $('#loopHi').setAttribute('d', `M${cw * 0.5 - lr * 0.55} ${py + nr * 0.4} C${cw * 0.5 - lr * 0.2} ${py - nr * 0.3}, ${cw * 0.5 + lr * 0.2} ${py - nr * 0.7}, ${cw * 0.5 + lr * 0.5} ${py - nr - 0.5}`);
+    const sw = Math.max(2.2, cw * 0.21);
+    $('#loopFront').setAttribute('stroke-width', sw); $('#loopBack').setAttribute('stroke-width', sw + 1.2);
+    const lrow = $('#loopRow');
+    lrow.setAttribute('x', ox + fx); lrow.setAttribute('y', ny - nr - 6); lrow.setAttribute('width', fw); lrow.setAttribute('height', nr * 2 + 14);
+    // working yarn from the last stitch to the big ball
+    const br = balls.getBoundingClientRect(), s = br.width / 260;
+    const bx = br.left - hr.left + (160 - 40) * s, by = br.top - hr.top + (96 - 42) * s;
+    rigGeom = { sx: ox + fx + fw - cw * 0.3, sy: ny + nr + 2, ex: bx, ey: by, side: ox + fx + fw + (phone ? 8 : 28) };
+    drawStrand();
+  }
+  function drawStrand() {
+    if (!rigGeom) return;
+    const g = rigGeom, t = tug;
+    const sag = 1 - t * 0.35;
+    const d = `M${g.sx} ${g.sy} C${g.side + 10 * sag} ${g.sy + 30}, ${g.side + 26 * sag} ${g.sy + (g.ey - g.sy) * 0.45}, ${g.side + 8} ${g.sy + (g.ey - g.sy) * (0.72 + 0.04 * t)} S${g.ex + 6} ${g.ey - 26 * sag}, ${g.ex} ${g.ey}`;
+    $('#strand').setAttribute('d', d); $('#strandHi').setAttribute('d', d);
+  }
+
+  /* ---------------- knitted row counter ---------------- */
+  const rowCv = $('#rowCanvas'), rowCtx = rowCv.getContext('2d');
+  const DIG = ['111101101101111', '010110010010111', '111001111100111', '111001111001111', '101101111001001', '111100111001111', '111100111101111', '111001001010010', '111101111101111', '111101111001111'];
+  let counterSprites = null, counterDirty = true, ccw = 16, cch = 12.5;
+  function buildCounter() {
+    const W = Math.max(180, rowCv.clientWidth || 290);
+    ccw = W / 17; cch = ccw * 0.78;
+    const H = Math.round(cch * 7 + cch * 0.9);
+    rowCv.style.height = H + 'px';
+    rowCv.width = Math.round(W * dpr); rowCv.height = Math.round(H * dpr);
+    counterSprites = [pal.g, pal.a, pal.b, pal.c].map((hex, k) => [0, 1].map((v) => makeSprite(hex, ccw, cch, 501 + k * 13 + v)));
+    counterDirty = true;
+  }
+  function drawCounter() {
+    const x = rowCtx, W = rowCv.width / dpr, H = rowCv.height / dpr;
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    x.fillStyle = deepen(pal.g, 0.4); x.fillRect(0, 0, W, H);
+    const s = String(gen % 10000).padStart(4, '0');
+    const top = cch * 0.55;
+    for (let r = 6; r >= 0; r--) {
+      for (let c = 0; c < 17; c++) {
+        let key = 0;
+        if (r === 0 || r === 6) key = 3;
+        else {
+          const cc = c - 1, dg = Math.floor(cc / 4), col = cc % 4;
+          if (c > 0 && c < 16 && col < 3 && dg < 4) {
+            const bit = DIG[+s[dg]][(r - 1) * 3 + col];
+            if (bit === '1') key = 1;
+          }
+        }
+        const sp = counterSprites[key][(c * 7 + r * 3) % 2];
+        x.drawImage(sp.cv, (c + 0.5) * ccw - sp.ax, top + (r + 0.5) * cch - sp.ay, sp.w, sp.h);
+      }
+    }
+    const g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, 'rgba(255,250,235,.12)'); g.addColorStop(0.5, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(40,20,5,.18)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    rowCv.setAttribute('aria-label', 'Knitted row counter showing row ' + gen);
+    counterDirty = false;
+  }
+
+  /* ---------------- motif icons ---------------- */
+  function drawMotifIcons() {
+    document.querySelectorAll('.motif').forEach((btn) => {
+      const c = btn.querySelector('canvas'), x = c.getContext('2d');
+      const p = PAT[btn.dataset.preset];
+      const W = c.width, H = c.height, pw = p[0].length, ph = p.length;
+      const s = Math.min((W - 16) / pw, (H - 14) / ph, 16);
+      const ox = (W - s * pw) / 2, oy = (H - s * ph) / 2;
+      x.clearRect(0, 0, W, H);
+      for (let y = 0; y < ph; y++) for (let i = 0; i < pw; i++) {
+        if (p[y][i] !== 'O') continue;
+        x.fillStyle = y % 2 ? pal.a : shade(pal.a, -0.12);
+        x.beginPath(); x.ellipse(ox + (i + 0.5) * s, oy + (y + 0.5) * s, s * 0.46, s * 0.46, 0, 0, Math.PI * 2); x.fill();
+      }
+    });
+  }
+
+  /* ---------------- palette ---------------- */
+  function applyPalette(idx) {
+    palIdx = idx; pal = PALETTES[idx];
+    const root = document.documentElement.style;
+    root.setProperty('--page', pal.page);
+    root.setProperty('--g', pal.g); root.setProperty('--g-d', shade(pal.g, -0.2));
+    const inkOn = (hex) => hex;
+    [['a', pal.a], ['b', pal.b], ['c', pal.c]].forEach(([k, hex]) => {
+      root.setProperty('--y' + k, inkOn(hex)); root.setProperty('--y' + k + '-d', shade(hex, -0.38)); root.setProperty('--y' + k + '-l', shade(hex, 0.3));
+    });
+    // the title stays legible on the light page even for the pale Midwinter yarn
+    root.setProperty('--ya', idx === 3 ? '#8e2f29' : pal.a);
+    if (idx === 3) { root.setProperty('--ya-d', '#5a1a16'); root.setProperty('--ya-l', '#c8574d'); }
+    $('#loopFront').setAttribute('stroke', pal.g);
+    $('#bandWay').textContent = pal.name;
+    const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', pal.page);
+    updateRgbKeys();
+    if (cols) { buildSprites(); buildStatic(); buildDrape(); buildCounter(); drawMotifIcons(); updateCaption(); markDirty(); }
+  }
+  function updateCaption() {
+    const cap = $('#caption');
+    if (!cap) return;
+    cap.innerHTML = '<strong>' + (wrap ? 'Stockinette, in the round.' : 'Stockinette, flat.') + '</strong> ' + cols + ' stitches × ' + rows + ' rows in ' + pal.name + '. Draw on the fabric to add your own stitches.';
+  }
+
+  /* ---------------- audio: soft needle clicks ---------------- */
+  let actx = null, master = null, noiseBuf = null, soundOn = false, lastClick = 0, clickAlt = false;
+  function ensureAudio() {
+    if (actx) return true;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      actx = new AC();
+      master = actx.createGain(); master.gain.value = 0.5; master.connect(actx.destination);
+      noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.08), actx.sampleRate);
+      const ch0 = noiseBuf.getChannelData(0);
+      for (let i = 0; i < ch0.length; i++) ch0[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ch0.length, 3);
+      return true;
+    } catch (e) { actx = null; return false; }
+  }
+  function needleClick() {
+    if (!actx || !soundOn) return;
+    const nowMs = performance.now();
+    if (nowMs - lastClick < 85) return;
+    lastClick = nowMs; clickAlt = !clickAlt;
+    const t = actx.currentTime + 0.005;
+    const src = actx.createBufferSource(); src.buffer = noiseBuf;
+    const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = clickAlt ? 2400 : 3000; bp.Q.value = 5;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+    src.connect(bp); bp.connect(g); g.connect(master); src.start(t); src.stop(t + 0.08);
+    const o = actx.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(clickAlt ? 720 : 860, t); o.frequency.exponentialRampToValueAtTime(380, t + 0.05);
+    const og = actx.createGain(); og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(0.16, t + 0.004); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    o.connect(og); og.connect(master); o.start(t); o.stop(t + 0.09);
+  }
+
+  /* ---------------- loop ---------------- */
+  let lastT = 0, acc = 0, raf = 0;
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    if (document.hidden) { lastT = now; return; }
+    const dt = Math.min(100, lastT ? now - lastT : 16); lastT = now;
+    if (running && intro === null) {
+      acc += dt;
+      const interval = 1000 / speed;
+      let n = 0;
+      while (acc >= interval && n < 3) { step(); acc -= interval; n++; }
+      if (acc > interval) acc = 0;
+    }
+    // ease every stitch toward its state
+    const interval = 1000 / speed;
+    const settle = reduce ? 0 : Math.min(190, interval * 0.8);
+    const k = settle <= 0 ? 1 : 1 - Math.exp(-dt / (settle / 3.2));
+    let moving = false;
+    const introRow = intro !== null ? (now - intro) / 22 : rows + 1;
+    for (let r = 0; r < rows; r++) {
+      if (r > introRow - 2) continue;
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c, target = cur[wi(c, r)];
+        const v = vis[i];
+        if (v !== target) {
+          let nv = v + (target - v) * k;
+          if (Math.abs(target - nv) < 0.01) nv = target;
+          vis[i] = nv; moving = true;
+        }
+      }
+    }
+    if (tug > 0.001) { tug *= Math.pow(0.9, dt / 16); spin += tug * dt * 0.02; drawStrand(); if (!reduce) spinEl.setAttribute('transform', 'rotate(' + spin.toFixed(2) + ' 160 96)'); }
+    if (counterDirty) drawCounter();
+    if (moving || dirty || intro !== null) { render(now); dirty = false; }
+  }
+  const spinEl = $('#spinA');
+
+  /* ---------------- pointer drawing ---------------- */
+  let painting = false, paintVal = 1, lastCell = null;
+  function cellAt(e) {
+    const r = cv.getBoundingClientRect();
+    const x = e.clientX - r.left - fx, y = e.clientY - r.top - fy;
+    const c = Math.floor(x / cw), rr = Math.floor(y / ch);
+    if (c < 0 || rr < 0 || c >= cols || rr >= rows) return null;
+    return { c, r: rr };
+  }
+  function paintLine(a, b) {
+    let x0 = a.c, y0 = a.r; const x1 = b.c, y1 = b.r;
+    const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+    let err = dx + dy;
+    for (let guard = 0; guard < 400; guard++) {
+      setCell(x0, y0, paintVal);
+      if (x0 === x1 && y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 >= dy) { err += dy; x0 += sx; }
+      if (e2 <= dx) { err += dx; y0 += sy; }
+    }
+  }
+  cv.addEventListener('pointerdown', (e) => {
+    const cell = cellAt(e);
+    if (!cell) return;
+    e.preventDefault();
+    kbCursor = null;
+    painting = true; paintVal = cur[wi(cell.c, cell.r)] ? 0 : 1; lastCell = cell;
+    try { cv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    setCell(cell.c, cell.r, paintVal);
+  });
+  cv.addEventListener('pointermove', (e) => {
+    const cell = cellAt(e);
+    if (e.pointerType === 'mouse') { hover = cell; markDirty(); }
+    if (painting && cell && lastCell && (cell.c !== lastCell.c || cell.r !== lastCell.r)) { paintLine(lastCell, cell); lastCell = cell; }
+  });
+  const endPaint = () => { painting = false; lastCell = null; };
+  cv.addEventListener('pointerup', endPaint);
+  cv.addEventListener('pointercancel', endPaint);
+  cv.addEventListener('pointerleave', () => { hover = null; markDirty(); });
+  cv.addEventListener('keydown', (e) => {
+    const moves = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+    if (moves[e.key]) {
+      e.preventDefault();
+      if (!kbCursor) kbCursor = { c: (cols - 1) / 2, r: (rows - 1) / 2 };
+      else { kbCursor = { c: Math.max(0, Math.min(cols - 1, kbCursor.c + moves[e.key][0])), r: Math.max(0, Math.min(rows - 1, kbCursor.r + moves[e.key][1])) }; }
+      markDirty();
+    } else if (e.key === 'Enter' && kbCursor) {
+      e.preventDefault();
+      setCell(kbCursor.c, kbCursor.r, cur[wi(kbCursor.c, kbCursor.r)] ? 0 : 1);
+    }
+  });
+  cv.addEventListener('blur', () => { kbCursor = null; markDirty(); });
+
+  /* ---------------- controls ---------------- */
+  const playBtn = $('#playBtn');
+  function setRunning(v) {
+    running = v; acc = 0;
+    playBtn.setAttribute('aria-pressed', String(v));
+    playBtn.setAttribute('aria-label', v ? 'Pause knitting' : 'Start knitting');
+  }
+  playBtn.addEventListener('click', () => setRunning(!running));
+  $('#stepBtn').addEventListener('click', () => { setRunning(false); intro = null; step(); });
+  const speedEl = $('#speed'), speedOut = $('#speedOut');
+  function setSpeed(v) { speed = v; speedOut.textContent = v + (v === 1 ? ' row a second' : ' rows a second'); }
+  speedEl.addEventListener('input', () => setSpeed(+speedEl.value));
+  $('#randBtn').addEventListener('click', () => { intro = null; randomise(); });
+  $('#clearBtn').addEventListener('click', () => { intro = null; clearAll(); });
+  document.querySelectorAll('.motif').forEach((b) => b.addEventListener('click', () => { intro = null; loadPreset(b.dataset.preset); setRunning(true); }));
+  document.querySelectorAll('input[name="way"]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { applyPalette(+r.value); try { localStorage.setItem('woolgathering-way', r.value); } catch (e) { /* storage unavailable */ } } }));
+  $('#wrap').addEventListener('change', (e) => { setWrap(e.target.checked); resetHistory(); });
+  document.querySelectorAll('input[name="cmode"]').forEach((r) => r.addEventListener('change', () => { if (r.checked) { colorMode = r.value; refreshKeys(true); markDirty(); } }));
+  const soundBtn = $('#soundBtn');
+  soundBtn.addEventListener('click', () => {
+    if (!soundOn) { if (!ensureAudio()) return; if (actx.state === 'suspended') actx.resume(); }
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    $('#soundLbl').textContent = soundOn ? 'On' : 'Off';
+    $('#waveIcon').style.opacity = soundOn ? '1' : '.25';
+    if (soundOn) { lastClick = 0; needleClick(); }
+  });
+  $('#waveIcon').style.opacity = '.25';
+
+  document.addEventListener('pointerdown', (e) => { if (e.target.closest && e.target.closest('#controls, #knit')) { userTouched = true; holdStatus = 0; } });
+  document.addEventListener('keydown', (e) => {
+    userTouched = true;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const t = e.target, tag = t && t.tagName;
+    const inControl = tag === 'INPUT' || tag === 'BUTTON' || tag === 'SELECT' || tag === 'TEXTAREA';
+    if (e.key === ' ' && !inControl) { e.preventDefault(); setRunning(!running); return; }
+    if (tag === 'INPUT' && t.type === 'range') return;
+    const k = e.key.toLowerCase();
+    if (k === 'n' || k === '.') { setRunning(false); intro = null; step(); }
+    else if (k === 'r') { intro = null; randomise(); }
+    else if (k === 'c') { intro = null; clearAll(); }
+    else if (['1', '2', '3', '4'].includes(k)) { intro = null; loadPreset(['glider', 'pulsar', 'gun', 'snow'][+k - 1]); setRunning(true); }
+  });
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(layout, 60); });
+  if (mqReduce.addEventListener) mqReduce.addEventListener('change', (e) => { reduce = e.matches; });
+  document.addEventListener('visibilitychange', () => { lastT = 0; });
+
+  /* ---------------- boot ---------------- */
+  let saved = 0;
+  try { const s = localStorage.getItem('woolgathering-way'); if (s !== null && PALETTES[+s]) saved = +s; } catch (e) { saved = 0; }
+  const radio = document.getElementById('way' + saved); if (radio) radio.checked = true;
+  applyPalette(saved);
+  if (reduce) { setSpeed(3); speedEl.value = 3; } else setSpeed(8);
+  layout();
+  loadPreset('snow');
+  intro = reduce ? null : performance.now() + 120;
+  if (reduce) for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) vis[r * cols + c] = cur[wi(c, r)];
+  raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+TITLE: Fridge Verse — Magnetic Poetry
+FILE: 064-magnetic-poetry.html
+
+=== PROMPT (exact prompt used) ===
+Build "Fridge Verse — Magnetic Poetry", a tactile word-magnet toy. A large enamel fridge door (subtle vertical gradient #eef0f2 with faint metallic noise and a chrome handle at the side) holding about 120 word magnets: small white tiles (#fffdf7) with a slight drop shadow and a serif word, each rotated slightly at random, a few coloured (pale pink, mint, butter) for flair. Choose a vocabulary (nouns, verbs, adjectives, suffixes -s, -ing, -ed) that makes poetic combinations likely. Dragging a magnet gives a pleasing lift (shadow grows, slight rotation) and a snap back onto the door; magnets may overlap. Features: a "Shake" button that scatters magnets with physics; theme packs (Love, Ocean, Space, Kitchen); a poem detector that reads tiles arranged in lines left to right and shows the current poem in a small card you can copy; a few decorative fridge items (a drawn polaroid picture, a fruit magnet). Persist positions in localStorage. Typography: classic serif tiles with a rounded sans for the UI.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"Fridge Verse" puts you nose to nose with a kitchen fridge. A tall enamel door (a #eef0f2 vertical gradient with faint metallic noise and a sweeping sheen) stands against a sage subway-tile wall, with a freezer compartment and a chrome seam across the top. A chunky chrome handle stands off the right side and casts its shadow on the door. About 125 word magnets cling to the door: small #fffdf7 tiles set in a classic Times-style serif, each tilted slightly, with a few pale pink, mint and butter tiles for flair. The rest of the fridge carries its own clutter: a drawn polaroid of a seaside sunset pinned by a red dome magnet, a glossy strawberry and a lemon-slice magnet. A ruled index card held by a blue magnet always shows the poem currently arranged on the door, ready to copy. The toolbar in the freezer strip is set in a rounded sans. It holds the theme packs (Love, Ocean, Space, Kitchen), a chunky red Shake button, Tidy and a sound toggle.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- The enamel door is built from layered gradients, with a diagonal specular sheen and a canvas-generated speckle-and-brushing noise layer multiplied on top. The chrome seam, handle bar and feet are multi-stop metallic gradients with a hot highlight streak and a cast shadow
+- The subway-tile wall is drawn entirely from offset repeating CSS gradients
+- Word tiles use a paper-white gradient, a 1 px "magnet thickness" edge and a soft two-layer shadow. When lifted, the shadow deepens into a tall stacked drop shadow and the tile scales up. When dropped, it snaps back with an overshooting cubic-bezier
+- Colour variants and suffix or punctuation tiles are styled distinctly: suffixes are italic, and pastel tiles are chosen by a stable hash so the door looks the same on every visit
+- The inline SVG decorations include a polaroid scene (gradient sky, sun path on water, sailboat, gulls, walker, film vignette) with a handwritten-style caption, a strawberry with gradient body, seeds, leaves and gloss, and a lemon slice with procedurally drawn segments
+- Scatter layout: staggered, jittered rows with gaps wider than the poem-reader's threshold, so the random clutter never reads as a line. Reserved zones keep the handle, the decorations, the card and a hand-set starter poem clear
+- The index card has ruled lines and a red margin drawn with gradients, and its poem text sits on the rules. On phones it becomes a fixed bottom sheet that folds away
+
+=== INTERACTION MODEL ===
+- Drag any magnet (mouse or touch, via pointer capture) to lift it. It tilts with your horizontal velocity, rises above everything and clacks back onto the door. Magnets may overlap. The polaroid and fruit magnets can be dragged too
+- Keyboard: every magnet is focusable. Arrow keys nudge it (Shift for bigger steps), and the poem updates after you stop
+- The poem detector links each magnet to its nearest right-hand neighbour on the same baseline, builds lines from those links, then chains lines that sit just below one another into a stanza. It keeps the richest stanza and joins suffixes with light English rules (dance + -ing gives "dancing", spin + -ing gives "spinning", salt + -ed gives "salted", holds, kisses). The result goes on the card
+- "Copy poem" uses the Clipboard API, falls back to execCommand, and finally selects the text with a prompt to press Ctrl+C. Everything is in try/catch
+- Shake rattles the door (a CSS keyframe shake) and throws every magnet with random velocity, spin and a little gravity. They bounce off the edges and around the card, then settle, and the poem is re-read
+- The theme packs swap 40 themed words over 85 shared ones: the old tiles fall away and the new ones drop in with a staggered spring. Each pack starts with its own starter poem
+- Tidy re-lays the current pack. Positions, the theme, the decorations and the sound preference persist in localStorage, stored separately for phone and desktop door sizes
+- Soft magnet "clacks" are synthesized with Web Audio (band-passed noise plus a falling sine thump) and start only on a gesture, with a visible speaker toggle. prefers-reduced-motion disables the shake animation and the spring transitions

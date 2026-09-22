@@ -1,0 +1,39 @@
+TITLE: Loud House Records — Issue 07
+FILE: 006-brutalist-zine.html
+
+=== PROMPT (exact prompt used) ===
+Design "LOUD HOUSE RECORDS — Issue 07", a neo-brutalist web zine for a fictional independent record label. Raw, confident and loud: flat saturated colours (cobalt #1d3cff, electric yellow #ffe600, black #000, off-white #f7f5f0, one hit of hot pink #ff3ea5), 3–4px black borders everywhere, hard offset shadows (8px 8px 0 #000) with no blur, oversized uppercase grotesk headlines, monospace metadata, and a deliberately collaged layout on a visible grid. Sections: a massive masthead with a marquee strip of release names; a "NEW RELEASES" grid of album cards whose covers are generated geometric CSS/SVG art, unique per card; a tracklist table; a tour-dates list with rotated SOLD OUT stamps; and a sign-up box. Interaction: cards physically "press down" on hover/click (shadow collapses, element translates); a sticker you can drag anywhere; a "SHUFFLE COVERS" button that re-rolls the cover art; and a "preview" button that plays a short synthesized drum loop (Web Audio, after a gesture). Must remain highly legible and responsive.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+A neo-brutalist web zine for the fictional label Loud House Records, laid out like a photocopied fanzine pasted onto a visible 32px grid with a numbered 12-column ruler. The masthead collages a giant black "LOUD" (with a pink stroked O that jumps on every kick drum), a tilted cobalt "HOUSE" slab and a yellow "RECORDS" block, all with 4px black borders and hard 8px offset shadows, beside a spinning "Issue 07" roundel, an editor's note and a contents index. Two crossing marquee strips carry the release names; below come six record cards with procedurally generated geometric sleeves, a sticky tracklist with per-track tempos, a yellow tour spread with rubber-stamped SOLD OUT marks, a pink/black sign-up spread and a black back cover. The palette is strictly cobalt #1d3cff, yellow #ffe600, black, off-white #f7f5f0 and one hit of pink #ff3ea5; type is an oversized heavy grotesk stack against uppercase monospace metadata.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- CSS background grid (two 1px linear-gradients) plus a 12-column ruler strip and registration-style collage elements: halftone dot panels (radial-gradient), masking-tape strips, slight per-card rotations driven by a --r custom property
+- Ten seeded SVG cover generators (bullseye, rotated bands, Bauhaus quarter-circle tiles, checkerboard + circle, chevron zigzags, halftone field, giant catalogue numeral, staircase, sine waves, sunburst) drawing only from the five-colour palette with contrast rules; each sleeve carries a catalogue label and a vertical "SLEEVE STYLE · 0xSEED" readout
+- A CSS vinyl record (repeating-radial-gradient grooves, conic sheen, coloured label) hidden behind each sleeve that slides out and spins on hover or while previewing
+- Hard, blur-free box-shadows that collapse when elements are pressed (translate + shadow to 0) for cards, buttons, picker thumbnails and chips
+- Rubber-stamp SOLD OUT marks: double border via border + outline, rotated, multiply-blended and eroded by an inline SVG filter (feTurbulence thresholded into ink holes + slight displacement), slammed in with an overshoot keyframe when scrolled into view
+- Stroked outline display words (-webkit-text-stroke with a solid fallback), a rotating SVG textPath roundel, a CSS-only dual marquee (duplicated track, translateX -50%)
+- A draggable SVG starburst sticker living in a clipped full-page layer so it can never cause horizontal scroll
+- Web Audio drum machine: synthesized kick (pitch-swept sine + click), snare (noise + triangle body), 3-burst clap, closed/open hats (high-passed noise), rim and a filtered saw bassline, scheduled with a look-ahead clock and per-release 16-step patterns with swing
+
+=== INTERACTION MODEL ===
+- Cards physically press down: hover shifts them 3px and shrinks the shadow, pointer-down drives them flush to the page; clicking a card (or Enter/Space when focused) loads its tracklist
+- "Shuffle covers" (or the S key) re-rolls every sleeve with new seeds and styles, flipping each sleeve in 3D with a stagger and bumping the "Pressing #" counter; the tracklist art, picker thumbnails and player update to match
+- "Preview" plays an 8-bar synthesized drum loop in that release's tempo and pattern; the floating player shows the sleeve, a 16-step LED sequencer lit in time with the audio clock, a progress bar, mute and stop; the playing card's sleeve, the Issue 07 roundel and the pink O thump on every kick
+- Tracklist: six sleeve thumbnails switch releases; every row has its own ▶ that plays the loop at that track's BPM; totals and runtime are computed from the track lengths
+- The PLAY IT LOUD! sticker drags anywhere with mouse or touch (it leans with the drag velocity and slaps down with a sound); arrow keys move it, Enter/double-click re-angles it; its position persists in localStorage (guarded)
+- Sign-up form validates the email, shakes on error, and on success slams a YOU'RE IN! stamp (nothing is sent; only a flag is stored); genre chips are real checkboxes
+- Global SOUND ON/OFF toggle in the top bar (persisted), Esc stops a preview, audio stops when the tab is hidden; ticket buttons answer with a toast; reduced-motion removes marquees, spins and stamp animations

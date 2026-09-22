@@ -1,0 +1,43 @@
+TITLE: Mythic — Holographic Card
+FILE: 032-holographic-card.html
+
+=== PROMPT (exact prompt used) ===
+Create "MYTHIC — Holographic Card", a premium collectible trading card with realistic holographic foil. One large card centred on a dark velvet background (#0e0b16 with a soft spotlight). The card art depicts an original creature, "Lumidrake, the Prism Wyrm", composed entirely of SVG shapes: a stylised crystalline dragon silhouette over a starburst. The foil: layered conic/linear rainbow gradients with color-dodge/overlay blend modes, a procedural glitter texture, and a diagonal glare band — all driven by pointer position so the rainbow shifts and the glare slides as the card tilts in 3D (rotateX/Y with spring easing and perspective). An embossed frame, a stat block (ATK/DEF, rarity stars), italic-serif flavour text and a set number "077/250". Interaction: pointer tilt (touch-drag on mobile); click to flip the card to its patterned back; a "Pack opening" button plays a short sequence in which a foil pack tears open and the card slides out with a flash. Foil palette: iridescent pastels over deep indigo art.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+MYTHIC is a fictional trading-card game. The page presents a single Holo Rare, Lumidrake, the Prism Wyrm (No. 077/250 from the invented Prism Tide set), like a museum piece under a soft purple spotlight on dark velvet (#0e0b16). The card is a real 3D object: it sways gently on its own, tilts toward the pointer on a damped spring, lifts as it flips to a guilloche-patterned back, and every foil layer reads its live rotation. The art is entirely SVG and mostly procedural. A faceted crystal dragon (a Catmull-Rom spine extruded into lit triangle facets, with shard wings, back spikes, horns and claws) sits over a forty-ray starburst, with a white beam entering its chest and leaving as a seven-colour spectrum, all on deep indigo. Around it is an embossed silver-pastel frame, engraved name and type plates, a pearl text box with an ability and an italic serif flavour line, ATK/DEF plaques, five rarity stars and the set number. Side plaques in a spaced serif and a floating pill toolbar complete the gallery setting.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- CSS 3D card: perspective, preserve-3d, two backface-hidden faces; rotateX/rotateY, flip and lift all driven by spring physics in requestAnimationFrame
+- The live rotation is converted into CSS custom properties (--px, --py, --hyp, --bp) on each face (mirrored on the back), so every foil layer moves with the tilt
+- Frame foil: a silver metallic gradient multiplied by a travelling pastel rainbow, plus an overlay cross-hatch "etched" texture
+- Art holo: repeating rainbow bands hard-light blended with diagonal etch stripes and applied with mix-blend-mode color-dodge; its strength follows how far the card is tilted
+- Glitter: two procedurally generated sparkle sheets (canvas to data URI) with parallax offsets so they twinkle against each other, radially masked around the light point
+- Diagonal glare band (soft-light) that slides across the card, plus an overlay radial glare hotspot
+- Foil lettering: the name is a clipped gradient that shifts with the tilt; the plates are embossed with layered inset and outset shadows
+- Procedural SVG: faceted wyrm with hue running from cyan to pink along the body, wings and horns, starburst, star field and spectrum fan; the back uses parametric rosette (guilloche) curves and a sine-wave border
+- Velvet room: a canvas-made nap texture in overlay blend, vignette, a blurred spotlight cone, dust motes that brighten inside the beam, a blurred conic rainbow halo behind the card and a contact shadow that shifts with the tilt
+- Booster pack in the same foil language, with crimped edges and one shared jagged tear line (clip-path polygons); the Web Animations API runs the enter, shake, tear, rise, flash and settle
+- Sparkle burst particles (pooled) on the flash, and a few sparkles on each flip
+
+=== INTERACTION MODEL ===
+- Mouse: move over the card to tilt it; the foil, glitter, glare and halo all respond. After a short pause the card returns to a slow idle sway
+- Touch: drag on the card to tilt (touch-action none), tap to flip
+- Click or tap the card, the Flip button, or press F / Enter / Space (card focused) to flip to the patterned back
+- Arrow keys tilt the focused card
+- "Open a pack" button or P: the card fades away, a foil booster springs in, crinkles and shakes, tears along its jagged seam, the card slides out, a white flash and sparkle burst follow, the wrapper drops away and the card settles back to centre
+- Synthesized Web Audio effects (foil crinkle, tear, flip swish, bell chime) start only after a gesture; a speaker toggle mutes them and the setting is saved in localStorage (guarded with try/catch)
+- Announcements through an aria-live region; animation pauses when the tab is hidden; reduced-motion mode stops the idle sway and motes, stiffens the springs and shortens the pack sequence to simple fades

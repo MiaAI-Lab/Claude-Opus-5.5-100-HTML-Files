@@ -1,0 +1,38 @@
+TITLE: Descent — Eleven Thousand Metres Down
+FILE: 022-deep-sea-descent.html
+
+=== PROMPT (exact prompt used) ===
+Create "Descent — Eleven Thousand Metres Down", a scroll-driven journey from the ocean surface to the bottom of the Mariana Trench (~10,935 m). As you scroll, the background transitions through the ocean zones — sunlight (#1e90c8), twilight (#0b3a66), midnight (#04142b), abyssal (#020812) and hadal (#000204) — while a fixed depth gauge counts metres and shows the zone name, pressure (≈ 1 additional atmosphere per 10 m) and temperature notes. Illustrated SVG/canvas creatures appear at approximately correct depths: dolphins and sunlit fish near the top, jellyfish, a sperm whale (~1,000 m and deeper), an anglerfish with a glowing lure, a vampire squid, a gulper eel, amphipods, and finally the trench floor. Deeper creatures are bioluminescent, with pulsing blue/green light; marine snow drifts through the water; light rays from the surface fade out gradually. Short, accurate captions (keep claims general and well established). Interaction: scroll; in the dark zones the pointer is a faint torch revealing nearby creatures; clicking a creature opens a caption card. It ends with an elegant "Return to surface" button that smooth-scrolls up.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A scroll-driven descent from a bright split-level ocean surface down to the floor of the Challenger Deep. The first frame shows the waterline cutting through the italic serif title "Descent": the upper half is navy on a pale morning sky with a sun, drifting clouds and a distant ship, and the lower half is refracted, pale and swaying underwater, with dolphins and sunlight shafts below. As you scroll, a fixed background gradient sinks through the five zone colours (#1e90c8, #0b3a66, #04142b, #020812, #000204). A glass depth gauge counts true metres and shows zone name, pressure (1 atm + 1 per 10 m), water temperature and light notes, with a proportional 0 to 10,935 m track. Sixteen hand-drawn SVG subjects appear at typical depths: dolphins, sardines, moon jelly, lanternfish, hatchetfish, vampire squid, sperm whale, Atolla, anglerfish, gulper eel, comb jelly, tripod fish and sea pigs on an abyssal ledge, dumbo octopus, snailfish between trench walls, the 1960 bathyscaphe Trieste, and amphipods at a food fall on the floor. It ends on "10,935 m", a short historical note and a "Return to surface" button.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Piecewise depth-to-scroll mapping (sunlit zone stretched, hadal compressed), with every creature, zone heading, ruler tick, trench and floor placed in page coordinates by JS
+- Fixed background whose two-stop gradient is recomputed each frame from the depth at the top and bottom of the viewport, interpolating the zone palette
+- Full-viewport canvas layer: swaying additive god rays clipped below the moving waterline, fading out with depth; pooled marine snow with scroll parallax and torch-proximity brightening; bubbles; blue/green bioluminescent sparks and ambient blinks of unseen animals in the dark zones
+- Creatures as layered inline SVG. The body group's opacity follows a per-creature "lit" value (ambient light at its depth, raised by the torch or by hover and focus), while separate light-organ groups use shared radial gradients and stay visible in darkness with pulsing CSS animation
+- Signature details: Atolla's chasing ring of blue lights, a CSS-animated comb jelly with rainbow comb rows, flapping dumbo fins, porpoising dolphins, a shimmering sardine school built from one symbol, sperm-whale echolocation arcs, the anglerfish's glowing esca, the gulper's tail light and the Trieste's warm floodlight
+- Split-level title: two stacked copies of the word, clip-path cut at the waterline, the lower copy skewed and swaying like refraction; animated SVG wave layers, horizon glints and caustic bands
+- Trench walls as stretched SVG with non-scaling strokes; an abyssal ledge with nodules and brittle stars fading into the dark
+- Glass gauge panel with tabular monospace digits, pressure bar and a depth track with a glowing marker; on phones it collapses into a compact top bar
+
+=== INTERACTION MODEL ===
+- Scroll (wheel, touch, keyboard) to sink; the gauge, background, rays, snow and lighting all respond live
+- In the twilight zone and below, the pointer is a faint torch: a soft light pool that reveals nearby creatures' bodies and snow and leaves glowing sparks as it moves; on touch it follows the last tap and otherwise rests near the centre
+- Click, tap or press Enter on any creature to open a caption card with name, Latin name, typical depth and a short caption, plus a lit copy of the illustration; close it with the × button, Escape, or a click elsewhere, and focus returns to the creature
+- "Return to surface" runs an eased ascent with a stream of bubbles while the gauge counts back up; any wheel, touch or key input cancels it; reduced motion jumps straight to the top
+- A skip link jumps to the trench floor; creatures are real buttons with visible focus rings; prefers-reduced-motion stops CSS animation and calms the canvas; drawing pauses while the tab is hidden

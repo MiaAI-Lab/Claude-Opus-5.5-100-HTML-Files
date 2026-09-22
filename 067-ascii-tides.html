@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASCII TIDES — an ocean made of characters</title>
+<meta name="description" content="An animated seascape built entirely from monospace characters: rolling swells ray-marched into a character grid, foam crests, a bobbing boat, drifting clouds, a sun or moon with its glitter path, and ripples you make with your pointer. Amber phosphor, Seafoam and Paper palettes, and a time-of-day dial.">
+<meta name="theme-color" content="#140c00">
+<style>
+  :root{
+    --fg:#ffb000; --bg:#140c00; --dim:rgba(255,176,0,.55); --line:rgba(255,176,0,.38);
+    --mono:"SF Mono","JetBrains Mono","IBM Plex Mono",Menlo,Consolas,"DejaVu Sans Mono","Liberation Mono","Nimbus Mono PS",monospace;
+  }
+  body[data-pal="seafoam"]{--fg:#7fffd4;--bg:#001414;--dim:rgba(127,255,212,.55);--line:rgba(127,255,212,.36)}
+  body[data-pal="paper"]{--fg:#222222;--bg:#f2ecdc;--dim:rgba(34,34,34,.6);--line:rgba(34,34,34,.4)}
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden}
+  body{background:var(--bg);color:var(--fg);font-family:var(--mono);transition:background-color .5s}
+  button,input{font:inherit;color:inherit}
+  :focus-visible{outline:1px dashed var(--fg);outline-offset:3px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+  #sea{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
+  /* phosphor dressing: scanlines + vignette (off on paper) */
+  .crt{position:fixed;inset:0;pointer-events:none;
+    background:
+      radial-gradient(120% 95% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, rgba(0,0,0,0) 1px 3px);
+    mix-blend-mode:multiply}
+  body[data-pal="paper"] .crt{background:radial-gradient(130% 100% at 50% 40%, rgba(0,0,0,0) 60%, rgba(90,70,40,.16) 100%)}
+
+  /* ───────── control strip, dressed like a terminal box ───────── */
+  .panel{position:fixed;top:14px;right:14px;display:flex;flex-direction:column;gap:10px;padding:12px 14px 12px;
+    background:var(--bg);border:1px solid var(--line);font-size:12px;letter-spacing:.06em;line-height:1.2;max-width:calc(100vw - 28px)}
+  .panel::before{content:"┤ controls ├";position:absolute;top:-.7em;left:12px;padding:0 4px;background:var(--bg);font-size:11px;color:var(--dim);line-height:1.2}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .lbl{color:var(--dim);min-width:4.5ch}
+  .pal button,.tog{appearance:none;background:transparent;border:1px solid var(--line);padding:5px 8px;cursor:pointer;text-transform:uppercase;font-size:11px;letter-spacing:.08em;transition:background .2s,color .2s}
+  .pal button:hover,.tog:hover{border-color:var(--fg)}
+  .pal button[aria-checked="true"],.tog[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+  .pal button::before{content:"[ ]";margin-right:6px}
+  .pal button[aria-checked="true"]::before{content:"[■]"}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:170px;height:18px;background:transparent;cursor:pointer;margin:0}
+  input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--line)}
+  input[type=range]::-moz-range-track{height:1px;background:var(--line)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:16px;margin-top:-8px;background:var(--fg);border:0;border-radius:0}
+  input[type=range]::-moz-range-thumb{width:10px;height:16px;background:var(--fg);border:0;border-radius:0}
+  output{min-width:5ch;text-align:right;font-variant-numeric:tabular-nums}
+  .hide-btn{position:absolute;top:-.75em;right:10px;appearance:none;background:var(--bg);border:0;padding:0 4px;cursor:pointer;font-size:11px;color:var(--dim);line-height:1.2}
+  .panel.min .row{display:none}
+  .panel.min{padding:8px 14px 4px}
+
+  @media (max-width:560px){
+    .panel{top:auto;bottom:10px;right:10px;left:10px;padding:12px 10px 10px;font-size:11px}
+    input[type=range]{width:auto;flex:1;min-width:120px}
+    .pal button{padding:5px 6px;font-size:10px}
+    .pal button::before{margin-right:3px}
+  }
+</style>
+</head>
+<body data-pal="amber">
+<canvas id="sea" role="img" aria-label="An ocean drawn in monospace characters: swells roll toward you under a sky with a sun or moon, clouds and stars, and a small sailboat bobs on the waves. Move or tap on the water to make ripples."></canvas>
+<div class="crt" aria-hidden="true"></div>
+
+<aside class="panel" id="panel" aria-label="Controls">
+  <button type="button" class="hide-btn" id="hideBtn" aria-expanded="true" aria-controls="panel">┤ – ├</button>
+  <div class="row pal" role="radiogroup" aria-label="Palette" id="pal">
+    <button type="button" role="radio" aria-checked="true" data-pal="amber" tabindex="0">Amber</button>
+    <button type="button" role="radio" aria-checked="false" data-pal="seafoam" tabindex="-1">Seafoam</button>
+    <button type="button" role="radio" aria-checked="false" data-pal="paper" tabindex="-1">Paper</button>
+  </div>
+  <div class="row">
+    <label class="lbl" for="tod">time</label>
+    <input type="range" id="tod" min="0" max="24" step="0.05" value="17.8">
+    <output id="todOut" for="tod">17:48</output>
+  </div>
+  <div class="row">
+    <span class="lbl">sky</span>
+    <button type="button" class="tog" id="runBtn" aria-pressed="false">▶ let time pass</button>
+    <button type="button" class="tog" id="rainBtn" aria-pressed="false">rain</button>
+  </div>
+</aside>
+<p class="sr" id="live" aria-live="polite"></p>
+
+<script>
+(function(){
+  'use strict';
+
+  var PALETTES = {
+    amber:  {fg:'#ffb000', bg:'#140c00', glow:true},
+    seafoam:{fg:'#7fffd4', bg:'#001414', glow:true},
+    paper:  {fg:'#222222', bg:'#f2ecdc', glow:false}
+  };
+  var MONO = getComputedStyle(document.body).fontFamily;
+  var reduce = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+
+  /* ════════ glyph atlas: every character pre-rendered once, with its glow baked in ════════ */
+  var RAMP = ' .,:;~=≈*#@';
+  var EXTRA = "-_|/\\()<>^v'`+o·°!?\"%&$[]{}";
+  var ALNUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var BOX = '┌┐└┘─│';
+  var CHARS = [], IDX = {};
+  (RAMP + EXTRA + ALNUM + BOX).split('').forEach(function(ch){ if(IDX[ch] === undefined){ IDX[ch] = CHARS.length; CHARS.push(ch); } });
+  var SP = IDX[' '];
+  function ci(ch){ var i = IDX[ch]; return i === undefined ? IDX['?'] : i; }
+  var RI = RAMP.split('').map(ci);   // ramp indices
+
+  var cv = document.getElementById('sea'), g = cv.getContext('2d', {alpha:false});
+  var atlas = document.createElement('canvas'), ag = atlas.getContext('2d');
+  var dpr = 1, W = 0, H = 0, fsD = 13, cwD = 8, chD = 14, pad = 4, gw = 16, gh = 22;
+  var cols = 0, rows = 0, ox = 0, oy = 0, RH = 0;
+  var pal = PALETTES.amber, palName = 'amber';
+
+  function buildAtlas(){
+    pad = pal.glow ? Math.ceil(5*dpr) : Math.ceil(dpr);
+    gw = cwD + pad*2; gh = chD + pad*2;
+    atlas.width = gw*CHARS.length; atlas.height = gh;
+    ag.clearRect(0,0,atlas.width,atlas.height);
+    ag.font = fsD+'px '+MONO; ag.textAlign='center'; ag.textBaseline='middle';
+    for(var i=0;i<CHARS.length;i++){
+      var ch = CHARS[i], x = i*gw + pad, y = pad, cx = x + cwD/2, cy = y + chD/2;
+      if(BOX.indexOf(ch) >= 0){
+        // box-drawing lines are drawn by hand so they meet their neighbours exactly
+        ag.strokeStyle = pal.fg; ag.lineWidth = Math.max(1, Math.round(dpr)); ag.lineCap='butt';
+        var mx = Math.round(cx)+.5*(ag.lineWidth%2), my = Math.round(cy)+.5*(ag.lineWidth%2);
+        ag.beginPath();
+        if(ch==='─'){ ag.moveTo(x,my); ag.lineTo(x+cwD,my); }
+        else if(ch==='│'){ ag.moveTo(mx,y); ag.lineTo(mx,y+chD); }
+        else if(ch==='┌'){ ag.moveTo(x+cwD,my); ag.lineTo(mx,my); ag.lineTo(mx,y+chD); }
+        else if(ch==='┐'){ ag.moveTo(x,my); ag.lineTo(mx,my); ag.lineTo(mx,y+chD); }
+        else if(ch==='└'){ ag.moveTo(mx,y); ag.lineTo(mx,my); ag.lineTo(x+cwD,my); }
+        else if(ch==='┘'){ ag.moveTo(mx,y); ag.lineTo(mx,my); ag.lineTo(x,my); }
+        if(pal.glow){ ag.save(); ag.shadowColor = pal.fg; ag.shadowBlur = 4*dpr; ag.globalAlpha=.6; ag.stroke(); ag.restore(); }
+        ag.stroke();
+        continue;
+      }
+      if(ch===' ') continue;
+      if(pal.glow){
+        ag.save(); ag.shadowColor = pal.fg; ag.shadowBlur = 5*dpr; ag.fillStyle = pal.fg; ag.globalAlpha = .55;
+        ag.fillText(ch, cx, cy); ag.restore();
+      }
+      ag.fillStyle = pal.fg; ag.fillText(ch, cx, cy);
+    }
+  }
+
+  /* ════════ grid ════════ */
+  var cell = null, alpha = null;          // per-cell glyph index and brightness 0..255
+  var focalY = 1, focalX = 1;
+  var Z_NEAR = 8, Z_FAR = 620, CAM_H = 3.4;         // eye 3.4 m above the water; the bottom row is 8 m away
+  var zs = [];
+  function layout(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    var fs = Math.max(10, Math.min(14, Math.round(W/108)));
+    fsD = Math.round(fs*dpr);
+    ag.font = fsD+'px '+MONO;
+    cwD = Math.max(4, Math.round(ag.measureText('M').width));
+    chD = Math.round(fsD*1.06);
+    cols = Math.floor(cv.width / cwD); rows = Math.floor(cv.height / chD);
+    ox = Math.floor((cv.width - cols*cwD)/2); oy = Math.floor((cv.height - rows*chD)/2);
+    RH = Math.round(rows * (W < 560 ? .38 : .42));
+    cell = new Uint8Array(cols*rows); alpha = new Uint8ClampedArray(cols*rows);
+    focalY = (rows - RH) * Z_NEAR / CAM_H;
+    focalX = focalY * (chD / cwD);
+    zs.length = 0; for(var z=Z_NEAR; z<Z_FAR; z*=1.028) zs.push(z);
+    buildAtlas();
+    seedSky();
+  }
+
+  /* ════════ noise ════════ */
+  var perm = new Uint8Array(512);
+  (function(){ var p=[], s=1337; for(var i=0;i<256;i++) p[i]=i; for(i=255;i>0;i--){ s=(s*16807)%2147483647; var j=s%(i+1), t=p[i]; p[i]=p[j]; p[j]=t; } for(i=0;i<512;i++) perm[i]=p[i&255]; })();
+  function vnoise(x, y){
+    var xi = Math.floor(x), yi = Math.floor(y), xf = x-xi, yf = y-yi;
+    var a = perm[(perm[xi&255]+yi)&511]/255, b = perm[(perm[(xi+1)&255]+yi)&511]/255, c = perm[(perm[xi&255]+yi+1)&511]/255, d = perm[(perm[(xi+1)&255]+yi+1)&511]/255;
+    var u = xf*xf*(3-2*xf), v = yf*yf*(3-2*yf);
+    return a + (b-a)*u + (c-a)*v + (a-b-c+d)*u*v;
+  }
+  function hash(a, b, c){ var h = (a*374761393 + b*668265263 + c*2246822519) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+
+  /* ════════ the sea: Stokes-shaped swells + chop + your ripples ════════ */
+  var WAVES = [
+    {l:46, a:.62, dx:-.22, p:0},
+    {l:29, a:.40, dx:.42,  p:1.7},
+    {l:17, a:.24, dx:-.75, p:4.1},
+    {l:10.5,a:.13,dx:.95,  p:2.3},
+    {l:6.4,a:.07, dx:-1.2, p:5.2}
+  ];
+  WAVES.forEach(function(w){ var k = 2*Math.PI/w.l, n = Math.hypot(w.dx, 1); w.kx = k*w.dx/n; w.kz = -k/n; w.om = Math.sqrt(9.81*k); });
+  var H_TYP = .9;                                   // typical crest height, for shading
+  var t = 0, swellGain = 1;
+
+  // ripple field: a damped 2D wave equation on a world-space grid in front of the viewer
+  var RX = 120, RZ = 90, RX0 = -30, RZ0 = 7, RD = .5;
+  var rCur = new Float32Array(RX*RZ), rPrev = new Float32Array(RX*RZ), rNext = new Float32Array(RX*RZ);
+  var rippleEnergy = 0;
+  function stepRipples(){
+    var c2 = .22, damp = .986, e = 0;
+    for(var j=1;j<RZ-1;j++){
+      var row = j*RX;
+      for(var i=1;i<RX-1;i++){
+        var k = row+i;
+        var lap = rCur[k-1] + rCur[k+1] + rCur[k-RX] + rCur[k+RX] - 4*rCur[k];
+        var v = (2*rCur[k] - rPrev[k] + c2*lap) * damp;
+        rNext[k] = v; e += v*v;
+      }
+    }
+    var tmp = rPrev; rPrev = rCur; rCur = rNext; rNext = tmp;
+    rippleEnergy = e;
+  }
+  function ripple(X, Z){
+    if(rippleEnergy < 1e-4) return 0;
+    var gx = (X - RX0)/RD, gz = (Z - RZ0)/RD;
+    if(gx < 1 || gz < 1 || gx >= RX-2 || gz >= RZ-2) return 0;
+    var ix = gx|0, iz = gz|0, fx = gx-ix, fz = gz-iz, k = iz*RX+ix;
+    return (rCur[k]*(1-fx) + rCur[k+1]*fx)*(1-fz) + (rCur[k+RX]*(1-fx) + rCur[k+RX+1]*fx)*fz;
+  }
+  function drop(X, Z, amp, rad){
+    var gx = (X - RX0)/RD, gz = (Z - RZ0)/RD, r = Math.max(1, rad/RD);
+    var x0 = Math.max(1, Math.floor(gx-r*2)), x1 = Math.min(RX-2, Math.ceil(gx+r*2));
+    var z0 = Math.max(1, Math.floor(gz-r*2)), z1 = Math.min(RZ-2, Math.ceil(gz+r*2));
+    for(var j=z0;j<=z1;j++) for(var i=x0;i<=x1;i++){
+      var d2 = ((i-gx)*(i-gx) + (j-gz)*(j-gz))/(r*r);
+      if(d2 < 4) rCur[j*RX+i] -= amp*Math.exp(-d2*1.6);
+    }
+    rippleEnergy = Math.max(rippleEnergy, 1);
+  }
+  function height(X, Z){
+    var h = 0;
+    for(var i=0;i<WAVES.length;i++){
+      var w = WAVES[i], ph = w.kx*X + w.kz*Z - w.om*t + w.p;
+      h += w.a * (Math.sin(ph) - .24*Math.cos(2*ph));      // second harmonic: sharp crests, flat troughs
+    }
+    // wave groups: swells arrive in sets, so crest lines swell and fade along their length
+    h *= swellGain * (.55 + .7*vnoise(X*.045 + 11.3, Z*.03 - t*.07));
+    h += (vnoise(X*.21 + t*.35, Z*.21) - .5) * .34;         // wind chop
+    return h + ripple(X, Z)*1.35;
+  }
+
+  /* ════════ sky state ════════ */
+  var stars = [], clouds = [], gulls = [], shoot = null, rain = [];
+  function seedSky(){
+    stars.length = 0;
+    var n = Math.round(cols*RH/22);
+    for(var i=0;i<n;i++){
+      var r = Math.floor(Math.pow(Math.random(), 1.25)*(RH-2));
+      stars.push({c:Math.floor(Math.random()*cols), r:r, ph:Math.random()*6.28, sp:.6+Math.random()*2.2, b:Math.random()});
+    }
+    gulls.length = 0;
+    for(var j=0;j<3;j++) gulls.push({x:Math.random()*cols, y:2+Math.random()*RH*.45, v:(.6+Math.random()*.8)*(Math.random()<.5?-1:1), ph:Math.random()*6});
+  }
+
+  var tod = 17.8, runTime = false, raining = false;
+  function sunState(h){
+    // sunrise ~6:00, sunset ~18:30; altitude in -1..1, azimuth runs left → right
+    var dayT = (h - 6) / 12.5;
+    var alt = Math.sin(dayT*Math.PI);
+    if(dayT < 0 || dayT > 1) alt = -Math.min(1, Math.abs(Math.sin(dayT*Math.PI))*.9 + .05);
+    var az = dayT;
+    var moonT = ((h - 18.5 + 24) % 24) / 11.5;
+    var malt = (moonT >= 0 && moonT <= 1) ? Math.sin(moonT*Math.PI) : -1;
+    return {alt:alt, az:az, malt:malt, maz:moonT};
+  }
+  function phaseName(h){
+    if(h < 4.8 || h >= 20.6) return 'night';
+    if(h < 6.8) return 'dawn';
+    if(h < 11) return 'morning';
+    if(h < 13.5) return 'noon';
+    if(h < 16.8) return 'afternoon';
+    if(h < 19.2) return 'dusk';
+    return 'evening';
+  }
+  function clock(h){ var hh = Math.floor(h) % 24, mm = Math.floor((h - Math.floor(h))*60); return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm; }
+
+  /* ════════ the boat ════════ */
+  var BOAT = [
+    '     .    ',
+    '     |\\   ',
+    '     | \\  ',
+    '     |  \\ ',
+    '     |___\\',
+    ' ____|____',
+    ' \\_______/'
+  ];
+  var BOAT_LEAN_L = [
+    '    .     ',
+    '    |\\    ',
+    '    | \\   ',
+    '    |  \\  ',
+    '    |___\\ ',
+    ' ____|____',
+    ' \\_______/'
+  ];
+  var BOAT_LEAN_R = [
+    '      .   ',
+    '      |\\  ',
+    '      | \\ ',
+    '      |  \\',
+    '     |___\\',
+    ' ____|____',
+    ' \\_______/'
+  ];
+  var boat = {X:-5, Z:19, vx:.3, u:-.34};
+
+  /* ════════ pointer: trail a finger through the water ════════ */
+  var lastPtr = null;
+  function cellToWorld(px, py){
+    var c = (px*dpr - ox)/cwD, r = (py*dpr - oy)/chD;
+    if(r <= RH + .6) return null;
+    var z = focalY*CAM_H/(r - RH + .15);
+    return {X:(c - cols/2)/focalX*z, Z:z};
+  }
+  cv.addEventListener('pointerdown', function(e){
+    var w = cellToWorld(e.clientX, e.clientY); if(w) drop(w.X, w.Z, 2.6, 1.6);
+    lastPtr = {x:e.clientX, y:e.clientY};
+    try{ cv.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  cv.addEventListener('pointermove', function(e){
+    var w = cellToWorld(e.clientX, e.clientY);
+    if(w && lastPtr){
+      var d = Math.hypot(e.clientX-lastPtr.x, e.clientY-lastPtr.y);
+      if(d > 3) drop(w.X, w.Z, Math.min(1.1, .25 + d*.02) * (e.buttons ? 1.5 : 1), 1.1);
+    }
+    lastPtr = {x:e.clientX, y:e.clientY};
+  });
+  cv.addEventListener('pointerleave', function(){ lastPtr = null; });
+
+  /* ════════ frame composition ════════ */
+  function put(c, r, ch, a){ if(c<0||r<0||c>=cols||r>=rows) return; var k = r*cols+c; cell[k] = ch; alpha[k] = a > 255 ? 255 : a < 0 ? 0 : a; }
+
+  function composeSky(S, frameN){
+    var day = Math.max(0, Math.min(1, (S.alt + .12)/.4));
+    var night = 1 - Math.max(0, Math.min(1, (S.alt + .2)/.3));
+    var golden = Math.exp(-Math.pow((S.alt - .06)/.18, 2));
+    var sunC = Math.round(cols*(.08 + .84*S.az)), sunR = RH - 1 - S.alt*(RH*.82);
+    var moonC = Math.round(cols*(.1 + .8*S.maz)), moonR = RH - 1 - S.malt*(RH*.78);
+    var cloudLight = .32 + .68*day;
+    var drift = t*.045;
+    for(var r=0;r<RH;r++){
+      var yy = r/RH;
+      for(var c=0;c<cols;c++){
+        var k = r*cols+c, ch = SP, a = 0;
+        // clouds: two octaves of value noise, thinning toward the horizon
+        var n = vnoise(c*.022 + drift, r*.12 + 3.1)*.7 + vnoise(c*.09 + drift*1.7, r*.36)*.3;
+        var dens = (n - .58 - Math.pow(yy, 1.6)*.34) * 3.4;
+        if(dens > 0){
+          var qi = Math.min(9, 1 + Math.floor(dens*8));
+          ch = RI[qi]; a = (95 + dens*120) * cloudLight;
+        }
+        // sky glow near the horizon around the sun at dawn and dusk
+        if(ch === SP && golden > .05){
+          var dc = (c - sunC)/cols, glow = golden * Math.exp(-dc*dc*9) * Math.pow(yy, 3.2);
+          if(glow > .12 && hash(c, r, 7) < glow*.9){ ch = RI[glow > .5 ? 3 : glow > .3 ? 2 : 1]; a = 70 + glow*140; }
+        }
+        cell[k] = ch; alpha[k] = a;
+      }
+    }
+    // stars
+    if(night > .02){
+      for(var i=0;i<stars.length;i++){
+        var s = stars[i], tw = .5 + .5*Math.sin(t*s.sp + s.ph), b = (s.b*.6 + tw*.4) * night;
+        if(b < .12) continue;
+        var k2 = s.r*cols + s.c; if(cell[k2] !== SP && alpha[k2] > 40) continue;
+        put(s.c, s.r, ci(b > .78 ? '*' : b > .55 ? '+' : b > .32 ? '·' : '.'), 90 + b*165);
+      }
+      // a rare shooting star
+      if(!reduce && !shoot && Math.random() < .0018*night) shoot = {c:Math.random()*cols*.7, r:Math.random()*RH*.4, v:.9+Math.random()*.7, life:0};
+    }
+    if(shoot){
+      shoot.life += 1; shoot.c += shoot.v*1.9; shoot.r += shoot.v*.45;
+      for(var q=0;q<9;q++) put(Math.round(shoot.c - q*1.9), Math.round(shoot.r - q*.45), ci(q===0?'*':q<3?'-':'.'), 255 - q*26);
+      if(shoot.life > 40 || shoot.r > RH-2) shoot = null;
+    }
+    // the sun: a disc of dense glyphs with a loose halo
+    if(S.alt > -.25) drawDisc(sunC, sunR, 3.1, true, day, 0);
+    // the moon (waxing gibbous) with a couple of maria
+    if(S.malt > -.1 && night > .05) drawDisc(moonC, moonR, 2.3, false, night, .35);
+    // gulls in daylight
+    if(day > .35){
+      for(var gi=0; gi<gulls.length; gi++){
+        var gu = gulls[gi];
+        if(!reduce){ gu.x += gu.v*.06; gu.y += Math.sin(t*.5+gu.ph)*.01; }
+        if(gu.x < -4) gu.x = cols+3; if(gu.x > cols+4) gu.x = -3;
+        var flap = Math.sin(t*5 + gu.ph) > 0;
+        var gc = Math.round(gu.x), gr = Math.round(gu.y);
+        if(flap){ put(gc-1, gr, ci('\\'), 200*day); put(gc, gr, ci('/'), 200*day); }
+        else { put(gc-1, gr, ci('~'), 190*day); put(gc, gr, ci('~'), 190*day); }
+      }
+    }
+    return {sunC:sunC, moonC:moonC, day:day, night:night, golden:golden};
+  }
+  function drawDisc(cc, rr, rad, sun, strength, phase){
+    var ax = chD/cwD;             // cells are taller than wide: widen the disc horizontally
+    var R2 = rad*rad;
+    for(var r=Math.floor(rr-rad*2.2); r<=Math.ceil(rr+rad*2.2); r++){
+      if(r < 0 || r >= RH) continue;
+      for(var c=Math.floor(cc-rad*ax*2.3); c<=Math.ceil(cc+rad*ax*2.3); c++){
+        var dx = (c - cc)/ax, dy = r - rr, d2 = dx*dx + dy*dy;
+        if(d2 <= R2){
+          var e = Math.sqrt(d2)/rad, ch;
+          if(!sun){
+            // gibbous moon: the terminator cuts off the right side
+            if(dx/rad > .62 - phase*.3 + (1-Math.abs(dy/rad))*0) { put(c, r, SP, 0); continue; }
+            var mar = (Math.abs(dx+.7) < .55 && Math.abs(dy+.5) < .5) || (Math.abs(dx-.3) < .45 && Math.abs(dy-.6) < .4);
+            ch = mar ? ci('o') : e < .75 ? ci('@') : ci('#');
+            put(c, r, ch, (170 + (1-e)*85) * Math.max(.55, strength));
+          } else {
+            ch = e < .55 ? ci('@') : e < .82 ? ci('#') : ci('*');
+            put(c, r, ch, 255*Math.max(.62, strength));
+          }
+        } else if(sun && d2 <= R2*4.4){
+          var hr = Math.sqrt(d2)/rad;
+          if(hash(c, r, Math.floor(t*6)) < (2.1 - hr)*.55){ put(c, r, ci(hr < 1.45 ? ':' : '.'), (1.9-hr)*170*Math.max(.5,strength)); }
+        }
+      }
+    }
+  }
+
+  var boatMask = new Uint8Array(512);
+  function composeSea(sky, S){
+    var light = .42 + .58*sky.day;
+    var glitC = S.alt > -.05 ? sky.sunC : (S.malt > 0 ? sky.moonC : -999);
+    var glitAmt = S.alt > -.05 ? (.35 + sky.golden*.9) * Math.min(1, (S.alt+.1)*4) : (S.malt > 0 ? .55*sky.night : 0);
+    var frameBucket = Math.floor(t*9);
+    // boat placement in screen space
+    var bh = height(boat.X, boat.Z), bh2 = height(boat.X + 2.5, boat.Z);
+    var boatCol = Math.round(cols/2 + boat.X*focalX/boat.Z) - 5;
+    var boatRow = Math.round(RH + (CAM_H - bh)/boat.Z*focalY) - BOAT.length;   // hull sits on the waterline, not under it
+    var lean = bh2 - bh, spr = lean > .12 ? BOAT_LEAN_R : lean < -.12 ? BOAT_LEAN_L : BOAT;
+    var boatK = 0; while(boatK < zs.length && zs[boatK] < boat.Z) boatK++;
+
+    for(var c=0;c<cols;c++){
+      var ybuf = rows, Xz = (c - cols/2 + .5)/focalX, hPrev = 0, zPrev = Z_NEAR;
+      var dcol = c - glitC;
+      var inBoat = c >= boatCol && c < boatCol + 10;
+      if(inBoat) boatMask.fill(0);
+      for(var k=0;k<zs.length;k++){
+        var z = zs[k];
+        if(k === boatK && inBoat){
+          // stamp the boat's own glyphs where nearer water does not hide them; the gaps in the
+          // sprite stay open so the sea and sky behind the sail show through
+          for(var br=0; br<spr.length; br++){
+            var chB = spr[br].charAt(c - boatCol);
+            if(chB !== ' ' && chB !== ''){
+              var rr = boatRow + br;
+              if(rr < ybuf && rr >= 0){
+                var lamp = (br===0 && sky.day < .5);
+                put(c, rr, ci(lamp ? '*' : chB), lamp ? 255 : 150 + 105*light);
+                boatMask[rr] = 1;
+              }
+            }
+          }
+        }
+        var X = Xz*z, h = height(X, z);
+        var yf = RH + (CAM_H - h)/z*focalY, y = Math.floor(yf);
+        if(y < RH) y = RH;
+        if(y < ybuf){
+          var slope = k ? (h - hPrev)/(z - zPrev) : 0;
+          var hn = .5 + h/(2*H_TYP); hn = hn < 0 ? 0 : hn > 1 ? 1 : hn;   // 0 trough … 1 crest
+          var fog = Math.min(1, Math.pow(Z_NEAR*9/z, .95));            // 1 near … ~0.1 at the horizon
+          var near = z < 22 ? (22 - z)/19 : 0;
+          var cr = hn < .5 ? 0 : hn > .92 ? 1 : (hn-.5)/.42; cr = cr*cr*(3-2*cr);
+          var foam = hn > .88 && slope < .015 && fog > .35;
+          var span = ybuf - y;
+          for(var r=y; r<ybuf; r++){
+            if(inBoat && boatMask[r]) continue;
+            var ch, a, v, depth = r - y;
+            if(depth === 0){
+              // the visible surface. The light comes from ahead, so the backs of swells shine
+              // and the faces turned toward you sit in their own shade; crests get a bright rim
+              var lit = slope < 0 ? Math.min(1, -slope*6) : 0;
+              v = (.1 + .42*lit + .38*cr) * (.25 + .75*fog) + near*.05;
+              if(foam){ var fh = hash(c, k, frameBucket>>1); ch = ci(hn > .97 && fh < .5 ? '@' : fh < .55 ? '*' : fh < .8 ? '#' : '°'); v = Math.max(v, .9); }
+              else if(fog > .45) ch = v > .8 ? ci('≈') : v > .48 ? ci('~') : v > .3 ? ci('-') : v > .16 ? ci('.') : SP;
+              else ch = v > .4 ? ci('~') : v > .22 ? ci('-') : v > .12 ? ci('.') : SP;
+            } else {
+              // the face of the swell below its crest, fading into the trough
+              v = ((.14 + .36*cr) * (1 - .8*depth/span) + near*.08) * (.35 + .65*fog);
+              ch = v > .42 ? ci(';') : v > .3 ? ci(':') : v > .19 ? ci(',') : v > .09 ? ci('.') : SP;
+            }
+            a = 70 + v*185;
+            // glitter path under the sun or moon
+            if(glitAmt > 0){
+              var spread = 1 + 17*Math.pow(Z_NEAR/z, .7);
+              var gv = Math.exp(-(dcol*dcol)/(spread*spread));
+              if(gv > .08 && hash(c, r, frameBucket) < gv*glitAmt*(.15 + hn*.62)){ ch = ci(hash(r, c, frameBucket+1) < .35 ? '*' : '+'); a = 255; v = 1; }
+            }
+            a = a * light;
+            var kk = r*cols + c; cell[kk] = ch; alpha[kk] = a > 255 ? 255 : a;
+          }
+          ybuf = y;
+        }
+        hPrev = h; zPrev = z;
+        if(ybuf <= RH) break;
+      }
+      // haze band up to the horizon
+      for(var r2=RH; r2<ybuf; r2++){ if(inBoat && boatMask[r2]) continue; var k3 = r2*cols + c; cell[k3] = ci(r2===RH ? '_' : '-'); alpha[k3] = 70*light; }
+    }
+  }
+
+  function composeRain(){
+    if(!raining){ rain.length = 0; return; }
+    var want = Math.round(cols*RH/55);
+    while(rain.length < want) rain.push({c:Math.random()*cols, r:-Math.random()*rows, v:.8+Math.random()*.6});
+    for(var i=0;i<rain.length;i++){
+      var d = rain[i];
+      d.r += d.v*(reduce ? .4 : 1.1); d.c -= d.v*.35;
+      var rr = Math.round(d.r), cc = Math.round(d.c);
+      if(rr >= RH){
+        // it lands: a tiny impulse on the water
+        var z = focalY*CAM_H/Math.max(.6, (Math.min(rows-1, RH + Math.random()*(rows-RH)) - RH));
+        var X = (cc - cols/2)/focalX*z;
+        if(Math.random() < .5) drop(X, z, .35, .9);
+        d.r = -Math.random()*6; d.c = Math.random()*cols*1.1;
+        continue;
+      }
+      if(rr >= 0) put(cc, rr, ci('/'), 150);
+    }
+  }
+
+  function composeCaption(S){
+    var ph = phaseName(tod);
+    var lines = [
+      'ASCII TIDES',
+      clock(tod)+' · '+ph+' · swell '+(1.1*swellGain+.3).toFixed(1)+' m',
+      (W < 560 ? 'tap the water' : 'move over the water · click to splash')
+    ];
+    var w = 0; lines.forEach(function(l){ w = Math.max(w, l.length); });
+    // bottom-left on wide screens; on phones the controls own the bottom, so the caption hangs in the sky
+    var c0 = 2, r0 = W < 560 ? 1 : rows - lines.length - 3;
+    if(W >= 560 && r0 < RH + 2) r0 = RH + 2;
+    for(var r=0; r<lines.length+2; r++){
+      for(var c=0; c<w+4; c++){
+        var ch = ' ';
+        if(r===0) ch = c===0 ? '┌' : c===w+3 ? '┐' : '─';
+        else if(r===lines.length+1) ch = c===0 ? '└' : c===w+3 ? '┘' : '─';
+        else if(c===0 || c===w+3) ch = '│';
+        else if(c>=2 && c-2 < lines[r-1].length) ch = lines[r-1].charAt(c-2);
+        var bright = (r===1 && c>=2) ? 255 : 210;
+        if(r===3 && c>=2) bright = 150;
+        put(c0+c, r0+r, ci(ch), ch===' ' ? 0 : bright);
+      }
+    }
+  }
+
+  function paint(){
+    g.setTransform(1,0,0,1,0,0);
+    g.globalAlpha = 1; g.fillStyle = pal.bg; g.fillRect(0,0,cv.width,cv.height);
+    var lastA = -1;
+    for(var r=0;r<rows;r++){
+      var y = oy + r*chD - pad, base = r*cols;
+      for(var c=0;c<cols;c++){
+        var k = base + c, ch = cell[k];
+        if(ch === SP) continue;
+        var a = alpha[k]; if(a < 6) continue;
+        if(a !== lastA){ g.globalAlpha = a/255; lastA = a; }
+        g.drawImage(atlas, ch*gw, 0, gw, gh, ox + c*cwD - pad, y, gw, gh);
+      }
+    }
+    g.globalAlpha = 1;
+  }
+
+  /* ════════ controls ════════ */
+  var todIn = document.getElementById('tod'), todOut = document.getElementById('todOut');
+  var runBtn = document.getElementById('runBtn'), rainBtn = document.getElementById('rainBtn');
+  var palBtns = [].slice.call(document.querySelectorAll('#pal button'));
+  var live = document.getElementById('live');
+  function setTod(h, fromInput){ tod = ((h % 24) + 24) % 24; if(!fromInput) todIn.value = tod.toFixed(2); todOut.textContent = clock(tod); }
+  todIn.addEventListener('input', function(){ setTod(+todIn.value, true); });
+  todIn.addEventListener('change', function(){ live.textContent = clock(tod)+', '+phaseName(tod); });
+  runBtn.addEventListener('click', function(){ runTime = !runTime; runBtn.setAttribute('aria-pressed', runTime?'true':'false'); runBtn.textContent = runTime ? '■ hold time' : '▶ let time pass'; });
+  rainBtn.addEventListener('click', function(){ raining = !raining; rainBtn.setAttribute('aria-pressed', raining?'true':'false'); swellGain = raining ? 1.35 : 1; });
+  function setPal(name, focus){
+    palName = name; pal = PALETTES[name]; document.body.setAttribute('data-pal', name);
+    palBtns.forEach(function(b){ var on = b.dataset.pal===name; b.setAttribute('aria-checked', on?'true':'false'); b.tabIndex = on?0:-1; if(on&&focus) b.focus(); });
+    var meta = document.querySelector('meta[name="theme-color"]'); if(meta) meta.setAttribute('content', pal.bg);
+    buildAtlas();
+    try{ localStorage.setItem('asciitides.pal', name); }catch(e){}
+  }
+  palBtns.forEach(function(b, i){
+    b.addEventListener('click', function(){ setPal(b.dataset.pal); });
+    b.addEventListener('keydown', function(e){
+      var d = (e.key==='ArrowRight'||e.key==='ArrowDown') ? 1 : (e.key==='ArrowLeft'||e.key==='ArrowUp') ? -1 : 0;
+      if(!d) return; e.preventDefault(); e.stopPropagation(); setPal(palBtns[(i+d+3)%3].dataset.pal, true);
+    });
+  });
+  var hideBtn = document.getElementById('hideBtn'), panel = document.getElementById('panel');
+  hideBtn.addEventListener('click', function(){ var min = !panel.classList.contains('min'); panel.classList.toggle('min', min); hideBtn.setAttribute('aria-expanded', min?'false':'true'); hideBtn.textContent = min ? '┤ + ├' : '┤ – ├'; });
+  document.addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var tag = e.target && e.target.tagName;
+    if(e.key==='1') setPal('amber'); else if(e.key==='2') setPal('seafoam'); else if(e.key==='3') setPal('paper');
+    else if(e.key==='r' || e.key==='R') rainBtn.click();
+    else if(e.key==='t' || e.key==='T') runBtn.click();
+    else if((e.key==='ArrowRight' || e.key==='ArrowLeft') && tag!=='INPUT' && tag!=='BUTTON'){ setTod(tod + (e.key==='ArrowRight' ? .25 : -.25)); }
+    else if(e.key===' ' && tag!=='BUTTON' && tag!=='INPUT'){ e.preventDefault(); var X=(Math.random()-.5)*20, Z=8+Math.random()*20; drop(X, Z, 3, 1.8); }
+  });
+  try{ var sp = localStorage.getItem('asciitides.pal'); if(sp && PALETTES[sp]) { palName = sp; pal = PALETTES[sp]; } }catch(e){}
+
+  /* ════════ loop ════════ */
+  var last = 0, acc = 0, frameN = 0, idleBoat = 0;
+  function frame(now){
+    requestAnimationFrame(frame);
+    if(document.hidden){ last = 0; return; }
+    var dt = last ? Math.min(.1, (now - last)/1000) : .016; last = now;
+    var speed = reduce ? .35 : 1;
+    t += dt*speed;
+    acc += dt;
+    var steps = 0;
+    while(acc > 1/60 && steps < 3){ stepRipples(); acc -= 1/60; steps++; }
+    if(acc > .1) acc = 0;
+    if(runTime){ setTod(tod + dt*(reduce ? .03 : .1)); }
+    // the boat drifts across a fixed share of whatever width is visible at its distance
+    boat.u += boat.vx*dt*speed*.012;
+    if(boat.u > .62 || boat.u < -.62) boat.vx = -boat.vx;
+    boat.X = boat.u * (cols/2)/focalX*boat.Z;
+    var S = sunState(tod);
+    var sky = composeSky(S, frameN++);
+    composeRain();
+    composeSea(sky, S);
+    composeCaption(S);
+    paint();
+  }
+
+  var rzT = 0;
+  window.addEventListener('resize', function(){ clearTimeout(rzT); rzT = setTimeout(layout, 80); });
+  layout();
+  setPal(palName);
+  setTod(tod);
+  // a few rings already spreading on the first frame, as if something just surfaced
+  drop(-6, 13, 2.4, 1.6); drop(9, 22, 1.6, 1.4);
+  for(var i=0;i<26;i++) stepRipples();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

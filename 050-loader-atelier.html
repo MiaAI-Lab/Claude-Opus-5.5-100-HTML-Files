@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loading, Beautifully — 16 Loaders &amp; Micro-interactions</title>
+<meta name="description" content="A curated gallery of sixteen original loading animations and micro-interactions built with CSS and SVG. Replay any of them, or copy its CSS with one click.">
+<meta name="theme-color" content="#141414">
+<style>
+/* ================= page chrome (not part of the copyable loaders) ================= */
+:root{
+  --char:#141414;
+  --card:#1b1a19;
+  --card-2:#171615;
+  --line:rgba(244,241,222,.07);
+  --line-2:rgba(244,241,222,.14);
+  --cream:#f4f1de;
+  --mute:#a19d8c;
+  --dim:#6d6a60;
+  --terra:#e07a5f;
+  --sand:#f2cc8f;
+  --sage:#81b29a;
+  --slate:#3d405b;
+  --sans:"Avenir Next","Segoe UI","Helvetica Neue",Arial,"Nimbus Sans","Liberation Sans",sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Nimbus Mono PS","DejaVu Sans Mono",monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--char);color-scheme:dark;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--char);color:var(--cream);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:
+  radial-gradient(60% 50% at 12% 0%,rgba(224,122,95,.08),transparent 70%),
+  radial-gradient(50% 40% at 95% 8%,rgba(129,178,154,.06),transparent 70%)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sand);outline-offset:3px;border-radius:8px}
+.wrap{position:relative;z-index:1;max-width:1360px;margin:0 auto;padding:0 clamp(16px,3.4vw,44px)}
+
+/* header */
+.masthead{display:grid;grid-template-columns:1.25fr 1fr;gap:clamp(24px,5vw,80px);align-items:end;padding:clamp(40px,7vh,84px) 0 clamp(28px,4.5vh,48px);border-bottom:1px solid var(--line)}
+.kicker{margin:0 0 18px;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:12px}
+.kicker b{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--terra);animation:kick 2.4s ease-in-out infinite}
+@keyframes kick{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg);border-radius:50%}}
+h1{margin:0;font-weight:600;font-size:clamp(40px,6.4vw,92px);line-height:.98;letter-spacing:-.035em;color:var(--cream)}
+h1 em{font-style:normal;color:var(--sand)}
+h1 .nw{white-space:nowrap}
+h1 .dots{display:inline-flex;gap:.09em;margin-left:.06em;vertical-align:baseline}
+h1 .dots i{display:inline-block;width:.13em;height:.13em;border-radius:50%;background:var(--terra);animation:hop 1.3s cubic-bezier(.3,0,.3,1) infinite}
+h1 .dots i:nth-child(2){background:var(--sand);animation-delay:.14s}
+h1 .dots i:nth-child(3){background:var(--sage);animation-delay:.28s}
+@keyframes hop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-.22em)}}
+.intro{margin:0 0 20px;color:var(--mute);font-size:16px;max-width:46ch}
+.intro strong{color:var(--cream);font-weight:600}
+.tools{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px}
+.swatches{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.swatches li{position:relative;width:30px;height:30px;border-radius:9px;background:var(--c);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.swatches li span{position:absolute;left:50%;top:calc(100% + 6px);transform:translate(-50%,-4px);font-family:var(--mono);font-size:9.5px;color:var(--mute);white-space:nowrap;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+.swatches li:hover span{opacity:1;transform:translate(-50%,0)}
+.pill{display:inline-flex;align-items:center;gap:9px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:rgba(244,241,222,.03);font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:background .25s,border-color .25s}
+.pill:hover{background:rgba(244,241,222,.07);border-color:rgba(244,241,222,.24)}
+.pill svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.count{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+
+/* grid */
+.gallery{padding:clamp(24px,4vh,40px) 0 20px}
+.grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.card{--accent:var(--terra);position:relative;display:flex;flex-direction:column;border-radius:20px;background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--line);overflow:hidden;transition:border-color .45s,transform .6s cubic-bezier(.2,.9,.25,1),box-shadow .6s}
+.card:hover{border-color:color-mix(in srgb,var(--accent) 45%,transparent);transform:translateY(-3px);box-shadow:0 22px 50px -24px color-mix(in srgb,var(--accent) 45%,transparent)}
+.stage{position:relative;height:212px;display:grid;place-items:center;overflow:hidden;isolation:isolate}
+.stage::before{content:"";position:absolute;inset:0;z-index:-1;background:
+  radial-gradient(circle at 1px 1px,rgba(244,241,222,.07) 1px,transparent 1.4px) 0 0/16px 16px;
+  -webkit-mask:radial-gradient(70% 70% at 50% 50%,#000,transparent);mask:radial-gradient(70% 70% at 50% 50%,#000,transparent)}
+.stage::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(55% 50% at 50% 50%,color-mix(in srgb,var(--accent) 12%,transparent),transparent 70%);opacity:.0;transition:opacity .6s}
+.card:hover .stage::after{opacity:1}
+.meta{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:13px 12px 13px 16px;border-top:1px solid var(--line)}
+.num{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.06em;align-self:start;padding-top:2px}
+.card h3{margin:0;font-size:14.5px;font-weight:600;letter-spacing:-.005em;line-height:1.25}
+.kind{display:block;margin-top:3px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--dim)}
+.acts{display:flex;gap:6px}
+.act{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;min-width:32px;padding:0 9px;border-radius:10px;border:1px solid var(--line);background:rgba(244,241,222,.02);cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--mute);transition:background .25s,border-color .25s,color .25s}
+.act:hover{background:rgba(244,241,222,.07);border-color:var(--line-2);color:var(--cream)}
+.act svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.act.replay:hover svg{transform:rotate(-200deg)}
+.act.copy .ok{display:none}
+.act.copy.done{color:var(--sage);border-color:rgba(129,178,154,.45)}
+.act.copy.done .ok{display:block}
+.act.copy.done .ic{display:none}
+
+.footnote{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:28px 0 44px;border-top:1px solid var(--line);margin-top:28px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+
+/* toast + fallback dialog */
+.toast{position:fixed;left:50%;bottom:24px;z-index:30;display:flex;align-items:center;gap:10px;padding:11px 16px 11px 12px;border-radius:14px;background:#f4f1de;color:#141414;font-size:13px;font-weight:600;box-shadow:0 20px 40px -12px rgba(0,0,0,.6);transform:translate(-50%,24px) scale(.96);opacity:0;pointer-events:none;transition:transform .55s cubic-bezier(.2,1.4,.4,1),opacity .3s}
+.toast.on{transform:translate(-50%,0) scale(1);opacity:1}
+.toast i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#81b29a}
+.toast i svg{width:12px;height:12px;fill:none;stroke:#141414;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.toast small{font-family:var(--mono);font-weight:400;font-size:10.5px;color:#5a574e;margin-left:4px}
+dialog{width:min(640px,calc(100vw - 32px));border:1px solid var(--line-2);border-radius:18px;background:#1b1a19;color:var(--cream);padding:18px}
+dialog::backdrop{background:rgba(10,10,10,.7)}
+dialog h2{margin:0 0 4px;font-size:16px}
+dialog p{margin:0 0 12px;color:var(--mute);font-size:13px}
+dialog textarea{width:100%;height:260px;resize:vertical;border-radius:12px;border:1px solid var(--line-2);background:#121212;color:var(--cream);font:12px/1.5 var(--mono);padding:12px}
+dialog .row{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+/* global motion states */
+.all-paused .stage *,.all-paused .stage *::before,.all-paused .stage *::after,
+.stage.off *,.stage.off *::before,.stage.off *::after{animation-play-state:paused!important}
+
+@media (max-width:1100px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:860px){
+  .masthead{grid-template-columns:1fr;align-items:start}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+}
+@media (max-width:560px){
+  .stage{height:156px}
+  .stage>*{scale:.78}
+  .meta{grid-template-columns:auto 1fr;padding:11px 10px 10px 12px;gap:4px 8px}
+  .acts{grid-column:1/-1;justify-content:flex-end}
+  .act{height:30px}
+  .kind{display:none}
+  .card h3{font-size:13px}
+  .card{border-radius:16px}
+  .intro{font-size:15px}
+  .swatches{flex-basis:100%}
+  .swatches li{width:26px;height:26px}
+}
+@media (prefers-reduced-motion:reduce){
+  .stage *,.stage *::before,.stage *::after{animation-iteration-count:1!important}
+  h1 .dots i,.kicker b{animation:none}
+  .card,.card:hover{transform:none;transition:border-color .3s}
+}
+</style>
+
+<!-- ================= the sixteen loaders: each block below is exactly what "Copy CSS" copies ================= -->
+<style id="css-blob">
+.ld-blob{position:relative;width:88px;height:88px}
+.ld-blob span{position:absolute;inset:0;background:linear-gradient(140deg,#f2cc8f 0%,#e07a5f 52%,#a9503a 100%);background-size:220% 220%;border-radius:42% 58% 63% 37%/41% 44% 56% 59%;box-shadow:inset -10px -12px 22px rgba(61,64,91,.55),inset 10px 10px 18px rgba(244,241,222,.3),0 20px 40px -14px rgba(224,122,95,.6);animation:ld-blob-morph 7s ease-in-out infinite,ld-blob-sheen 7s ease-in-out infinite,ld-blob-float 3.5s ease-in-out infinite}
+.ld-blob span::after{content:"";position:absolute;left:21%;top:17%;width:26%;height:15%;border-radius:50%;background:rgba(244,241,222,.55);filter:blur(3px);transform:rotate(-26deg)}
+.ld-blob::after{content:"";position:absolute;left:12%;right:12%;bottom:-24px;height:10px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);animation:ld-blob-shadow 3.5s ease-in-out infinite}
+@keyframes ld-blob-morph{
+  0%,100%{border-radius:42% 58% 63% 37%/41% 44% 56% 59%}
+  25%{border-radius:61% 39% 45% 55%/55% 62% 38% 45%}
+  50%{border-radius:37% 63% 58% 42%/38% 48% 52% 62%}
+  75%{border-radius:55% 45% 36% 64%/62% 38% 62% 38%}
+}
+@keyframes ld-blob-sheen{0%,100%{background-position:0% 0%}50%{background-position:100% 100%}}
+@keyframes ld-blob-float{0%,100%{transform:translateY(-5px) rotate(-4deg)}50%{transform:translateY(5px) rotate(4deg)}}
+@keyframes ld-blob-shadow{0%,100%{transform:scaleX(.78);opacity:.55}50%{transform:scaleX(1);opacity:1}}
+</style>
+<style id="css-orbit">
+.ld-orbit{position:relative;width:100px;height:100px}
+.ld-orbit s{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;border-radius:50%;background:#f4f1de;box-shadow:0 0 14px rgba(244,241,222,.55)}
+.ld-orbit i{position:absolute;border-radius:50%;border:1px solid rgba(244,241,222,.08)}
+.ld-orbit .o1{inset:0;--c:#e07a5f}
+.ld-orbit .o2{inset:17px;--c:#f2cc8f}
+.ld-orbit .o3{inset:33px;--c:#81b29a}
+.ld-orbit b{position:absolute;inset:-1px;animation:ld-orbit-spin 1.9s cubic-bezier(.62,.06,.36,.94) infinite}
+.ld-orbit .o2 b{animation-duration:1.4s;animation-direction:reverse}
+.ld-orbit .o3 b{animation-duration:1.05s}
+.ld-orbit b::before{content:"";position:absolute;left:50%;top:-4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+.ld-orbit b:nth-child(1){animation-delay:-.16s}
+.ld-orbit b:nth-child(2){animation-delay:-.12s;opacity:.6}
+.ld-orbit b:nth-child(3){animation-delay:-.08s;opacity:.38}
+.ld-orbit b:nth-child(4){animation-delay:-.04s;opacity:.22}
+.ld-orbit b:nth-child(5){animation-delay:0s;opacity:.1}
+.ld-orbit b:nth-child(2)::before{transform:scale(.82)}
+.ld-orbit b:nth-child(3)::before{transform:scale(.66)}
+.ld-orbit b:nth-child(4)::before{transform:scale(.52)}
+.ld-orbit b:nth-child(5)::before{transform:scale(.4)}
+@keyframes ld-orbit-spin{to{transform:rotate(360deg)}}
+</style>
+<style id="css-check">
+.ld-check{width:86px;height:86px;overflow:visible;animation:ld-check-pop 2.8s cubic-bezier(.65,0,.35,1) infinite}
+.ld-check .c,.ld-check .k{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ld-check .c{stroke:#f4f1de;stroke-width:2.2;stroke-dasharray:164;stroke-dashoffset:164;transform:rotate(-90deg);transform-origin:32px 32px;animation:ld-check-ring 2.8s cubic-bezier(.65,0,.35,1) infinite}
+.ld-check .k{stroke:#81b29a;stroke-width:4.2;stroke-dasharray:36;stroke-dashoffset:36;animation:ld-check-tick 2.8s cubic-bezier(.65,0,.35,1) infinite}
+.ld-check .g{fill:#81b29a;opacity:0;transform-origin:32px 32px;animation:ld-check-glow 2.8s ease-out infinite}
+@keyframes ld-check-ring{0%{stroke-dashoffset:164;opacity:1}36%{stroke-dashoffset:0}86%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes ld-check-tick{0%,36%{stroke-dashoffset:36;opacity:1}56%{stroke-dashoffset:0}86%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes ld-check-pop{0%,54%,70%,100%{transform:scale(1)}61%{transform:scale(1.07)}}
+@keyframes ld-check-glow{0%,52%{opacity:0;transform:scale(.6)}60%{opacity:.18}80%,100%{opacity:0;transform:scale(1.35)}}
+</style>
+<style id="css-fill">
+@property --ld-fill-p{syntax:"<integer>";inherits:true;initial-value:0}
+.ld-fill{position:relative;width:96px;height:96px;--ld-fill-p:0;counter-reset:ld-p var(--ld-fill-p);animation:ld-fill-count 4.4s cubic-bezier(.45,.05,.35,1) infinite}
+.ld-fill .glass{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#1f1d1c;box-shadow:inset 0 0 0 2px rgba(244,241,222,.16),inset 0 -10px 20px rgba(0,0,0,.35)}
+.ld-fill .glass::after{content:"";position:absolute;left:18%;top:12%;width:22%;height:12%;border-radius:50%;background:rgba(244,241,222,.16);transform:rotate(-30deg)}
+.ld-fill i{position:absolute;left:-50%;width:200%;height:200%;top:calc(104% - var(--ld-fill-p) * 1.14%);animation:ld-fill-spin 6s linear infinite}
+.ld-fill .w1{background:#e07a5f;border-radius:42%}
+.ld-fill .w2{background:rgba(244,241,222,.2);border-radius:38%;margin-top:-7px;animation-duration:9s;animation-direction:reverse}
+.ld-fill .pct{position:absolute;inset:0;display:grid;place-items:center;font:600 18px/1 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#f4f1de;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.ld-fill .pct::after{content:counter(ld-p) "%"}
+@keyframes ld-fill-count{0%{--ld-fill-p:0}78%,100%{--ld-fill-p:100}}
+@keyframes ld-fill-spin{to{transform:rotate(360deg)}}
+</style>
+<style id="css-fold">
+.ld-fold{display:grid;grid-template-columns:repeat(3,22px);gap:4px;transform:rotate(45deg)}
+.ld-fold i{position:relative;width:22px;height:22px;transform-style:preserve-3d;animation:ld-fold-y 3s cubic-bezier(.7,0,.3,1) infinite;animation-delay:calc(var(--o) * .09s)}
+.ld-fold i.x{animation-name:ld-fold-x}
+.ld-fold i::before,.ld-fold i::after{content:"";position:absolute;inset:0;border-radius:3px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.ld-fold i::before{background:#e07a5f}
+.ld-fold i::after{background:#81b29a;transform:rotateY(180deg)}
+.ld-fold i.x::after{transform:rotateX(180deg)}
+.ld-fold i:nth-child(even)::before{background:#f2cc8f}
+@keyframes ld-fold-y{0%,12%{transform:perspective(160px) rotateY(0)}32%,60%{transform:perspective(160px) rotateY(180deg)}80%,100%{transform:perspective(160px) rotateY(360deg)}}
+@keyframes ld-fold-x{0%,12%{transform:perspective(160px) rotateX(0)}32%,60%{transform:perspective(160px) rotateX(180deg)}80%,100%{transform:perspective(160px) rotateX(360deg)}}
+</style>
+<style id="css-breath">
+.ld-breath{position:relative;width:104px;height:104px;display:grid;place-items:center}
+.ld-breath i{position:absolute;inset:14px;border-radius:50%;border:2px solid #81b29a;animation:ld-breath 4.8s ease-in-out infinite}
+.ld-breath i:nth-child(2),.ld-breath i:nth-child(3){border-width:1px;opacity:0;animation-name:ld-breath-echo}
+.ld-breath i:nth-child(3){animation-delay:.7s}
+.ld-breath span{position:absolute;font:500 10px/1 ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.34em;text-indent:.34em;text-transform:uppercase;color:#f4f1de;opacity:0;animation:ld-breath-in 4.8s ease-in-out infinite}
+.ld-breath span+span{animation-name:ld-breath-out}
+@keyframes ld-breath{0%,100%{transform:scale(.6);border-width:7px;box-shadow:0 0 0 0 rgba(129,178,154,0)}50%{transform:scale(1);border-width:1.5px;box-shadow:0 0 30px 2px rgba(129,178,154,.35),inset 0 0 18px rgba(129,178,154,.2)}}
+@keyframes ld-breath-echo{0%,46%{transform:scale(1);opacity:0}52%{opacity:.5}100%{transform:scale(1.5);opacity:0}}
+@keyframes ld-breath-in{0%,6%{opacity:0}16%,40%{opacity:.85}50%,100%{opacity:0}}
+@keyframes ld-breath-out{0%,56%{opacity:0}66%,90%{opacity:.85}100%{opacity:0}}
+</style>
+<style id="css-helix">
+.ld-helix{display:flex;gap:7px;height:70px;align-items:center}
+.ld-helix i{position:relative;width:7px;height:70px;animation-delay:calc(var(--i) * -.14s)}
+.ld-helix i::before{content:"";position:absolute;left:3px;top:12px;bottom:12px;width:1px;background:rgba(244,241,222,.28);animation:ld-helix-rung 1.9s linear infinite;animation-delay:inherit}
+.ld-helix b{position:absolute;left:0;top:31.5px;width:7px;height:7px;border-radius:50%;background:#e07a5f;animation:ld-helix-a 1.9s infinite;animation-delay:inherit}
+.ld-helix b+b{background:#81b29a;animation-name:ld-helix-b}
+@keyframes ld-helix-a{
+  0%{transform:translateY(-24px) scale(1);opacity:.9;animation-timing-function:ease-in}
+  25%{transform:translateY(0) scale(1.4);opacity:1;animation-timing-function:ease-out}
+  50%{transform:translateY(24px) scale(1);opacity:.9;animation-timing-function:ease-in}
+  75%{transform:translateY(0) scale(.55);opacity:.45;animation-timing-function:ease-out}
+  100%{transform:translateY(-24px) scale(1);opacity:.9}
+}
+@keyframes ld-helix-b{
+  0%{transform:translateY(24px) scale(1);opacity:.9;animation-timing-function:ease-in}
+  25%{transform:translateY(0) scale(.55);opacity:.45;animation-timing-function:ease-out}
+  50%{transform:translateY(-24px) scale(1);opacity:.9;animation-timing-function:ease-in}
+  75%{transform:translateY(0) scale(1.4);opacity:1;animation-timing-function:ease-out}
+  100%{transform:translateY(24px) scale(1);opacity:.9}
+}
+@keyframes ld-helix-rung{0%,50%,100%{transform:scaleY(1)}25%,75%{transform:scaleY(.04)}}
+</style>
+<style id="css-type">
+.ld-type{display:inline-flex;align-items:center;font:500 21px/1 ui-monospace,"SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;color:#f4f1de;padding:10px 14px;border-radius:10px;background:#1f1d1c;box-shadow:inset 0 0 0 1px rgba(244,241,222,.08)}
+.ld-type .t,.ld-type .d{display:inline-block;overflow:hidden;white-space:nowrap;width:0}
+.ld-type .t{animation:ld-type-word 4.8s infinite}
+.ld-type .d{color:#e07a5f;animation:ld-type-dots 4.8s infinite}
+.ld-type .caret{display:inline-block;width:2px;height:1.05em;margin-left:2px;background:#f2cc8f;animation:ld-type-blink .8s steps(1) infinite}
+@keyframes ld-type-word{
+  0%{width:0;animation-timing-function:steps(7,end)}
+  28%{width:7ch}
+  84%{width:7ch;animation-timing-function:steps(7,end)}
+  98%,100%{width:0}
+}
+@keyframes ld-type-dots{
+  0%,30%{width:0;animation-timing-function:steps(3,end)}
+  48%{width:3ch}
+  56%{width:3ch;animation-timing-function:steps(1,end)}
+  60%{width:0;animation-timing-function:steps(3,end)}
+  74%{width:3ch}
+  80%{width:3ch;animation-timing-function:steps(1,end)}
+  82%,100%{width:0}
+}
+@keyframes ld-type-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+</style>
+<style id="css-pendulum">
+.ld-pend{position:relative;width:130px;height:112px}
+.ld-pend .arc{position:absolute;left:0;top:0;width:130px;height:112px;overflow:visible}
+.ld-pend .arc path{fill:none;stroke:rgba(244,241,222,.12);stroke-width:1;stroke-dasharray:2 5}
+.ld-pend .pivot{position:absolute;left:50%;top:4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#f4f1de}
+.ld-pend .arm{position:absolute;left:50%;top:8px;width:2px;height:64px;margin-left:-1px;background:linear-gradient(#f4f1de,rgba(244,241,222,.4));transform-origin:50% 0;animation:ld-pend-swing 1.15s ease-in-out infinite alternate}
+.ld-pend .bob{position:absolute;left:50%;top:100%;width:22px;height:22px;margin:-2px 0 0 -11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3d6,#f2cc8f 40%,#e07a5f 100%);box-shadow:0 6px 14px -4px rgba(224,122,95,.7)}
+.ld-pend .shadow{position:absolute;left:50%;bottom:0;width:26px;height:7px;margin-left:-13px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),transparent);animation:ld-pend-x 1.15s ease-in-out infinite alternate,ld-pend-s 2.3s linear infinite}
+@keyframes ld-pend-swing{from{transform:rotate(36deg)}to{transform:rotate(-36deg)}}
+@keyframes ld-pend-x{from{translate:-44px 0}to{translate:44px 0}}
+@keyframes ld-pend-s{
+  0%,50%,100%{scale:.62;opacity:.5;animation-timing-function:ease-out}
+  25%,75%{scale:1.05;opacity:1;animation-timing-function:ease-in}
+}
+</style>
+<style id="css-comet">
+.ld-comet{position:relative;width:88px;height:88px;animation:ld-comet-spin 1.15s linear infinite}
+.ld-comet::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(224,122,95,0) 0deg,rgba(224,122,95,.06) 120deg,#e07a5f 300deg,#f2cc8f 355deg,rgba(242,204,143,0) 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px))}
+.ld-comet::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 6px rgba(244,241,222,.045)}
+.ld-comet i{position:absolute;left:50%;top:-1px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#fff6e6;box-shadow:0 0 8px 3px rgba(242,204,143,.85),0 0 22px 7px rgba(224,122,95,.45)}
+.ld-comet b{position:absolute;inset:26px;border-radius:50%;border:1px dashed rgba(244,241,222,.14);animation:ld-comet-spin 6s linear infinite reverse}
+@keyframes ld-comet-spin{to{transform:rotate(360deg)}}
+</style>
+<style id="css-pixels">
+.ld-pix{display:grid;grid-template-columns:repeat(8,12px);gap:6px}
+.ld-pix i{width:12px;height:12px;border-radius:3px;background:#3d405b;animation:ld-pix-wave 1.8s ease-in-out infinite;animation-delay:calc((var(--x) + var(--y)) * .09s - 2s)}
+@keyframes ld-pix-wave{
+  0%,100%{transform:scale(.38);background:#3d405b}
+  38%{transform:scale(1);background:#81b29a}
+  52%{transform:scale(1.1) translateY(-3px);background:#f2cc8f}
+  66%{transform:scale(.8);background:#e07a5f}
+}
+</style>
+<style id="css-book">
+.ld-book{position:relative;width:112px;height:70px;perspective:340px}
+.ld-book::before{content:"";position:absolute;inset:-5px -6px -7px;border-radius:6px;background:#e07a5f;box-shadow:0 14px 26px -12px rgba(224,122,95,.7)}
+.ld-book .l,.ld-book .r,.ld-book b{position:absolute;top:0;bottom:0;width:50%;background:#f4f1de repeating-linear-gradient(180deg,transparent 0 9px,rgba(61,64,91,.16) 9px 10px) 9px 12px/calc(100% - 18px) calc(100% - 20px) no-repeat}
+.ld-book .l{left:0;border-radius:4px 0 0 4px;box-shadow:inset -10px 0 14px -8px rgba(61,64,91,.35)}
+.ld-book .r{right:0;border-radius:0 4px 4px 0;box-shadow:inset 10px 0 14px -8px rgba(61,64,91,.35)}
+.ld-book b{left:50%;border-radius:0 4px 4px 0;transform-origin:0 50%;animation:ld-book-flip 2.8s cubic-bezier(.55,.05,.3,1) infinite}
+.ld-book b::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(61,64,91,.35),rgba(61,64,91,0));opacity:0;animation:ld-book-shade 2.8s cubic-bezier(.55,.05,.3,1) infinite;animation-delay:inherit}
+.ld-book b:nth-of-type(2){animation-delay:.22s}
+.ld-book b:nth-of-type(3){animation-delay:.44s}
+@keyframes ld-book-flip{0%{transform:rotateY(0);opacity:0}6%,10%{transform:rotateY(0);opacity:1}50%,88%{transform:rotateY(-180deg);opacity:1}100%{transform:rotateY(-180deg);opacity:0}}
+@keyframes ld-book-shade{0%,10%{opacity:0}30%{opacity:1}50%,100%{opacity:0}}
+</style>
+<style id="css-heart">
+.ld-heart{position:relative;width:96px;height:96px;display:grid;place-items:center;border:0;padding:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ld-heart svg{width:52px;height:52px;overflow:visible}
+.ld-heart path{fill:rgba(224,122,95,0);stroke:#f4f1de;stroke-width:1.8;stroke-linejoin:round;transform-origin:16px 18px;animation:ld-heart-loop 3.2s infinite}
+.ld-heart i{position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px;border-radius:50%;background:var(--c,#f2cc8f);opacity:0;transform:rotate(var(--a)) translateY(0) scale(.4);animation:ld-heart-spark 3.2s ease-out infinite}
+.ld-heart i:nth-of-type(3n+1){--c:#e07a5f}
+.ld-heart i:nth-of-type(3n+2){--c:#81b29a}
+.ld-heart s{position:absolute;inset:14px;border-radius:50%;border:2px solid #e07a5f;opacity:0;animation:ld-heart-ring 3.2s ease-out infinite}
+@keyframes ld-heart-loop{
+  0%,18%{transform:scale(1);fill:rgba(224,122,95,0);stroke:#f4f1de}
+  23%{transform:scale(.72);fill:rgba(224,122,95,0)}
+  31%{transform:scale(1.3);fill:#e07a5f;stroke:#e07a5f}
+  37%{transform:scale(.9)}
+  43%{transform:scale(1.07)}
+  49%,84%{transform:scale(1);fill:#e07a5f;stroke:#e07a5f}
+  94%,100%{transform:scale(1);fill:rgba(224,122,95,0);stroke:#f4f1de}
+}
+@keyframes ld-heart-spark{0%,27%{opacity:0;transform:rotate(var(--a)) translateY(0) scale(.4)}31%{opacity:1}48%,100%{opacity:0;transform:rotate(var(--a)) translateY(-40px) scale(.2)}}
+@keyframes ld-heart-ring{0%,27%{opacity:0;transform:scale(.4);border-width:6px}31%{opacity:.9}46%,100%{opacity:0;transform:scale(1.25);border-width:0}}
+/* clicked: a one-shot burst, then it stays liked */
+.ld-heart[aria-pressed="true"] path{fill:#e07a5f;stroke:#e07a5f;animation:ld-heart-once .9s both}
+.ld-heart[aria-pressed="true"] i{animation:ld-heart-spark-once .9s ease-out both}
+.ld-heart[aria-pressed="true"] s{animation:ld-heart-ring-once .9s ease-out both}
+.ld-heart.was[aria-pressed="false"] path{animation:none}
+.ld-heart.was[aria-pressed="false"] i,.ld-heart.was[aria-pressed="false"] s{animation:none;opacity:0}
+@keyframes ld-heart-once{0%{transform:scale(.72)}35%{transform:scale(1.3)}55%{transform:scale(.9)}75%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes ld-heart-spark-once{0%{opacity:0;transform:rotate(var(--a)) translateY(0) scale(.4)}15%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(-40px) scale(.2)}}
+@keyframes ld-heart-ring-once{0%{opacity:0;transform:scale(.4);border-width:6px}15%{opacity:.9}100%{opacity:0;transform:scale(1.25);border-width:0}}
+</style>
+<style id="css-daynight">
+.ld-dn{position:relative;width:108px;height:50px;border:0;padding:0;border-radius:999px;background:linear-gradient(180deg,#f7dcae,#f2cc8f 55%,#e9a877);cursor:pointer;overflow:hidden;isolation:isolate;box-shadow:inset 0 2px 6px rgba(0,0,0,.2),0 12px 26px -12px rgba(224,122,95,.7);transition:box-shadow .7s}
+.ld-dn::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#1d1f31,#3d405b);opacity:0;transition:opacity .7s}
+.ld-dn .knob{position:absolute;top:7px;left:7px;width:36px;height:36px;border-radius:50%;overflow:hidden;background:#fff4d8;box-shadow:0 0 0 6px rgba(255,244,216,.28),0 0 20px rgba(255,214,140,.9);transition:transform .75s cubic-bezier(.55,1.55,.4,1),background .6s,box-shadow .6s}
+.ld-dn .knob::after{content:"";position:absolute;top:-6px;left:-6px;width:34px;height:34px;border-radius:50%;background:#2a2c43;transform:translate(-36px,-10px) scale(.5);transition:transform .75s cubic-bezier(.5,1.3,.4,1)}
+.ld-dn .cloud{position:absolute;height:12px;border-radius:999px;background:#fffaf0;opacity:.95;transition:transform .7s cubic-bezier(.5,0,.3,1),opacity .5s}
+.ld-dn .cloud::before{content:"";position:absolute;left:30%;top:-7px;width:14px;height:14px;border-radius:50%;background:inherit}
+.ld-dn .c1{left:58px;top:14px;width:30px}
+.ld-dn .c2{left:70px;top:27px;width:24px;opacity:.75}
+.ld-dn .star{position:absolute;width:3px;height:3px;border-radius:50%;background:#f4f1de;opacity:0;transform:scale(.2);transition:opacity .5s,transform .6s}
+.ld-dn .s1{left:18px;top:13px}.ld-dn .s2{left:34px;top:30px;width:2px;height:2px}.ld-dn .s3{left:46px;top:12px;width:2px;height:2px}
+.ld-dn[aria-checked="true"]{box-shadow:inset 0 2px 6px rgba(0,0,0,.4),0 12px 26px -12px rgba(61,64,91,.9)}
+.ld-dn[aria-checked="true"]::before{opacity:1}
+.ld-dn[aria-checked="true"] .knob{transform:translateX(58px);background:#f4f1de;box-shadow:0 0 0 6px rgba(244,241,222,.07),0 0 16px rgba(244,241,222,.35)}
+.ld-dn[aria-checked="true"] .knob::after{transform:translate(12px,-2px) scale(1)}
+.ld-dn[aria-checked="true"] .cloud{transform:translateY(34px);opacity:0}
+.ld-dn[aria-checked="true"] .star{opacity:1;transform:scale(1);transition-delay:.25s;animation:ld-dn-twinkle 1.8s ease-in-out infinite}
+.ld-dn[aria-checked="true"] .s2{animation-delay:.6s}
+.ld-dn[aria-checked="true"] .s3{animation-delay:1.1s}
+@keyframes ld-dn-twinkle{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+<style id="css-download">
+.ld-dl{position:relative;display:inline-grid;place-items:center;width:156px;height:52px;border:0;padding:0;border-radius:26px;background:#e07a5f;color:#141414;cursor:pointer;font:600 14px/1 "Avenir Next","Segoe UI","Helvetica Neue",Arial,sans-serif;letter-spacing:.01em;box-shadow:0 12px 26px -12px rgba(224,122,95,.8);transition:width .55s cubic-bezier(.65,0,.35,1),background .45s,box-shadow .45s,transform .2s}
+.ld-dl:active{transform:scale(.97)}
+.ld-dl .lbl{display:inline-flex;align-items:center;gap:9px;white-space:nowrap;transition:opacity .25s,transform .35s}
+.ld-dl .lbl svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ld-dl .ring{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px;overflow:visible;opacity:0;transition:opacity .3s}
+.ld-dl .track,.ld-dl .bar{fill:none;stroke-width:3}
+.ld-dl .track{stroke:rgba(244,241,222,.12)}
+.ld-dl .bar{stroke:#f2cc8f;stroke-linecap:round;stroke-dasharray:145;stroke-dashoffset:145;transform:rotate(-90deg);transform-origin:26px 26px}
+.ld-dl .tick{fill:none;stroke:#141414;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:30}
+.ld-dl.is-loading{width:52px;background:rgba(224,122,95,0);box-shadow:none}
+.ld-dl.is-loading .lbl{opacity:0;transform:scale(.8)}
+.ld-dl.is-loading .ring{opacity:1;transition-delay:.35s}
+.ld-dl.is-loading .bar{animation:ld-dl-progress 2s cubic-bezier(.5,.05,.3,1) .45s forwards}
+.ld-dl.is-done{width:52px;background:#81b29a;box-shadow:0 12px 26px -12px rgba(129,178,154,.9);animation:ld-dl-pop .5s cubic-bezier(.3,1.6,.5,1)}
+.ld-dl.is-done .lbl{opacity:0}
+.ld-dl.is-done .ring{opacity:1}
+.ld-dl.is-done .track,.ld-dl.is-done .bar{opacity:0}
+.ld-dl.is-done .tick{animation:ld-dl-tick .45s ease-out .1s forwards}
+@keyframes ld-dl-progress{0%{stroke-dashoffset:145}35%{stroke-dashoffset:96}55%{stroke-dashoffset:88}100%{stroke-dashoffset:0}}
+@keyframes ld-dl-tick{to{stroke-dashoffset:0}}
+@keyframes ld-dl-pop{0%{transform:scale(.85)}100%{transform:scale(1)}}
+</style>
+<style id="css-skeleton">
+.ld-skel{width:170px;padding:14px;border-radius:14px;background:#1f1d1c;box-shadow:inset 0 0 0 1px rgba(244,241,222,.06)}
+.ld-skel .row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ld-skel .b{position:relative;display:block;overflow:hidden;background:#2a2826;border-radius:6px}
+.ld-skel .b::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,rgba(244,241,222,0),rgba(244,241,222,.1),rgba(244,241,222,0));animation:ld-skel-sweep 1.7s cubic-bezier(.4,0,.2,1) infinite;animation-delay:calc(var(--d) * 1s)}
+.ld-skel .av{width:30px;height:30px;border-radius:50%;flex:none}
+.ld-skel .lines{flex:1;display:grid;gap:6px}
+.ld-skel .l1{height:8px;width:80%}
+.ld-skel .l2{height:7px;width:52%}
+.ld-skel .img{height:44px;margin-bottom:10px;border-radius:9px}
+.ld-skel .l3{height:7px;width:100%;margin-bottom:6px}
+.ld-skel .l4{height:7px;width:66%}
+@keyframes ld-skel-sweep{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="kicker"><b aria-hidden="true"></b>An atelier of waiting</p>
+      <h1>Loading,<br><span class="nw"><em>Beautifully</em><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></span></h1>
+    </div>
+    <div>
+      <p class="intro">A gallery of <strong>16 loaders &amp; micro-interactions</strong>, each drawn in plain CSS and SVG. Press <strong>replay</strong> to watch one from the top, or <strong>copy CSS</strong> to take it home.</p>
+      <div class="tools">
+        <ul class="swatches" aria-label="Palette">
+          <li style="--c:#e07a5f"><span>#e07a5f</span></li>
+          <li style="--c:#f2cc8f"><span>#f2cc8f</span></li>
+          <li style="--c:#81b29a"><span>#81b29a</span></li>
+          <li style="--c:#3d405b"><span>#3d405b</span></li>
+          <li style="--c:#f4f1de"><span>#f4f1de</span></li>
+        </ul>
+        <button type="button" class="pill" id="pauseAll" aria-pressed="false"><svg viewBox="0 0 14 14" aria-hidden="true"><path class="pp" d="M4.5 3v8M9.5 3v8"/></svg><span>Pause all</span></button>
+        <button type="button" class="pill" id="replayAll"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg><span>Replay all</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="gallery">
+    <h2 class="count" id="gallery-h">16 pieces · CSS &amp; SVG · JavaScript only flips states</h2>
+    <ul class="grid" aria-labelledby="gallery-h">
+
+      <li class="card" data-key="blob" style="--accent:#e07a5f">
+        <div class="stage"><div class="ld-blob" role="img" aria-label="A glossy blob slowly morphing its shape"><span></span></div></div>
+        <div class="meta"><span class="num">01</span><div><h3>Tidal Blob</h3><span class="kind">border-radius morph</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Tidal Blob"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Tidal Blob"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="orbit" style="--accent:#f2cc8f">
+        <div class="stage"><div class="ld-orbit" role="img" aria-label="Three dots orbiting a core, each leaving a fading trail"><i class="o1"><b></b><b></b><b></b><b></b><b></b></i><i class="o2"><b></b><b></b><b></b><b></b><b></b></i><i class="o3"><b></b><b></b><b></b><b></b><b></b></i><s></s></div></div>
+        <div class="meta"><span class="num">02</span><div><h3>Orbit Trails</h3><span class="kind">staggered rotation</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Orbit Trails"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Orbit Trails"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="check" style="--accent:#81b29a">
+        <div class="stage"><svg class="ld-check" viewBox="0 0 64 64" role="img" aria-label="A pen stroke drawing a circle and a checkmark"><circle class="g" cx="32" cy="32" r="28"/><circle class="c" cx="32" cy="32" r="26"/><path class="k" d="M20 33.5l8 8 16-17"/></svg></div>
+        <div class="meta"><span class="num">03</span><div><h3>Ink Check</h3><span class="kind">stroke-dashoffset</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Ink Check"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Ink Check"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="fill" style="--accent:#e07a5f">
+        <div class="stage"><div class="ld-fill" role="img" aria-label="A round vessel filling with liquid while a percentage counts up"><div class="glass"><i class="w2"></i><i class="w1"></i></div><span class="pct"></span></div></div>
+        <div class="meta"><span class="num">04</span><div><h3>Liquid Fill</h3><span class="kind">@property counter</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Liquid Fill"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Liquid Fill"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="fold" style="--accent:#f2cc8f">
+        <div class="stage"><div class="ld-fold" role="img" aria-label="Nine tiles folding over one after another like paper"><i style="--o:0"></i><i class="x" style="--o:1"></i><i style="--o:2"></i><i class="x" style="--o:7"></i><i style="--o:8"></i><i class="x" style="--o:3"></i><i style="--o:6"></i><i class="x" style="--o:5"></i><i style="--o:4"></i></div></div>
+        <div class="meta"><span class="num">05</span><div><h3>Origami Tiles</h3><span class="kind">3D spiral flips</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Origami Tiles"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Origami Tiles"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="breath" style="--accent:#81b29a">
+        <div class="stage"><div class="ld-breath" role="img" aria-label="A ring that slowly breathes in and out with echo rings"><i></i><i></i><i></i><span>in</span><span>out</span></div></div>
+        <div class="meta"><span class="num">06</span><div><h3>Breathing Ring</h3><span class="kind">scale + echo</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Breathing Ring"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Breathing Ring"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="helix" style="--accent:#e07a5f">
+        <div class="stage"><div class="ld-helix" role="img" aria-label="A rotating double helix of dots joined by rungs"><i style="--i:0"><b></b><b></b></i><i style="--i:1"><b></b><b></b></i><i style="--i:2"><b></b><b></b></i><i style="--i:3"><b></b><b></b></i><i style="--i:4"><b></b><b></b></i><i style="--i:5"><b></b><b></b></i><i style="--i:6"><b></b><b></b></i><i style="--i:7"><b></b><b></b></i><i style="--i:8"><b></b><b></b></i><i style="--i:9"><b></b><b></b></i><i style="--i:10"><b></b><b></b></i><i style="--i:11"><b></b><b></b></i></div></div>
+        <div class="meta"><span class="num">07</span><div><h3>Helix</h3><span class="kind">phase delays</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Helix"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Helix"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="type" style="--accent:#f4f1de">
+        <div class="stage"><div class="ld-type" role="img" aria-label="The word loading typed out with an ellipsis and a blinking caret"><span class="t">loading</span><span class="d">...</span><span class="caret"></span></div></div>
+        <div class="meta"><span class="num">08</span><div><h3>Typewriter</h3><span class="kind">steps() + ch</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Typewriter"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Typewriter"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="pendulum" style="--accent:#f2cc8f">
+        <div class="stage"><div class="ld-pend" role="img" aria-label="A pendulum swinging with its shadow tracking below"><svg class="arc" viewBox="0 0 130 112" aria-hidden="true"><path d="M22.1 67.1A73 73 0 0 0 107.9 67.1"/></svg><span class="pivot"></span><div class="arm"><span class="bob"></span></div><span class="shadow"></span></div></div>
+        <div class="meta"><span class="num">09</span><div><h3>Pendulum</h3><span class="kind">translate + scale</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Pendulum"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Pendulum"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="comet" style="--accent:#e07a5f">
+        <div class="stage"><div class="ld-comet" role="img" aria-label="A gradient spinner whose bright head drags a comet tail"><i></i><b></b></div></div>
+        <div class="meta"><span class="num">10</span><div><h3>Comet</h3><span class="kind">conic + mask</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Comet"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Comet"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="pixels" style="--accent:#81b29a">
+        <div class="stage"><div class="ld-pix" role="img" aria-label="A grid of pixels rippling in a diagonal wave">
+          <i style="--x:0;--y:0"></i><i style="--x:1;--y:0"></i><i style="--x:2;--y:0"></i><i style="--x:3;--y:0"></i><i style="--x:4;--y:0"></i><i style="--x:5;--y:0"></i><i style="--x:6;--y:0"></i><i style="--x:7;--y:0"></i>
+          <i style="--x:0;--y:1"></i><i style="--x:1;--y:1"></i><i style="--x:2;--y:1"></i><i style="--x:3;--y:1"></i><i style="--x:4;--y:1"></i><i style="--x:5;--y:1"></i><i style="--x:6;--y:1"></i><i style="--x:7;--y:1"></i>
+          <i style="--x:0;--y:2"></i><i style="--x:1;--y:2"></i><i style="--x:2;--y:2"></i><i style="--x:3;--y:2"></i><i style="--x:4;--y:2"></i><i style="--x:5;--y:2"></i><i style="--x:6;--y:2"></i><i style="--x:7;--y:2"></i>
+          <i style="--x:0;--y:3"></i><i style="--x:1;--y:3"></i><i style="--x:2;--y:3"></i><i style="--x:3;--y:3"></i><i style="--x:4;--y:3"></i><i style="--x:5;--y:3"></i><i style="--x:6;--y:3"></i><i style="--x:7;--y:3"></i>
+        </div></div>
+        <div class="meta"><span class="num">11</span><div><h3>Pixel Wave</h3><span class="kind">diagonal stagger</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Pixel Wave"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Pixel Wave"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="book" style="--accent:#f4f1de">
+        <div class="stage"><div class="ld-book" role="img" aria-label="An open book with pages turning one after another"><span class="l"></span><span class="r"></span><b></b><b></b><b></b></div></div>
+        <div class="meta"><span class="num">12</span><div><h3>Page Flip</h3><span class="kind">rotateY in 3D</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Page Flip"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Page Flip"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="heart" style="--accent:#e07a5f">
+        <div class="stage"><button type="button" class="ld-heart" aria-pressed="false" aria-label="Like"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 27.5S4 20.2 4 11.8A6.1 6.1 0 0 1 16 9.4a6.1 6.1 0 0 1 12 2.4C28 20.2 16 27.5 16 27.5Z"/></svg><i style="--a:0deg"></i><i style="--a:45deg"></i><i style="--a:90deg"></i><i style="--a:135deg"></i><i style="--a:180deg"></i><i style="--a:225deg"></i><i style="--a:270deg"></i><i style="--a:315deg"></i><s></s></button></div>
+        <div class="meta"><span class="num">13</span><div><h3>Elastic Heart</h3><span class="kind">click to like</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Elastic Heart"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Elastic Heart"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="daynight" style="--accent:#f2cc8f">
+        <div class="stage"><button type="button" class="ld-dn" role="switch" aria-checked="false" aria-label="Night mode"><span class="cloud c1"></span><span class="cloud c2"></span><span class="star s1"></span><span class="star s2"></span><span class="star s3"></span><span class="knob"></span></button></div>
+        <div class="meta"><span class="num">14</span><div><h3>Day / Night</h3><span class="kind">click to toggle</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Day / Night"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Day / Night"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="download" style="--accent:#81b29a">
+        <div class="stage"><button type="button" class="ld-dl" aria-label="Download file"><span class="lbl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg>Download</span><svg class="ring" viewBox="0 0 52 52" aria-hidden="true"><circle class="track" cx="26" cy="26" r="23"/><circle class="bar" cx="26" cy="26" r="23"/><path class="tick" d="M17 26.5l6 6 12-13"/></svg></button></div>
+        <div class="meta"><span class="num">15</span><div><h3>Download → Done</h3><span class="kind">click to run</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Download to Done"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Download to Done"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+
+      <li class="card" data-key="skeleton" style="--accent:#f4f1de">
+        <div class="stage"><div class="ld-skel" role="img" aria-label="A placeholder card with a shimmer sweeping across it"><div class="row"><span class="b av" style="--d:0"></span><span class="lines"><span class="b l1" style="--d:.08"></span><span class="b l2" style="--d:.08"></span></span></div><span class="b img" style="--d:.03"></span><span class="b l3" style="--d:.03"></span><span class="b l4" style="--d:0"></span></div></div>
+        <div class="meta"><span class="num">16</span><div><h3>Skeleton Shimmer</h3><span class="kind">sweeping highlight</span></div>
+          <div class="acts"><button type="button" class="act replay" aria-label="Replay Skeleton Shimmer"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7a4.5 4.5 0 1 0 1.4-3.3M2.5 2v2.8h2.8"/></svg></button><button type="button" class="act copy" aria-label="Copy CSS for Skeleton Shimmer"><svg class="ic" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v1.5L1.5 7l1 1.5V10A1.5 1.5 0 0 0 4 11.5h1M9 2.5h1A1.5 1.5 0 0 1 11.5 4v1.5l1 1.5-1 1.5V10A1.5 1.5 0 0 1 10 11.5H9"/></svg><svg class="ok" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4.5"/></svg>CSS</button></div></div>
+      </li>
+    </ul>
+  </main>
+
+  <footer class="footnote">
+    <span>Loading, Beautifully · an original study in patience</span>
+    <span>Every loader: pure CSS &amp; inline SVG</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><i aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M2.5 6.3 5 8.6l4.5-5"/></svg></i><span id="toastMsg">Copied</span></div>
+
+<dialog id="codeDlg" aria-labelledby="dlgTitle">
+  <h2 id="dlgTitle">Copy this CSS</h2>
+  <p>Your browser blocked clipboard access here, so the code is selected for you. Press Ctrl+C or ⌘+C.</p>
+  <textarea id="dlgCode" readonly aria-label="CSS source"></textarea>
+  <div class="row"><button type="button" class="pill" id="dlgClose">Close</button></div>
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+  const grid = document.querySelector('.grid');
+  const cards = [...document.querySelectorAll('.card')];
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMsg');
+  const rmq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+
+  /* ---------- helpers ---------- */
+  function dedent(text) {
+    const lines = text.replace(/\t/g, '  ').split('\n');
+    while (lines.length && !lines[0].trim()) lines.shift();
+    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+    const ind = Math.min(...lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length));
+    return lines.map(l => l.slice(ind)).join('\n');
+  }
+  let toastT = 0;
+  function say(msg, sub) {
+    toastMsg.innerHTML = '';
+    toastMsg.append(msg);
+    if (sub) { const s = document.createElement('small'); s.textContent = sub; toastMsg.append(s); }
+    toast.classList.add('on');
+    clearTimeout(toastT);
+    toastT = setTimeout(() => toast.classList.remove('on'), 2200);
+  }
+
+  /* ---------- replay: swap in a fresh clone so every animation starts from zero ---------- */
+  function replay(card) {
+    const stage = card.querySelector('.stage');
+    const old = stage.firstElementChild;
+    const fresh = old.cloneNode(true);
+    fresh.classList.remove('is-loading', 'is-done', 'was');
+    if (fresh.hasAttribute('aria-pressed')) fresh.setAttribute('aria-pressed', 'false');
+    if (fresh.getAttribute('role') === 'switch') fresh.setAttribute('aria-checked', 'false');
+    stage.replaceChild(fresh, old);
+    const key = card.dataset.key;
+    if (key === 'download') { clearTimeout(dlTimer); dlUser = false; dlTimer = setTimeout(() => runDownload(fresh, true), 500); }
+    if (key === 'daynight') { dnUser = false; }
+  }
+
+  /* ---------- copy CSS ---------- */
+  async function copyCSS(card, btn) {
+    const key = card.dataset.key;
+    const styleEl = document.getElementById('css-' + key);
+    if (!styleEl) return;
+    const title = card.querySelector('h3').textContent;
+    const markup = card.querySelector('.stage').innerHTML.trim().replace(/\s+/g, ' ').replace(/> </g, '><');
+    const css = '/* ' + title + ' — from "Loading, Beautifully"\n   markup: ' + markup.replace(/\*\//g, '* /') + ' */\n' + dedent(styleEl.textContent) + '\n';
+    const lines = css.split('\n').length;
+    const ok = () => {
+      btn.classList.add('done');
+      setTimeout(() => btn.classList.remove('done'), 1500);
+      say('Copied ' + title + ' CSS', lines + ' lines');
+    };
+    try {
+      if (navigator.clipboard && window.isSecureContext !== false) {
+        await navigator.clipboard.writeText(css);
+        ok(); return;
+      }
+      throw new Error('no clipboard');
+    } catch (e) {
+      // legacy path
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = css; ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '-9999px';
+        document.body.appendChild(ta); ta.select();
+        const done = document.execCommand && document.execCommand('copy');
+        ta.remove();
+        if (done) { ok(); return; }
+      } catch (e2) { /* fall through */ }
+      openDialog(css);
+    }
+  }
+  const dlg = document.getElementById('codeDlg');
+  const dlgCode = document.getElementById('dlgCode');
+  function openDialog(css) {
+    dlgCode.value = css;
+    try { dlg.showModal(); } catch (e) { dlg.setAttribute('open', ''); }
+    dlgCode.focus(); dlgCode.select();
+  }
+  document.getElementById('dlgClose').addEventListener('click', () => { try { dlg.close(); } catch (e) { dlg.removeAttribute('open'); } });
+
+  /* ---------- one delegated click handler for the whole gallery ---------- */
+  grid.addEventListener('click', e => {
+    const t = e.target;
+    const card = t.closest('.card');
+    if (!card) return;
+    const act = t.closest('.act');
+    if (act && act.classList.contains('replay')) { replay(card); return; }
+    if (act && act.classList.contains('copy')) { copyCSS(card, act); return; }
+    const heart = t.closest('.ld-heart');
+    if (heart) {
+      const on = heart.getAttribute('aria-pressed') !== 'true';
+      heart.classList.add('was');
+      heart.setAttribute('aria-pressed', String(on));
+      heart.setAttribute('aria-label', on ? 'Liked' : 'Like');
+      return;
+    }
+    const dn = t.closest('.ld-dn');
+    if (dn) { dnUser = true; toggleDN(dn); return; }
+    const dl = t.closest('.ld-dl');
+    if (dl) { dlUser = true; runDownload(dl, false); }
+  });
+
+  /* ---------- day / night: flips on click; demos itself until touched ---------- */
+  let dnUser = false;
+  function toggleDN(el) {
+    const on = el.getAttribute('aria-checked') !== 'true';
+    el.setAttribute('aria-checked', String(on));
+  }
+  setInterval(() => {
+    if (dnUser || document.hidden || rmq.matches || document.body.classList.contains('all-paused')) return;
+    const el = document.querySelector('.ld-dn');
+    if (el) toggleDN(el);
+  }, 2600);
+
+  /* ---------- download: idle -> loading ring -> done tick -> idle ---------- */
+  let dlTimer = 0, dlUser = false;
+  function runDownload(el, demo) {
+    if (el.classList.contains('is-loading') || el.classList.contains('is-done')) return;
+    clearTimeout(dlTimer);
+    el.classList.add('is-loading');
+    el.setAttribute('aria-label', 'Downloading');
+    const bar = el.querySelector('.bar');
+    const onEnd = ev => {
+      if (ev.animationName !== 'ld-dl-progress') return;
+      bar.removeEventListener('animationend', onEnd);
+      el.classList.remove('is-loading');
+      el.classList.add('is-done');
+      el.setAttribute('aria-label', 'Downloaded');
+      dlTimer = setTimeout(() => {
+        el.classList.remove('is-done');
+        el.setAttribute('aria-label', 'Download file');
+        if (!dlUser && !rmq.matches) dlTimer = setTimeout(() => { if (el.isConnected) runDownload(el, true); }, 2200);
+      }, 1800);
+    };
+    bar.addEventListener('animationend', onEnd);
+  }
+  const dlEl = document.querySelector('.ld-dl');
+  if (dlEl && !rmq.matches) dlTimer = setTimeout(() => runDownload(dlEl, true), 900);
+
+  /* ---------- global controls ---------- */
+  const pauseAll = document.getElementById('pauseAll');
+  pauseAll.addEventListener('click', () => {
+    const on = !document.body.classList.contains('all-paused');
+    document.body.classList.toggle('all-paused', on);
+    pauseAll.setAttribute('aria-pressed', String(on));
+    pauseAll.querySelector('span').textContent = on ? 'Resume all' : 'Pause all';
+    pauseAll.querySelector('.pp').setAttribute('d', on ? 'M4.5 3l6 4-6 4Z' : 'M4.5 3v8M9.5 3v8');
+  });
+  document.getElementById('replayAll').addEventListener('click', () => {
+    cards.forEach((c, i) => setTimeout(() => replay(c), i * 45));
+  });
+
+  /* ---------- pause stages that are off-screen ---------- */
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => en.target.classList.toggle('off', !en.isIntersecting));
+    }, { rootMargin: '80px' });
+    document.querySelectorAll('.stage').forEach(s => io.observe(s));
+  }
+})();
+</script>
+</body>
+</html>

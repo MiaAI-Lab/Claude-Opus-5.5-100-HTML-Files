@@ -1,0 +1,40 @@
+TITLE: Selene — Tide & Moon Clock
+FILE: 044-tide-moon-clock.html
+
+=== PROMPT (exact prompt used) ===
+Create "Selene — Tide & Moon Clock", a poetic instrument showing today's moon phase and a stylised tidal cycle. Compute the current moon phase from the date (synodic month ≈ 29.53059 days from the reference new moon of 2000-01-06 18:14 UTC) and render a large, photoreal-leaning moon on canvas with a correct terminator, craters and maria from procedural noise shading, and earthshine on the dark side. Below it, a flowing sea of layered animated SVG waves (navy #0b1d3a, #13315c, #1d4e89 with silver highlights #c9d6e3) whose level rises and falls with a simplified semi-diurnal tide model (two highs and two lows per ~24h50m, clearly labelled illustrative, not for navigation). A circular 24-hour dial around the moon marks tide highs/lows and the current time. Text: phase name, illumination %, days until the next full/new moon, and the next (illustrative) high tide. Interaction: a date scrubber travels ±30 days so you can watch the moon wax and wane; hovering the sea makes it sparkle; a calm night mode dims the UI. Typography: a light, elegant serif with small caps.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"Selene" is a nocturne: a navy sky with faint stars, a large moon at its true phase for today, and a still, moonlit sea below. The sea rises and falls with an illustrative semi-diurnal tide. The moon sits inside a 24-hour dial with midnight at the top. Its tide ring swells outward at high water and draws in at low water, with times labelled and a pointer at the current hour. On either side, two quiet panels in light Garamond-style italics and small caps give the lunar state (phase name, illumination, age, time to the next full and new moon) and the tidal state (rising or falling, height within the range, spring or neap, next high and low). The tide is plainly marked as illustrative and not for navigation. A glass time scrubber floats on the water. Its track is lined with phase icons and it travels thirty days either side of today, so the moon waxes and wanes under your thumb.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- The moon is rendered on canvas per pixel. The phase comes from the mean synodic month (29.53059 d from the 2000-01-06 18:14 UTC new moon) and sets the sun direction L = (sin φ, 0, −cos φ), which gives a correct terminator for a northern-hemisphere viewer
+- The surface is built once into buffers, then only relit when the date changes. 3D value-noise fBm is sampled on the sphere. Noise-warped blobs are placed where the real near-side maria sit (Procellarum, Imbrium, Serenitatis, Tranquillitatis, Crisium and others). Tycho, Copernicus, Kepler and Aristarchus have ray systems, and dark-floored Plato and Grimaldi are included alongside a seeded field of craters. A height field is turned into perturbed normals, so crater relief catches light along the terminator
+- Lighting uses a Lommel-Seeliger law (the flat look of a full moon) with a smooth terminator ramp. Blue-tinted earthshine on the night side grows toward new moon, and a soft CSS radial glow scales with illumination
+- The 24-hour SVG dial carries 96 ticks, hour numerals, italic "midnight" and "noon", and a closed tide curve r(θ) = R + A·h(t) filled with a translucent band. High and low marks carry two-line labels
+- The tide model: h(t) = A·cos(2π(t − T0)/12.42 h), which gives highs at the moon's upper and lower passage (about 24 h 50 m per pair). A = 0.86 + 0.14·cos 2φ, so springs fall near new and full moon and neaps near the quarters
+- The sea is four SVG wave layers in #1d4e89, #13315c and #0b1d3a gradients. Each is a sum of three travelling sines drawn with smooth quadratic segments, and silver crest strokes brighten under the moon. The water level follows the tide, with an eased lift that grows toward the front layers
+- A silver tide staff stands between the wave layers and is marked hw, mw and lw, so the water visibly rises and falls against it
+- A canvas overlay with additive blending draws a flickering moonlight path whose strength follows illumination, a horizon glow and pointer sparkles
+- The starfield is a seeded canvas with a handful of CSS-twinkling stars. The "SELENE" title is drawn as hairline outlined SVG text
+
+=== INTERACTION MODEL ===
+- The date scrubber (a range input, ±30 days, keyboard accessible, with a descriptive aria-valuetext) eases the displayed date toward its target. The moon relights, the tide ring redraws and all readouts update
+- "Play" sweeps through the lunation at about 2 days per second. "Today" returns to the present
+- Moving the pointer over the sea spawns four-point sparkles on the water
+- "Calm" night mode fades all UI to a whisper, dims the moon slightly and brings the UI back on hover or focus. The choice is remembered in localStorage (wrapped in try/catch)
+- The clock stays live: the current-time pointer, tide state and next high and low update every minute
+- Everything re-lays out on resize. Canvases use devicePixelRatio (capped at 2). prefers-reduced-motion freezes the waves, the twinkling and the date easing, and steadies the glitter

@@ -1,0 +1,35 @@
+TITLE: Pip and the Paper Moon
+FILE: 098-paper-moon-storybook.html
+
+=== PROMPT (exact prompt used) ===
+Create "Pip and the Paper Moon", an interactive children's picture book (an original short story in eight spreads about a little fox who wants to give the moon a gift). Watercolour-pastel illustrations built from SVG shapes with soft gradients, paper texture and gentle outlines: a forest at dusk, a pond reflecting the moon, a hill, a lantern festival, and more. Palette: peach #ffcdb2, dusty pink #e5989b, mauve #b5838d, pale blue #a8dadc, midnight #1d3557, warm yellow #ffd166. Book UX: a two-page spread on desktop and a single page on mobile; a realistic 3D page turn (CSS 3D with shading on the curling page) triggered by clicking page corners, arrow keys or swiping. Each spread hides small delights: tap the fox to make it hop, tap stars to twinkle and chime, tap the pond for ripples, fireflies follow the finger. Large, readable story text in a friendly rounded serif; a "Read along" mode highlights each word in turn and turns the page automatically. A cover page with a sparkling title.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Pip and the Paper Moon is an original bedtime picture book that you read like a real hardback. A small fox called Pip notices that the moon gives light to everyone but never gets anything back, and sets out to find it a gift: a pebble dropped into the moon on the pond, a feather, an acorn and a blackberry that gets eaten, then a lantern festival where Pip learns to cut paper so it glows and sends a little paper moon up to keep the real one company. The book opens on a sparkling cover, runs through eight illustrated spreads and closes on "The End" and a "Read it again" page. Every picture is painted from SVG shapes in a peach, dusty-pink, mauve, pale-blue, midnight and warm-yellow watercolour palette, with wobbly hand-painted edges, soft glows, gentle outlines and paper grain. The book sits on a midnight cover board with a visible page stack, while fireflies drift over the whole scene. On desktop it is a two-page spread; on phones it becomes a single page, with the picture cropped around each spread's focal point and the text set large underneath.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- A real 3D page turn: the turning leaf is built on the fly from three hinged CSS-3D segments (50/30/20 % of the page) with preserve-3d and backface-hidden front and back faces; the outer segments lead or lag the main rotation to make the paper curl, and per-segment shading and gloss overlays follow each segment's angle
+- Cast shadows sweep across the page underneath as the leaf lifts; the closed cover sits centred and the book slides open as the first page turns; the spine gutter is shaded on every page
+- Watercolour look: an feTurbulence + feDisplacementMap filter gives hills, trees and shores wobbly painted edges; layered semi-transparent gradients, soft moon and lantern glows, low-opacity outlines and a multiplied fractal-noise paper grain on every page
+- Each illustration is drawn once as a 2000 × 1400 spread and cropped with viewBox into its left and right pages (and re-cropped around a per-spread focus for phones), so the pictures run seamlessly across the gutter
+- Hand-built SVG characters and props: Pip in sitting, looking-up and sleeping poses, a beetle, Badger Bramble, a hedgehog, a rabbit, an owl, paper lanterns and the paper moon, plus pines, ferns, fiddleheads, clouds and a sparkle star field
+- Cover title in a warm rounded serif with a shimmering gradient sweep (background-clip text) and twinkling CSS sparkles; a canvas firefly layer with additive glow sprites and gold sparkle bursts
+
+=== INTERACTION MODEL ===
+- Turn pages by clicking the curling page corners (they peel up on hover or focus), with the arrow buttons, the ArrowLeft/ArrowRight or PageUp/PageDown keys, or by swiping; dots show where you are in the book
+- Read along (button or R) highlights each word in turn with natural pauses at commas and full stops, then turns the page by itself and carries on to the end
+- Hidden delights: tap Pip to make the little fox hop (on every spread Pip appears in), tap the stars to make them twinkle and ring a pentatonic bell with a sparkle burst, tap the pond on the third spread for ripples and a wobbling moon reflection; fireflies follow your pointer or finger and drift around the book when you stop
+- Web Audio bells, a soft page swish and a hop sound start only after a gesture; the bell button (or M) mutes, and the choice is remembered in guarded localStorage
+- "Read it again" returns to the cover; each turn announces the spread and its text through a polite live region; the layout switches between spread and single page on resize; prefers-reduced-motion shortens the turns and stops the ambient animation

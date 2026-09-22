@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nonna Lucia's Lemon Ricotta Tart — A Family Recipe</title>
+<meta name="description" content="An illustrated, interactive recipe for a Mediterranean lemon ricotta tart: servings scaler with friendly fractions, metric and US units, an ingredient checklist, step timers with a gentle chime, and a large-type cook mode.">
+<meta name="theme-color" content="#fbf6ea">
+<style>
+:root{
+  --lemon:#f7d44c;
+  --lemon-soft:#fbe9a0;
+  --leaf:#5b8c51;
+  --leaf-deep:#3f6a39;
+  --terra:#c65d3b;
+  --terra-deep:#a64527;
+  --cream:#fbf6ea;
+  --cream-2:#f4ecd6;
+  --cream-3:#ece1c4;
+  --ink:#2e2a24;
+  --ink-2:#5f574b;
+  --ink-3:#8f8577;
+  --line:rgba(46,42,36,.14);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"P052","Book Antiqua",Georgia,serif;
+  --shadow:0 1px 0 rgba(255,255,255,.7) inset,0 14px 30px -22px rgba(90,60,30,.5);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{
+  margin:0;color:var(--ink);font-family:var(--serif);font-size:18px;line-height:1.6;
+  background-color:var(--cream);
+  background-image:
+    radial-gradient(rgba(46,42,36,.045) .8px,transparent 1.1px),
+    radial-gradient(rgba(198,93,59,.035) .8px,transparent 1.1px);
+  background-size:9px 9px,13px 13px;
+  background-position:0 0,4px 6px;
+  font-variant-numeric:lining-nums;
+  -webkit-font-smoothing:antialiased;
+}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:12px;top:-60px;z-index:50;background:var(--ink);color:var(--cream);padding:8px 14px;border-radius:8px}
+.skip:focus{top:12px}
+:focus-visible{outline:3px solid var(--terra);outline-offset:3px;border-radius:6px}
+button{font-family:inherit}
+
+/* ——— top strip ——— */
+.strip{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:14px clamp(16px,4vw,56px);
+  border-bottom:1.5px solid var(--ink);
+  font-size:14px;letter-spacing:.04em;
+}
+.brand{display:flex;align-items:center;gap:10px;font-style:italic;color:var(--ink-2)}
+.brand b{font-style:normal;font-variant:small-caps;letter-spacing:.14em;color:var(--ink);font-weight:600;text-transform:lowercase;font-size:15px}
+.strip-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pill{
+  appearance:none;display:inline-flex;align-items:center;gap:8px;
+  border:1.5px solid var(--ink);background:var(--cream);color:var(--ink);
+  border-radius:999px;padding:6px 14px;font-size:14.5px;cursor:pointer;
+  transition:transform .18s ease,background .25s ease,box-shadow .25s ease;
+  box-shadow:0 2px 0 var(--ink);
+}
+.pill:hover{transform:translateY(-1px);box-shadow:0 3px 0 var(--ink)}
+.pill:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink)}
+.pill svg{flex:0 0 auto}
+.pill.primary{background:var(--lemon)}
+.pill[aria-pressed="false"] .bell-on{display:none}
+.pill[aria-pressed="true"] .bell-off{display:none}
+
+/* ——— hero ——— */
+.hero{
+  display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);
+  gap:clamp(20px,4vw,64px);align-items:center;
+  padding:clamp(22px,3.4vw,48px) clamp(16px,4vw,56px) clamp(10px,2vw,28px);
+  max-width:1360px;margin:0 auto;
+}
+.kicker{font-variant:small-caps;text-transform:lowercase;letter-spacing:.2em;font-size:14px;color:var(--terra);margin:0 0 10px;display:flex;align-items:center;gap:12px}
+.kicker::after{content:"";flex:0 0 60px;height:1.5px;background:var(--terra)}
+h1{margin:0;font-weight:400;line-height:.95;letter-spacing:-.01em}
+h1 .who{display:block;font-style:italic;color:var(--terra);font-size:clamp(28px,3.2vw,46px);margin-bottom:.12em;transform:rotate(-2deg);transform-origin:left bottom}
+h1 .what{display:block;font-size:clamp(46px,6.2vw,92px);font-weight:600;letter-spacing:-.025em}
+h1 .what em{font-weight:400;color:var(--leaf-deep)}
+.story{margin:22px 0 0;max-width:36em;font-size:clamp(16.5px,1.25vw,19px);color:var(--ink-2)}
+.story p{margin:0 0 .8em}
+.story p:first-child::first-line{font-variant:small-caps;letter-spacing:.06em;color:var(--ink)}
+.meta{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;
+  margin:22px 0 0;padding:0;list-style:none;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);
+}
+.meta li{padding:10px 12px 10px 0;display:flex;flex-direction:column;gap:2px}
+.meta li+li{padding-left:14px;border-left:1px solid var(--line)}
+.meta span{font-variant:small-caps;text-transform:lowercase;letter-spacing:.16em;font-size:12.5px;color:var(--ink-3)}
+.meta b{font-weight:600;font-size:clamp(18px,1.6vw,22px)}
+
+.art{position:relative;width:100%;max-width:640px;justify-self:center;aspect-ratio:640/600}
+.art svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.art #artStatic{overflow:hidden}
+.spin{transform-box:fill-box;transform-origin:center;animation:spin var(--d,48s) linear infinite}
+.spin.rev{animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sway{transform-box:fill-box;transform-origin:0% 50%;animation:sway 7s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
+.float{animation:bob 6s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(-4px)}to{transform:translateY(5px)}}
+.art-cap{position:absolute;right:4%;bottom:-2%;font-style:italic;font-size:14px;color:var(--ink-2);transform:rotate(-3deg);background:var(--cream);padding:4px 10px;border:1px solid var(--line);border-radius:3px;box-shadow:2px 3px 0 rgba(46,42,36,.12)}
+
+/* ——— recipe body ——— */
+.recipe{
+  max-width:1360px;margin:0 auto;padding:clamp(18px,3vw,40px) clamp(16px,4vw,56px) 40px;
+  display:grid;grid-template-columns:minmax(300px,.8fr) minmax(0,1.2fr);gap:clamp(22px,4vw,64px);align-items:start;
+}
+.card{
+  background:#fffdf6;border:1.5px solid var(--ink);border-radius:18px;
+  box-shadow:6px 6px 0 var(--cream-3);
+}
+.ingredients{position:sticky;top:16px;padding:22px 22px 18px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+h2{margin:0;font-size:clamp(28px,2.6vw,36px);font-weight:600;letter-spacing:-.01em}
+h2 small{font-weight:400;font-style:italic;color:var(--ink-3);font-size:.5em;margin-left:6px;letter-spacing:0}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 0 14px;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}
+.scaler{display:flex;align-items:center;gap:0;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--cream)}
+.scaler button{appearance:none;border:0;background:transparent;width:38px;height:36px;font-size:22px;line-height:1;cursor:pointer;color:var(--ink);transition:background .2s}
+.scaler button:hover:not(:disabled){background:var(--lemon)}
+.scaler button:disabled{color:var(--ink-3);cursor:not-allowed}
+.scaler output{min-width:106px;text-align:center;font-size:15.5px;border-left:1.5px solid var(--ink);border-right:1.5px solid var(--ink);padding:6px 6px;font-variant-numeric:tabular-nums lining-nums}
+.scaler output b{font-size:19px}
+.units{display:inline-flex;border:1.5px solid var(--ink);border-radius:999px;padding:2px;background:var(--cream)}
+.units button{appearance:none;border:0;background:transparent;border-radius:999px;padding:5px 13px;font-size:14.5px;cursor:pointer;color:var(--ink-2);transition:background .25s,color .25s}
+.units button[aria-pressed="true"]{background:var(--ink);color:var(--cream)}
+.tin{font-size:14px;color:var(--ink-3);font-style:italic;margin:8px 0 0}
+.gathered{display:flex;align-items:center;gap:10px;margin:12px 0 4px;font-size:14px;color:var(--ink-2)}
+.gbar{flex:1;height:7px;border-radius:9px;background:var(--cream-2);border:1px solid var(--line);overflow:hidden}
+.gbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--lemon),#f2c21c);transition:width .5s cubic-bezier(.3,1.4,.5,1)}
+.igroup{margin:14px 0 0}
+.igroup h3{margin:0 0 4px;font-size:15px;font-weight:400;font-variant:small-caps;text-transform:lowercase;letter-spacing:.18em;color:var(--terra);display:flex;align-items:center;gap:8px}
+.igroup h3 svg{flex:0 0 auto}
+.ilist{list-style:none;margin:0;padding:0}
+.ilist li{border-bottom:1px dotted rgba(46,42,36,.18)}
+.ilist li:last-child{border-bottom:0}
+.ing{position:relative;display:grid;grid-template-columns:26px 66px minmax(0,1fr);gap:10px;align-items:start;padding:7px 2px;cursor:pointer;border-radius:8px;transition:background .2s}
+.ing:hover{background:rgba(247,212,76,.14)}
+.ingredients.us .ing{grid-template-columns:26px 128px minmax(0,1fr)}
+.ingredients.us .qty{white-space:normal;line-height:1.35}
+.ing input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.box{width:22px;height:22px;margin-top:2px;border:1.5px solid var(--ink);border-radius:50%;display:grid;place-items:center;background:var(--cream);transition:background .25s,transform .25s cubic-bezier(.3,1.8,.5,1)}
+.box svg path{stroke-dasharray:16;stroke-dashoffset:16;transition:stroke-dashoffset .3s ease .08s}
+.ing input:checked+.box{background:var(--lemon);transform:scale(1.12)}
+.ing input:checked+.box svg path{stroke-dashoffset:0}
+.ing input:focus-visible+.box{outline:3px solid var(--terra);outline-offset:2px}
+.qty{font-weight:600;font-variant-numeric:tabular-nums lining-nums;font-size:16.5px;white-space:nowrap;transition:color .3s}
+.qty.bump{animation:bump .45s ease}
+@keyframes bump{30%{color:var(--terra);transform:translateY(-2px)}}
+.qty{display:inline-block}
+.what-txt{font-size:16.5px;line-height:1.45}
+.what-txt span{
+  background-image:linear-gradient(var(--terra),var(--terra));background-repeat:no-repeat;
+  background-position:0 58%;background-size:0% 2px;transition:background-size .55s cubic-bezier(.6,.1,.2,1),color .4s ease;
+  -webkit-box-decoration-break:clone;box-decoration-break:clone;
+}
+.what-txt small{display:block;font-style:italic;color:var(--ink-3);font-size:13.5px}
+.ing input:checked~.what-txt span{background-size:100% 2px;color:var(--ink-3)}
+.ing input:checked~.qty{color:var(--ink-3)}
+.reset-link{appearance:none;border:0;background:none;color:var(--ink-3);font-style:italic;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px 0;margin-top:10px}
+.reset-link:hover{color:var(--terra)}
+
+/* method */
+.method-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.progress-note{font-style:italic;color:var(--ink-3);font-size:15px}
+.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+.step{
+  position:relative;display:grid;grid-template-columns:64px minmax(0,1fr);gap:18px;
+  padding:20px 20px 18px 18px;margin:0 0 16px;border-radius:18px;
+  background:#fffdf6;border:1.5px solid var(--line);
+  transition:border-color .3s,box-shadow .3s,opacity .4s,transform .3s;
+}
+.step.current{border-color:var(--ink);box-shadow:6px 6px 0 var(--lemon)}
+.step.done{opacity:.62}
+.step.done .num{background:var(--leaf);color:var(--cream);border-color:var(--leaf-deep)}
+.num{
+  width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
+  border:1.5px solid var(--ink);background:var(--cream);font-size:28px;font-style:italic;color:var(--terra);
+  transition:background .3s,color .3s;
+}
+.step.current .num{background:var(--lemon);color:var(--ink)}
+.step h3{margin:4px 0 6px;font-size:clamp(21px,1.8vw,25px);font-weight:600;line-height:1.2}
+.step p{margin:0 0 10px;color:var(--ink-2)}
+.step .u{color:var(--ink);font-weight:600;white-space:nowrap}
+.tip{
+  position:relative;margin:12px 0 4px;padding:10px 14px 10px 44px;
+  font-style:italic;font-size:17px;color:#7a3b24;line-height:1.45;
+  background:rgba(247,212,76,.18);border-radius:4px 14px 14px 14px;transform:rotate(-.6deg);
+}
+.tip b{font-weight:400;font-size:.92em;letter-spacing:.02em;color:var(--terra);display:block;text-decoration:underline wavy rgba(198,93,59,.5);text-underline-offset:4px;margin-bottom:2px}
+.tip svg{position:absolute;left:10px;top:12px}
+.uses{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;padding:0;list-style:none}
+.uses li{font-size:13.5px;padding:2px 10px;border-radius:999px;background:var(--cream-2);color:var(--ink-2);border:1px solid var(--line)}
+.step-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.done-btn{
+  appearance:none;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  border:1.5px solid var(--ink);border-radius:999px;background:var(--cream);padding:6px 14px 6px 10px;font-size:15px;color:var(--ink);
+  transition:background .25s,transform .15s;
+}
+.done-btn:hover{background:rgba(91,140,81,.14)}
+.done-btn:active{transform:scale(.97)}
+.done-btn .ck{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--ink);display:grid;place-items:center}
+.done-btn .ck path{stroke-dasharray:14;stroke-dashoffset:14;transition:stroke-dashoffset .3s}
+.step.done .done-btn{background:var(--leaf);color:var(--cream);border-color:var(--leaf-deep)}
+.step.done .done-btn .ck{border-color:var(--cream)}
+.step.done .done-btn .ck path{stroke-dashoffset:0;stroke:var(--cream)}
+.step-focus{appearance:none;border:0;background:none;color:var(--ink-3);font-style:italic;font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.step-focus:hover{color:var(--terra)}
+
+.timer{display:inline-flex;align-items:center;gap:10px;padding:5px 8px 5px 5px;border-radius:999px;border:1.5px solid var(--ink);background:var(--cream)}
+.timer .ring{width:40px;height:40px;display:block;transform:rotate(-90deg)}
+.timer .track{fill:none;stroke:var(--cream-3);stroke-width:5}
+.timer .prog{fill:none;stroke:var(--terra);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+.timer .t-time{font-variant-numeric:tabular-nums lining-nums;font-size:17px;min-width:4.4ch;font-weight:600}
+.timer button{appearance:none;border:0;background:var(--ink);color:var(--cream);border-radius:999px;padding:5px 12px;font-size:14px;cursor:pointer;transition:background .2s}
+.timer button.t-reset{background:transparent;color:var(--ink-2);padding:5px 7px;font-size:16px}
+.timer button:hover{background:var(--terra);color:var(--cream)}
+.timer.running .prog{stroke:var(--leaf)}
+.timer.finished{animation:ringpulse 1.1s ease 3}
+.timer.finished .prog{stroke:var(--lemon)}
+@keyframes ringpulse{50%{box-shadow:0 0 0 8px rgba(247,212,76,.55)}}
+
+.finale{
+  max-width:1360px;margin:0 auto;padding:10px clamp(16px,4vw,56px) 60px;
+  display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:flex-end;color:var(--ink-3);font-size:15px;
+}
+.finale .sig{font-style:italic;font-size:22px;color:var(--terra);transform:rotate(-2deg)}
+
+/* dock + toast */
+.dock{position:fixed;left:16px;bottom:16px;z-index:40;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.dock button{
+  pointer-events:auto;appearance:none;display:flex;align-items:center;gap:8px;cursor:pointer;
+  background:var(--ink);color:var(--cream);border:0;border-radius:999px;padding:7px 14px 7px 10px;font-size:14.5px;
+  box-shadow:0 10px 24px -12px rgba(46,42,36,.8);animation:rise .35s cubic-bezier(.3,1.5,.5,1);
+  font-variant-numeric:tabular-nums lining-nums;
+}
+.dock button i{width:9px;height:9px;border-radius:50%;background:var(--leaf);box-shadow:0 0 0 3px rgba(91,140,81,.35)}
+@keyframes rise{from{transform:translateY(16px);opacity:0}}
+.toast{
+  position:fixed;left:50%;bottom:22px;z-index:60;transform:translate(-50%,30px);opacity:0;pointer-events:none;
+  background:var(--lemon);color:var(--ink);border:1.5px solid var(--ink);border-radius:14px;padding:12px 18px;
+  box-shadow:4px 4px 0 var(--ink);font-size:16px;max-width:min(92vw,520px);text-align:center;
+  transition:opacity .35s ease,transform .45s cubic-bezier(.3,1.5,.5,1);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* cook mode */
+.cook{
+  position:fixed;inset:0;z-index:80;background:var(--cream);display:none;flex-direction:column;
+  background-image:radial-gradient(rgba(46,42,36,.05) .8px,transparent 1.1px);background-size:9px 9px;
+}
+.cook.open{display:flex;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0}}
+.cook-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px clamp(16px,4vw,48px);border-bottom:1.5px solid var(--ink)}
+.cook-top .where{font-variant:small-caps;text-transform:lowercase;letter-spacing:.16em;font-size:15px;color:var(--ink-2)}
+.cook-dots{display:flex;gap:6px}
+.cook-dots i{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;transition:background .3s}
+.cook-dots i.on{background:var(--lemon)}
+.cook-dots i.dn{background:var(--leaf);border-color:var(--leaf-deep)}
+.cook-main{flex:1;overflow:auto;display:grid;align-content:center;grid-template-columns:minmax(120px,.34fr) minmax(0,1fr);gap:clamp(16px,4vw,56px);align-items:center;padding:clamp(18px,4vw,56px) clamp(16px,5vw,80px)}
+.cook-num{font-size:clamp(120px,22vw,300px);line-height:.8;font-style:italic;color:var(--terra);text-align:right}
+.cook h2{font-size:clamp(32px,4.4vw,60px);line-height:1.05;margin:0 0 16px}
+.cook .c-text{font-size:clamp(21px,2.3vw,31px);line-height:1.45;margin:0 0 16px;max-width:30em}
+.cook .tip{font-size:clamp(18px,1.9vw,24px);max-width:30em;margin-bottom:18px}
+.cook .uses{margin:0 0 16px}
+.cook .uses li{font-size:clamp(14px,1.3vw,17px);padding:4px 12px;background:#fffdf6}
+.cook .timer{transform-origin:left center}
+.cook .timer .ring{width:60px;height:60px}
+.cook .timer .t-time{font-size:26px}
+.cook .timer button{font-size:17px;padding:8px 16px}
+.cook-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px clamp(16px,4vw,48px);border-top:1.5px solid var(--ink);flex-wrap:wrap}
+.cook-bar .pill{font-size:17px;padding:10px 20px}
+.c-anim{animation:stepIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes stepIn{from{opacity:0;transform:translateX(24px)}}
+
+@media (max-width:980px){
+  .recipe{grid-template-columns:1fr}
+  .ingredients{position:relative;top:0}
+}
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .art{max-width:520px;order:-1}
+  .hero-text{order:0}
+}
+@media (max-width:560px){
+  body{font-size:17px}
+  .strip{padding:10px 16px}
+  .brand span{display:none}
+  .meta{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .meta li:nth-child(3){padding-left:0;border-left:0}
+  .meta li:nth-child(n+3){border-top:1px solid var(--line)}
+  .ing{grid-template-columns:24px 58px minmax(0,1fr);gap:8px}
+  .ingredients.us .ing{grid-template-columns:24px 96px minmax(0,1fr)}
+  .strip .lbl{display:none}
+  .pill{padding:7px 10px}
+  .step{grid-template-columns:1fr;gap:6px;padding:16px 14px}
+  .num{width:46px;height:46px;font-size:24px}
+  .ingredients{padding:18px 14px 14px}
+  .cook-main{grid-template-columns:1fr;align-items:start;align-content:start;gap:6px}
+  .cook-num{text-align:left;font-size:96px;line-height:.9}
+  .cook-bar{flex-wrap:nowrap;gap:8px}
+  .cook-bar .pill{font-size:15px;padding:9px 12px;white-space:nowrap}
+  .art-cap{font-size:12.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  .spin,.sway,.float{animation:none}
+  .c-anim,.cook.open,.dock button{animation:none}
+  *{transition-duration:.01ms!important}
+}
+
+/* ——— print ——— */
+@media print{
+  @page{margin:16mm 14mm}
+  body{background:#fff;color:#000;font-size:11.5pt;line-height:1.45}
+  .strip,.controls .scaler,.units,.gathered,.reset-link,.step-foot,.dock,.toast,.cook,.skip,.art-cap,.progress-note,.uses{display:none!important}
+  .hero{display:block;padding:0}
+  .art{float:right;width:34%;max-width:none;margin:0 0 8px 14px}
+  .spin,.sway,.float{animation:none!important}
+  h1 .what{font-size:30pt}
+  h1 .who{font-size:16pt;transform:none;color:#000}
+  .story{font-size:11pt;color:#000}
+  .meta{clear:both;margin-top:10px}
+  .recipe{display:block;padding:0}
+  .card,.step{box-shadow:none!important;border:0;background:none;border-radius:0}
+  .ingredients{position:static;padding:0;margin:14px 0 0;columns:2;column-gap:10mm;break-inside:auto}
+  .ingredients .sec-head{column-span:all}
+  .igroup{break-inside:avoid}
+  .box{border-radius:3px;width:12px;height:12px;background:#fff!important}
+  .box svg{display:none}
+  .ing{grid-template-columns:18px 70px 1fr;padding:2px 0}
+  .what-txt span{background:none!important;color:#000!important}
+  .step{opacity:1!important;display:grid;grid-template-columns:34px 1fr;gap:10px;padding:6px 0;margin:0;border-top:.5pt solid #999;break-inside:avoid}
+  .num{width:26px;height:26px;font-size:14pt;background:#fff!important;color:#000!important}
+  .tip{background:none;transform:none;padding-left:0;color:#333}
+  .tip svg{display:none}
+  .method{margin-top:14px}
+  .finale{padding:10px 0 0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#method">Skip to the method</a>
+
+<header class="strip">
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><ellipse cx="13" cy="14" rx="10" ry="8" fill="#f7d44c" stroke="#2e2a24" stroke-width="1.5"/><path d="M13 6 C15 2,20 2,22 3 C20 6,16 7,13 6Z" fill="#5b8c51" stroke="#2e2a24" stroke-width="1.2"/></svg>
+    <b>Ricettario di famiglia</b><span>· card no. 14 · dolci</span>
+  </div>
+  <div class="strip-actions">
+    <button type="button" class="pill" id="soundBtn" aria-pressed="true" aria-label="Timer chime on">
+      <svg class="bell-on" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 C5 2,4 4.5,4 7 V10 L2.5 12 H13.5 L12 10 V7 C12 4.5,11 2,8 2Z M6.5 13.5 A1.6 1.6 0 0 0 9.5 13.5" fill="none" stroke="#2e2a24" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <svg class="bell-off" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 C5 2,4 4.5,4 7 V10 L2.5 12 H13.5 L12 10 V7 C12 4.5,11 2,8 2Z" fill="none" stroke="#8f8577" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 2 L14 14" stroke="#c65d3b" stroke-width="1.6"/></svg>
+      <span id="soundTxt" class="lbl">Chime on</span>
+    </button>
+    <button type="button" class="pill" id="printBtn" aria-label="Print the recipe card">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6 V2 H12 V6 M4 12 H2 V6 H14 V12 H12 M4 10 H12 V15 H4Z" fill="none" stroke="#2e2a24" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <span class="lbl">Print card</span>
+    </button>
+    <button type="button" class="pill primary" id="cookBtn">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8 H14 M2 8 C2 12,4.5 14,8 14 C11.5 14,14 12,14 8 M5 5 C5 3.5,6 3.5,6 2 M9 5 C9 3.5,10 3.5,10 2" fill="none" stroke="#2e2a24" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Cook mode
+    </button>
+  </div>
+</header>
+
+<main>
+<section class="hero" aria-labelledby="title">
+  <div class="hero-text">
+    <p class="kicker">Dolci della domenica</p>
+    <h1 id="title"><span class="who">Nonna Lucia’s</span><span class="what">Lemon <em>Ricotta</em> Tart</span></h1>
+    <div class="story">
+      <p>Nonna Lucia kept three lemon trees in terracotta pots on a terrace that caught the whole afternoon.</p>
+      <p>Every Sunday she would pick the fattest one and make this tart: short, buttery pastry around a filling of drained ricotta, bright with zest, baked only until it trembles. The slices of candied lemon on top were for show, she said — then ate them first. This is her card, copied out and tested in a modern oven, with her notes in the margins.</p>
+    </div>
+    <ul class="meta" aria-label="Recipe at a glance">
+      <li><span>Serves</span><b id="metaServes">8</b></li>
+      <li><span>Hands-on</span><b>40 min</b></li>
+      <li><span>Oven</span><b>55 min</b></li>
+      <li><span>Rest &amp; cool</span><b>1 h 45</b></li>
+    </ul>
+  </div>
+
+  <div class="art" role="img" aria-label="Hand-drawn illustration of a golden lemon ricotta tart topped with candied lemon slices, on a plate over a green gingham cloth, with lemons and leaves beneath a terracotta arch.">
+    <svg id="artStatic" viewBox="0 0 640 600" aria-hidden="true">
+      <defs>
+        <filter id="wobble" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="7" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="4.2" xChannelSelector="R" yChannelSelector="G" result="d"/>
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="g"/>
+          <feColorMatrix in="g" type="matrix" values="0 0 0 0 0.3  0 0 0 0 0.22  0 0 0 0 0.14  0.62 0 0 0 -0.27" result="ga"/>
+          <feComposite in="ga" in2="d" operator="in" result="gi"/>
+          <feMerge><feMergeNode in="d"/><feMergeNode in="gi"/></feMerge>
+        </filter>
+        <linearGradient id="fadeGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset=".8" stop-color="#fff"/><stop offset="1" stop-color="#000"/>
+        </linearGradient>
+        <mask id="clothFade" maskUnits="userSpaceOnUse" x="0" y="0" width="640" height="600"><rect width="640" height="600" fill="url(#fadeGrad)"/></mask>
+        <linearGradient id="fadeGradH" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#000"/><stop offset=".1" stop-color="#fff"/><stop offset=".9" stop-color="#fff"/><stop offset="1" stop-color="#000"/>
+        </linearGradient>
+        <mask id="clothFadeH" maskUnits="userSpaceOnUse" x="0" y="0" width="640" height="600"><rect width="640" height="600" fill="url(#fadeGradH)"/></mask>
+        <pattern id="gingham" width="30" height="30" patternUnits="userSpaceOnUse">
+          <rect width="30" height="30" fill="#fbf6ea"/>
+          <rect width="15" height="30" fill="#5b8c51" opacity=".42"/>
+          <rect width="30" height="15" fill="#5b8c51" opacity=".42"/>
+        </pattern>
+        <clipPath id="archClip"><path d="M118 476 V258 A202 202 0 0 1 522 258 V476 Z"/></clipPath>
+      </defs>
+      <g filter="url(#wobble)" stroke="#2e2a24" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+        <!-- arch & sun -->
+        <path d="M118 476 V258 A202 202 0 0 1 522 258 V476 Z" fill="#c65d3b"/>
+        <g clip-path="url(#archClip)" stroke="none">
+          <circle cx="418" cy="196" r="58" fill="#f7d44c"/>
+          <path d="M118 330 C200 300,260 318,330 300 S460 280,522 300 V476 H118Z" fill="#b8522f" opacity=".55"/>
+        </g>
+        <path d="M140 470 V262 A180 180 0 0 1 500 262 V470" fill="none" stroke="#fbf6ea" stroke-width="1.6" stroke-dasharray="2 9" opacity=".7"/>
+        <!-- hanging lemon branch -->
+        <path d="M150 64 C210 92,250 96,300 88" fill="none" stroke-width="3"/>
+        <path d="M196 84 C188 104,196 120,210 126 C214 112,208 94,196 84Z" fill="#5b8c51"/>
+        <path d="M246 92 C262 110,282 112,296 106 C284 92,262 88,246 92Z" fill="#5b8c51"/>
+        <path d="M226 92 C220 110,214 124,214 134" fill="none" stroke-width="2"/>
+        <path d="M214 134 C196 136,188 154,194 170 C200 186,222 190,236 180 C250 170,248 146,234 138 C228 134,220 132,214 134Z" fill="#f7d44c"/>
+        <path d="M204 150 C206 146,210 144,214 144" fill="none" stroke="#fbf6ea" stroke-width="3"/>
+        <!-- tablecloth -->
+        <g mask="url(#clothFadeH)">
+          <path d="M0 452 C110 440,230 458,350 446 S560 438,640 452 V600 H0Z" fill="url(#gingham)" stroke="none" mask="url(#clothFade)"/>
+          <path d="M0 452 C110 440,230 458,350 446 S560 438,640 452" fill="none"/>
+        </g>
+        <!-- plate -->
+        <ellipse cx="320" cy="470" rx="236" ry="60" fill="#fbf6ea"/>
+        <ellipse cx="320" cy="466" rx="200" ry="44" fill="none" stroke-width="1.4" opacity=".4"/>
+        <!-- tart body -->
+        <path d="M138 402 L138 444 A182 52 0 0 0 502 444 L502 402 A182 52 0 0 1 138 402Z" fill="#e3a553"/>
+        <g id="flutes" stroke-width="1.3" opacity=".55"></g>
+        <path id="rim" d="" fill="#eab769"/>
+        <ellipse cx="320" cy="400" rx="158" ry="42" fill="#fbe39a"/>
+        <ellipse cx="300" cy="392" rx="96" ry="20" fill="#fdf0c0" stroke="none" opacity=".8"/>
+        <g stroke="none" fill="#c65d3b" opacity=".28">
+          <circle cx="226" cy="408" r="3"/><circle cx="398" cy="396" r="2.4"/><circle cx="352" cy="420" r="2"/><circle cx="262" cy="384" r="1.8"/><circle cx="412" cy="418" r="2.6"/>
+        </g>
+        <!-- lemon front right -->
+        <g transform="translate(548 512) rotate(-12)">
+          <path d="M-66 2 C-66 -2,-62 -4,-58 -6 C-50 -34,-20 -44,4 -42 C30 -40,56 -28,62 -6 C66 -4,70 -2,70 2 C70 6,66 8,62 8 C54 32,28 42,2 42 C-24 42,-50 32,-58 10 C-62 8,-66 6,-66 2Z" fill="#f7d44c"/>
+          <path d="M-36 -22 C-26 -30,-12 -33,0 -33" fill="none" stroke="#fdf6d4" stroke-width="4"/>
+          <g stroke="none" fill="#d9b12e"><circle cx="-20" cy="6" r="1.4"/><circle cx="8" cy="16" r="1.4"/><circle cx="30" cy="-2" r="1.4"/><circle cx="-4" cy="-12" r="1.4"/><circle cx="22" cy="24" r="1.4"/></g>
+        </g>
+        <path d="M592 482 C604 462,620 452,634 452 C628 472,612 484,592 482Z" fill="#5b8c51"/>
+        <path d="M592 482 C604 472,620 462,634 452" fill="none" stroke-width="1.4"/>
+        <!-- lemon half front left -->
+        <g transform="translate(96 520)">
+          <path d="M-58 -4 C-58 30,-30 46,0 46 C30 46,58 30,58 -4Z" fill="#f7d44c"/>
+          <ellipse cx="0" cy="-4" rx="58" ry="24" fill="#fdf3c4"/>
+          <ellipse cx="0" cy="-4" rx="50" ry="20" fill="#fbe27a" stroke-width="1.6"/>
+          <g stroke="#fdf6d4" stroke-width="2.4">
+            <path d="M0 -4 L0 -23"/><path d="M0 -4 L30 -19"/><path d="M0 -4 L48 -6"/><path d="M0 -4 L32 11"/><path d="M0 -4 L0 15"/><path d="M0 -4 L-32 11"/><path d="M0 -4 L-48 -6"/><path d="M0 -4 L-30 -19"/>
+          </g>
+          <ellipse cx="0" cy="-4" rx="5" ry="2.4" fill="#fdf6d4" stroke="none"/>
+        </g>
+        <!-- sprig behind -->
+        <path d="M470 452 C486 420,500 400,526 386" fill="none" stroke-width="2"/>
+        <path d="M496 414 C512 398,532 396,546 402 C532 416,512 420,496 414Z" fill="#5b8c51"/>
+        <path d="M484 430 C470 410,472 392,482 380 C494 396,494 416,484 430Z" fill="#6f9f63"/>
+      </g>
+    </svg>
+    <svg id="artLive" viewBox="0 0 640 600" aria-hidden="true">
+      <g id="tartSlices"></g>
+      <g id="floaters"></g>
+      <g class="sway" style="animation-duration:6.5s">
+        <path d="M514 150 C530 128,556 122,578 128 C564 150,538 158,514 150Z" fill="#5b8c51" stroke="#2e2a24" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M514 150 C534 142,556 134,578 128" fill="none" stroke="#2e2a24" stroke-width="1.3"/>
+      </g>
+    </svg>
+    <p class="art-cap">from Nonna's terrace</p>
+  </div>
+</section>
+
+<div class="recipe">
+  <aside class="ingredients card" aria-labelledby="ingTitle">
+    <div class="sec-head">
+      <h2 id="ingTitle">Ingredients</h2>
+    </div>
+    <div class="controls">
+      <div class="scaler" role="group" aria-label="Servings">
+        <button type="button" id="minus" aria-label="Fewer servings">−</button>
+        <output id="servOut" aria-live="polite"><b id="servNum">8</b> servings</output>
+        <button type="button" id="plus" aria-label="More servings">+</button>
+      </div>
+      <div class="units" role="group" aria-label="Measurement units">
+        <button type="button" data-unit="metric" aria-pressed="true">Metric</button>
+        <button type="button" data-unit="us" aria-pressed="false">US cups</button>
+      </div>
+    </div>
+    <p class="tin" id="tinNote">For a 23 cm loose-bottomed tart tin.</p>
+    <div class="gathered"><span id="gCount">0 of 19 gathered</span><div class="gbar" aria-hidden="true"><i id="gBar"></i></div></div>
+    <div id="ingGroups"></div>
+    <button type="button" class="reset-link" id="resetBtn">Clear ticks and start fresh</button>
+  </aside>
+
+  <section class="method" id="method" aria-labelledby="methodTitle">
+    <div class="method-head">
+      <h2 id="methodTitle">Method <small>nine unhurried steps</small></h2>
+      <span class="progress-note" id="stepNote">Step 1 is up next</span>
+    </div>
+    <ol class="steps" id="steps"></ol>
+  </section>
+</div>
+
+<footer class="finale">
+  <p>Nonna Lucia is a fictional grandmother, invented for this card; the tart is entirely real.<br>Times are for a 23 cm tart — watch larger or smaller ones a little earlier and later.</p>
+  <p class="sig">— con amore, L.</p>
+</footer>
+</main>
+
+<div class="dock" id="dock" aria-live="polite"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<section class="cook" id="cook" role="dialog" aria-modal="true" aria-labelledby="cookTitle">
+  <div class="cook-top">
+    <span class="where" id="cookWhere">Step 1 of 9</span>
+    <div class="cook-dots" id="cookDots" aria-hidden="true"></div>
+    <button type="button" class="pill" id="cookClose" aria-label="Exit cook mode">
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2 L12 12 M12 2 L2 12" stroke="#2e2a24" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Close
+    </button>
+  </div>
+  <div class="cook-main" id="cookMain">
+    <div class="cook-num" id="cookNum" aria-hidden="true">1</div>
+    <div id="cookBody">
+      <h2 id="cookTitle">Step</h2>
+      <p class="c-text" id="cookText"></p>
+      <div id="cookUses"></div>
+      <div id="cookTip"></div>
+      <div id="cookTimer"></div>
+    </div>
+  </div>
+  <div class="cook-bar">
+    <button type="button" class="pill" id="cookPrev">← Previous</button>
+    <button type="button" class="pill primary" id="cookDone">Done, next →</button>
+    <button type="button" class="pill" id="cookNext">Skip →</button>
+  </div>
+</section>
+
+<script>
+(function(){
+'use strict';
+
+/* ——— data ——— */
+var BASE_SERVINGS=8;
+var ING=[
+  {id:'flour',g:'pastry',k:'mass',q:250,cup:125,t:'plain flour',n:'or Italian “00”'},
+  {id:'sugarP',g:'pastry',k:'mass',q:100,cup:200,t:'caster sugar'},
+  {id:'salt',g:'pastry',k:'spoon',q:.25,t:'fine sea salt'},
+  {id:'zestP',g:'pastry',k:'count',q:1,one:'lemon, zest only',many:'lemons, zest only',t:'',n:'unwaxed, finely grated'},
+  {id:'butter',g:'pastry',k:'butter',q:125,t:'cold unsalted butter',n:'diced small'},
+  {id:'egg',g:'pastry',k:'count',q:1,one:'large egg',many:'large eggs',t:''},
+  {id:'yolk',g:'pastry',k:'count',q:1,one:'egg yolk',many:'egg yolks',t:''},
+  {id:'ricotta',g:'filling',k:'mass',q:500,cup:246,t:'whole-milk ricotta',n:'drained overnight'},
+  {id:'sugarF',g:'filling',k:'mass',q:130,cup:200,t:'caster sugar'},
+  {id:'eggsF',g:'filling',k:'count',q:3,one:'large egg',many:'large eggs',t:''},
+  {id:'zestF',g:'filling',k:'count',q:2,one:'lemon, zest only',many:'lemons, zest only',t:'',n:'finely grated'},
+  {id:'juice',g:'filling',k:'vol',q:80,t:'fresh lemon juice',n:'about 2 lemons'},
+  {id:'corn',g:'filling',k:'spoon',q:3,t:'cornflour (cornstarch)'},
+  {id:'vanilla',g:'filling',k:'spoon',q:1,t:'vanilla extract'},
+  {id:'cream',g:'filling',k:'vol',q:60,t:'double (heavy) cream'},
+  {id:'slices',g:'finish',k:'count',q:1,one:'unwaxed lemon',many:'unwaxed lemons',t:'',n:'sliced paper-thin, pips out'},
+  {id:'sugarS',g:'finish',k:'mass',q:100,cup:200,t:'sugar, for the syrup'},
+  {id:'water',g:'finish',k:'vol',q:120,t:'water'},
+  {id:'icing',g:'finish',k:'free',t:'icing sugar, to dust',qtxt:'a little'},
+  {id:'leaves',g:'finish',k:'free',t:'small mint or lemon leaves',qtxt:'a few'}
+];
+var GROUPS=[
+  {id:'pastry',title:'For the pastry',sub:'pasta frolla'},
+  {id:'filling',title:'For the filling',sub:''},
+  {id:'finish',title:'To finish',sub:''}
+];
+var U=function(m,us){return '<span class="u" data-m="'+m+'" data-us="'+us+'">'+m+'</span>';};
+var STEPS=[
+  {title:'Rub in the pastry',text:'Whisk the flour, sugar, salt and lemon zest in a wide bowl. Rub in the cold butter with your fingertips until it looks like fine sand, then add the egg and yolk and bring it together with a fork, and finally, briefly, with your hands. Stop the moment it holds.',tip:'Cold hands, cold butter. I run my wrists under the cold tap before I touch the pastry.',uses:['flour','sugarP','salt','zestP','butter','egg','yolk']},
+  {title:'Let it rest',text:'Flatten the dough into a disc, wrap it and chill until firm. The gluten relaxes and the butter sets, so the pastry will not shrink in the oven.',min:30},
+  {title:'Line the tin',text:'Heat the oven to '+U('180 °C (160 °C fan)','350 °F')+'. Roll the pastry between two sheets of baking paper to '+U('3 mm','⅛ inch')+', lift it into a <span class="tinsize">23 cm</span> loose-bottomed tin and press it into the fluted edge. Trim, prick the base with a fork and chill again.',min:15},
+  {title:'Blind-bake the case',text:'Line the case with baking paper, fill with baking beans or rice and bake for 15 minutes. Lift out the paper and beans and give it 5 minutes more, until the base is dry and pale gold — 20 minutes in all.',tip:'Patch any little cracks with a scrap of raw dough while the case is still warm.',min:20},
+  {title:'Make the filling',text:'Lower the oven to '+U('160 °C (140 °C fan)','325 °F')+'. Beat the drained ricotta until smooth and creamy, then beat in the sugar. Add the eggs one at a time, then the zest, juice, cornflour, vanilla and cream. Mix just until silky — no more air than you need.',tip:'Drain the ricotta overnight in a sieve lined with muslin. Wet ricotta makes a weeping tart.',uses:['ricotta','sugarF','eggsF','zestF','juice','corn','vanilla','cream']},
+  {title:'Bake until it trembles',text:'Pour the filling into the warm case and bake for about 35 minutes, until set at the edges with a gentle wobble in the centre.',tip:'The wobble is your friend. It sets as it cools — firm in the oven means dry at the table.',min:35},
+  {title:'Candy the lemon slices',text:'Meanwhile, bring the sugar and water to a simmer, stirring until clear. Slide in the lemon slices in one layer and poach very gently until the rinds turn translucent, then lift them onto baking paper.',uses:['slices','sugarS','water'],min:12},
+  {title:'Cool it slowly',text:'Leave the tart in its tin on a rack for at least an hour. Chill it afterwards if you like it firm and cold; Nonna served it cool but never fridge-cold.',min:60},
+  {title:'Finish and serve',text:'Unmould the tart, lay the candied slices over the top, dust with icing sugar and tuck in a few leaves. Serve in modest slices — it is richer than it looks.',tip:'It is even better tomorrow. If there is a tomorrow.',uses:['icing','leaves']}
+];
+
+/* ——— state & storage ——— */
+var KEY='nonna-lucia-tart-v1';
+var state={servings:8,unit:'metric',checked:{},done:{},current:0,sound:true};
+try{
+  var saved=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(saved&&typeof saved==='object'){
+    if(saved.servings>=4&&saved.servings<=16) state.servings=saved.servings;
+    if(saved.unit==='us'||saved.unit==='metric') state.unit=saved.unit;
+    state.checked=saved.checked||{};state.done=saved.done||{};
+    if(typeof saved.sound==='boolean') state.sound=saved.sound;
+  }
+}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({servings:state.servings,unit:state.unit,checked:state.checked,done:state.done,sound:state.sound}));}catch(e){}}
+
+/* ——— friendly numbers ——— */
+var FR=[[0,''],[.25,'¼'],[1/3,'⅓'],[.5,'½'],[2/3,'⅔'],[.75,'¾'],[1,'']];
+function frac(x){
+  if(x<=0) return '0';
+  var w=Math.floor(x),f=x-w,best=0,bd=9;
+  for(var i=0;i<FR.length;i++){var d=Math.abs(f-FR[i][0]);if(d<bd){bd=d;best=i;}}
+  if(best===FR.length-1){w+=1;return String(w);}
+  var g=FR[best][1];
+  if(!g) return String(w);
+  return (w?w:'')+g;
+}
+function roundTo(x,s){return Math.round(x/s)*s;}
+var CUPS=(function(){var a=[];for(var n=1;n<=40;n++){a.push(n/4);}for(var m=1;m<=30;m++){if(m%3) a.push(m/3);}return a.sort(function(p,q){return p-q;});})();
+function usVolume(tbsp){
+  if(tbsp<.95){var tsp=roundTo(tbsp*3,.25);return frac(Math.max(.25,tsp))+' tsp';}
+  if(tbsp<3.75) return frac(roundTo(tbsp,.5))+' tbsp';
+  var cups=tbsp/16,base=0;
+  for(var i=0;i<CUPS.length;i++){if(CUPS[i]<=cups+1/32) base=CUPS[i];}
+  var rem=(cups-base)*16;
+  var lim=base>=1?1:.5;
+  var s=frac(base)+' cup'+(base>1?'s':'');
+  if(rem>=lim) s+=' + '+frac(roundTo(rem,.5))+' tbsp';
+  return s;
+}
+function metricMass(g){
+  if(g<20) return Math.round(g)+' g';
+  if(g<200) return roundTo(g,5)+' g';
+  return roundTo(g,10)+' g';
+}
+function metricVol(ml){
+  if(ml<30) return Math.round(ml)+' ml';
+  return roundTo(ml,5)+' ml';
+}
+function spoon(tsp){
+  if(tsp>=2.9) return frac(roundTo(tsp/3,.5))+' tbsp';
+  return frac(Math.max(.25,roundTo(tsp,.25)))+' tsp';
+}
+function qtyFor(it,f){
+  var q=(it.q||0)*f;
+  switch(it.k){
+    case 'mass': return state.unit==='metric'?metricMass(q):usVolume(q/it.cup*16);
+    case 'butter': return state.unit==='metric'?metricMass(q):usVolume(q/227*16);
+    case 'vol': return state.unit==='metric'?metricVol(q):usVolume(q/236.6*16);
+    case 'spoon': return spoon(q);
+    case 'count': return frac(Math.max(.5,roundTo(q,.5)));
+    default: return it.qtxt||'';
+  }
+}
+function nameFor(it,f){
+  if(it.k==='count'){
+    var q=Math.max(.5,roundTo(it.q*f,.5));
+    var word=q>1?it.many:it.one;
+    return (it.pre?it.pre+' ':'')+word;
+  }
+  return it.t;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* ——— render ingredients ——— */
+var ingWrap=document.getElementById('ingGroups');
+var CHECK_SVG='<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.4 L4.8 9 L10 3" fill="none" stroke="#2e2a24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var LEAF_SVG='<svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><path d="M1 10 C4 2,11 0,17 2 C13 8,7 11,1 10Z" fill="#5b8c51" stroke="#2e2a24" stroke-width="1"/><path d="M1 10 C6 6,11 4,17 2" fill="none" stroke="#2e2a24" stroke-width=".8"/></svg>';
+function renderIngredients(){
+  var html='';
+  GROUPS.forEach(function(g){
+    html+='<div class="igroup"><h3>'+LEAF_SVG+g.title+(g.sub?' <i style="text-transform:none;letter-spacing:0;font-variant:normal;color:#8f8577">· '+g.sub+'</i>':'')+'</h3><ul class="ilist">';
+    ING.filter(function(it){return it.g===g.id;}).forEach(function(it){
+      html+='<li><label class="ing" for="i-'+it.id+'"><input type="checkbox" id="i-'+it.id+'" data-id="'+it.id+'"'+(state.checked[it.id]?' checked':'')+'><span class="box">'+CHECK_SVG+'</span>'+
+        '<span class="qty" data-q="'+it.id+'"></span><span class="what-txt"><span data-n="'+it.id+'"></span>'+(it.n?'<small>'+esc(it.n)+'</small>':'')+'</span></label></li>';
+    });
+    html+='</ul></div>';
+  });
+  ingWrap.innerHTML=html;
+  Array.prototype.forEach.call(ingWrap.querySelectorAll('input'),function(inp){
+    inp.addEventListener('change',function(){
+      state.checked[inp.getAttribute('data-id')]=inp.checked;
+      save();updateGathered();
+    });
+  });
+}
+function updateQuantities(animate){
+  var f=state.servings/BASE_SERVINGS;
+  ING.forEach(function(it){
+    var qEl=ingWrap.querySelector('[data-q="'+it.id+'"]');
+    var nEl=ingWrap.querySelector('[data-n="'+it.id+'"]');
+    var nq=qtyFor(it,f);
+    if(qEl.textContent!==nq){
+      qEl.textContent=nq;
+      if(animate){qEl.classList.remove('bump');void qEl.offsetWidth;qEl.classList.add('bump');}
+    }
+    nEl.textContent=nameFor(it,f);
+  });
+  document.querySelector('.ingredients').classList.toggle('us',state.unit==='us');
+  document.getElementById('servNum').textContent=state.servings;
+  document.getElementById('metaServes').textContent=state.servings;
+  document.getElementById('minus').disabled=state.servings<=4;
+  document.getElementById('plus').disabled=state.servings>=16;
+  var d=23*Math.sqrt(f);
+  var tin=state.unit==='metric'?Math.round(d)+' cm':frac(roundTo(d/2.54,.5))+'-inch';
+  document.getElementById('tinNote').textContent=state.servings===8?
+    (state.unit==='metric'?'For a 23 cm loose-bottomed tart tin.':'For a 9-inch loose-bottomed tart tin.'):
+    'Scaled for a tin of about '+tin+' across; keep an eye on the baking times.';
+  Array.prototype.forEach.call(document.querySelectorAll('.tinsize'),function(s){s.textContent=tin;});
+  Array.prototype.forEach.call(document.querySelectorAll('.u'),function(s){s.textContent=s.getAttribute(state.unit==='metric'?'data-m':'data-us');});
+  Array.prototype.forEach.call(document.querySelectorAll('[data-unit]'),function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-unit')===state.unit));});
+  renderUses();
+}
+function updateGathered(){
+  var n=0;ING.forEach(function(it){if(state.checked[it.id]) n++;});
+  document.getElementById('gCount').textContent=n+' of '+ING.length+' gathered';
+  document.getElementById('gBar').style.width=(n/ING.length*100)+'%';
+}
+
+/* ——— render steps ——— */
+var stepsEl=document.getElementById('steps');
+var TIP_SVG='<svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true"><ellipse cx="10" cy="12" rx="8.5" ry="6.5" fill="#f7d44c" stroke="#2e2a24" stroke-width="1.2"/><path d="M11 5.5 C12.5 2,17 1,20.5 2 C18.5 5,15 6.5,11 5.5Z" fill="#5b8c51" stroke="#2e2a24" stroke-width="1"/></svg>';
+function fmtTime(s){s=Math.max(0,Math.ceil(s));var m=Math.floor(s/60),r=s%60;return m+':'+(r<10?'0':'')+r;}
+function timerHTML(i,m){
+  var C=2*Math.PI*17;
+  return '<div class="timer" data-t="'+i+'"><svg class="ring" viewBox="0 0 40 40" aria-hidden="true"><circle class="track" cx="20" cy="20" r="17"/><circle class="prog" cx="20" cy="20" r="17" stroke-dasharray="'+C.toFixed(2)+'" stroke-dashoffset="0"/></svg>'+
+    '<span class="t-time" role="timer" aria-label="Time remaining">'+fmtTime(m*60)+'</span>'+
+    '<button type="button" class="t-go" data-t="'+i+'">Start '+m+' min</button><button type="button" class="t-reset" data-t="'+i+'" aria-label="Reset timer">↺</button></div>';
+}
+function renderSteps(){
+  var html='';
+  STEPS.forEach(function(s,i){
+    html+='<li class="step" id="step-'+i+'" data-i="'+i+'">'+
+      '<div class="num" aria-hidden="true">'+(i+1)+'</div><div class="sbody">'+
+      '<h3><span class="sr-only">Step '+(i+1)+': </span>'+esc(s.title)+'</h3>'+
+      '<p>'+s.text+'</p>'+
+      (s.uses?'<ul class="uses" data-uses="'+i+'" aria-label="Ingredients for this step"></ul>':'')+
+      (s.tip?'<p class="tip">'+TIP_SVG+'<b>Nonna’s tip</b>'+esc(s.tip)+'</p>':'')+
+      '<div class="step-foot">'+(s.min?timerHTML(i,s.min):'')+
+      '<button type="button" class="done-btn" data-done="'+i+'" aria-pressed="false"><span class="ck"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 5.2 L4 7.5 L8.5 2.5" fill="none" stroke="#2e2a24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="dtxt">Mark done</span></button>'+
+      '<button type="button" class="step-focus" data-cook="'+i+'">Open in cook mode</button>'+
+      '</div></div></li>';
+  });
+  stepsEl.innerHTML=html;
+}
+function renderUses(){
+  var f=state.servings/BASE_SERVINGS;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-uses]'),function(ul){
+    ul.innerHTML=usesHTML(+ul.getAttribute('data-uses'));
+  });
+}
+function usesHTML(i){
+  var f=state.servings/BASE_SERVINGS;
+  return STEPS[i].uses.map(function(id){
+    var it=ING.filter(function(x){return x.id===id;})[0];
+    return '<li>'+esc(qtyFor(it,f)+' '+nameFor(it,f))+'</li>';
+  }).join('');
+}
+function refreshSteps(){
+  var first=-1;
+  STEPS.forEach(function(s,i){
+    var li=document.getElementById('step-'+i);
+    var dn=!!state.done[i];
+    li.classList.toggle('done',dn);
+    var b=li.querySelector('.done-btn');b.setAttribute('aria-pressed',String(dn));
+    b.querySelector('.dtxt').textContent=dn?'Done':'Mark done';
+    if(!dn&&first<0) first=i;
+  });
+  state.current=first<0?STEPS.length-1:first;
+  STEPS.forEach(function(s,i){document.getElementById('step-'+i).classList.toggle('current',i===state.current&&first>=0);});
+  var doneCount=Object.keys(state.done).filter(function(k){return state.done[k];}).length;
+  document.getElementById('stepNote').textContent=first<0?'All done — buon appetito!':(doneCount?doneCount+' of 9 done · step '+(first+1)+' is next':'Step 1 is up next');
+}
+
+/* ——— timers ——— */
+var timers={};
+STEPS.forEach(function(s,i){if(s.min) timers[i]={total:s.min*60,left:s.min*60,running:false,end:0,finished:false};});
+function timerEls(i){return document.querySelectorAll('.timer[data-t="'+i+'"]');}
+function paintTimer(i){
+  var t=timers[i];if(!t) return;
+  var C=2*Math.PI*17;
+  Array.prototype.forEach.call(timerEls(i),function(el){
+    el.querySelector('.t-time').textContent=fmtTime(t.left);
+    el.querySelector('.prog').setAttribute('stroke-dashoffset',(C*(1-t.left/t.total)).toFixed(2));
+    el.classList.toggle('running',t.running);
+    var go=el.querySelector('.t-go');
+    go.textContent=t.running?'Pause':(t.finished?'Again':(t.left<t.total?'Resume':'Start '+(t.total/60)+' min'));
+  });
+}
+function startTimer(i){
+  var t=timers[i];
+  ensureAudio();
+  if(t.finished||t.left<=0){t.left=t.total;t.finished=false;Array.prototype.forEach.call(timerEls(i),function(el){el.classList.remove('finished');});}
+  t.running=true;t.end=Date.now()+t.left*1000;
+  paintTimer(i);renderDock();
+}
+function pauseTimer(i){var t=timers[i];t.left=Math.max(0,(t.end-Date.now())/1000);t.running=false;paintTimer(i);renderDock();}
+function resetTimer(i){var t=timers[i];t.running=false;t.left=t.total;t.finished=false;Array.prototype.forEach.call(timerEls(i),function(el){el.classList.remove('finished');});paintTimer(i);renderDock();}
+function tick(){
+  var any=false;
+  Object.keys(timers).forEach(function(k){
+    var t=timers[k];
+    if(!t.running) return;
+    any=true;
+    t.left=Math.max(0,(t.end-Date.now())/1000);
+    if(t.left<=0){
+      t.running=false;t.finished=true;t.left=0;
+      Array.prototype.forEach.call(timerEls(k),function(el){el.classList.add('finished');});
+      chime();
+      toast('Ding! Step '+(+k+1)+' — '+STEPS[k].title.toLowerCase()+' — time is up.');
+      renderDock();
+    }
+    paintTimer(k);
+  });
+  if(any) updateDockTimes();
+}
+setInterval(tick,250);
+var dock=document.getElementById('dock');
+function renderDock(){
+  var html='';
+  Object.keys(timers).forEach(function(k){
+    if(timers[k].running) html+='<button type="button" data-jump="'+k+'"><i aria-hidden="true"></i><span>Step '+(+k+1)+' · <b data-dock="'+k+'">'+fmtTime(timers[k].left)+'</b></span></button>';
+  });
+  dock.innerHTML=html;
+}
+function updateDockTimes(){
+  Array.prototype.forEach.call(dock.querySelectorAll('[data-dock]'),function(b){b.textContent=fmtTime(timers[b.getAttribute('data-dock')].left);});
+}
+dock.addEventListener('click',function(e){
+  var b=e.target.closest('[data-jump]');if(!b) return;
+  var i=+b.getAttribute('data-jump');
+  if(cook.classList.contains('open')){showCook(i);return;}
+  var el=document.getElementById('step-'+i);
+  el.scrollIntoView({behavior:reduce()?'auto':'smooth',block:'center'});
+});
+
+/* ——— audio: a soft two-note bell ——— */
+var actx=null,master=null;
+function ensureAudio(){
+  if(actx) {if(actx.state==='suspended') actx.resume();return;}
+  try{
+    var AC=window.AudioContext||window.webkitAudioContext;if(!AC) return;
+    actx=new AC();master=actx.createGain();master.gain.value=.5;master.connect(actx.destination);
+  }catch(e){actx=null;}
+}
+function bell(freq,at,vol){
+  var partials=[[1,1],[2.01,.42],[3.02,.18],[5.4,.07]];
+  partials.forEach(function(p){
+    var o=actx.createOscillator(),g=actx.createGain();
+    o.type='sine';o.frequency.value=freq*p[0];
+    g.gain.setValueAtTime(0,at);
+    g.gain.linearRampToValueAtTime(vol*p[1],at+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,at+2.4/Math.sqrt(p[0]));
+    o.connect(g);g.connect(master);o.start(at);o.stop(at+2.6);
+  });
+}
+function chime(){
+  if(!state.sound||!actx) return;
+  try{
+    if(actx.state==='suspended') actx.resume();
+    var t=actx.currentTime+.05;
+    bell(880,t,.16);bell(1318.5,t+.34,.13);bell(880,t+1.3,.12);bell(1318.5,t+1.64,.1);
+  }catch(e){}
+}
+var soundBtn=document.getElementById('soundBtn');
+function paintSound(){
+  soundBtn.setAttribute('aria-pressed',String(state.sound));
+  soundBtn.setAttribute('aria-label',state.sound?'Timer chime on':'Timer chime off');
+  document.getElementById('soundTxt').textContent=state.sound?'Chime on':'Chime off';
+}
+soundBtn.addEventListener('click',function(){
+  state.sound=!state.sound;paintSound();save();
+  if(state.sound){ensureAudio();if(actx){try{bell(1318.5,actx.currentTime+.03,.08);}catch(e){}}}
+});
+
+/* ——— toast ——— */
+var toastEl=document.getElementById('toast'),toastT=0;
+function toast(msg){
+  toastEl.textContent=msg;toastEl.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(function(){toastEl.classList.remove('show');},4200);
+}
+
+/* ——— interactions ——— */
+function reduce(){return window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}
+document.getElementById('minus').addEventListener('click',function(){state.servings=Math.max(4,state.servings-2);updateQuantities(true);save();});
+document.getElementById('plus').addEventListener('click',function(){state.servings=Math.min(16,state.servings+2);updateQuantities(true);save();});
+Array.prototype.forEach.call(document.querySelectorAll('[data-unit]'),function(b){
+  b.addEventListener('click',function(){state.unit=b.getAttribute('data-unit');updateQuantities(true);save();});
+});
+document.getElementById('resetBtn').addEventListener('click',function(){
+  state.checked={};state.done={};
+  Array.prototype.forEach.call(ingWrap.querySelectorAll('input'),function(i){i.checked=false;});
+  updateGathered();refreshSteps();save();toast('A clean card. Let’s begin again.');
+});
+document.addEventListener('click',function(e){
+  var t=e.target.closest('button');if(!t) return;
+  if(t.hasAttribute('data-done')){
+    var i=+t.getAttribute('data-done');
+    state.done[i]=!state.done[i];save();refreshSteps();
+    if(state.done[i]&&i===STEPS.length-1) toast('Tutto fatto! Slice, serve, and save one for tomorrow.');
+    return;
+  }
+  if(t.classList.contains('t-go')){
+    var k=+t.getAttribute('data-t');
+    if(timers[k].running) pauseTimer(k);else startTimer(k);
+    return;
+  }
+  if(t.classList.contains('t-reset')){resetTimer(+t.getAttribute('data-t'));return;}
+  if(t.hasAttribute('data-cook')){openCook(+t.getAttribute('data-cook'));return;}
+});
+document.getElementById('printBtn').addEventListener('click',function(){try{window.print();}catch(e){}});
+
+/* ——— cook mode ——— */
+var cook=document.getElementById('cook');
+var cookIdx=0,lastFocus=null,wakeLock=null;
+function openCook(i){
+  lastFocus=document.activeElement;
+  cook.classList.add('open');document.body.style.overflow='hidden';
+  showCook(typeof i==='number'?i:state.current);
+  document.getElementById('cookDone').focus();
+  try{if(navigator.wakeLock&&navigator.wakeLock.request){navigator.wakeLock.request('screen').then(function(l){wakeLock=l;}).catch(function(){});}}catch(e){}
+}
+function closeCook(){
+  cook.classList.remove('open');document.body.style.overflow='';
+  try{if(wakeLock){wakeLock.release();wakeLock=null;}}catch(e){}
+  if(lastFocus&&lastFocus.focus) lastFocus.focus();
+}
+function showCook(i){
+  cookIdx=Math.max(0,Math.min(STEPS.length-1,i));
+  var s=STEPS[cookIdx];
+  document.getElementById('cookWhere').textContent='Step '+(cookIdx+1)+' of '+STEPS.length;
+  document.getElementById('cookNum').textContent=cookIdx+1;
+  document.getElementById('cookTitle').textContent=s.title;
+  document.getElementById('cookText').innerHTML=s.text;
+  document.getElementById('cookUses').innerHTML=s.uses?'<ul class="uses" aria-label="You will need">'+usesHTML(cookIdx)+'</ul>':'';
+  document.getElementById('cookTip').innerHTML=s.tip?'<p class="tip">'+TIP_SVG+'<b>Nonna’s tip</b>'+esc(s.tip)+'</p>':'';
+  document.getElementById('cookTimer').innerHTML=s.min?timerHTML(cookIdx,s.min):'';
+  if(s.min) paintTimer(cookIdx);
+  Array.prototype.forEach.call(document.querySelectorAll('#cookText .u'),function(u){u.textContent=u.getAttribute(state.unit==='metric'?'data-m':'data-us');});
+  Array.prototype.forEach.call(document.querySelectorAll('#cookText .tinsize'),function(u){u.textContent=document.querySelector('.steps .tinsize').textContent;});
+  var dots='';for(var k=0;k<STEPS.length;k++) dots+='<i class="'+(k===cookIdx?'on':(state.done[k]?'dn':''))+'"></i>';
+  document.getElementById('cookDots').innerHTML=dots;
+  document.getElementById('cookPrev').disabled=cookIdx===0;
+  document.getElementById('cookDone').textContent=cookIdx===STEPS.length-1?'Done, finish ✓':'Done, next →';
+  var body=document.getElementById('cookBody'),num=document.getElementById('cookNum');
+  if(!reduce()){body.classList.remove('c-anim');num.classList.remove('c-anim');void body.offsetWidth;body.classList.add('c-anim');num.classList.add('c-anim');}
+}
+document.getElementById('cookBtn').addEventListener('click',function(){openCook();});
+document.getElementById('cookClose').addEventListener('click',closeCook);
+document.getElementById('cookPrev').addEventListener('click',function(){showCook(cookIdx-1);});
+document.getElementById('cookNext').addEventListener('click',function(){showCook(cookIdx+1);});
+document.getElementById('cookDone').addEventListener('click',function(){
+  state.done[cookIdx]=true;save();refreshSteps();
+  if(cookIdx>=STEPS.length-1){closeCook();toast('Tutto fatto! Slice, serve, and save one for tomorrow.');}
+  else showCook(cookIdx+1);
+});
+document.addEventListener('keydown',function(e){
+  if(!cook.classList.contains('open')) return;
+  if(e.key==='Escape'){closeCook();}
+  else if(e.key==='ArrowRight'&&!/^(INPUT|TEXTAREA)$/.test(e.target.tagName)){showCook(cookIdx+1);}
+  else if(e.key==='ArrowLeft'){showCook(cookIdx-1);}
+  else if(e.key==='Tab'){
+    var f=cook.querySelectorAll('button:not([disabled])');if(!f.length) return;
+    var first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  }
+});
+
+/* ——— illustration details built at runtime ——— */
+var SVGNS='http://www.w3.org/2000/svg';
+function mk(tag,attrs,parent){var e=document.createElementNS(SVGNS,tag);for(var k in attrs){e.setAttribute(k,attrs[k]);}if(parent) parent.appendChild(e);return e;}
+(function tartDetails(){
+  var cx=320,cy=402,rx=182,ry=52;
+  var d='';
+  for(var a=0;a<=360;a+=1.5){
+    var th=a*Math.PI/180;
+    var bump=1+.03*Math.pow(Math.abs(Math.sin(th*14)),.6);
+    var x=cx+rx*bump*Math.cos(th),y=cy+ry*bump*Math.sin(th)-2;
+    d+=(a?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);
+  }
+  d+='Z';
+  document.getElementById('rim').setAttribute('d',d);
+  var fl=document.getElementById('flutes');
+  for(var k=1;k<28;k++){
+    var t=Math.PI*k/28;
+    var x2=cx+rx*Math.cos(t),y2=cy+ry*Math.sin(t);
+    mk('path',{d:'M'+x2.toFixed(1)+' '+(y2+4).toFixed(1)+' L'+x2.toFixed(1)+' '+(y2+40).toFixed(1)},fl);
+  }
+})();
+function lemonSlice(parent,r,seed){
+  var g=mk('g',{},parent);
+  function wob(rad,amp,ph){
+    var d='';
+    for(var a=0;a<=360;a+=10){
+      var th=a*Math.PI/180;
+      var rr=rad+amp*Math.sin(th*3+ph)+amp*.6*Math.sin(th*5+ph*1.7);
+      d+=(a?'L':'M')+(rr*Math.cos(th)).toFixed(1)+' '+(rr*Math.sin(th)).toFixed(1);
+    }
+    return d+'Z';
+  }
+  mk('path',{d:wob(r,r*.018,seed),fill:'#f7d44c',stroke:'#2e2a24','stroke-width':2.2,'stroke-linejoin':'round'},g);
+  mk('path',{d:wob(r*.86,r*.012,seed+1),fill:'#fdf3c4'},g);
+  mk('path',{d:wob(r*.76,r*.014,seed+2),fill:'#fbe27a',stroke:'#e9bf3a','stroke-width':1},g);
+  var segs=9;
+  for(var s=0;s<segs;s++){
+    var th=(s/segs)*Math.PI*2+seed*.3;
+    mk('path',{d:'M0 0 L'+(Math.cos(th)*r*.76).toFixed(1)+' '+(Math.sin(th)*r*.76).toFixed(1),stroke:'#fdf6d4','stroke-width':Math.max(1.4,r*.07),'stroke-linecap':'round'},g);
+    var mid=th+Math.PI/segs;
+    mk('ellipse',{cx:(Math.cos(mid)*r*.46).toFixed(1),cy:(Math.sin(mid)*r*.46).toFixed(1),rx:(r*.05).toFixed(1),ry:(r*.12).toFixed(1),transform:'rotate('+(mid*180/Math.PI).toFixed(1)+' '+(Math.cos(mid)*r*.46).toFixed(1)+' '+(Math.sin(mid)*r*.46).toFixed(1)+')',fill:'#fdf6d4',opacity:.7},g);
+  }
+  mk('circle',{r:(r*.08).toFixed(1),fill:'#fdf6d4'},g);
+  return g;
+}
+(function slices(){
+  var host=document.getElementById('tartSlices');
+  var spots=[[320,398,30],[236,398,24],[404,398,24],[268,382,21],[372,382,21],[270,416,22],[370,416,22],[320,378,19],[320,420,22]];
+  spots.forEach(function(p,i){
+    var outer=mk('g',{transform:'translate('+p[0]+' '+p[1]+') scale(1 .36)'},host);
+    var spin=mk('g',{'class':'spin'+(i%2?' rev':''),style:'--d:'+(38+i*7)+'s'},outer);
+    lemonSlice(spin,p[2],i*1.3);
+  });
+  // mint leaves tucked between slices
+  [[294,392,-20],[350,404,30],[250,410,10]].forEach(function(l){
+    mk('path',{d:'M0 0 C6 -7,16 -8,22 -5 C16 2,6 3,0 0Z',transform:'translate('+l[0]+' '+l[1]+') rotate('+l[2]+')',fill:'#5b8c51',stroke:'#2e2a24','stroke-width':1.2},host);
+  });
+  var fl=document.getElementById('floaters');
+  [[70,196,44,'46s',''],[586,300,36,'58s',' rev'],[46,378,26,'40s',''],[576,64,30,'52s',' rev']].forEach(function(p,i){
+    var bob=mk('g',{'class':'float',style:'animation-delay:-'+(i*1.7)+'s'},fl);
+    var outer=mk('g',{transform:'translate('+p[0]+' '+p[1]+')'},bob);
+    var spin=mk('g',{'class':'spin'+p[4],style:'--d:'+p[3]},outer);
+    lemonSlice(spin,p[2],i*2.1+.5);
+  });
+})();
+
+/* ——— boot ——— */
+renderIngredients();
+renderSteps();
+updateQuantities(false);
+updateGathered();
+refreshSteps();
+paintSound();
+Object.keys(timers).forEach(function(k){paintTimer(k);});
+})();
+</script>
+</body>
+</html>

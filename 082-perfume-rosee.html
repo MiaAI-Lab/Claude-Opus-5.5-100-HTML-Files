@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rosée — Eau de Parfum · Maison Élorine</title>
+<meta name="description" content="Rosée, an eau de parfum of dew-cool rose by the fictional Maison Élorine: a faceted bottle with living liquid, the fragrance pyramid in botanical line drawings, the story, and three sizes.">
+<meta name="theme-color" content="#f4d6d0">
+<style>
+:root{
+  --blush:#f4d6d0;
+  --rg1:#b76e79;
+  --rg2:#e8b4a0;
+  --cream:#fff8f3;
+  --plum:#3b1f2b;
+  --plum2:#6a4552;
+  --line:rgba(183,110,121,.32);
+  --display:"Didot","Bodoni 72","Bodoni MT","Big Caslon","Libre Bodoni","Times New Roman","Nimbus Roman",serif;
+  --serif:"Baskerville","Baskerville Old Face","Iowan Old Style","Palatino Linotype",Palatino,P052,Georgia,serif;
+  --sans:"Avenir Next","Futura","Gill Sans","Segoe UI","Helvetica Neue","URW Gothic","Nimbus Sans",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{background:var(--cream);scroll-behavior:smooth}
+body{margin:0;color:var(--plum);font-family:var(--serif);background:linear-gradient(180deg,#fbe7e2 0,var(--cream) 560px,var(--cream) 100%);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+a{color:inherit}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.cap{font:500 11px/1.4 var(--sans);letter-spacing:.34em;text-transform:uppercase}
+
+/* ---------- header ---------- */
+.top{position:relative;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:20px;height:78px;padding:0 clamp(18px,5vw,72px);border-bottom:1px solid var(--line)}
+.maison{font:500 13px/1 var(--sans);letter-spacing:.42em;text-transform:uppercase;text-decoration:none;color:var(--plum)}
+.maison b{font-weight:600}
+.nav{display:flex;gap:clamp(18px,3vw,42px)}
+.nav a{position:relative;font:500 11px/1 var(--sans);letter-spacing:.3em;text-transform:uppercase;text-decoration:none;color:var(--plum2);padding:6px 0}
+.nav a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--rg1);transform:scaleX(0);transform-origin:right;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.nav a:hover::after,.nav a:focus-visible::after{transform:scaleX(1);transform-origin:left}
+.nav a:focus-visible,.maison:focus-visible,.bagbtn:focus-visible{outline:1px solid var(--rg1);outline-offset:6px}
+.bagbtn{position:relative;display:flex;align-items:center;gap:10px;border:0;background:none;cursor:pointer;font:500 11px/1 var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--plum2);padding:6px 0}
+.bagbtn svg{width:22px;height:22px;fill:none;stroke:var(--plum);stroke-width:1.2}
+.badge{position:absolute;left:13px;top:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:linear-gradient(135deg,var(--rg1),var(--rg2));color:#fff;font:600 10px/18px var(--sans);letter-spacing:0;text-align:center;transform:scale(0);transition:transform .35s cubic-bezier(.3,1.7,.5,1)}
+.badge.on{transform:scale(1)}
+.badge.pop{animation:pop .5s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.5)}100%{transform:scale(1)}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:clamp(20px,4vw,70px);min-height:calc(100vh - 78px);padding:10px clamp(18px,6vw,96px) 50px}
+.stage{position:relative;height:min(80vh,720px);min-height:460px;display:flex;justify-content:center}
+.stage svg{height:100%;width:auto;max-width:100%;overflow:visible}
+.buy{position:relative;z-index:2;max-width:520px}
+.eyebrow{margin:0 0 18px;color:var(--rg1)}
+.wordmark{margin:0;line-height:0}
+.wordmark svg{width:100%;max-width:470px;height:auto;overflow:visible}
+.shine{animation:shine 6s ease-in-out infinite}
+@keyframes shine{0%,55%{transform:translateX(-120px)}85%,100%{transform:translateX(560px)}}
+.sub{margin:22px 0 0;font:500 13px/1 var(--sans);letter-spacing:.62em;text-transform:uppercase;color:var(--plum)}
+.lede{margin:26px 0 0;font:400 19px/1.62 var(--serif);color:var(--plum2);max-width:44ch}
+.lede em{color:var(--plum);font-style:italic}
+.sizes{margin:32px 0 0;padding:0;border:0}
+.sizes legend{padding:0;margin-bottom:14px;color:var(--plum2)}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.size{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px 14px;border:1px solid var(--line);background:rgba(255,248,243,.6);cursor:pointer;transition:border-color .3s,background .3s,box-shadow .3s}
+.size svg{height:34px;width:auto}
+.size b{font:400 22px/1 var(--display)}
+.size b small{font:500 10px/1 var(--sans);letter-spacing:.2em;margin-left:3px}
+.size span{font:500 10px/1 var(--sans);letter-spacing:.24em;color:var(--plum2)}
+.size:hover{border-color:var(--rg1)}
+.size[aria-checked="true"]{border-color:var(--rg1);background:#fff;box-shadow:0 12px 30px rgba(183,110,121,.18),inset 0 0 0 1px var(--rg1)}
+.size[aria-checked="true"]::after{content:"";position:absolute;left:50%;bottom:-1px;width:28px;height:2px;margin-left:-14px;background:var(--rg1)}
+.size:focus-visible{outline:1px solid var(--plum);outline-offset:4px}
+.pricebar{display:flex;align-items:baseline;justify-content:space-between;margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+.price{margin:0;font:400 44px/1 var(--display);letter-spacing:.01em;font-variant-numeric:lining-nums}
+.price small{font:500 11px/1 var(--sans);letter-spacing:.24em;color:var(--plum2);margin-left:10px}
+.stock{margin:0;color:var(--rg1)}
+.add{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;width:100%;margin-top:20px;padding:21px 24px;border:0;cursor:pointer;overflow:hidden;color:#fff;font:600 12px/1 var(--sans);letter-spacing:.42em;text-transform:uppercase;
+  background:linear-gradient(115deg,#a45d69 0%,#b76e79 30%,#d8a191 62%,#e8b4a0 80%,#c7857e 100%);box-shadow:0 18px 40px rgba(183,110,121,.35),inset 0 1px 0 rgba(255,255,255,.4);transition:transform .25s,box-shadow .3s}
+.add::before{content:"";position:absolute;top:0;bottom:0;left:-40%;width:34%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.6),rgba(255,255,255,0));transform:skewX(-20deg) translateX(0);animation:sweep 3.4s ease-in-out infinite}
+@keyframes sweep{0%,40%{transform:skewX(-20deg) translateX(0)}75%,100%{transform:skewX(-20deg) translateX(460%)}}
+.add:hover{transform:translateY(-2px);box-shadow:0 24px 50px rgba(183,110,121,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+.add:hover::before{animation-duration:1.6s}
+.add:active{transform:translateY(0) scale(.99)}
+.add:focus-visible{outline:2px solid var(--plum);outline-offset:4px}
+.add span{position:relative}
+.add .ok{display:none}
+.add.done .ok{display:inline}
+.add.done .go{display:none}
+.perks{display:flex;flex-wrap:wrap;gap:8px 22px;margin:18px 0 0;padding:0;list-style:none;color:var(--plum2)}
+.perks li{display:flex;align-items:center;gap:8px}
+.perks li::before{content:"";width:5px;height:5px;transform:rotate(45deg);background:var(--rg1)}
+
+/* ---------- pyramid ---------- */
+.section{position:relative;padding:clamp(70px,10vw,140px) clamp(18px,6vw,96px)}
+.shead{text-align:center;max-width:640px;margin:0 auto}
+.shead p.cap{margin:0;color:var(--rg1)}
+.shead h2{margin:16px 0 0;font:400 clamp(40px,5.4vw,72px)/1 var(--display);letter-spacing:-.005em}
+.shead h2 i{font-style:italic;color:var(--rg1)}
+.shead .intro{margin:20px auto 0;font:400 18px/1.6 var(--serif);color:var(--plum2);max-width:46ch}
+.pyr{display:grid;grid-template-columns:minmax(300px,440px) 1fr;gap:clamp(30px,5vw,80px);align-items:center;max-width:1180px;margin:60px auto 0}
+.tri{display:flex;flex-direction:column;gap:7px;width:100%;filter:drop-shadow(0 22px 30px rgba(183,110,121,.22))}
+.tier{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:112px;padding:0 0 16px;border:0;cursor:pointer;text-align:center;color:var(--plum);transition:background .5s,color .4s,transform .4s}
+.tier.t0{clip-path:polygon(50% 0,66.67% 100%,33.33% 100%);background:linear-gradient(180deg,#fbe9e4,#f1cbc2);padding-bottom:12px}
+.tier.t1{clip-path:polygon(33.33% 0,66.67% 0,83.33% 100%,16.67% 100%);background:linear-gradient(180deg,#f1c9bf,#e3a79c);justify-content:center;padding:0}
+.tier.t2{clip-path:polygon(16.67% 0,83.33% 0,100% 100%,0 100%);background:linear-gradient(180deg,#dea096,#c07f83);justify-content:center;padding:0}
+.tier b{font:italic 400 24px/1 var(--display)}
+.tier.t0 b{font-size:19px}
+.tier span{margin-top:7px;font:500 9.5px/1.3 var(--sans);letter-spacing:.22em;text-transform:uppercase;opacity:.8}
+.tier.t0 span{display:none}
+.tier[aria-pressed="true"]{background:linear-gradient(180deg,#8a4e5c,#3b1f2b);color:var(--cream)}
+.tier:focus-visible{background:linear-gradient(180deg,#a45d69,#5a2d3d);color:#fff;outline:none}
+.tier:focus-visible b{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
+.detail{position:relative;min-height:380px}
+.dgroup{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .6s,visibility 0s .6s}
+.dgroup.on{position:relative;opacity:1;visibility:visible;transition:opacity .6s}
+.dgroup h3{margin:0;font:400 36px/1.05 var(--display)}
+.dgroup h3 i{color:var(--rg1)}
+.dgroup .when{margin:10px 0 0;color:var(--plum2)}
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:28px 0 0;padding:0}
+.note{margin:0;padding:18px 14px 18px;border:1px solid var(--line);background:rgba(255,255,255,.55);text-align:center;transform:translateY(14px);opacity:0;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .7s,border-color .3s,background .3s}
+.dgroup.on .note{transform:none;opacity:1}
+.dgroup.on .note:nth-child(2){transition-delay:.12s}.dgroup.on .note:nth-child(3){transition-delay:.24s}
+.note:hover{border-color:var(--rg1);background:#fff}
+.bot{width:100%;max-width:130px;height:auto;display:block;margin:0 auto}
+.bot *{fill:none;stroke:var(--plum);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.8s cubic-bezier(.4,.1,.2,1)}
+.bot .ac{stroke:var(--rg1)}
+.bot .fl{fill:rgba(232,180,160,.35);stroke:none;stroke-dasharray:none;opacity:0;transition:opacity 1.2s .9s}
+.dgroup.on .bot *{stroke-dashoffset:0}
+.dgroup.on .bot .fl{opacity:1}
+.note figcaption{margin-top:12px}
+.note figcaption b{display:block;font:400 21px/1.1 var(--display)}
+.note figcaption span{display:block;margin-top:8px;font:400 14.5px/1.5 var(--serif);color:var(--plum2)}
+
+/* ---------- story ---------- */
+.story{background:linear-gradient(180deg,var(--cream),#fbe4de 50%,var(--cream))}
+.cols{display:grid;grid-template-columns:1fr minmax(0,640px) 1fr;gap:40px;max-width:1180px;margin:0 auto;align-items:start}
+.story .text{grid-column:2}
+.story .text p{margin:0 0 1.2em;font:400 20px/1.75 var(--serif);color:var(--plum)}
+.story .text p:first-of-type::first-letter{float:left;margin:10px 12px 0 0;font:400 92px/.8 var(--display);color:var(--rg1)}
+.pull{grid-column:3;align-self:center;margin:0;padding-left:26px;border-left:1px solid var(--rg1);font:italic 400 26px/1.35 var(--display);color:var(--rg1)}
+.sig{margin:30px 0 0;display:flex;align-items:center;gap:16px;color:var(--plum2)}
+.sig svg{width:120px;height:44px;fill:none;stroke:var(--plum);stroke-width:1.3;stroke-linecap:round}
+.facts{grid-column:1;align-self:center;margin:0;padding:0;list-style:none;text-align:right}
+.facts li{padding:14px 0;border-bottom:1px solid var(--line)}
+.facts b{display:block;font:400 28px/1 var(--display)}
+.facts span{display:block;margin-top:6px}
+
+footer{padding:60px clamp(18px,6vw,96px) 70px;text-align:center;border-top:1px solid var(--line)}
+footer .maison{font-size:12px}
+footer p{margin:14px auto 0;max-width:60ch;font:400 14px/1.6 var(--serif);color:var(--plum2)}
+
+/* ---------- petals ---------- */
+.petals{position:fixed;inset:0;z-index:5;pointer-events:none;perspective:700px;overflow:hidden}
+.petal{position:absolute;left:0;top:0;width:28px;height:28px;will-change:transform;transform-style:preserve-3d}
+.petal svg{width:100%;height:100%;display:block;backface-visibility:visible}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:1100px){
+  .cols{grid-template-columns:minmax(0,640px);justify-content:center}
+  .story .text,.pull,.facts{grid-column:1}
+  .facts{display:flex;justify-content:space-between;text-align:left;gap:16px}
+  .facts li{flex:1;border-bottom:0;border-top:1px solid var(--line)}
+  .pull{margin:10px 0 30px}
+}
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;padding-top:0;min-height:0}
+  .stage{height:62vh;min-height:380px}
+  .buy{max-width:560px;margin:0 auto}
+  .pyr{grid-template-columns:1fr;max-width:560px}
+  .tri{max-width:420px;margin:0 auto}
+  .nav{display:none}
+}
+@media (max-width:560px){
+  .top{height:64px}
+  .maison{font-size:11px;letter-spacing:.3em}
+  .bagbtn .bl{display:none}
+  .notes{grid-template-columns:1fr;gap:12px}
+  .note{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center;text-align:left;padding:12px}
+  .note figcaption{margin:0}
+  .detail{min-height:0}
+  .lede{font-size:17px}
+  .price{font-size:38px}
+  .tier{height:92px}
+  .tier b{font-size:20px}
+  .tier span{font-size:8.5px;letter-spacing:.18em}
+  .story .text p{font-size:18px}
+  .add{letter-spacing:.3em}
+}
+@media (prefers-reduced-motion:reduce){
+  .shine,.add::before{animation:none}
+  .bot *{transition:none}
+  .note{transition:opacity .3s}
+}
+</style>
+</head>
+<body>
+<svg class="sr" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="pg0" cx=".45" cy=".35" r=".75"><stop offset="0" stop-color="#fde6ea"/><stop offset=".55" stop-color="#f3a9b8"/><stop offset="1" stop-color="#c85a74"/></radialGradient>
+    <radialGradient id="pg1" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#fff0ee"/><stop offset=".6" stop-color="#f4c0bd"/><stop offset="1" stop-color="#d98a92"/></radialGradient>
+    <radialGradient id="pg2" cx=".4" cy=".4" r=".8"><stop offset="0" stop-color="#ffd9df"/><stop offset=".6" stop-color="#e98aa2"/><stop offset="1" stop-color="#b24a67"/></radialGradient>
+    <symbol id="petal" viewBox="0 0 40 42"><path d="M20,40 C8,35 1.5,23 3.5,12.5 C5,4.5 13,1 20,6.5 C27,1 35,4.5 36.5,12.5 C38.5,23 32,35 20,40 Z"/><path d="M20,38 C19,28 19.5,18 20,8" fill="none" stroke="rgba(255,255,255,.45)" stroke-width=".8"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <a class="maison" href="#top" id="top">Maison <b>Élorine</b></a>
+  <nav class="nav" aria-label="Page sections" data-clear>
+    <a href="#buy">Rosée</a>
+    <a href="#notes">The Notes</a>
+    <a href="#story">The Story</a>
+  </nav>
+  <button type="button" class="bagbtn" id="bagBtn" aria-label="Shopping bag, 0 items">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5,8 H19 L18,21 H6 Z M9,8 V6.5 C9,4.5 10.3,3 12,3 C13.7,3 15,4.5 15,6.5 V8"/></svg>
+    <span class="badge" id="badge">0</span><span class="bl">Bag</span>
+  </button>
+</header>
+
+<main>
+  <section class="hero" aria-label="Rosée eau de parfum">
+    <div class="stage" id="stage">
+      <svg viewBox="0 0 400 650" role="img" aria-labelledby="bottleT" id="bottleSvg">
+        <title id="bottleT">A tall faceted glass bottle of pink Rosée perfume with a gold cap, standing on a cream plinth</title>
+        <defs>
+          <radialGradient id="halo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff6f2"/><stop offset=".62" stop-color="#f8dcd5"/><stop offset="1" stop-color="#f4d6d0" stop-opacity="0"/></radialGradient>
+          <linearGradient id="plTop" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f3e2da"/><stop offset=".5" stop-color="#fffaf6"/><stop offset="1" stop-color="#ecd6cd"/></linearGradient>
+          <linearGradient id="plSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e6cbc2"/><stop offset=".35" stop-color="#fbf0ea"/><stop offset=".7" stop-color="#f1ddd5"/><stop offset="1" stop-color="#d9b8ae"/></linearGradient>
+          <radialGradient id="shadowG" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3b1f2b" stop-opacity=".34"/><stop offset="1" stop-color="#3b1f2b" stop-opacity="0"/></radialGradient>
+          <radialGradient id="causticG" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f0587e" stop-opacity=".55"/><stop offset=".5" stop-color="#f48aa3" stop-opacity=".25"/><stop offset="1" stop-color="#f7b6c4" stop-opacity="0"/></radialGradient>
+          <linearGradient id="liqG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc9d3"/><stop offset=".35" stop-color="#f597ad"/><stop offset="1" stop-color="#d4567a"/></linearGradient>
+          <linearGradient id="liqGL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e98aa3"/><stop offset="1" stop-color="#9c3357"/></linearGradient>
+          <linearGradient id="liqGR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe0e6"/><stop offset="1" stop-color="#ec8fa8"/></linearGradient>
+          <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6e4a1c"/><stop offset=".14" stop-color="#c9973f"/><stop offset=".3" stop-color="#fff0c2"/><stop offset=".45" stop-color="#d4a54f"/><stop offset=".62" stop-color="#8a6025"/><stop offset=".8" stop-color="#f2d58e"/><stop offset="1" stop-color="#6b4618"/></linearGradient>
+          <linearGradient id="goldV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3cf"/><stop offset="1" stop-color="#b98838"/></linearGradient>
+          <linearGradient id="hiV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity=".05"/></linearGradient>
+          <linearGradient id="glassF" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".2" stop-color="#fff" stop-opacity=".05"/><stop offset=".8" stop-color="#fff" stop-opacity=".02"/><stop offset="1" stop-color="#fff" stop-opacity=".22"/></linearGradient>
+          <linearGradient id="baseG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7a1b6" stop-opacity=".85"/><stop offset=".5" stop-color="#fbd0da" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity=".5"/></linearGradient>
+          <clipPath id="cavity"><rect x="46" y="166" width="168" height="286" rx="9"/></clipPath>
+          <clipPath id="faceF"><rect x="56" y="150" width="148" height="318"/></clipPath>
+          <clipPath id="faceL"><polygon points="30,174 56,158 56,468 30,454"/></clipPath>
+          <clipPath id="faceR"><polygon points="204,158 230,174 230,454 204,468"/></clipPath>
+          <path id="liq" d="M40,252 L220,252 L220,470 L40,470 Z"/>
+          <path id="surf" d="M40,252 L220,252"/>
+        </defs>
+        <circle cx="200" cy="300" r="196" fill="url(#halo)"/>
+        <circle cx="200" cy="300" r="176" fill="none" stroke="#b76e79" stroke-opacity=".35" stroke-width=".8"/>
+        <circle cx="200" cy="300" r="186" fill="none" stroke="#b76e79" stroke-opacity=".16" stroke-width=".6" stroke-dasharray="2 6"/>
+        <!-- plinth -->
+        <path d="M46,574 L46,640 C46,652 354,652 354,640 L354,574 Z" fill="url(#plSide)"/>
+        <ellipse cx="200" cy="574" rx="154" ry="24" fill="url(#plTop)"/>
+        <ellipse cx="200" cy="574" rx="154" ry="24" fill="none" stroke="#c99a8e" stroke-opacity=".5" stroke-width=".8"/>
+        <ellipse id="caustic" cx="232" cy="578" rx="96" ry="13" fill="url(#causticG)"/>
+        <ellipse id="shadow" cx="200" cy="574" rx="108" ry="12" fill="url(#shadowG)"/>
+        <g id="bottleScale">
+          <g id="bottleTilt" transform="translate(70,94)">
+            <!-- glass body -->
+            <polygon points="56,148 204,148 230,174 230,454 204,480 56,480 30,454 30,174" fill="rgba(255,244,246,.42)" stroke="rgba(183,110,121,.55)" stroke-width="1"/>
+            <!-- liquid seen through each facet (shifted to fake refraction) -->
+            <g clip-path="url(#faceL)"><use href="#liq" fill="url(#liqGL)" transform="translate(-13,4)"/></g>
+            <g clip-path="url(#faceR)"><use href="#liq" fill="url(#liqGR)" transform="translate(13,-3)"/></g>
+            <g clip-path="url(#faceF)"><g clip-path="url(#cavity)"><use href="#liq" fill="url(#liqG)"/>
+              <use href="#surf" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="1.6"/>
+              <use href="#surf" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="7" transform="translate(0,5)"/>
+              <circle class="gl" cx="96" cy="380" r="1.4" fill="#fff" opacity=".8"/><circle class="gl" cx="150" cy="330" r="1" fill="#fff" opacity=".7"/><circle class="gl" cx="178" cy="410" r="1.2" fill="#fff" opacity=".7"/><circle class="gl" cx="120" cy="300" r=".9" fill="#fff" opacity=".6"/>
+            </g></g>
+            <!-- thick glass base -->
+            <rect x="56" y="452" width="148" height="16" fill="url(#baseG)"/>
+            <polygon points="56,468 204,468 204,480 56,480" fill="rgba(255,210,220,.55)"/>
+            <polygon points="30,454 56,468 56,480" fill="rgba(240,150,170,.5)"/>
+            <polygon points="204,468 230,454 204,480" fill="rgba(255,225,232,.6)"/>
+            <!-- facet tints -->
+            <polygon points="30,174 56,158 56,468 30,454" fill="rgba(90,30,55,.12)"/>
+            <polygon points="204,158 230,174 230,454 204,468" fill="rgba(255,255,255,.22)"/>
+            <polygon points="56,148 204,148 204,158 56,158" fill="rgba(255,255,255,.55)"/>
+            <polygon points="30,174 56,148 56,158" fill="rgba(255,255,255,.35)"/>
+            <polygon points="204,148 230,174 204,158" fill="rgba(255,255,255,.65)"/>
+            <rect x="56" y="158" width="148" height="310" fill="url(#glassF)"/>
+            <!-- highlights -->
+            <rect x="63" y="170" width="11" height="286" rx="5" fill="url(#hiV)" opacity=".9"/>
+            <rect x="79" y="176" width="3" height="270" rx="1.5" fill="url(#hiV)" opacity=".55"/>
+            <rect x="182" y="186" width="9" height="120" rx="4.5" fill="#fff" opacity=".22"/>
+            <path d="M56,158 V468 M204,158 V468" stroke="#fff" stroke-opacity=".7" stroke-width="1"/>
+            <path d="M31,176 V452" stroke="#fff" stroke-opacity=".5" stroke-width="1.2"/>
+            <path d="M229,176 V452" stroke="#b76e79" stroke-opacity=".35" stroke-width="1"/>
+            <!-- label -->
+            <rect x="88" y="318" width="84" height="86" fill="#fff8f3" fill-opacity=".94"/>
+            <rect x="91.5" y="321.5" width="77" height="79" fill="none" stroke="#b76e79" stroke-width=".6"/>
+            <text x="130" y="343" text-anchor="middle" font-family="Didot, 'Bodoni 72', 'Bodoni MT', 'Times New Roman', 'Nimbus Roman', serif" font-size="6.2" letter-spacing="1.6" fill="#6a4552">MAISON ÉLORINE</text>
+            <text x="130" y="366" text-anchor="middle" font-family="Didot, 'Bodoni 72', 'Bodoni MT', 'Times New Roman', 'Nimbus Roman', serif" font-size="17" letter-spacing="2.4" fill="#3b1f2b">ROSÉE</text>
+            <text x="130" y="379" text-anchor="middle" font-family="'Avenir Next', Futura, 'Segoe UI', 'URW Gothic', sans-serif" font-size="4.6" letter-spacing="1.8" fill="#6a4552">EAU DE PARFUM</text>
+            <text id="lblMl" x="130" y="394" text-anchor="middle" font-family="'Avenir Next', Futura, 'Segoe UI', 'URW Gothic', sans-serif" font-size="5.4" letter-spacing="1.4" fill="#b76e79">50 ML · 1.7 FL OZ</text>
+            <!-- neck and cap -->
+            <rect x="104" y="130" width="52" height="20" fill="url(#gold)"/>
+            <rect x="104" y="138" width="52" height="1.2" fill="#5a3a12" opacity=".5"/>
+            <polygon points="84,40 176,40 176,130 84,130" fill="url(#gold)"/>
+            <polygon points="84,40 100,28 100,130 84,130" fill="#8a6025" opacity=".55"/>
+            <polygon points="160,28 176,40 176,130 160,130" fill="#fff0c2" opacity=".35"/>
+            <polygon points="100,28 160,28 176,40 84,40" fill="url(#goldV)"/>
+            <rect x="100" y="28" width="60" height="102" fill="url(#gold)" opacity=".55"/>
+            <path d="M100,28 V130 M160,28 V130" stroke="#fff6d8" stroke-opacity=".7" stroke-width=".8"/>
+            <rect x="108" y="44" width="4" height="80" rx="2" fill="#fff" opacity=".45"/>
+            <path d="M84,130 H176" stroke="#5a3a12" stroke-width="1.2" opacity=".6"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="buy" id="buy" data-clear>
+      <p class="eyebrow cap">Maison Élorine · Nº 7 · Spring</p>
+      <h1 class="wordmark">
+        <svg viewBox="-6 -40 456 146" role="img" aria-labelledby="wmT">
+          <title id="wmT">Rosée</title>
+          <defs>
+            <linearGradient id="rg" x1="0" y1="0" x2="1" y2=".25"><stop offset="0" stop-color="#a45d69"/><stop offset=".3" stop-color="#b76e79"/><stop offset=".55" stop-color="#d9a08f"/><stop offset=".72" stop-color="#e8b4a0"/><stop offset="1" stop-color="#b56f78"/></linearGradient>
+            <linearGradient id="shineG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+            <g id="wm">
+              <rect x="10" y="0" width="15" height="100" stroke="none"/>
+              <rect x="0" y="0" width="30" height="2.4" stroke="none"/>
+              <rect x="0" y="97.6" width="36" height="2.4" stroke="none"/>
+              <path fill-rule="evenodd" stroke="none" d="M25,0 H48 C66,0 78,11.5 78,27 C78,42.5 66,54 48,54 H25 Z M25,2.4 H46 C57,2.4 62.5,12 62.5,27 C62.5,42 57,51.6 46,51.6 H25 Z"/>
+              <path stroke="none" d="M42,52.5 H57 L86,97.6 H71 Z"/>
+              <rect x="64" y="97.6" width="30" height="2.4" stroke="none"/>
+              <path fill-rule="evenodd" stroke="none" d="M104,50 A43,50.4 0 1 0 190,50 A43,50.4 0 1 0 104,50 Z M119,50 A28,48 0 1 0 175,50 A28,48 0 1 0 119,50 Z"/>
+              <path fill="none" stroke-width="2.4" d="M264,8 C258,2.2 250,1.2 238,1.2 C222,1.2 212,11 212,24"/>
+              <path stroke="none" d="M212,24 C206,44 256,64 262,76 C268,52 218,36 212,24 Z"/>
+              <path fill="none" stroke-width="2.4" d="M262,76 C262,91 252,98.8 236,98.8 C222,98.8 214,95 210,88"/>
+              <rect x="262.8" y="2" width="2.4" height="22" stroke="none"/>
+              <rect x="208.8" y="74" width="2.4" height="22" stroke="none"/>
+              <rect x="294" y="0" width="15" height="100" stroke="none"/>
+              <rect x="284" y="0" width="64" height="2.4" stroke="none"/>
+              <path stroke="none" d="M345.4,0 H348 V26 H346.9 Z"/>
+              <rect x="309" y="48.8" width="30" height="2.4" stroke="none"/>
+              <rect x="336.6" y="38" width="2.4" height="23" stroke="none"/>
+              <rect x="284" y="97.6" width="68" height="2.4" stroke="none"/>
+              <path stroke="none" d="M349.4,100 H352 V72 H350.9 Z"/>
+              <path stroke="none" d="M314,-9 L330,-30 C332,-32.5 336.5,-31 335,-28 L319,-7 Z"/>
+              <rect x="382" y="0" width="15" height="100" stroke="none"/>
+              <rect x="372" y="0" width="64" height="2.4" stroke="none"/>
+              <path stroke="none" d="M433.4,0 H436 V26 H434.9 Z"/>
+              <rect x="397" y="48.8" width="30" height="2.4" stroke="none"/>
+              <rect x="424.6" y="38" width="2.4" height="23" stroke="none"/>
+              <rect x="372" y="97.6" width="68" height="2.4" stroke="none"/>
+              <path stroke="none" d="M437.4,100 H440 V72 H438.9 Z"/>
+            </g>
+            <mask id="wmMask" maskUnits="userSpaceOnUse" x="-10" y="-40" width="470" height="150"><use href="#wm" fill="#fff" stroke="#fff"/></mask>
+          </defs>
+          <use href="#wm" fill="url(#rg)" stroke="url(#rg)"/>
+          <g mask="url(#wmMask)"><rect class="shine" x="-60" y="-40" width="70" height="150" fill="url(#shineG)" transform="translate(-120,0)"/></g>
+        </svg>
+      </h1>
+      <p class="sub">Eau de Parfum</p>
+      <p class="lede">A rose caught in the hour before sunrise, <em>cool, green-edged and still wet with dew</em>. Pink pepper and pear open it, damask rose and peony bloom at the heart, and sandalwood and ambrette keep it close to the skin.</p>
+
+      <fieldset class="sizes">
+        <legend class="cap">Choose a size</legend>
+        <div class="sgrid" role="radiogroup" aria-label="Bottle size">
+          <button type="button" class="size" role="radio" aria-checked="false" data-ml="30"><svg viewBox="0 0 20 40" aria-hidden="true"><rect x="7" y="4" width="6" height="8" fill="#c9973f"/><rect x="3.5" y="13" width="13" height="18" fill="#f5a3b6" stroke="#b76e79" stroke-width=".6"/></svg><b>30<small>ml</small></b><span>€98</span></button>
+          <button type="button" class="size" role="radio" aria-checked="true" data-ml="50"><svg viewBox="0 0 20 40" aria-hidden="true"><rect x="6.5" y="1" width="7" height="9" fill="#c9973f"/><rect x="2.5" y="11" width="15" height="23" fill="#f5a3b6" stroke="#b76e79" stroke-width=".6"/></svg><b>50<small>ml</small></b><span>€145</span></button>
+          <button type="button" class="size" role="radio" aria-checked="false" data-ml="100"><svg viewBox="0 0 20 40" aria-hidden="true"><rect x="6" y="0" width="8" height="9" fill="#c9973f"/><rect x="1.5" y="9.5" width="17" height="29" fill="#f5a3b6" stroke="#b76e79" stroke-width=".6"/></svg><b>100<small>ml</small></b><span>€210</span></button>
+        </div>
+      </fieldset>
+
+      <div class="pricebar">
+        <p class="price" aria-live="polite"><span id="price">€145</span><small id="priceMl">50 ml</small></p>
+        <p class="stock cap">In stock</p>
+      </div>
+      <button type="button" class="add" id="add"><span class="go">Add to bag</span><span class="ok">Added to your bag</span></button>
+      <ul class="perks cap"><li>Complimentary engraving</li><li>Two samples included</li></ul>
+    </div>
+  </section>
+
+  <section class="section" id="notes" aria-labelledby="notesH">
+    <div class="shead" data-clear>
+      <p class="cap">The fragrance pyramid</p>
+      <h2 id="notesH">Three movements of <i>one rose</i></h2>
+      <p class="intro">A perfume unfolds in stages. The lightest notes sparkle first, the heart blooms as they fade, and the base stays on the skin for hours. Hover or tap a tier.</p>
+    </div>
+    <div class="pyr">
+      <div class="tri" role="group" aria-label="Fragrance tiers" data-clear>
+        <button type="button" class="tier t0" data-tier="0" aria-pressed="false" aria-controls="dg0"><b>Top</b><span>Bergamot · Pink Pepper · Pear</span></button>
+        <button type="button" class="tier t1" data-tier="1" aria-pressed="true" aria-controls="dg1"><b>Heart</b><span>Rose · Peony · Muguet</span></button>
+        <button type="button" class="tier t2" data-tier="2" aria-pressed="false" aria-controls="dg2"><b>Base</b><span>Sandalwood · Vanilla · Ambrette</span></button>
+      </div>
+      <div class="detail" data-clear>
+        <div class="dgroup" id="dg0">
+          <h3>Top notes, <i>the first breath</i></h3>
+          <p class="when cap">The first fifteen minutes</p>
+          <div class="notes">
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="fl" cx="56" cy="72" r="30"/>
+                <circle pathLength="1" cx="56" cy="72" r="30"/>
+                <path pathLength="1" d="M56,42 C56,34 58,28 63,22"/>
+                <path class="ac" pathLength="1" d="M61,25 C72,14 90,13 99,19 C89,29 72,31 61,25 Z"/>
+                <path class="ac" pathLength="1" d="M61,25 C74,22 86,20 99,19"/>
+                <path class="ac" pathLength="1" d="M58,30 C48,22 36,22 30,27 C38,34 50,35 58,30 Z"/>
+                <path pathLength="1" d="M50,101 C53,99 59,99 62,101"/>
+                <path pathLength="1" d="M40,60 l1,1 M66,56 l1,1 M72,78 l1,1 M44,86 l1,1 M58,90 l1,1 M36,74 l1,1"/>
+                <path pathLength="1" d="M42,54 C38,60 36,66 37,72"/>
+              </svg>
+              <figcaption><b>Bergamot</b><span>Sun-bright citrus peel, green and a little bitter.</span></figcaption>
+            </figure>
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <path pathLength="1" d="M22,104 C40,86 58,64 70,34 C74,24 80,18 88,14"/>
+                <path pathLength="1" d="M52,70 C60,70 68,74 74,80 M62,52 C70,50 78,52 86,58 M44,82 C38,74 36,66 38,58"/>
+                <circle class="fl" cx="80" cy="84" r="5"/><circle class="fl" cx="90" cy="62" r="5"/><circle class="fl" cx="36" cy="54" r="5"/>
+                <g class="ac"><circle pathLength="1" cx="78" cy="84" r="5"/><circle pathLength="1" cx="86" cy="90" r="4.5"/><circle pathLength="1" cx="73" cy="92" r="4.5"/><circle pathLength="1" cx="90" cy="62" r="5"/><circle pathLength="1" cx="96" cy="70" r="4.5"/><circle pathLength="1" cx="36" cy="54" r="5"/><circle pathLength="1" cx="30" cy="46" r="4.5"/><circle pathLength="1" cx="41" cy="46" r="4"/></g>
+                <path pathLength="1" d="M88,14 C94,16 100,22 102,30 C94,30 88,24 88,14 Z M88,14 C84,8 76,6 70,8 C74,14 82,16 88,14 Z"/>
+              </svg>
+              <figcaption><b>Pink Pepper</b><span>A rosy, sparkling spice that lifts the opening.</span></figcaption>
+            </figure>
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <path class="fl" d="M60,32 C52,32 50,46 48,56 C40,64 34,76 36,88 C38,102 50,108 60,108 C70,108 82,102 84,88 C86,76 80,64 72,56 C70,46 68,32 60,32 Z"/>
+                <path pathLength="1" d="M60,32 C52,32 50,46 48,56 C40,64 34,76 36,88 C38,102 50,108 60,108 C70,108 82,102 84,88 C86,76 80,64 72,56 C70,46 68,32 60,32 Z"/>
+                <path pathLength="1" d="M60,32 C60,25 62,20 66,15"/>
+                <path class="ac" pathLength="1" d="M64,20 C72,12 84,11 91,15 C84,23 72,25 64,20 Z M64,20 C74,18 83,16 91,15"/>
+                <path pathLength="1" d="M46,78 C44,86 46,94 52,99"/>
+              </svg>
+              <figcaption><b>Pear</b><span>Juicy, dewy sweetness, like fruit still cold from the orchard.</span></figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="dgroup on" id="dg1">
+          <h3>Heart notes, <i>the bloom</i></h3>
+          <p class="when cap">The next few hours</p>
+          <div class="notes">
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <path class="fl" d="M36,50 C34,34 48,24 60,26 C74,24 88,34 84,50 C88,66 76,78 60,78 C44,78 32,66 36,50 Z"/>
+                <path pathLength="1" d="M60,46 C54,45 51,51 55,54 C60,58 66,53 63,48 C61,45 57,44 55,46"/>
+                <path pathLength="1" d="M46,46 C46,36 54,32 62,34 C70,34 76,40 74,48"/>
+                <path pathLength="1" d="M44,50 C44,62 52,68 62,66 C72,64 76,56 74,48"/>
+                <path pathLength="1" d="M36,50 C34,34 48,24 60,26 C74,24 88,34 84,50"/>
+                <path pathLength="1" d="M36,50 C32,66 44,78 60,78 C76,78 88,66 84,50"/>
+                <path pathLength="1" d="M60,78 C60,90 58,100 60,112"/>
+                <path class="ac" pathLength="1" d="M59,96 C66,86 80,84 88,88 C82,98 68,101 59,96 Z M59,96 C68,93 78,90 88,88"/>
+                <path class="ac" pathLength="1" d="M60,88 C52,82 40,82 34,86 C40,94 52,94 60,88 Z"/>
+                <path pathLength="1" d="M59,104 l-4,-2 M61,92 l4,-2"/>
+              </svg>
+              <figcaption><b>Damask Rose</b><span>The soul of Rosée: velvety, honeyed, dew-soaked petals.</span></figcaption>
+            </figure>
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <path class="fl" d="M28,60 C26,40 44,28 60,30 C76,28 94,40 92,60 C92,74 78,82 60,82 C42,82 28,74 28,60 Z"/>
+                <path pathLength="1" d="M28,60 C24,48 32,38 40,40 C40,30 52,26 58,32 C62,24 76,26 78,36 C88,34 96,46 92,58"/>
+                <path pathLength="1" d="M28,60 C28,74 42,82 60,82 C78,82 92,74 92,58"/>
+                <path pathLength="1" d="M40,58 C40,48 48,44 54,48 C58,42 66,42 70,48 C76,46 82,52 80,60"/>
+                <path pathLength="1" d="M40,58 C44,70 76,70 80,60"/>
+                <path pathLength="1" d="M52,58 C54,52 62,52 66,56 C64,62 56,63 52,58"/>
+                <path pathLength="1" d="M60,82 C62,94 60,104 62,114"/>
+                <path class="ac" pathLength="1" d="M61,98 C52,90 38,90 32,94 C40,102 52,104 61,98 Z M61,98 C74,92 86,94 92,98 C84,106 72,106 61,98 Z"/>
+              </svg>
+              <figcaption><b>Peony</b><span>Fresh, airy and faintly lemony, a softer companion to the rose.</span></figcaption>
+            </figure>
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <path class="ac" pathLength="1" d="M30,112 C22,86 26,52 44,24 C48,48 44,84 30,112 Z"/>
+                <path class="ac" pathLength="1" d="M30,112 C34,82 38,56 44,24"/>
+                <path pathLength="1" d="M52,112 C54,82 62,52 80,30 C88,22 96,20 100,22"/>
+                <path pathLength="1" d="M62,64 v6 M70,50 v6 M79,38 v6 M89,28 v6 M58,80 v5"/>
+                <circle class="fl" cx="62" cy="76" r="5"/><circle class="fl" cx="70" cy="62" r="5"/><circle class="fl" cx="79" cy="50" r="4.6"/>
+                <path pathLength="1" d="M56,72 C56,78 58,80 62,80 C66,80 68,78 68,72 C66,70 58,70 56,72 Z M58,80 l-1,2 M62,80 v2 M66,80 l1,2"/>
+                <path pathLength="1" d="M64,58 C64,64 66,66 70,66 C74,66 76,64 76,58 C74,56 66,56 64,58 Z M66,66 l-1,2 M70,66 v2 M74,66 l1,2"/>
+                <path pathLength="1" d="M74,46 C74,51 76,53 79,53 C82,53 84,51 84,46 C82,44 76,44 74,46 Z"/>
+                <path pathLength="1" d="M85,36 C85,40 87,41 89,41 C91,41 93,40 93,36 C91,34 87,34 85,36 Z"/>
+                <path pathLength="1" d="M54,86 C54,90 56,91 58,91 C60,91 62,90 62,86 C60,84 56,84 54,86 Z"/>
+              </svg>
+              <figcaption><b>Lily of the Valley</b><span>Green, watery little bells that give the dewy sparkle.</span></figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="dgroup" id="dg2">
+          <h3>Base notes, <i>the skin</i></h3>
+          <p class="when cap">Lingering into the evening</p>
+          <div class="notes">
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <ellipse class="fl" cx="46" cy="80" rx="26" ry="24"/>
+                <ellipse pathLength="1" cx="46" cy="80" rx="26" ry="24"/>
+                <ellipse pathLength="1" cx="46" cy="80" rx="18" ry="16"/>
+                <ellipse pathLength="1" cx="46" cy="80" rx="10" ry="9"/>
+                <path pathLength="1" d="M46,80 l1,1"/>
+                <path pathLength="1" d="M46,56 C62,56 88,58 104,60 M46,104 C62,104 88,100 104,98 M104,60 C108,72 108,86 104,98"/>
+                <path pathLength="1" d="M76,58 C80,42 88,30 98,22"/>
+                <path class="ac" pathLength="1" d="M86,36 C82,26 84,16 90,12 C94,20 92,30 86,36 Z M92,28 C100,24 108,26 112,30 C106,36 98,34 92,28 Z M80,46 C72,40 64,40 60,44 C66,50 74,50 80,46 Z"/>
+              </svg>
+              <figcaption><b>Sandalwood</b><span>Creamy, milky wood that lets the rose settle warmly.</span></figcaption>
+            </figure>
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <path pathLength="1" d="M20,108 C44,84 68,56 92,30 C94,28 97,29 96,32 C74,60 50,88 24,110 C22,112 18,110 20,108 Z"/>
+                <path pathLength="1" d="M34,110 C56,86 76,62 98,40 C100,38 103,40 101,42 C80,66 60,90 38,112 C36,114 32,112 34,110 Z"/>
+                <path class="fl" d="M40,30 C36,20 44,12 50,18 C56,10 66,14 62,24 C72,22 76,34 66,38 C70,48 58,54 52,46 C44,54 34,46 40,38 C30,36 30,24 40,30 Z"/>
+                <path class="ac" pathLength="1" d="M40,30 C36,20 44,12 50,18 C56,10 66,14 62,24 C72,22 76,34 66,38 C70,48 58,54 52,46 C44,54 34,46 40,38 C30,36 30,24 40,30 Z"/>
+                <path pathLength="1" d="M50,28 C54,26 58,30 56,34 C52,36 48,32 50,28 Z"/>
+              </svg>
+              <figcaption><b>Vanilla</b><span>Soft, smooth sweetness, used with restraint.</span></figcaption>
+            </figure>
+            <figure class="note">
+              <svg class="bot" viewBox="0 0 120 120" aria-hidden="true">
+                <path class="fl" d="M60,58 C50,40 50,24 60,18 C70,24 70,40 60,58 Z M60,58 C78,48 94,48 100,58 C94,68 78,68 60,58 Z M60,58 C74,72 78,88 70,96 C58,92 54,76 60,58 Z M60,58 C54,76 42,90 32,88 C30,76 42,64 60,58 Z M60,58 C42,56 26,48 24,38 C34,32 50,40 60,58 Z"/>
+                <path class="ac" pathLength="1" d="M60,58 C50,40 50,24 60,18 C70,24 70,40 60,58 Z"/>
+                <path class="ac" pathLength="1" d="M60,58 C78,48 94,48 100,58 C94,68 78,68 60,58 Z"/>
+                <path class="ac" pathLength="1" d="M60,58 C74,72 78,88 70,96 C58,92 54,76 60,58 Z"/>
+                <path class="ac" pathLength="1" d="M60,58 C54,76 42,90 32,88 C30,76 42,64 60,58 Z"/>
+                <path class="ac" pathLength="1" d="M60,58 C42,56 26,48 24,38 C34,32 50,40 60,58 Z"/>
+                <path pathLength="1" d="M60,58 C64,50 70,44 76,40 M74,38 l3,-2 M76,42 l3,1"/>
+                <path pathLength="1" d="M96,90 C102,96 104,104 100,110 C94,106 92,98 96,90 Z M100,110 L106,116"/>
+                <path pathLength="1" d="M92,100 l-1,1 M97,97 l1,1 M98,103 l1,1"/>
+              </svg>
+              <figcaption><b>Ambrette</b><span>A musky seed from a hibiscus relative, velvety and skin-like.</span></figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section story" id="story" aria-labelledby="storyH">
+    <div class="shead" data-clear>
+      <p class="cap">Chapter one</p>
+      <h2 id="storyH">The <i>Story</i></h2>
+    </div>
+    <div class="cols" style="margin-top:56px">
+      <ul class="facts cap" data-clear>
+        <li><b>5:04</b><span>the hour of the dew</span></li>
+        <li><b>19</b><span>ingredients</span></li>
+        <li><b>3</b><span>years in the making</span></li>
+      </ul>
+      <div class="text" data-clear>
+        <p>Rosée began with a single hour: the blue minutes before sunrise, when the roses hold the night’s dew and nothing yet smells of the day. Our perfumer walked the rows with a notebook and no plan. What she brought back was not a rose in full sun, but a rose still waiting, cool and green-edged and lit from within.</p>
+        <p>We kept that restraint. Pink pepper and pear give the first bright breath. Damask rose and peony open slowly at the heart, with lily of the valley for the glint of water. Underneath, sandalwood and ambrette stay close to the skin, like the last of the dew lifting in the morning light.</p>
+        <p class="sig"><svg viewBox="0 0 120 44" aria-hidden="true"><path d="M6,30 C14,8 22,6 20,24 C18,36 10,38 12,30 C16,18 30,14 32,26 C33,32 30,36 34,34 C40,30 42,20 46,22 C48,24 44,32 48,32 C54,32 56,20 60,22 C62,24 58,34 64,32 C70,28 72,18 78,20 C82,22 76,34 84,32 C92,30 96,22 104,24 C108,26 112,28 116,26"/></svg><span class="cap">Céleste Morvane, perfumer</span></p>
+      </div>
+      <blockquote class="pull" data-clear>“I wanted the rose before anyone was awake to see it.”</blockquote>
+    </div>
+  </section>
+</main>
+
+<footer data-clear>
+  <a class="maison" href="#top">Maison <b>Élorine</b></a>
+  <p>Maison Élorine, its perfumer and Rosée are fictional, created for this page. Prices are illustrative and nothing is for sale.</p>
+</footer>
+
+<div class="petals" id="petals" aria-hidden="true"></div>
+<p class="sr" id="live" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var reduced = !!(mq && mq.matches);
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  var live = $('live');
+  function say(m) { live.textContent = m; }
+
+  /* ------------------------------------------------------------ bottle: slosh, tilt, size */
+  var liq = $('liq'), surf = $('surf'), tiltG = $('bottleTilt'), scaleG = $('bottleScale'), caustic = $('caustic'), shadow = $('shadow');
+  var stage = $('stage');
+  var LEVEL = 252, XL = 34, XR = 226, CX = 130;
+  var tilt = 0, tiltV = 0, tiltT = 0;
+  var phi = 0, phiV = 0;
+  var sc = .92, scV = 0, scT = .92;
+  var ptr = null, lastMove = -10;
+  var T = 0;
+  function surfaceY(x, slope, t, amp) {
+    return LEVEL + slope * (x - CX) + Math.sin(x * .055 + t * 1.9) * 1.6 * amp + Math.sin(x * .11 - t * 2.7) * .9 * amp;
+  }
+  function updateBottle(dt) {
+    /* bottle tilts toward the pointer; the liquid lags and stays nearly level in world space */
+    if (ptr) {
+      var r = stage.getBoundingClientRect(), cx = r.left + r.width / 2;
+      tiltT = clamp((ptr.x - cx) / (window.innerWidth * .45), -1, 1) * 5.5;
+    } else tiltT = reduced ? 0 : Math.sin(T * .45) * 1.2;
+    var k = 26, c = 7.5;
+    tiltV += (-(tilt - tiltT) * k - tiltV * c) * dt; tilt += tiltV * dt;
+    var target = -tilt;
+    var k2 = 34, c2 = reduced ? 12 : 2.6;
+    phiV += (-(phi - target) * k2 - phiV * c2) * dt; phi += phiV * dt;
+    var k3 = 60, c3 = 13;
+    scV += (-(sc - scT) * k3 - scV * c3) * dt; sc += scV * dt;
+    var slope = Math.tan(phi * Math.PI / 180);
+    var amp = reduced ? .3 : 1 + Math.min(1.6, Math.abs(phiV) * .05);
+    var d = 'M' + XL + ',' + surfaceY(XL, slope, T, amp).toFixed(2), s = d;
+    for (var x = XL + 8; x <= XR; x += 8) { var seg = ' L' + x + ',' + surfaceY(x, slope, T, amp).toFixed(2); d += seg; s += seg; }
+    d += ' L' + XR + ',472 L' + XL + ',472 Z';
+    liq.setAttribute('d', d); surf.setAttribute('d', s);
+    tiltG.setAttribute('transform', 'translate(70,94) rotate(' + tilt.toFixed(3) + ' 130 480)');
+    scaleG.setAttribute('transform', 'translate(200,574) scale(' + sc.toFixed(4) + ') translate(-200,-574)');
+    caustic.setAttribute('cx', (232 + tilt * 5).toFixed(1));
+    caustic.setAttribute('rx', (96 * sc).toFixed(1));
+    shadow.setAttribute('rx', (108 * sc).toFixed(1));
+  }
+  window.addEventListener('pointermove', function (e) { ptr = { x: e.clientX, y: e.clientY }; lastMove = T; }, { passive: true });
+  document.addEventListener('pointerout', function (e) { if (!e.relatedTarget) ptr = null; });
+
+  /* sizes */
+  var SIZES = { 30: { s: .8, price: 98, oz: '1.0' }, 50: { s: .92, price: 145, oz: '1.7' }, 100: { s: 1.04, price: 210, oz: '3.4' } };
+  var sizeBtns = [].slice.call(document.querySelectorAll('.size'));
+  var priceEl = $('price'), priceMl = $('priceMl'), lblMl = $('lblMl');
+  var priceCur = 145, priceFrom = 145, priceTo = 145, priceT = 1, curMl = 50;
+  function setSize(ml, focus) {
+    var S = SIZES[ml]; if (!S) return;
+    curMl = ml; scT = S.s;
+    priceFrom = priceCur; priceTo = S.price; priceT = reduced ? 1 : 0;
+    priceMl.textContent = ml + ' ml';
+    lblMl.textContent = ml + ' ML · ' + S.oz + ' FL OZ';
+    sizeBtns.forEach(function (b) {
+      var sel = +b.getAttribute('data-ml') === ml;
+      b.setAttribute('aria-checked', sel ? 'true' : 'false'); b.tabIndex = sel ? 0 : -1;
+      if (sel && focus) b.focus();
+    });
+    say(ml + ' millilitres, ' + S.price + ' euros');
+  }
+  sizeBtns.forEach(function (b, i) {
+    b.tabIndex = b.getAttribute('aria-checked') === 'true' ? 0 : -1;
+    b.addEventListener('click', function () { setSize(+b.getAttribute('data-ml')); });
+    b.addEventListener('keydown', function (e) {
+      var d = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 0;
+      if (!d) return; e.preventDefault();
+      setSize(+sizeBtns[(i + d + sizeBtns.length) % sizeBtns.length].getAttribute('data-ml'), true);
+    });
+  });
+
+  /* bag */
+  var bag = 0, badge = $('badge'), bagBtn = $('bagBtn'), add = $('add'), addT = 0;
+  try { bag = parseInt(window.localStorage.getItem('elorine-bag') || '0', 10) || 0; } catch (e) { bag = 0; }
+  function showBag(anim) {
+    badge.textContent = String(bag);
+    badge.classList.toggle('on', bag > 0);
+    bagBtn.setAttribute('aria-label', 'Shopping bag, ' + bag + (bag === 1 ? ' item' : ' items'));
+    if (anim) { badge.classList.remove('pop'); void badge.offsetWidth; badge.classList.add('pop'); }
+  }
+  showBag(false);
+  add.addEventListener('click', function () {
+    bag++;
+    try { window.localStorage.setItem('elorine-bag', String(bag)); } catch (e) {}
+    showBag(true);
+    add.classList.add('done');
+    clearTimeout(addT); addT = setTimeout(function () { add.classList.remove('done'); }, 2400);
+    say('Rosée ' + curMl + ' millilitres added to your bag. ' + bag + ' in bag.');
+    var r = add.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2);
+  });
+  bagBtn.addEventListener('click', function () { say(bag ? 'Your bag holds ' + bag + ' bottle' + (bag === 1 ? '' : 's') + ' of Rosée. This is a fictional shop.' : 'Your bag is empty.'); });
+
+  /* ------------------------------------------------------------ pyramid */
+  var tiers = [].slice.call(document.querySelectorAll('.tier'));
+  var groups = [$('dg0'), $('dg1'), $('dg2')];
+  var activeTier = 1;
+  function setTier(i) {
+    if (i === activeTier) return;
+    activeTier = i;
+    tiers.forEach(function (t, k) { t.setAttribute('aria-pressed', k === i ? 'true' : 'false'); });
+    groups.forEach(function (g, k) { g.classList.toggle('on', k === i); });
+  }
+  tiers.forEach(function (t, i) {
+    t.addEventListener('pointerenter', function () { setTier(i); });
+    t.addEventListener('focus', function () { setTier(i); });
+    t.addEventListener('click', function () { setTier(i); });
+  });
+
+  /* ------------------------------------------------------------ petals */
+  var layer = $('petals');
+  var petals = [], W = 0, H = 0, clearEls = [].slice.call(document.querySelectorAll('[data-clear]')), zones = [];
+  var GRADS = ['pg0', 'pg1', 'pg2'];
+  function mkPetal() {
+    var el = document.createElement('div'); el.className = 'petal';
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 40 42');
+    var use = document.createElementNS(ns, 'use'); use.setAttribute('href', '#petal');
+    use.setAttribute('fill', 'url(#' + GRADS[(Math.random() * 3) | 0] + ')');
+    svg.appendChild(use); el.appendChild(svg); layer.appendChild(el);
+    return { el: el, x: 0, y: 0, vy: 0, push: 0, s: 1, rx: 0, ry: 0, rz: 0, sx: 0, sy: 0, sz: 0, ph: 0, amp: 0, fr: 0, extra: false, life: 0 };
+  }
+  function readZones() {
+    zones.length = 0;
+    for (var i = 0; i < clearEls.length; i++) {
+      var r = clearEls[i].getBoundingClientRect();
+      if (r.bottom < -60 || r.top > H + 60 || r.width === 0) continue;
+      zones.push([r.left - 26, r.top - 26, r.right + 26, r.bottom + 26]);
+    }
+  }
+  function freeX(y) {
+    /* pick an x outside every text zone that spans this height */
+    var blocked = [];
+    for (var i = 0; i < zones.length; i++) { var z = zones[i]; if (y > z[1] - 200 && y < z[3] + 40) blocked.push([z[0], z[2]]); }
+    for (var tries = 0; tries < 12; tries++) {
+      var x = Math.random() * W, ok = true;
+      for (var k = 0; k < blocked.length; k++) if (x > blocked[k][0] && x < blocked[k][1]) { ok = false; break; }
+      if (ok) return x;
+    }
+    return Math.random() < .5 ? Math.random() * 18 : W - Math.random() * 18;
+  }
+  function spawn(p, anywhere) {
+    p.s = .6 + Math.random() * .7;
+    p.y = anywhere ? Math.random() * H : -40 - Math.random() * 120;
+    p.x = freeX(Math.max(0, p.y));
+    p.vy = (22 + Math.random() * 30) * (reduced ? .5 : 1);
+    p.push = 0; p.ph = Math.random() * 6.28; p.amp = 14 + Math.random() * 26; p.fr = .6 + Math.random() * .9;
+    p.rx = Math.random() * 360; p.ry = Math.random() * 360; p.rz = Math.random() * 360;
+    p.sx = (60 + Math.random() * 120) * (Math.random() < .5 ? -1 : 1); p.sy = (40 + Math.random() * 110) * (Math.random() < .5 ? -1 : 1); p.sz = (10 + Math.random() * 40) * (Math.random() < .5 ? -1 : 1);
+  }
+  function buildPetals() {
+    W = window.innerWidth; H = window.innerHeight;
+    var n = reduced ? 5 : W < 560 ? 7 : W < 1000 ? 11 : 16;
+    while (petals.length < n) petals.push(mkPetal());
+    readZones();
+    for (var i = 0; i < petals.length; i++) { petals[i].el.style.display = i < n ? '' : 'none'; petals[i].extra = false; spawn(petals[i], true); }
+    petals.active = n;
+  }
+  function burst(x, y) {
+    if (reduced) return;
+    for (var i = 0; i < 7; i++) {
+      var p = mkPetal(); petals.push(p);
+      p.extra = true; p.life = 2.6;
+      p.x = x + (Math.random() - .5) * 120; p.y = y - 10; p.s = .5 + Math.random() * .4;
+      p.vy = -90 - Math.random() * 80; p.push = (Math.random() - .5) * 260;
+      p.ph = Math.random() * 6; p.amp = 10; p.fr = 1; p.rx = Math.random() * 360; p.ry = 0; p.rz = Math.random() * 360;
+      p.sx = 200; p.sy = 160; p.sz = 60;
+    }
+  }
+  function updPetals(dt) {
+    readZones();
+    for (var i = petals.length - 1; i >= 0; i--) {
+      var p = petals[i];
+      if (!p.extra && i >= petals.active) continue;
+      if (p.extra) {
+        p.life -= dt; p.vy += 140 * dt; p.push *= Math.exp(-dt * 1.5);
+        if (p.life <= 0) { layer.removeChild(p.el); petals.splice(i, 1); continue; }
+      }
+      var flutter = reduced ? 0 : 1;
+      p.y += p.vy * dt;
+      var sway = Math.sin(T * p.fr + p.ph) * p.amp;
+      /* steer away from text zones */
+      for (var k = 0; k < zones.length && !p.extra; k++) {
+        var z = zones[k];
+        if (p.y > z[1] - 30 && p.y < z[3] && p.x > z[0] && p.x < z[2]) {
+          var left = p.x - z[0], right = z[2] - p.x;
+          p.push += (left < right ? -1 : 1) * 520 * dt;
+        }
+      }
+      p.push *= Math.exp(-dt * .9);
+      p.x += (p.push + Math.cos(T * p.fr + p.ph) * p.amp * p.fr * .6) * dt;
+      p.rx += p.sx * dt * flutter; p.ry += p.sy * dt * flutter; p.rz += p.sz * dt * flutter;
+      if (!p.extra && (p.y > H + 50 || p.x < -80 || p.x > W + 80)) { spawn(p, false); }
+      var size = 28 * p.s;
+      p.el.style.transform = 'translate3d(' + (p.x + sway * .4 - size / 2).toFixed(1) + 'px,' + (p.y - size / 2).toFixed(1) + 'px,0) rotateZ(' + p.rz.toFixed(1) + 'deg) rotateX(' + p.rx.toFixed(1) + 'deg) rotateY(' + p.ry.toFixed(1) + 'deg) scale(' + p.s.toFixed(3) + ')';
+      p.el.style.opacity = p.extra ? Math.min(1, p.life).toFixed(2) : '';
+    }
+  }
+
+  /* ------------------------------------------------------------ loop */
+  var last = 0, raf = 0, running = false;
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    var dt = (now - last) / 1000; last = now;
+    if (!(dt > 0) || dt > .1) dt = .016;
+    T += dt;
+    updateBottle(dt);
+    if (priceT < 1) {
+      priceT = Math.min(1, priceT + dt * 2.2);
+      var e = 1 - Math.pow(1 - priceT, 3);
+      priceCur = Math.round(priceFrom + (priceTo - priceFrom) * e);
+      priceEl.textContent = '€' + priceCur;
+    }
+    updPetals(dt);
+  }
+  function start() { if (running) return; running = true; last = performance.now(); raf = requestAnimationFrame(frame); }
+  function stop() { running = false; cancelAnimationFrame(raf); }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else start(); });
+  if (mq) { var onMq = function () { reduced = mq.matches; buildPetals(); }; if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq); }
+  var rT = 0;
+  window.addEventListener('resize', function () { clearTimeout(rT); rT = setTimeout(buildPetals, 120); });
+
+  buildPetals();
+  updateBottle(.016);
+  start();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hytte — A Winter Cabin</title>
+<meta name="description" content="A cosy interactive log cabin at night: a crackling stone fireplace, an aurora over the snowy spruce forest, a reading lamp, a steaming mug and a sleeping cat. Light the lamp, feed the fire, open the window.">
+<style>
+:root{
+  --wood:#7a4a2a;
+  --wood-hi:#a0673c;
+  --night:#0b1026;
+  --aurora-g:#4dffb4;
+  --aurora-v:#8a5cff;
+  --cream:#f3e6cf;
+  --ember:#ff8a3d;
+  --u:1;
+  --placard:"Charter","Bitstream Charter","Sitka Text","Cambria","C059","Georgia",serif;
+  --ui:"Avenir Next","Avenir","Segoe UI","Nimbus Sans","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#1a0f08}
+body{font-family:var(--ui);color:var(--cream);-webkit-tap-highlight-color:transparent}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.stage{position:fixed;inset:0;overflow:hidden;background:#2a180d}
+#outside{position:absolute;z-index:1;display:block}
+#scene{position:absolute;inset:0;width:100%;height:100%;z-index:2;display:block}
+#scene text{font-family:var(--placard)}
+.sashes{position:absolute;z-index:3;perspective:calc(var(--u) * 1500px);pointer-events:none}
+.sash{position:absolute;top:0;width:50%;height:100%;transition:transform 1.1s cubic-bezier(.5,.05,.2,1);transform-style:preserve-3d;
+  border:calc(var(--u) * 13px) solid #5b3620;border-top-width:calc(var(--u) * 15px);border-bottom-width:calc(var(--u) * 17px);
+  background:linear-gradient(90deg,rgba(0,0,0,.25),transparent 12%,transparent 88%,rgba(0,0,0,.25));
+  box-shadow:inset 0 0 0 calc(var(--u) * 2px) #3e2414,0 0 0 calc(var(--u) * 1px) #2a170b;
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:calc(var(--u) * 7px);
+}
+.sash::before{content:"";position:absolute;inset:calc(var(--u) * -13px);border-radius:1px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,220,170,.22),transparent 30%),linear-gradient(0deg,rgba(0,0,0,.35),transparent 18%);mix-blend-mode:overlay}
+.sash.l{left:0;transform-origin:0 50%}
+.sash.r{right:0;transform-origin:100% 50%}
+.open .sash.l{transform:rotateY(-72deg)}
+.open .sash.r{transform:rotateY(72deg)}
+.pane{position:relative;background:
+  radial-gradient(circle at 0 100%,rgba(235,244,255,.55),rgba(235,244,255,.12) 22%,transparent 38%),
+  radial-gradient(circle at 100% 100%,rgba(235,244,255,.38),transparent 30%),
+  linear-gradient(125deg,rgba(255,236,200,.13),transparent 35%,transparent 60%,rgba(255,236,200,.07) 72%,transparent 80%);
+  box-shadow:inset 0 0 0 calc(var(--u) * 1px) rgba(20,10,4,.6);outline:calc(var(--u) * 3.5px) solid #5b3620}
+.sash .pane:nth-child(n+5){background:
+  radial-gradient(ellipse at 50% 108%,rgba(240,248,255,.62),rgba(240,248,255,.2) 30%,transparent 55%),
+  linear-gradient(125deg,rgba(255,236,200,.1),transparent 40%)}
+#fx{position:absolute;inset:0;z-index:6;pointer-events:none}
+.light{position:absolute;inset:0;pointer-events:none}
+#dark{z-index:4;background:#1c1430;mix-blend-mode:multiply;opacity:.4;transition:opacity 1s ease}
+#coldglow,#fireglow,#lampglow{z-index:5;mix-blend-mode:screen}
+#lampglow{opacity:1;transition:opacity .9s ease}
+.lamp-off #lampglow{opacity:0}
+.lamp-off #dark{opacity:.62}
+
+/* hit targets double as keyboard controls */
+.hit{position:absolute;z-index:8;background:transparent;border:0;padding:0;margin:0;cursor:pointer;border-radius:12px;-webkit-appearance:none;appearance:none}
+.hit:focus-visible{outline:2px dashed rgba(255,214,150,.9);outline-offset:4px}
+.tip{position:absolute;z-index:9;pointer-events:none;padding:7px 12px 6px;border-radius:3px;background:rgba(36,20,10,.82);border:1px solid rgba(243,230,207,.28);color:var(--cream);
+  font:500 12px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;opacity:0;transform:translate(-50%,-6px);transition:opacity .25s,transform .25s}
+.tip.on{opacity:1;transform:translate(-50%,-14px)}
+
+.ui{position:absolute;z-index:10;right:18px;top:16px;display:flex;gap:10px}
+.pill{-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;gap:9px;height:40px;padding:0 16px 0 12px;border-radius:20px;cursor:pointer;
+  background:rgba(30,17,9,.62);border:1px solid rgba(243,230,207,.3);color:var(--cream);font:500 12.5px/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:background-color .3s,border-color .3s}
+.pill:hover{background:rgba(60,34,16,.78);border-color:rgba(243,230,207,.55)}
+.pill:focus-visible{outline:2px solid #ffd69a;outline-offset:3px}
+.pill svg{width:18px;height:18px}
+.pill .wave{opacity:0;transition:opacity .3s}
+.pill[aria-pressed="true"] .wave{opacity:1}
+.pill[aria-pressed="true"] .x{opacity:0}
+.hint{position:absolute;z-index:10;left:50%;bottom:16px;transform:translateX(-50%);margin:0;padding:9px 18px 8px;border-radius:22px;background:rgba(30,17,9,.55);border:1px solid rgba(243,230,207,.2);
+  font:400 13px/1.3 var(--ui);letter-spacing:.06em;color:rgba(243,230,207,.86);white-space:nowrap;transition:opacity 1.2s ease;text-align:center}
+.hint b{font-weight:600;color:#ffd69a}
+.hint.dim{opacity:.35}
+@media (max-width:560px){
+  .hint{font-size:12px;white-space:normal;width:calc(100% - 32px);bottom:12px}
+  .ui{right:12px;top:12px}
+  .pill{height:38px;font-size:11.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sash{transition-duration:.01s}
+  #lampglow,#dark{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <canvas id="outside" aria-hidden="true"></canvas>
+  <svg id="scene" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="scene-title scene-desc">
+    <title id="scene-title">Hytte, a winter cabin at night</title>
+    <desc id="scene-desc">Inside a log cabin: a stone fireplace with a crackling fire, a large window onto a snowy spruce forest under a green and violet aurora, a steaming mug on the sill, a tripod reading lamp and a grey cat asleep on a braided rug.</desc>
+  </svg>
+  <div class="sashes" id="sashes" aria-hidden="true">
+    <div class="sash l"><div class="pane"></div><div class="pane"></div><div class="pane"></div><div class="pane"></div><div class="pane"></div><div class="pane"></div></div>
+    <div class="sash r"><div class="pane"></div><div class="pane"></div><div class="pane"></div><div class="pane"></div><div class="pane"></div><div class="pane"></div></div>
+  </div>
+  <div class="light" id="dark" aria-hidden="true"></div>
+  <div class="light" id="coldglow" aria-hidden="true"></div>
+  <div class="light" id="fireglow" aria-hidden="true"></div>
+  <div class="light" id="lampglow" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <button type="button" class="hit" id="hit-lamp" aria-label="Switch the reading lamp off" aria-pressed="true" data-tip="Lamp"></button>
+  <button type="button" class="hit" id="hit-fire" aria-label="Put another log on the fire" data-tip="Add a log"></button>
+  <button type="button" class="hit" id="hit-window" aria-label="Open the window" aria-pressed="false" data-tip="Open the window"></button>
+  <button type="button" class="hit" id="hit-cat" aria-label="Stroke the sleeping cat" data-tip="Psst, the cat"></button>
+  <div class="tip" id="tip" aria-hidden="true"></div>
+
+  <div class="ui">
+    <button type="button" class="pill" id="sound" aria-pressed="false" aria-label="Ambient sound: off">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path class="wave" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.6a7.6 7.6 0 0 1 0 10.8"/><path class="x" d="M16 9.5l5 5M21 9.5l-5 5"/></g></svg>
+      <span id="sound-label">Sound off</span>
+    </button>
+  </div>
+  <p class="hint" id="hint">Click the <b>lamp</b>, the <b>fire</b>, the <b>window</b> or the <b>cat</b></p>
+  <p class="sr" id="live" aria-live="polite"></p>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const f1 = (v) => Math.round(v * 10) / 10;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function vnoise(x){ const i = Math.floor(x), f = x - i, h = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }; const u = f * f * (3 - 2 * f); return h(i) * (1 - u) + h(i + 1) * u; }
+
+/* ------------------------------------------------------------------
+   Two compositions: landscape, and portrait (window above, fire below)
+------------------------------------------------------------------ */
+const LAYOUTS = {
+  land: { W: 1600, H: 1000, floorY: 812, vp: [800, 400],
+    placard: { x: 470, y: 4 }, clock: { x: 896, y: 176 },
+    win: { x: 176, y: 226, w: 588, h: 398 }, sill: { x: 128, y: 650, w: 684 }, mug: { x: 704, y: 650 },
+    chim: { x: 1000, y: -600, w: 452, h: 1412 }, mantel: { x: 978, y: 440, w: 496, h: 38 },
+    fire: { x: 1105, y: 560, w: 260, h: 240, rise: 40 }, hearth: { x: 1040, y: 800, w: 390, h: 40 },
+    lamp: { x: 872, y: 812 }, rug: { x: 1228, y: 906, rx: 190, ry: 46 }, cat: { x: 1226, y: 902, sc: 1 },
+    basket: { x: 1524, y: 812 }, candles: [[1022, 440], [1060, 440]], horse: [1372, 440], jar: [1428, 440] },
+  port: { W: 1000, H: 1700, floorY: 1480, vp: [500, 1080],
+    placard: { x: 500, y: 34 }, clock: { x: 880, y: 1010 },
+    win: { x: 186, y: 236, w: 628, h: 538 }, sill: { x: 140, y: 800, w: 720 }, mug: { x: 748, y: 800 },
+    chim: { x: 250, y: 972, w: 500, h: 508 }, mantel: { x: 224, y: 960, w: 552, h: 38 },
+    fire: { x: 370, y: 1216, w: 260, h: 254, rise: 42 }, hearth: { x: 300, y: 1468, w: 400, h: 42 },
+    lamp: { x: 168, y: 1480 }, rug: { x: 560, y: 1590, rx: 200, ry: 48 }, cat: { x: 560, y: 1586, sc: 1.08 },
+    basket: { x: 842, y: 1480 }, candles: [[252, 960], [290, 960]], horse: [640, 960], jar: [700, 960] }
+};
+let L = LAYOUTS.land, layoutName = '';
+let S = 1, OX = 0, OY = 0, VW = 0, VH = 0, DPR = 1;
+
+/* ------------------------------------------------------------------
+   Scene drawing (SVG strings), all in design units
+------------------------------------------------------------------ */
+function defs(){
+  return `<defs>
+  <linearGradient id="gLog" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4a2a15"/><stop offset=".12" stop-color="#7a4a2a"/><stop offset=".42" stop-color="#a0673c"/><stop offset=".62" stop-color="#8f5a33"/><stop offset=".9" stop-color="#5e3820"/><stop offset="1" stop-color="#3a2010"/>
+  </linearGradient>
+  <linearGradient id="gBeam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a5530"/><stop offset=".35" stop-color="#6b3f22"/><stop offset="1" stop-color="#3e2312"/></linearGradient>
+  <linearGradient id="gSill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b07548"/><stop offset=".3" stop-color="#8a5530"/><stop offset="1" stop-color="#5a3419"/></linearGradient>
+  <linearGradient id="gFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3e2413"/><stop offset=".35" stop-color="#5c371d"/><stop offset="1" stop-color="#6e4526"/></linearGradient>
+  <radialGradient id="gStone" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".2"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".48"/></radialGradient>
+  <linearGradient id="gStack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140c06" stop-opacity=".78"/><stop offset=".55" stop-color="#1a0f08" stop-opacity=".45"/><stop offset="1" stop-color="#2a1608" stop-opacity=".12"/></linearGradient>
+  <filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="16"/></filter>
+  <radialGradient id="gSoot" cx=".5" cy="1" r="1"><stop offset="0" stop-color="#5a240c"/><stop offset=".35" stop-color="#2a1208"/><stop offset="1" stop-color="#0c0604"/></radialGradient>
+  <linearGradient id="gShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c8b48f"/><stop offset=".45" stop-color="#eadbb9"/><stop offset="1" stop-color="#b39c76"/></linearGradient>
+  <linearGradient id="gShadeOn" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffd48a"/><stop offset=".45" stop-color="#fff1cf"/><stop offset="1" stop-color="#f6c375"/></linearGradient>
+  <linearGradient id="gBrass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6e5220"/><stop offset=".45" stop-color="#e2c27a"/><stop offset="1" stop-color="#7a5c24"/></linearGradient>
+  <linearGradient id="gPlacard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b98652"/><stop offset=".5" stop-color="#a0673c"/><stop offset="1" stop-color="#7d4c29"/></linearGradient>
+  <linearGradient id="gFloorLight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd8ff" stop-opacity=".22"/><stop offset="1" stop-color="#9fd8ff" stop-opacity="0"/></linearGradient>
+  <radialGradient id="gCatShade" cx=".45" cy=".25" r=".9"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></radialGradient>
+  <radialGradient id="gFace" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fbf4e4"/><stop offset=".9" stop-color="#e9dcc2"/><stop offset="1" stop-color="#cdbb98"/></radialGradient>
+  <mask id="mWall" maskUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000">
+    <rect x="-2000" y="-2000" width="6000" height="6000" fill="#fff"/>
+    <rect x="${L.win.x}" y="${L.win.y}" width="${L.win.w}" height="${L.win.h}" fill="#000"/>
+  </mask>
+  </defs>`;
+}
+
+function wallSVG(R){
+  const top = -700, bot = L.floorY, x0 = -900, x1 = L.W + 900, rowH = 54;
+  let s = `<g mask="url(#mWall)"><rect x="${x0}" y="${top}" width="${x1 - x0}" height="${bot - top}" fill="#2e1a0d"/>`;
+  let grain = '', knots = '', chink = '', joints = '', tone = '';
+  for (let y = bot - rowH; y > top - rowH; y -= rowH){
+    s += `<rect x="${x0}" y="${y + 2}" width="${x1 - x0}" height="${rowH - 4}" rx="20" fill="url(#gLog)"/>`;
+    const tv = R();
+    tone += `<rect x="${x0}" y="${y + 2}" width="${x1 - x0}" height="${rowH - 4}" fill="${tv < .5 ? '#000' : '#ffd9a8'}" opacity="${(tv < .5 ? tv * .22 : (tv - .5) * .1).toFixed(3)}"/>`;
+    chink += `M${x0} ${y + 1}H${x1}`;
+    for (let k = 0; k < 7; k++){
+      const gy = y + 10 + R() * (rowH - 20), gx = x0 + R() * (x1 - x0), gl = 80 + R() * 260;
+      grain += `M${f1(gx)} ${f1(gy)}q${f1(gl / 2)} ${f1((R() - .5) * 5)} ${f1(gl)} ${f1((R() - .5) * 3)}`;
+    }
+    if (R() < .9){
+      const kx = x0 + 300 + R() * (x1 - x0 - 600), ky = y + rowH * (.35 + R() * .3);
+      knots += `<ellipse cx="${f1(kx)}" cy="${f1(ky)}" rx="${f1(6 + R() * 7)}" ry="${f1(3 + R() * 3)}" fill="#4a2a15" opacity=".75"/><ellipse cx="${f1(kx)}" cy="${f1(ky)}" rx="${f1(13 + R() * 8)}" ry="${f1(6 + R() * 3)}" fill="none" stroke="#5a341b" stroke-width="1.2" opacity=".55"/>`;
+    }
+    const jx = x0 + 400 + R() * (x1 - x0 - 800);
+    joints += `M${f1(jx)} ${y + 3}v${rowH - 6}`;
+  }
+  s += tone;
+  s += `<path d="${grain}" fill="none" stroke="#3e2210" stroke-width="1.1" stroke-opacity=".35" stroke-linecap="round"/>`;
+  s += `<path d="${chink}" stroke="#c9b28c" stroke-width="3.2" stroke-opacity=".55"/><path d="${chink}" stroke="#2a170b" stroke-width="1" transform="translate(0 2.4)"/>`;
+  s += `<path d="${joints}" stroke="#2a170b" stroke-width="2.4"/>` + knots;
+  // ceiling beam across the very top in landscape
+  s += `<rect x="${x0}" y="${top}" width="${x1 - x0}" height="${-top - 8}" fill="#24140a"/>`;
+  s += '</g>';
+  // skirting board
+  s += `<rect x="${x0}" y="${bot - 14}" width="${x1 - x0}" height="18" fill="#3b2211"/><rect x="${x0}" y="${bot - 14}" width="${x1 - x0}" height="3" fill="#8a5530" opacity=".6"/>`;
+  return s;
+}
+
+function floorSVG(R){
+  const y0 = L.floorY, y1 = L.H + 700, vp = L.vp;
+  let s = `<rect x="-900" y="${y0}" width="${L.W + 1800}" height="${y1 - y0}" fill="url(#gFloor)"/>`;
+  const at = (xb, y) => vp[0] + (xb - vp[0]) * (y - vp[1]) / (y1 - vp[1]);
+  let planks = '', seams = '';
+  const step = 118;
+  let i = 0;
+  for (let xb = -3200; xb < L.W + 3200; xb += step, i++){
+    const a = at(xb, y0), b = at(xb + step, y0);
+    const tone = R();
+    planks += `<path d="M${f1(a)} ${y0}L${f1(b)} ${y0}L${f1(xb + step)} ${y1}L${xb} ${y1}Z" fill="${tone < .5 ? '#000' : '#e0a870'}" opacity="${(tone < .5 ? .05 + tone * .16 : (tone - .5) * .12).toFixed(3)}"/>`;
+    seams += `M${f1(a)} ${y0}L${xb} ${y1}`;
+    // butt joints
+    const jy = y0 + 30 + R() * 170, ja = at(xb, jy), jb = at(xb + step, jy);
+    seams += `M${f1(ja)} ${f1(jy)}L${f1(jb)} ${f1(jy)}`;
+  }
+  s += planks + `<path d="${seams}" stroke="#23130a" stroke-width="2" stroke-opacity=".7"/>`;
+  // cool light from the window, cast onto the boards
+  const w = L.win;
+  const lx0 = w.x + 30, lx1 = w.x + w.w - 30;
+  s += `<path d="M${lx0} ${y0 + 6}L${lx1} ${y0 + 6}L${lx1 + 170} ${y0 + 190}L${lx0 - 70} ${y0 + 190}Z" fill="url(#gFloorLight)" filter="url(#fSoft)"/>`;
+  return s;
+}
+
+function placardSVG(){
+  const p = L.placard, w = 300, h = 100, x = p.x - w / 2, y = p.y + 40;
+  return `<g id="placard">
+    <path d="M${p.x} ${p.y}L${x + 30} ${y + 4}M${p.x} ${p.y}L${x + w - 30} ${y + 4}" stroke="#2a1a0e" stroke-width="2"/>
+    <circle cx="${p.x}" cy="${p.y}" r="5" fill="url(#gBrass)" stroke="#3a2a14" stroke-width="1"/>
+    <rect x="${x + 4}" y="${y + 6}" width="${w}" height="${h}" rx="10" fill="#1a0e06" opacity=".45"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="url(#gPlacard)" stroke="#5a3419" stroke-width="2"/>
+    <path d="M${x + 14} ${y + 26}q${w * .3} -6 ${w * .6} 1t${w * .35} -2M${x + 20} ${y + h - 20}q${w * .4} 5 ${w * .8} -2" fill="none" stroke="#6b3f22" stroke-width="1.2" opacity=".5"/>
+    <rect x="${x + 9}" y="${y + 9}" width="${w - 18}" height="${h - 18}" rx="6" fill="none" stroke="#f1dcb4" stroke-opacity=".35" stroke-width="1.2"/>
+    <text x="${p.x}" y="${y + 60}" text-anchor="middle" font-size="50" letter-spacing="7" fill="#2a1609" style="font-weight:700">HYTTE</text>
+    <text x="${p.x}" y="${y + 59}" text-anchor="middle" font-size="50" letter-spacing="7" fill="#f6e4c2" fill-opacity=".92" style="font-weight:700" transform="translate(-1 -1.4)">HYTTE</text>
+    <text x="${p.x}" y="${y + 84}" text-anchor="middle" font-size="14" letter-spacing="5.5" fill="#f6e4c2" fill-opacity=".85" font-style="italic">a winter cabin</text>
+    ${heart(x + 34, y + h / 2 + 2, 1)}${heart(x + w - 34, y + h / 2 + 2, 1)}
+  </g>`;
+}
+function heart(x, y, k){
+  return `<g transform="translate(${x} ${y}) scale(${k})"><path d="M0 9C-9 2-12-4-7-8c3-2 6-1 7 2 1-3 4-4 7-2 5 4 2 10-7 17z" fill="#9e2f28" stroke="#f1dcb4" stroke-opacity=".5" stroke-width="1"/><path d="M-13 0h-6M13 0h6M0-14v-5" stroke="#f1dcb4" stroke-opacity=".5" stroke-width="1.4" stroke-linecap="round"/></g>`;
+}
+
+function clockSVG(){
+  const c = L.clock;
+  let ticks = '';
+  const roman = ['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'];
+  for (let i = 0; i < 12; i++){
+    const a = i * 30 * Math.PI / 180, r = 34;
+    ticks += `<text x="${f1(Math.sin(a) * r)}" y="${f1(-Math.cos(a) * r)}" font-size="${i % 3 ? 7.5 : 9}" text-anchor="middle" dominant-baseline="central" fill="#2a1a0e">${roman[i]}</text>`;
+  }
+  return `<g id="clock" transform="translate(${c.x} ${c.y})">
+    <path d="M-30 30L-26 120H26L30 30Z" fill="#5a3419" stroke="#2a170b" stroke-width="2"/>
+    <rect x="-18" y="46" width="36" height="66" rx="3" fill="#1c1008"/>
+    <g id="pendulum"><path d="M0 40V96" stroke="url(#gBrass)" stroke-width="2.2"/><circle cy="98" r="9" fill="url(#gBrass)" stroke="#5a4218" stroke-width="1"/></g>
+    <circle r="52" fill="#6b3f22" stroke="#2a170b" stroke-width="2.5"/>
+    <circle r="47" fill="url(#gBrass)"/>
+    <circle r="43" fill="url(#gFace)"/>
+    ${ticks}
+    <path id="hHour" d="M0 5V-22" stroke="#1c1008" stroke-width="3.4" stroke-linecap="round"/>
+    <path id="hMin" d="M0 6V-33" stroke="#1c1008" stroke-width="2.2" stroke-linecap="round"/>
+    <path id="hSec" d="M0 9V-35" stroke="#9e2f28" stroke-width="1" stroke-linecap="round"/>
+    <circle r="3" fill="#1c1008"/>
+  </g>`;
+}
+
+function windowSVG(){
+  const w = L.win, t = 28, sl = L.sill;
+  return `<g id="casing">
+    <path d="M${w.x - t} ${w.y - t - 10}h${w.w + t * 2}v${w.h + t + 10}h${-(w.w + t * 2)}Z M${w.x} ${w.y}v${w.h}h${w.w}v${-w.h}Z" fill="#6b3f22" fill-rule="evenodd" stroke="#2a170b" stroke-width="2"/>
+    <rect x="${w.x - t - 14}" y="${w.y - t - 26}" width="${w.w + t * 2 + 28}" height="22" rx="3" fill="url(#gBeam)" stroke="#2a170b" stroke-width="2"/>
+    <path d="M${w.x - t + 6} ${w.y - t - 2}H${w.x + w.w + t - 6}" stroke="#b07548" stroke-width="2" opacity=".5"/>
+    <rect x="${w.x - 5}" y="${w.y - 5}" width="${w.w + 10}" height="${w.h + 10}" fill="none" stroke="#3e2414" stroke-width="10"/>
+    <rect x="${sl.x}" y="${sl.y}" width="${sl.w}" height="26" rx="4" fill="url(#gSill)" stroke="#2a170b" stroke-width="2"/>
+    <rect x="${sl.x + 22}" y="${sl.y + 26}" width="${sl.w - 44}" height="26" fill="#5a3419" stroke="#2a170b" stroke-width="2"/>
+    <path d="M${sl.x + 6} ${sl.y + 4}H${sl.x + sl.w - 6}" stroke="#d8a574" stroke-width="2" opacity=".45"/>
+    <path d="M${w.x + 30} ${sl.y + 3}L${w.x + w.w - 30} ${sl.y + 3}" stroke="#9fd8ff" stroke-width="4" opacity=".16"/>
+  </g>`;
+}
+
+function chimneySVG(R){
+  const c = L.chim, F = L.fire;
+  let s = `<g id="chimney"><rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" fill="#241e1a"/>`;
+  const cols = ['#7a716a', '#6a625b', '#857b72', '#5f5954', '#8c8175', '#72675c', '#7d7671', '#80766a', '#655f59', '#8a7c6c'];
+  let stones = '', shades = '';
+  let y = c.y + c.h;
+  while (y > c.y){
+    const rh = 38 + R() * 26;
+    let x = c.x - R() * 40;
+    while (x < c.x + c.w){
+      const sw = 56 + R() * 70;
+      const x0 = Math.max(c.x, x) + 3, x1 = Math.min(c.x + c.w, x + sw) - 3, y0 = y - rh + 3, y1 = y - 3;
+      if (x1 - x0 > 14){
+        const j = () => (R() - .5) * 6;
+        const pts = [[x0 + 6 + j(), y0 + j()], [x1 - 6 + j(), y0 + j()], [x1 + j() * .4, y0 + rh * .3 + j()], [x1 - 2 + j() * .4, y1 - 6 + j()], [x1 - 9 + j(), y1 + j() * .3], [x0 + 8 + j(), y1 + j() * .3], [x0 + j() * .4, y1 - 8 + j()], [x0 + 2 + j() * .4, y0 + rh * .35 + j()]];
+        let d = `M${f1((pts[0][0] + pts[7][0]) / 2)} ${f1((pts[0][1] + pts[7][1]) / 2)}`;
+        for (let i = 0; i < 8; i++){ const p = pts[i], q = pts[(i + 1) % 8]; d += `Q${f1(p[0])} ${f1(p[1])} ${f1((p[0] + q[0]) / 2)} ${f1((p[1] + q[1]) / 2)}`; }
+        d += 'Z';
+        stones += `<path d="${d}" fill="${cols[Math.floor(R() * cols.length)]}"/>`;
+        shades += `<path d="${d}" fill="url(#gStone)"/>`;
+      }
+      x += sw;
+    }
+    y -= rh;
+  }
+  s += stones + shades;
+  // the stack darkens toward the ceiling, warming toward the fire
+  const m = L.mantel;
+  s += `<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${m.y - c.y + 40}" fill="url(#gStack)"/>`;
+  // soot above the opening
+  s += `<ellipse cx="${F.x + F.w / 2}" cy="${F.y - 10}" rx="${F.w * .55}" ry="70" fill="#120a06" opacity=".45"/>`;
+  s += '</g>';
+  return s;
+}
+function firePathD(){
+  const F = L.fire;
+  return `M${F.x} ${F.y + F.h}V${F.y + F.rise}Q${F.x + F.w / 2} ${F.y - F.rise} ${F.x + F.w} ${F.y + F.rise}V${F.y + F.h}Z`;
+}
+function fireboxSVG(R){
+  const F = L.fire;
+  let s = `<g id="firebox"><path d="${firePathD()}" fill="url(#gSoot)"/>`;
+  // firebricks at the back, barely lit
+  let bricks = '';
+  for (let by = F.y + F.h - 22, row = 0; by > F.y - 10; by -= 22, row++){
+    bricks += `M${F.x} ${by}H${F.x + F.w}`;
+    for (let bx = F.x + (row % 2 ? 0 : 30); bx < F.x + F.w; bx += 60) bricks += `M${bx} ${by}v-22`;
+  }
+  s += `<path d="${bricks}" stroke="#6a2a14" stroke-width="1.4" opacity=".35" clip-path="url(#cFire)"/>`;
+  // andirons
+  const ax = [F.x + 44, F.x + F.w - 44], by = F.y + F.h - 8;
+  for (const x of ax){
+    s += `<path d="M${x - 16} ${by}q16 -8 32 0M${x} ${by - 4}v-46m-5 0h10" stroke="#161210" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="${x}" cy="${by - 54}" r="6" fill="#221c18"/>`;
+  }
+  // charred logs with glowing seams
+  const logs = [[F.x + 40, by - 22, F.x + F.w - 50, by - 30, 17], [F.x + 60, by - 44, F.x + F.w - 70, by - 16, 15]];
+  for (const [x1, y1, x2, y2, r] of logs){
+    s += `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="#2b1a10" stroke-width="${r * 2}" stroke-linecap="round"/>`;
+    s += `<path d="M${x1} ${y1 - r * .45}L${x2} ${y2 - r * .45}" stroke="#4a2e1a" stroke-width="${r * .5}" stroke-linecap="round" opacity=".7"/>`;
+    s += `<path class="seam" d="M${x1 + 20} ${y1 + 3}l14 -3l10 4l16 -2M${(x1 + x2) / 2} ${(y1 + y2) / 2 + 4}l12 2l9 -4l14 3M${x2 - 50} ${y2 + 2}l11 -3l12 3" stroke="#ff7a2a" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  }
+  s += `<g id="newlogs"></g>`;
+  s += `<path d="M${F.x} ${F.y + F.h}V${F.y + F.rise}Q${F.x + F.w / 2} ${F.y - F.rise} ${F.x + F.w} ${F.y + F.rise}V${F.y + F.h}" fill="none" stroke="#120a06" stroke-width="6"/>`;
+  // voussoirs of the arch
+  const n = 9, cx = F.x + F.w / 2;
+  const arch = (t, off) => { // point on the quadratic arch, pushed outward by off
+    const x = (1 - t) * (1 - t) * F.x + 2 * (1 - t) * t * cx + t * t * (F.x + F.w);
+    const y = (1 - t) * (1 - t) * (F.y + F.rise) + 2 * (1 - t) * t * (F.y - F.rise) + t * t * (F.y + F.rise);
+    const dx = 2 * (1 - t) * (cx - F.x) + 2 * t * (F.x + F.w - cx), dy = 2 * (1 - t) * ((F.y - F.rise) - (F.y + F.rise)) + 2 * t * ((F.y + F.rise) - (F.y - F.rise));
+    const l = Math.hypot(dx, dy), nx = dy / l, ny = -dx / l;
+    return [x + nx * off, y + ny * off];
+  };
+  const cols = ['#9a9189', '#8b8580', '#a39a8e', '#857a6e'];
+  for (let i = 0; i < n; i++){
+    const t0 = i / n + .004, t1 = (i + 1) / n - .004, key = i === Math.floor(n / 2);
+    const o = key ? 46 : 36;
+    const a = arch(t0, -2), b = arch(t1, -2), c = arch(t1, o), d = arch(t0, o);
+    s += `<path d="M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}L${f1(c[0])} ${f1(c[1])}L${f1(d[0])} ${f1(d[1])}Z" fill="${cols[i % 4]}" stroke="#2f2a26" stroke-width="3" stroke-linejoin="round"/><path d="M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}L${f1(c[0])} ${f1(c[1])}L${f1(d[0])} ${f1(d[1])}Z" fill="url(#gStone)"/>`;
+  }
+  // jamb blocks
+  for (const side of [0, 1]){
+    const x = side ? F.x + F.w : F.x - 40;
+    for (let y = F.y + F.rise + 4, k = 0; y < F.y + F.h - 4; y += 62, k++){
+      const hh = Math.min(58, F.y + F.h - y - 2), ww = k % 2 ? 40 : 48, xx = side ? x : x - (ww - 40);
+      s += `<rect x="${xx}" y="${y}" width="${ww}" height="${hh}" rx="5" fill="${cols[(k + side) % 4]}" stroke="#2f2a26" stroke-width="3"/><rect x="${xx}" y="${y}" width="${ww}" height="${hh}" rx="5" fill="url(#gStone)"/>`;
+    }
+  }
+  s += '</g>';
+  return s;
+}
+function mantelSVG(){
+  const m = L.mantel;
+  let s = `<g id="mantel"><rect x="${m.x + 6}" y="${m.y + 8}" width="${m.w}" height="${m.h}" fill="#140b05" opacity=".5"/>`;
+  s += `<rect x="${m.x}" y="${m.y}" width="${m.w}" height="${m.h}" rx="3" fill="url(#gBeam)" stroke="#2a170b" stroke-width="2"/>`;
+  s += `<path d="M${m.x + 10} ${m.y + 12}q${m.w * .3} -4 ${m.w * .55} 2t${m.w * .4} -1M${m.x + 30} ${m.y + 26}q${m.w * .4} 3 ${m.w * .85} -1" stroke="#3e2312" stroke-width="1.3" fill="none" opacity=".7"/>`;
+  s += `<rect x="${m.x + 40}" y="${m.y + m.h}" width="16" height="22" fill="#4a2a15"/><rect x="${m.x + m.w - 56}" y="${m.y + m.h}" width="16" height="22" fill="#4a2a15"/>`;
+  // candles in brass holders
+  L.candles.forEach(([x, y], i) => {
+    const h = i ? 44 : 58;
+    s += `<ellipse cx="${x}" cy="${y - 2}" rx="15" ry="4" fill="url(#gBrass)"/><rect x="${x - 4}" y="${y - 12}" width="8" height="10" fill="url(#gBrass)"/>`;
+    s += `<rect x="${x - 7}" y="${y - 12 - h}" width="14" height="${h}" rx="2" fill="#efe3c8"/><rect x="${x - 7}" y="${y - 12 - h}" width="5" height="${h}" fill="#fff" opacity=".35"/>`;
+    s += `<path d="M${x - 7} ${y - 12 - h + 3}q3 6 1 12" stroke="#e5d5b2" stroke-width="3" fill="none"/><path d="M${x} ${y - 12 - h}v-7" stroke="#2a1a0e" stroke-width="1.5"/>`;
+  });
+  // a painted Dala horse
+  const [hx, hy] = L.horse;
+  s += `<g transform="translate(${hx} ${hy})"><path d="M-26 0V-14l-4 -2 4 -24 -8 -6 4 -8 12 4 6 -6 4 10 -2 8h26l4 -6 6 4 -4 10v30h-8v-16h-24v16z" fill="#b8322a" stroke="#5a1410" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M-14 -40c4 -2 6 2 3 5M-8 -24c6 -6 18 -6 24 0M-6 -18c5 -4 12 -4 17 0" stroke="#f3dc9c" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="-20" cy="-42" r="1.6" fill="#1a0a06"/><path d="M-4 -26h22" stroke="#2f6b8a" stroke-width="3" stroke-linecap="round"/></g>`;
+  // a sprig of spruce in a jar
+  const [jx, jy] = L.jar;
+  let needles = '';
+  for (let b = 0; b < 3; b++){
+    const a = -1.9 + b * .5, len = 48 - b * 6;
+    const ex = Math.cos(a) * len, ey = Math.sin(a) * len;
+    needles += `M0 -28L${f1(ex)} ${f1(ey - 28)}`;
+    for (let k = 1; k < 9; k++){ const px = ex * k / 9, py = ey * k / 9 - 28; needles += `M${f1(px)} ${f1(py)}l-5 -4M${f1(px)} ${f1(py)}l5 -4`; }
+  }
+  s += `<g transform="translate(${jx} ${jy})"><path d="${needles}" stroke="#2f4a2a" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M-13 0h26l-2 -30h-22z" fill="#9fc7c9" fill-opacity=".35" stroke="#d8eef0" stroke-opacity=".5" stroke-width="1.4"/><path d="M-11 -12h22" stroke="#d8eef0" stroke-opacity=".3" stroke-width="1"/></g>`;
+  s += '</g>';
+  return s;
+}
+function hearthSVG(){
+  const h = L.hearth;
+  return `<g id="hearth"><rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" rx="4" fill="#7b746c" stroke="#2f2a26" stroke-width="3"/><rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" rx="4" fill="url(#gStone)"/><path d="M${h.x + 4} ${h.y + 4}H${h.x + h.w - 4}" stroke="#c8beb2" stroke-width="2" opacity=".5"/><path d="M${h.x + h.w * .38} ${h.y + 2}v${h.h - 4}M${h.x + h.w * .7} ${h.y + 2}v${h.h - 4}" stroke="#2f2a26" stroke-width="2"/></g>`;
+}
+function rugSVG(){
+  const r = L.rug, cols = ['#8c2f2a', '#e8dcc4', '#3e5a73', '#b58b4c', '#e8dcc4', '#8c2f2a', '#3e5a73'];
+  let s = `<g id="rug"><ellipse cx="${r.x + 6}" cy="${r.y + 8}" rx="${r.rx}" ry="${r.ry}" fill="#140a04" opacity=".45"/>`;
+  for (let i = 0; i < 9; i++){
+    const k = 1 - i / 9;
+    s += `<ellipse cx="${r.x}" cy="${r.y}" rx="${f1(r.rx * k)}" ry="${f1(r.ry * k)}" fill="${cols[i % cols.length]}"/>`;
+    s += `<ellipse cx="${r.x}" cy="${r.y}" rx="${f1(r.rx * k - 5)}" ry="${f1(r.ry * k - 1.8)}" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="3" stroke-dasharray="5 4"/>`;
+  }
+  s += '</g>';
+  return s;
+}
+function basketSVG(R){
+  const b = L.basket;
+  let s = `<g id="basket" transform="translate(${b.x} ${b.y})"><ellipse cx="4" cy="6" rx="68" ry="12" fill="#140a04" opacity=".5"/>`;
+  // birch logs standing in the basket
+  const logs = [[-38, -118, 15], [-12, -132, 16], [14, -122, 15], [38, -110, 14]];
+  for (const [x, top, r] of logs){
+    s += `<rect x="${x - r}" y="${top}" width="${r * 2}" height="${-top - 30}" rx="3" fill="#e9e2d2" stroke="#3a2a1a" stroke-width="1.4"/>`;
+    let marks = '';
+    for (let k = 0; k < 6; k++){ const my = top + 14 + R() * (-top - 60); marks += `M${f1(x - r + R() * r)} ${f1(my)}h${f1(4 + R() * 9)}`; }
+    s += `<path d="${marks}" stroke="#2a2420" stroke-width="2.4" stroke-linecap="round"/>`;
+    s += `<ellipse cx="${x}" cy="${top}" rx="${r}" ry="5.5" fill="#d8b98a" stroke="#6b4a2a" stroke-width="1.2"/><ellipse cx="${x}" cy="${top}" rx="${r * .55}" ry="3" fill="none" stroke="#a07a4a" stroke-width="1"/>`;
+  }
+  // wicker
+  s += `<path d="M-62 -58h124l-8 60h-108z" fill="#8a6234" stroke="#3e2712" stroke-width="2"/>`;
+  let weave = '';
+  for (let y = -52; y < 0; y += 8) weave += `M-60 ${y}q15 3 30 0t30 0t30 0t30 0`;
+  for (let x = -54; x < 60; x += 12) weave += `M${x} -58l${f1(-x * .06)} 60`;
+  s += `<path d="${weave}" stroke="#5a3a1a" stroke-width="1.3" fill="none" opacity=".8"/><path d="M-64 -60h128" stroke="#b58b4c" stroke-width="5" stroke-linecap="round"/>`;
+  s += '</g>';
+  return s;
+}
+function lampSVG(){
+  const l = L.lamp, top = l.y - 512;
+  return `<g id="lamp">
+    <ellipse cx="${l.x}" cy="${l.y + 8}" rx="70" ry="10" fill="#140a04" opacity=".5"/>
+    <path d="M${l.x} ${top + 250}L${l.x - 52} ${l.y + 4}M${l.x} ${top + 250}L${l.x + 50} ${l.y + 2}M${l.x} ${top + 250}L${l.x + 6} ${l.y + 12}" stroke="#7a4a2a" stroke-width="9" stroke-linecap="round"/>
+    <path d="M${l.x} ${top + 250}L${l.x - 52} ${l.y + 4}M${l.x} ${top + 250}L${l.x + 50} ${l.y + 2}" stroke="#a0673c" stroke-width="3" stroke-linecap="round" transform="translate(-2 0)"/>
+    <rect x="${l.x - 3}" y="${top + 88}" width="6" height="170" fill="url(#gBrass)"/>
+    <circle cx="${l.x}" cy="${top + 252}" r="8" fill="url(#gBrass)"/>
+    <ellipse id="bulb" cx="${l.x}" cy="${top + 88}" rx="30" ry="9" fill="#fff4d6"/>
+    <path id="shade" d="M${l.x - 44} ${top}L${l.x + 44} ${top}L${l.x + 62} ${top + 90}L${l.x - 62} ${top + 90}Z" fill="url(#gShadeOn)" stroke="#8a7458" stroke-width="1.5"/>
+    <path d="M${l.x - 44} ${top + 2}H${l.x + 44}M${l.x - 61} ${top + 88}H${l.x + 61}" stroke="#7a6446" stroke-width="3"/>
+    <path d="M${l.x - 30} ${top + 6}L${l.x - 40} ${top + 84}M${l.x + 4} ${top + 6}L${l.x + 4} ${top + 84}" stroke="#fff" stroke-opacity=".18" stroke-width="3"/>
+    <path d="M${l.x + 40} ${top + 90}v34" stroke="#2a1a0e" stroke-width="1.2"/><circle cx="${l.x + 40}" cy="${top + 127}" r="3.5" fill="url(#gBrass)"/>
+  </g>`;
+}
+function mugSVG(){
+  const m = L.mug;
+  return `<g id="mug" transform="translate(${m.x} ${m.y})">
+    <ellipse cx="2" cy="1" rx="30" ry="5" fill="#140a04" opacity=".45"/>
+    <path d="M24 -44c16 0 16 26 0 26" stroke="#2c4a6b" stroke-width="7" fill="none"/>
+    <path d="M24 -44c16 0 16 26 0 26" stroke="#4a6f94" stroke-width="3" fill="none"/>
+    <path d="M-24 -56h48v50c0 4 -4 6 -8 6h-32c-4 0 -8 -2 -8 -6z" fill="#2f5a82"/>
+    <path d="M-24 -56h48v50c0 4 -4 6 -8 6h-32c-4 0 -8 -2 -8 -6z" fill="url(#gStone)" opacity=".7"/>
+    <ellipse cy="-56" rx="24" ry="5" fill="#f0ece2"/><ellipse cy="-55" rx="20" ry="3.4" fill="#5a3218"/>
+    <path d="M-16 -34l4 -6 4 6 4 -6 4 6 4 -6 4 6 4 -6 4 6" stroke="#f0ece2" stroke-width="1.6" fill="none"/>
+    <path d="M-10 -22h20M-6 -16h12" stroke="#f0ece2" stroke-width="1.3" opacity=".7"/>
+  </g>`;
+}
+function catSVG(){
+  const c = L.cat;
+  return `<g id="cat" transform="translate(${c.x} ${c.y}) scale(${c.sc})">
+    <ellipse cx="0" cy="4" rx="104" ry="14" fill="#140a04" opacity=".42"/>
+    <g id="cat-body">
+      <path d="M-96 0C-104 -44 -64 -90 -4 -92C54 -94 98 -60 94 -14C93 -4 88 1 78 2H-82C-90 2 -95 1 -96 0Z" fill="#6f6b6a"/>
+      <path d="M-96 0C-104 -44 -64 -90 -4 -92C54 -94 98 -60 94 -14C93 -4 88 1 78 2H-82C-90 2 -95 1 -96 0Z" fill="url(#gCatShade)"/>
+      <path d="M-60 -70q10 16 4 34M-34 -84q10 20 4 44M-6 -90q10 22 5 48M22 -88q8 18 3 40M-80 -44q14 6 18 22" stroke="#4d4948" stroke-width="7" fill="none" stroke-linecap="round" opacity=".75"/>
+      <path d="M-86 -12C-70 -52 -30 -58 -18 -24" stroke="#7d7978" stroke-width="3" fill="none" opacity=".6"/>
+    </g>
+    <g id="cat-tail">
+      <path d="M-90 -6C-96 20 -40 14 10 10C44 8 60 2 70 -4" stroke="#6f6b6a" stroke-width="20" fill="none" stroke-linecap="round"/>
+      <path d="M-76 8q20 4 40 2M-30 10q16 2 30 0M8 8q14 0 26 -3" stroke="#4d4948" stroke-width="6" fill="none" stroke-linecap="round" opacity=".8"/>
+      <g id="cat-tailtip"><path d="M58 -1C66 -4 72 -8 76 -12" stroke="#3e3a39" stroke-width="18" fill="none" stroke-linecap="round"/></g>
+    </g>
+    <g id="cat-head">
+      <g id="ear-l"><path d="M30 -62L28 -96L52 -74Z" fill="#6f6b6a" stroke="#4d4948" stroke-width="2" stroke-linejoin="round"/><path d="M33 -68L32 -88L46 -74Z" fill="#c99a94"/></g>
+      <g id="ear-r"><path d="M66 -76L92 -94L86 -62Z" fill="#6f6b6a" stroke="#4d4948" stroke-width="2" stroke-linejoin="round"/><path d="M70 -76L88 -88L84 -68Z" fill="#c99a94"/></g>
+      <ellipse cx="58" cy="-44" rx="38" ry="31" fill="#7a7675"/>
+      <ellipse cx="58" cy="-44" rx="38" ry="31" fill="url(#gCatShade)"/>
+      <path d="M46 -74q3 10 0 18M58 -76q2 10 0 18M70 -74q-2 10 0 18" stroke="#4d4948" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".7"/>
+      <ellipse cx="60" cy="-28" rx="21" ry="14" fill="#e9e1d6"/>
+      <path d="M40 -46q7 6 14 0M64 -46q7 6 14 0" stroke="#2a2524" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M55 -34l5 4 5 -4z" fill="#c9837c"/>
+      <path d="M60 -30v4M60 -26q-4 4 -8 2M60 -26q4 4 8 2" stroke="#2a2524" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M38 -30l-22 -3M38 -26l-22 2M82 -30l22 -3M82 -26l22 2" stroke="#f3eee6" stroke-width=".9" opacity=".7"/>
+    </g>
+    <ellipse cx="44" cy="-6" rx="15" ry="8" fill="#ece5da"/><ellipse cx="74" cy="-5" rx="14" ry="8" fill="#ece5da"/>
+    <path d="M38 -4v4M44 -4v5M50 -4v4M68 -3v4M74 -3v5M80 -3v4" stroke="#b9ad9c" stroke-width="1.2"/>
+  </g>`;
+}
+
+const scene = $('#scene');
+function buildScene(){
+  const R = mulberry(20260922);
+  let s = defs();
+  s += `<clipPath id="cFire"><path d="${firePathD()}"/></clipPath>`;
+  s += wallSVG(R) + floorSVG(R) + placardSVG() + clockSVG() + windowSVG() + chimneySVG(R) + fireboxSVG(R) + mantelSVG() + hearthSVG() + rugSVG() + basketSVG(R) + lampSVG() + catSVG() + mugSVG() + '<g id="flying"></g>';
+  scene.setAttribute('viewBox', `0 0 ${L.W} ${L.H}`);
+  const keep = [scene.querySelector('title'), scene.querySelector('desc')];
+  scene.innerHTML = s;
+  keep.forEach((n) => { if (n) scene.insertBefore(n, scene.firstChild); });
+  dom.flying = $('#flying');
+  dom.catBody = $('#cat-body'); dom.earL = $('#ear-l'); dom.earR = $('#ear-r'); dom.tailTip = $('#cat-tailtip');
+  dom.pend = $('#pendulum'); dom.hH = $('#hHour'); dom.hM = $('#hMin'); dom.hS = $('#hSec');
+  dom.shade = $('#shade'); dom.bulb = $('#bulb'); dom.newlogs = $('#newlogs');
+  dom.seams = Array.from(scene.querySelectorAll('.seam'));
+  firePath = new Path2D(firePathD());
+  applyLamp();
+  addedLogs = [];
+}
+const dom = {};
+let firePath = null;
+
+/* ------------------------------------------------------------------
+   Layout: map design units onto the screen (SVG "meet")
+------------------------------------------------------------------ */
+const stage = $('#stage'), outside = $('#outside'), fx = $('#fx'), sashes = $('#sashes');
+const octx = outside.getContext('2d'), g = fx.getContext('2d');
+function layout(){
+  VW = window.innerWidth; VH = window.innerHeight;
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  const want = VW / VH < .9 ? 'port' : 'land';
+  if (want !== layoutName){ layoutName = want; L = LAYOUTS[want]; buildScene(); buildOutside(); }
+  S = Math.min(VW / L.W, VH / L.H);
+  OX = (VW - L.W * S) / 2; OY = (VH - L.H * S) / 2;
+  stage.style.setProperty('--u', S.toFixed(4));
+  fx.width = Math.round(VW * DPR); fx.height = Math.round(VH * DPR);
+  fx.style.width = VW + 'px'; fx.style.height = VH + 'px';
+  const w = L.win;
+  const place = (el, x, y, ww, hh) => { el.style.left = (OX + x * S) + 'px'; el.style.top = (OY + y * S) + 'px'; el.style.width = (ww * S) + 'px'; el.style.height = (hh * S) + 'px'; };
+  place(outside, w.x - 2, w.y - 2, w.w + 4, w.h + 4);
+  outside.width = Math.round((w.w + 4) * S * DPR); outside.height = Math.round((w.h + 4) * S * DPR);
+  place(sashes, w.x, w.y, w.w, w.h);
+  // hit areas
+  const l = L.lamp, F = L.fire, c = L.cat;
+  place($('#hit-lamp'), l.x - 72, l.y - 520, 144, 530);
+  place($('#hit-fire'), F.x - 30, F.y - F.rise - 10, F.w + 60, F.h + F.rise + 60);
+  place($('#hit-window'), w.x, w.y, w.w, w.h);
+  place($('#hit-cat'), c.x - 110 * c.sc, c.y - 100 * c.sc, 220 * c.sc, 112 * c.sc);
+  // light overlays
+  const sx = (x) => OX + x * S, sy = (y) => OY + y * S;
+  const fcx = sx(F.x + F.w / 2), fcy = sy(F.y + F.h * .7), R0 = Math.max(VW, VH);
+  $('#fireglow').style.background = `radial-gradient(circle at ${fcx}px ${fcy}px, rgba(255,150,60,.62), rgba(255,110,40,.28) ${R0 * .14}px, rgba(255,90,30,.1) ${R0 * .32}px, transparent ${R0 * .55}px)`;
+  const lx = sx(l.x), ly = sy(l.y - 470);
+  $('#lampglow').style.background = `radial-gradient(ellipse ${R0 * .22}px ${R0 * .3}px at ${lx}px ${ly + R0 * .12}px, rgba(255,214,140,.48), rgba(255,190,110,.16) 55%, transparent 100%), radial-gradient(circle at ${lx}px ${ly}px, rgba(255,230,170,.55), transparent ${R0 * .08}px)`;
+  const wx = sx(w.x + w.w / 2), wy = sy(w.y + w.h / 2);
+  $('#coldglow').style.background = `radial-gradient(ellipse ${w.w * S * .9}px ${w.h * S * 1.1}px at ${wx}px ${wy}px, rgba(90,200,190,.16), rgba(80,120,220,.08) 60%, transparent 100%)`;
+  $('#coldglow').style.opacity = '1';
+  sizeOutsideLayers();
+}
+
+/* ------------------------------------------------------------------
+   Outside: sky, aurora, spruce forest and snow at three depths
+------------------------------------------------------------------ */
+let skyLayer = null, treeLayer = null, stars = [], snowOut = [];
+function buildOutside(){
+  const R = mulberry(77);
+  stars = [];
+  for (let i = 0; i < 130; i++) stars.push({ x: R(), y: R() * .62, r: .4 + R() * 1.1, ph: R() * 6.28, f: .6 + R() * 2 });
+  snowOut = [];
+  for (let i = 0; i < 170; i++){
+    const d = i < 80 ? 0 : i < 140 ? 1 : 2;
+    snowOut.push({ x: R(), y: R(), d, r: [.7, 1.3, 2.4][d] * (.7 + R() * .6), v: [14, 26, 46][d] * (.8 + R() * .4), ph: R() * 6.28 });
+  }
+}
+function sizeOutsideLayers(){
+  const w = L.win, W = Math.round((w.w + 4) * S * DPR), H = Math.round((w.h + 4) * S * DPR);
+  const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+  skyLayer = mk(); treeLayer = mk();
+  const k = S * DPR;
+  // sky
+  let c = skyLayer.getContext('2d');
+  const gr = c.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, '#050819'); gr.addColorStop(.45, '#0b1532'); gr.addColorStop(.72, '#18284d'); gr.addColorStop(1, '#2a3b66');
+  c.fillStyle = gr; c.fillRect(0, 0, W, H);
+  // trees
+  c = treeLayer.getContext('2d');
+  c.setTransform(k, 0, 0, k, 0, 0);
+  const ww = w.w + 4, hh = w.h + 4, R = mulberry(4242);
+  // distant hills
+  c.beginPath(); c.moveTo(0, hh * .66);
+  for (let x = 0; x <= ww; x += 12) c.lineTo(x, hh * (.6 + .05 * Math.sin(x * .011 + 1) + .03 * Math.sin(x * .031)));
+  c.lineTo(ww, hh); c.lineTo(0, hh); c.closePath();
+  const hg = c.createLinearGradient(0, hh * .55, 0, hh);
+  hg.addColorStop(0, '#6b7fae'); hg.addColorStop(.25, '#3a4a78'); hg.addColorStop(1, '#27345a');
+  c.fillStyle = hg; c.fill();
+  const spruce = (x, base, h, col, snow) => {
+    const tiers = Math.max(5, Math.round(h / 12)), wmax = h * .42;
+    c.fillStyle = col;
+    c.beginPath(); c.moveTo(x, base - h);
+    for (let i = 1; i <= tiers; i++){
+      const y = base - h + h * i / tiers * .92, wv = wmax * Math.pow(i / tiers, .9) * (.85 + R() * .3);
+      c.lineTo(x + wv * .5, y); c.lineTo(x + wv * .22, y - h / tiers * .25);
+    }
+    c.lineTo(x + h * .02, base); c.lineTo(x - h * .02, base);
+    for (let i = tiers; i >= 1; i--){
+      const y = base - h + h * i / tiers * .92, wv = wmax * Math.pow(i / tiers, .9) * (.85 + R() * .3);
+      c.lineTo(x - wv * .22, y - h / tiers * .25); c.lineTo(x - wv * .5, y);
+    }
+    c.closePath(); c.fill();
+    if (snow){
+      c.strokeStyle = snow; c.lineWidth = Math.max(.8, h / 60); c.lineCap = 'round';
+      c.beginPath();
+      for (let i = 1; i <= tiers; i++){
+        const y = base - h + h * i / tiers * .92 - h / tiers * .18, wv = wmax * Math.pow(i / tiers, .9) * .42;
+        c.moveTo(x - wv * .7, y + wv * .12); c.quadraticCurveTo(x - wv * .3, y - wv * .05, x - wv * .05, y);
+        c.moveTo(x + wv * .05, y); c.quadraticCurveTo(x + wv * .3, y - wv * .06, x + wv * .66, y + wv * .1);
+      }
+      c.stroke();
+    }
+  };
+  const rows = [
+    { n: 22, base: .74, h: [30, 60], col: '#243058', snow: 'rgba(160,178,220,.55)' },
+    { n: 13, base: .86, h: [70, 130], col: '#141c38', snow: 'rgba(190,205,238,.7)' },
+    { n: 6, base: 1.02, h: [170, 300], col: '#0a0f22', snow: 'rgba(215,226,248,.82)' }
+  ];
+  rows.forEach((row, ri) => {
+    // snow ground in front of each row
+    c.fillStyle = ['#56679a', '#8193c4', '#aebde0'][ri];
+    c.beginPath(); c.moveTo(0, hh * row.base - 4);
+    for (let x = 0; x <= ww; x += 10) c.lineTo(x, hh * row.base - 6 + Math.sin(x * .02 + ri) * 4);
+    c.lineTo(ww, hh); c.lineTo(0, hh); c.closePath(); c.fill();
+    for (let i = 0; i < row.n; i++){
+      const x = (i + R() * .8) / row.n * ww * 1.1 - ww * .05, h = row.h[0] + R() * (row.h[1] - row.h[0]);
+      spruce(x, hh * row.base, h, row.col, row.snow);
+    }
+  });
+  // drift against the glass, lit warm from inside
+  const dg = c.createLinearGradient(0, hh * .86, 0, hh);
+  dg.addColorStop(0, '#c9d4ee'); dg.addColorStop(1, '#eef2fb');
+  c.fillStyle = dg; c.beginPath(); c.moveTo(0, hh);
+  for (let x = 0; x <= ww; x += 8) c.lineTo(x, hh * (.93 - .03 * Math.sin(x * .012 + .6) - .02 * Math.sin(x * .05)));
+  c.lineTo(ww, hh); c.closePath(); c.fill();
+  const warm = c.createRadialGradient(ww * .5, hh, 10, ww * .5, hh, ww * .6);
+  warm.addColorStop(0, 'rgba(255,190,120,.35)'); warm.addColorStop(1, 'rgba(255,190,120,0)');
+  c.fillStyle = warm; c.fillRect(0, hh * .7, ww, hh * .3);
+}
+// one vertical sprite for the aurora curtains
+const auroraSprite = (() => {
+  const c = document.createElement('canvas'); c.width = 4; c.height = 256;
+  const x = c.getContext('2d'), gr = x.createLinearGradient(0, 256, 0, 0);
+  gr.addColorStop(0, 'rgba(77,255,180,0)'); gr.addColorStop(.06, 'rgba(77,255,180,.95)'); gr.addColorStop(.3, 'rgba(77,255,180,.45)'); gr.addColorStop(.6, 'rgba(138,92,255,.35)'); gr.addColorStop(1, 'rgba(138,92,255,0)');
+  x.fillStyle = gr; x.fillRect(0, 0, 4, 256);
+  return c;
+})();
+function drawOutside(t, dt){
+  const w = L.win, ww = w.w + 4, hh = w.h + 4, k = S * DPR;
+  octx.setTransform(1, 0, 0, 1, 0, 0);
+  octx.drawImage(skyLayer, 0, 0);
+  octx.setTransform(k, 0, 0, k, 0, 0);
+  // stars
+  for (const st of stars){
+    const a = .45 + .55 * Math.pow(Math.sin(t * st.f + st.ph) * .5 + .5, 2);
+    octx.fillStyle = `rgba(235,240,255,${a.toFixed(3)})`;
+    octx.fillRect(st.x * ww, st.y * hh, st.r, st.r);
+  }
+  // aurora: a soft glow under rippling curtains of thin rays
+  octx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 7; i++){
+    const u = (i + .5) / 7, x = u * ww, y = hh * (.4 + Math.sin(u * 5.2 + t * .28) * .07);
+    const a = .16 + .1 * vnoise(u * 4 + t * .2);
+    const gr = octx.createRadialGradient(x, y, 0, x, y, ww * .2);
+    gr.addColorStop(0, `rgba(77,255,180,${a.toFixed(3)})`); gr.addColorStop(.5, `rgba(100,160,255,${(a * .4).toFixed(3)})`); gr.addColorStop(1, 'rgba(138,92,255,0)');
+    octx.fillStyle = gr; octx.fillRect(x - ww * .2, y - ww * .2, ww * .4, ww * .4);
+  }
+  for (let band = 0; band < 3; band++){
+    const baseY = hh * (.36 + band * .09), amp = hh * (.07 - band * .015), height = hh * (.34 - band * .07);
+    const alphaB = [.55, .38, .26][band];
+    for (let x = -4; x < ww + 4; x += 3){
+      const u = x / ww;
+      const y = baseY + Math.sin(u * 5.2 + t * .28 + band * 1.7) * amp + Math.sin(u * 13 - t * .5 + band) * amp * .35;
+      const h = height * (.55 + .45 * vnoise(u * 6 + t * .22 + band * 9));
+      const a = alphaB * (.35 + .65 * vnoise(u * 9 - t * .35 + band * 4)) * (0.6 + 0.4 * Math.sin(t * .4 + band));
+      if (a < .02) continue;
+      octx.globalAlpha = Math.min(1, a);
+      octx.drawImage(auroraSprite, x, y - h, 3.4, h);
+    }
+  }
+  octx.globalAlpha = 1;
+  octx.globalCompositeOperation = 'source-over';
+  octx.setTransform(1, 0, 0, 1, 0, 0);
+  octx.drawImage(treeLayer, 0, 0);
+  octx.setTransform(k, 0, 0, k, 0, 0);
+  // falling snow in three depths
+  const gust = windOpen * 90;
+  octx.fillStyle = '#f2f6ff';
+  for (const f of snowOut){
+    f.y += (f.v * dt) / hh;
+    f.x += ((Math.sin(t * .6 + f.ph) * 6 + 8 + gust * (f.d + 1) * .5) * dt) / ww;
+    if (f.y > 1.02){ f.y = -.02; f.x = Math.random(); }
+    if (f.x > 1.03) f.x -= 1.06;
+    octx.globalAlpha = [.55, .75, .95][f.d];
+    octx.beginPath(); octx.arc(f.x * ww, f.y * hh, f.r, 0, Math.PI * 2); octx.fill();
+  }
+  octx.globalAlpha = 1;
+}
+
+/* ------------------------------------------------------------------
+   Room state
+------------------------------------------------------------------ */
+let lampOn = true, fireI = 1, fireBoost = 0, windOpen = 0, windowIsOpen = false, closeTimer = 0;
+let addedLogs = [];
+const embers = [], sparks = [], steam = [], indoorSnow = [], zzz = [];
+let ear = { a: 0, v: 0 }, tail = { a: 0, v: 0 }, nextIdleTwitch = 4;
+
+function applyLamp(){
+  document.body.classList.toggle('lamp-off', !lampOn);
+  if (dom.shade){ dom.shade.setAttribute('fill', lampOn ? 'url(#gShadeOn)' : 'url(#gShade)'); dom.bulb.setAttribute('fill', lampOn ? '#fff4d6' : '#6b5a44'); }
+  const b = $('#hit-lamp');
+  b.setAttribute('aria-pressed', String(lampOn));
+  b.setAttribute('aria-label', lampOn ? 'Switch the reading lamp off' : 'Switch the reading lamp on');
+  b.dataset.tip = lampOn ? 'Lamp off' : 'Lamp on';
+}
+function say(s){ $('#live').textContent = s; }
+
+function toggleLamp(){
+  lampOn = !lampOn; applyLamp();
+  say(lampOn ? 'The reading lamp is on.' : 'The lamp is off; only the fire lights the room.');
+  sfx.click();
+}
+function addLog(){
+  fireBoost = Math.min(1.6, fireBoost + .85);
+  const F = L.fire, b = L.basket;
+  const n = addedLogs.length;
+  const tx = F.x + F.w / 2 + (n % 2 ? 18 : -14), ty = F.y + F.h - 60 - (n % 3) * 9, rot = n % 2 ? -8 : 7;
+  dom.flying.insertAdjacentHTML('beforeend', `<g><g class="lg"><rect x="-80" y="-15" width="160" height="30" rx="14" fill="#e9e2d2" stroke="#3a2a1a" stroke-width="1.5"/><path d="M-60 -6h12M-20 4h16M20 -4h10M44 6h14M-44 8h8" stroke="#2a2420" stroke-width="3" stroke-linecap="round"/><ellipse cx="80" cy="0" rx="6" ry="14" fill="#d8b98a" stroke="#6b4a2a" stroke-width="1.2"/></g></g>`);
+  const el = dom.flying.lastElementChild;
+  const log = { el, t: 0, from: [b.x - 10, b.y - 140], to: [tx, ty], rot, life: 0 };
+  addedLogs.push(log);
+  if (addedLogs.length > 3){ const old = addedLogs.shift(); old.el.remove(); }
+  say('Another log on the fire. It flares up.');
+  sfx.thud();
+}
+function burst(){
+  const F = L.fire;
+  for (let i = 0; i < 46; i++) sparks.push({ x: F.x + F.w * (.25 + Math.random() * .5), y: F.y + F.h - 50, vx: (Math.random() - .5) * 160, vy: -120 - Math.random() * 220, life: 0, max: .7 + Math.random() * 1.2 });
+}
+function toggleWindow(){
+  windowIsOpen = !windowIsOpen;
+  sashes.classList.toggle('open', windowIsOpen);
+  const b = $('#hit-window');
+  b.setAttribute('aria-pressed', String(windowIsOpen));
+  b.setAttribute('aria-label', windowIsOpen ? 'Close the window' : 'Open the window');
+  b.dataset.tip = windowIsOpen ? 'Close it' : 'Open the window';
+  clearTimeout(closeTimer);
+  if (windowIsOpen){
+    say('The window swings open. Cold wind and snow blow in; the fire gutters.');
+    closeTimer = setTimeout(() => { if (windowIsOpen) toggleWindow(); }, 5200);
+    sfx.gust();
+  } else { say('The window is shut again.'); sfx.thud(.5); }
+}
+function petCat(){
+  ear.v += 34; tail.v -= 18;
+  zzz.push({ x: 0, y: 0, life: 0, big: true });
+  say('The cat twitches an ear and goes on sleeping.');
+  sfx.purr();
+}
+
+/* ------------------------------------------------------------------
+   Audio: fire, wind, and a purr — all synthesized
+------------------------------------------------------------------ */
+const sfx = (() => {
+  let ctx = null, master = null, noise = null, fireGain = null, windGain = null, windBP = null, on = false, crackleT = 0;
+  function init(){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+    const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    let b = 0;
+    for (let i = 0; i < len; i++){ const w = Math.random() * 2 - 1; b = (b + .02 * w) / 1.02; d[i] = w * .6 + b * 3; }
+    noise = buf;
+    const src = (loop) => { const s = ctx.createBufferSource(); s.buffer = noise; s.loop = loop; return s; };
+    // fire bed: low roar
+    const n1 = src(true), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380;
+    fireGain = ctx.createGain(); fireGain.gain.value = .16;
+    n1.connect(lp).connect(fireGain).connect(master); n1.start();
+    // wind outside
+    const n2 = src(true); windBP = ctx.createBiquadFilter(); windBP.type = 'bandpass'; windBP.frequency.value = 520; windBP.Q.value = .9;
+    windGain = ctx.createGain(); windGain.gain.value = .05;
+    const lfo = ctx.createOscillator(), lfoG = ctx.createGain(); lfo.frequency.value = .09; lfoG.gain.value = 260; lfo.connect(lfoG).connect(windBP.frequency); lfo.start();
+    n2.connect(windBP).connect(windGain).connect(master); n2.start(.5);
+  }
+  function crackle(){
+    if (!on) return;
+    const t = ctx.currentTime, s = ctx.createBufferSource(); s.buffer = noise;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400 + Math.random() * 4200; bp.Q.value = 1.4;
+    const gn = ctx.createGain(), peak = (.05 + Math.random() * .22) * Math.min(1.6, fireI);
+    gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(peak, t + .002); gn.gain.exponentialRampToValueAtTime(.0001, t + .02 + Math.random() * .07);
+    s.connect(bp).connect(gn).connect(master); s.start(t, Math.random() * 1.8, .12);
+    crackleT = setTimeout(crackle, (40 + Math.random() * 360) / Math.max(.4, fireI));
+  }
+  function toggle(){
+    try {
+      if (!ctx) init();
+      on = !on;
+      if (on){ ctx.resume(); master.gain.setTargetAtTime(.85, ctx.currentTime, .4); crackle(); }
+      else { master.gain.setTargetAtTime(0, ctx.currentTime, .2); clearTimeout(crackleT); }
+    } catch (e) { on = false; }
+    return on;
+  }
+  function update(){
+    if (!ctx || !on) return;
+    fireGain.gain.setTargetAtTime(.08 + .1 * fireI, ctx.currentTime, .3);
+    windGain.gain.setTargetAtTime(.04 + .32 * windOpen, ctx.currentTime, .25);
+  }
+  function tone(freq, dur, gain, type){
+    if (!ctx || !on) return;
+    const t = ctx.currentTime, o = ctx.createOscillator(), gn = ctx.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * .55, t + dur);
+    gn.gain.setValueAtTime(gain, t); gn.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(gn).connect(master); o.start(t); o.stop(t + dur + .05);
+  }
+  return {
+    toggle, update,
+    click(){ tone(1800, .05, .05, 'triangle'); },
+    thud(k){ tone(95, .35, .35 * (k || 1)); tone(60, .5, .2 * (k || 1)); },
+    gust(){ if (windGain && on) windGain.gain.setTargetAtTime(.5, ctx.currentTime, .08); },
+    purr(){
+      if (!ctx || !on) return;
+      const t = ctx.currentTime, s = ctx.createBufferSource(); s.buffer = noise;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 240;
+      const am = ctx.createGain(); am.gain.value = 0;
+      const osc = ctx.createOscillator(), og = ctx.createGain(); osc.frequency.value = 26; og.gain.value = .5; osc.connect(og).connect(am.gain);
+      const env = ctx.createGain(); env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(.9, t + .3); env.gain.setTargetAtTime(0, t + 1.6, .3);
+      s.connect(lp).connect(am).connect(env).connect(master); s.start(t); s.stop(t + 3); osc.start(t); osc.stop(t + 3);
+    }
+  };
+})();
+$('#sound').addEventListener('click', () => {
+  const on = sfx.toggle();
+  const b = $('#sound');
+  b.setAttribute('aria-pressed', String(on));
+  b.setAttribute('aria-label', on ? 'Ambient sound: on' : 'Ambient sound: off');
+  $('#sound-label').textContent = on ? 'Sound on' : 'Sound off';
+});
+
+/* ------------------------------------------------------------------
+   Interaction wiring
+------------------------------------------------------------------ */
+let touched = false;
+function touch(){ if (!touched){ touched = true; $('#hint').classList.add('dim'); } }
+$('#hit-lamp').addEventListener('click', () => { touch(); toggleLamp(); });
+$('#hit-fire').addEventListener('click', () => { touch(); addLog(); });
+$('#hit-window').addEventListener('click', () => { touch(); toggleWindow(); });
+$('#hit-cat').addEventListener('click', () => { touch(); petCat(); });
+const tip = $('#tip');
+document.querySelectorAll('.hit').forEach((b) => {
+  const show = () => { const r = b.getBoundingClientRect(); tip.textContent = b.dataset.tip; tip.style.left = (r.left + r.width / 2) + 'px'; tip.style.top = Math.max(8, r.top) + 'px'; tip.classList.add('on'); };
+  b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') show(); });
+  b.addEventListener('focus', show);
+  b.addEventListener('pointerleave', () => tip.classList.remove('on'));
+  b.addEventListener('blur', () => tip.classList.remove('on'));
+  b.addEventListener('click', () => setTimeout(() => { if (tip.classList.contains('on')) tip.textContent = b.dataset.tip; }, 30));
+});
+
+/* ------------------------------------------------------------------
+   The loop
+------------------------------------------------------------------ */
+let last = performance.now(), T = 0, running = true;
+const elFire = $('#fireglow'), elDark = $('#dark'), elCold = $('#coldglow');
+const zFont = 'italic 600 22px ' + getComputedStyle(document.documentElement).getPropertyValue('--placard').trim();
+function setDesign(){ g.setTransform(S * DPR, 0, 0, S * DPR, OX * DPR, OY * DPR); }
+function frame(now){
+  if (!running){ return; }
+  let dt = Math.min(.05, (now - last) / 1000);
+  last = now;
+  if (reduce) dt *= .35;
+  T += dt;
+  // fire intensity: base, boosted by logs, knocked down by the draught
+  fireBoost *= Math.exp(-dt / 6.5);
+  windOpen += ((windowIsOpen ? 1 : 0) - windOpen) * Math.min(1, dt * (windowIsOpen ? 2.2 : .9));
+  const target = (1 + fireBoost) * (1 - .55 * windOpen);
+  fireI += (target - fireI) * Math.min(1, dt * 2.2);
+  const flick = (vnoise(T * 7.3) - .5) * .6 + (vnoise(T * 17.1 + 5) - .5) * .35;
+
+  // lighting overlays
+  elFire.style.opacity = clamp(.55 + .3 * (fireI - 1) + .22 * flick * (reduce ? .3 : 1), .15, 1).toFixed(3);
+  elDark.style.opacity = ((lampOn ? .36 : .6) - .08 * (fireI - 1) - .025 * flick + .06 * windOpen).toFixed(3);
+  elCold.style.opacity = (.7 + .3 * vnoise(T * .5) + .5 * windOpen).toFixed(3);
+
+  drawOutside(T, dt);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.clearRect(0, 0, fx.width, fx.height);
+  setDesign();
+  drawFire(T, flick);
+  drawEmbers(dt);
+  drawCandles(T);
+  drawSteam(dt);
+  drawIndoorSnow(dt);
+  drawZzz(dt);
+  animateRoom(dt, T);
+  sfx.update();
+  requestAnimationFrame(frame);
+}
+
+function drawFire(t, flick){
+  const F = L.fire, baseY = F.y + F.h - 36, x0 = F.x + 30, x1 = F.x + F.w - 30, cx = (x0 + x1) / 2;
+  g.save();
+  g.clip(firePath);
+  g.globalCompositeOperation = 'lighter';
+  const I = fireI;
+  // glow bed
+  const gl = g.createRadialGradient(cx, baseY + 10, 4, cx, baseY, F.w * .75);
+  gl.addColorStop(0, `rgba(255,120,40,${(.55 * Math.min(1.4, I)).toFixed(3)})`); gl.addColorStop(.5, 'rgba(160,50,10,.22)'); gl.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gl; g.fillRect(F.x, F.y - F.rise, F.w, F.h + F.rise * 2);
+  // coals
+  for (let i = 0; i < 16; i++){
+    const x = x0 + (x1 - x0) * (i + .5) / 16, n = vnoise(t * 3 + i * 4.1);
+    g.fillStyle = `rgba(255,${(80 + n * 90) | 0},20,${(.35 + n * .45).toFixed(3)})`;
+    g.beginPath(); g.ellipse(x, baseY + 22 + (i % 3) * 3, 12 + n * 5, 5 + n * 2, 0, 0, Math.PI * 2); g.fill();
+  }
+  // tongues of flame in three nested layers
+  const N = 9, lean = windOpen * 38;
+  const cols = [[255, 70, 20, .5], [255, 145, 40, .55], [255, 225, 140, .62]];
+  for (let layer = 0; layer < 3; layer++){
+    const k = [1, .7, .42][layer], wk = [1.55, 1.1, .7][layer];
+    const c = cols[layer];
+    g.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${c[3]})`;
+    for (let i = 0; i < N; i++){
+      const mid = 1 - Math.abs(i - (N - 1) / 2) / N * 1.3;
+      const bx = x0 + (x1 - x0) * (i + .5) / N;
+      const n1 = vnoise(t * (2.4 + i * .13) + i * 7.3), n2 = vnoise(t * 1.8 + i * 3.1 + 40);
+      const hh = F.h * .62 * I * (.4 + .6 * n1) * mid * k;
+      if (hh < 4) continue;
+      const ww = (x1 - x0) / N * wk;
+      const sway = (n2 - .5) * ww * 1.1 + lean * (hh / F.h);
+      g.beginPath();
+      g.moveTo(bx - ww / 2, baseY + 8);
+      g.bezierCurveTo(bx - ww * .55, baseY - hh * .45, bx + sway * .35 - ww * .28, baseY - hh * .72, bx + sway, baseY - hh);
+      g.bezierCurveTo(bx + sway * .35 + ww * .28, baseY - hh * .72, bx + ww * .55, baseY - hh * .45, bx + ww / 2, baseY + 8);
+      g.fill();
+    }
+  }
+  // a hint of blue at the roots
+  g.fillStyle = 'rgba(90,120,255,.16)';
+  g.beginPath(); g.ellipse(cx, baseY + 4, (x1 - x0) * .45, 7, 0, 0, Math.PI * 2); g.fill();
+  g.restore();
+}
+function drawEmbers(dt){
+  const F = L.fire;
+  const rate = 10 * fireI + fireBoost * 22;
+  if (!reduce && Math.random() < rate * dt){
+    embers.push({ x: F.x + F.w * (.2 + Math.random() * .6), y: F.y + F.h - 40, vx: (Math.random() - .5) * 20, vy: -(50 + Math.random() * 90) * (.7 + fireI * .3), life: 0, max: 1 + Math.random() * 1.8, ph: Math.random() * 6 });
+  }
+  g.save();
+  g.clip(firePath);
+  g.globalCompositeOperation = 'lighter';
+  for (let i = embers.length - 1; i >= 0; i--){
+    const e = embers[i];
+    e.life += dt;
+    if (e.life > e.max){ embers.splice(i, 1); continue; }
+    e.x += (e.vx + Math.sin(T * 4 + e.ph) * 14 + windOpen * 40) * dt; e.y += e.vy * dt; e.vy *= .995;
+    const k = 1 - e.life / e.max;
+    g.fillStyle = `rgba(255,${(150 + 90 * k) | 0},${(60 * k) | 0},${(k * .95).toFixed(3)})`;
+    g.fillRect(e.x - 1.2, e.y - 1.2, 2.4, 2.4);
+  }
+  g.restore();
+  // flare sparks may leap out of the hearth
+  g.save();
+  g.globalCompositeOperation = 'lighter';
+  for (let i = sparks.length - 1; i >= 0; i--){
+    const p = sparks[i];
+    p.life += dt;
+    if (p.life > p.max){ sparks.splice(i, 1); continue; }
+    p.vy += 260 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    const k = 1 - p.life / p.max;
+    g.strokeStyle = `rgba(255,${(170 + 80 * k) | 0},80,${k.toFixed(3)})`; g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x - p.vx * .025, p.y - p.vy * .025); g.stroke();
+  }
+  g.restore();
+}
+function drawCandles(t){
+  g.save();
+  g.globalCompositeOperation = 'lighter';
+  L.candles.forEach(([x, y], i) => {
+    const h = i ? 44 : 58, top = y - 12 - h - 7;
+    const n = vnoise(t * 5 + i * 9), sway = (vnoise(t * 3 + i * 4) - .5) * 3 + windOpen * 6;
+    const fh = 13 + n * 5 - windOpen * 4;
+    const gl = g.createRadialGradient(x, top - 6, 1, x, top - 6, 30);
+    gl.addColorStop(0, 'rgba(255,200,120,.35)'); gl.addColorStop(1, 'rgba(255,200,120,0)');
+    g.fillStyle = gl; g.fillRect(x - 30, top - 36, 60, 60);
+    g.fillStyle = 'rgba(255,190,90,.85)';
+    g.beginPath(); g.moveTo(x - 3.6, top); g.quadraticCurveTo(x - 4, top - fh * .5, x + sway, top - fh); g.quadraticCurveTo(x + 4, top - fh * .5, x + 3.6, top); g.fill();
+    g.fillStyle = 'rgba(255,248,220,.9)';
+    g.beginPath(); g.ellipse(x + sway * .2, top - 3, 1.6, 3.6, 0, 0, Math.PI * 2); g.fill();
+  });
+  g.restore();
+}
+function drawSteam(dt){
+  const m = L.mug;
+  if (!reduce && Math.random() < dt * 9) steam.push({ x: m.x + (Math.random() - .5) * 18, y: m.y - 60, life: 0, max: 2.4 + Math.random() * 1.6, ph: Math.random() * 6.28, r: 5 + Math.random() * 5 });
+  g.save();
+  for (let i = steam.length - 1; i >= 0; i--){
+    const s = steam[i];
+    s.life += dt;
+    if (s.life > s.max){ steam.splice(i, 1); continue; }
+    const k = s.life / s.max;
+    s.y -= (22 - windOpen * 10) * dt;
+    s.x += (Math.sin(T * 1.6 + s.ph) * 9 + windOpen * 70) * dt;
+    const a = Math.sin(Math.PI * k) * .16;
+    g.fillStyle = `rgba(245,238,228,${a.toFixed(3)})`;
+    g.beginPath(); g.ellipse(s.x, s.y, s.r * (1 + k * 1.6), s.r * (1.4 + k * 2), Math.sin(T + s.ph) * .4, 0, Math.PI * 2); g.fill();
+  }
+  g.restore();
+}
+function drawIndoorSnow(dt){
+  const w = L.win;
+  if (windowIsOpen && windOpen > .3 && !reduce){
+    const n = Math.round(80 * dt * windOpen);
+    for (let i = 0; i < n; i++) indoorSnow.push({ x: w.x + Math.random() * w.w, y: w.y + Math.random() * w.h, vx: 40 + Math.random() * 220, vy: 10 + Math.random() * 110, life: 0, max: 1.6 + Math.random() * 1.8, r: .8 + Math.random() * 1.2, ph: Math.random() * 6 });
+  }
+  g.save();
+  g.fillStyle = '#f4f7ff';
+  for (let i = indoorSnow.length - 1; i >= 0; i--){
+    const s = indoorSnow[i];
+    s.life += dt;
+    if (s.life > s.max){ indoorSnow.splice(i, 1); continue; }
+    const k = s.life / s.max;
+    s.x += (s.vx + Math.sin(T * 3 + s.ph) * 30) * dt; s.y += (s.vy + 30 * k) * dt;
+    g.globalAlpha = Math.sin(Math.PI * Math.min(1, k * 1.2)) * .85;
+    g.beginPath(); g.arc(s.x, s.y, s.r * (1 + k * 3), 0, Math.PI * 2); g.fill();
+  }
+  g.restore();
+}
+function drawZzz(dt){
+  const c = L.cat;
+  if (!reduce && Math.random() < dt * .35) zzz.push({ x: 0, y: 0, life: 0 });
+  g.save();
+  g.font = zFont;
+  for (let i = zzz.length - 1; i >= 0; i--){
+    const z = zzz[i];
+    z.life += dt;
+    if (z.life > 3){ zzz.splice(i, 1); continue; }
+    const k = z.life / 3;
+    const x = c.x + (70 + k * 40 + Math.sin(z.life * 3) * 6) * c.sc, y = c.y + (-95 - k * 90) * c.sc;
+    g.fillStyle = `rgba(243,230,207,${(Math.sin(Math.PI * k) * .75).toFixed(3)})`;
+    g.save(); g.translate(x, y); g.scale(.6 + k * .8, .6 + k * .8); g.fillText('z', 0, 0); g.restore();
+  }
+  g.restore();
+}
+function animateRoom(dt, t){
+  const c = L.cat;
+  // breathing: the body swells from its base
+  const b = (Math.sin(t * 1.7) + 1) / 2;
+  if (dom.catBody) dom.catBody.setAttribute('transform', `translate(0 2) scale(${(1 + .012 * b).toFixed(4)} ${(1 + .04 * b).toFixed(4)}) translate(0 -2)`);
+  // ear and tail springs
+  nextIdleTwitch -= dt;
+  if (nextIdleTwitch < 0 && !reduce){ ear.v += 18; nextIdleTwitch = 5 + Math.random() * 9; }
+  ear.v += (-ear.a * 180 - ear.v * 9) * dt; ear.a += ear.v * dt;
+  tail.v += (-tail.a * 90 - tail.v * 5) * dt; tail.a += tail.v * dt;
+  if (dom.earR){ dom.earR.setAttribute('transform', `rotate(${(ear.a * 1.2).toFixed(2)} 84 -64)`); dom.earL.setAttribute('transform', `rotate(${(-ear.a * .35).toFixed(2)} 36 -62)`); }
+  if (dom.tailTip) dom.tailTip.setAttribute('transform', `rotate(${(tail.a + Math.sin(t * .8) * 2).toFixed(2)} 58 -1)`);
+  // clock
+  if (dom.pend){
+    const now = new Date(), sec = now.getSeconds() + now.getMilliseconds() / 1000;
+    dom.pend.setAttribute('transform', `rotate(${(Math.sin(sec * Math.PI) * 9 * (reduce ? .3 : 1)).toFixed(2)} 0 40)`);
+    const m = now.getMinutes() + sec / 60, h = (now.getHours() % 12) + m / 60;
+    dom.hH.setAttribute('transform', `rotate(${(h * 30).toFixed(2)})`);
+    dom.hM.setAttribute('transform', `rotate(${(m * 6).toFixed(2)})`);
+    dom.hS.setAttribute('transform', `rotate(${(Math.floor(sec) * 6)})`);
+  }
+  // log seams glow with the fire
+  const glow = clamp(.45 + .5 * (fireI - .6) + (vnoise(t * 5) - .5) * .4, .15, 1).toFixed(3);
+  dom.seams.forEach((s) => s.setAttribute('opacity', glow));
+  // logs flying from the basket into the fire, then charring
+  for (const lg of addedLogs){
+    lg.t = Math.min(1, lg.t + dt / .9);
+    const e = lg.t < 1 ? 1 - Math.pow(1 - lg.t, 2) : 1;
+    const x = lg.from[0] + (lg.to[0] - lg.from[0]) * e, y = lg.from[1] + (lg.to[1] - lg.from[1]) * e - Math.sin(Math.PI * e) * 160;
+    const r = lg.rot + (1 - e) * 90;
+    const sc = .55 + .45 * e;
+    lg.el.setAttribute('transform', `translate(${f1(x)} ${f1(y)}) rotate(${f1(r)}) scale(${sc.toFixed(3)})`);
+    if (lg.t >= 1 && !lg.landed){ lg.landed = true; dom.newlogs.appendChild(lg.el); burst(); }
+    if (lg.landed){
+      lg.life += dt;
+      const ch = Math.min(1, lg.life / 30);
+      const rect = lg.el.querySelector('rect');
+      if (rect) rect.setAttribute('fill', mixHex('#e9e2d2', '#2b1a10', ch));
+    }
+  }
+}
+function mixHex(a, b, t){
+  const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const A = p(a), B = p(b);
+  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){ running = false; }
+  else if (!running){ running = true; last = performance.now(); requestAnimationFrame(frame); }
+});
+let rsT = 0;
+window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(layout, 50); });
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'l'){ touch(); toggleLamp(); }
+  else if (k === 'f'){ touch(); addLog(); }
+  else if (k === 'w'){ touch(); toggleWindow(); }
+  else if (k === 'c'){ touch(); petCat(); }
+});
+
+layout();
+requestAnimationFrame((n) => { last = n; frame(n); });
+})();
+</script>
+</body>
+</html>

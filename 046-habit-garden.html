@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tend — A Habit Garden</title>
+<meta name="description" content="Tend is a gentle habit tracker where every habit is a potted plant that grows from seed to bloom with your streak, with 12-week heatmaps, completion rings and best streaks. Everything stays in your browser.">
+<meta name="theme-color" content="#f4f6f0">
+<style>
+:root{
+  --bg:#f4f6f0;
+  --paper:#fbfcf8;
+  --sage:#9cb59a;
+  --sage-l:#dfe8da;
+  --sage-ll:#eaf0e6;
+  --forest:#2f4f3a;
+  --forest-2:#456b52;
+  --clay:#d98e73;
+  --clay-d:#c2765c;
+  --sun:#f2c14e;
+  --ink:#2f4f3a;
+  --ink-2:#5d7564;
+  --ink-3:#8a9c8d;
+  --line:rgba(47,79,58,.12);
+  --shadow:0 1px 0 rgba(255,255,255,.8) inset,0 18px 40px -22px rgba(47,79,58,.35),0 2px 6px -2px rgba(47,79,58,.12);
+  --font:ui-rounded,"SF Pro Rounded","Seravek","Nunito","Avenir Next","Segoe UI","Candara","Trebuchet MS","DejaVu Sans",sans-serif;
+  --r:24px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--font);font-variant-numeric:tabular-nums;overflow-x:hidden;
+  background-image:radial-gradient(900px 500px at 88% -8%,rgba(242,193,78,.16),transparent 60%),radial-gradient(900px 600px at -10% 20%,rgba(156,181,154,.18),transparent 60%)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--clay);outline-offset:3px;border-radius:12px}
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+/* ---------- header ---------- */
+.top{position:relative;padding:34px 0 26px}
+.sky{position:absolute;inset:0 0 auto 0;height:100%;pointer-events:none;overflow:hidden;z-index:0;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 98%);mask-image:linear-gradient(180deg,#000 55%,transparent 98%)}
+.sky svg{position:absolute;right:-40px;top:0;width:min(760px,70vw);height:100%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 38%);mask-image:linear-gradient(90deg,transparent,#000 38%)}
+.top .wrap{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end}
+.brand{display:flex;align-items:center;gap:10px;margin:0 0 28px;font-weight:700;font-size:15px;letter-spacing:.02em;color:var(--forest)}
+.brand svg{width:30px;height:30px}
+.brand small{font-weight:500;color:var(--ink-3);font-size:13px;margin-left:4px}
+.date{margin:0;font-size:14px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--sage)}
+.date b{color:var(--clay-d);font-weight:700}
+.greet{margin:6px 0 0;font:700 clamp(34px,5vw,58px)/1.02 var(--font);letter-spacing:-.025em;color:var(--forest)}
+.greet em{font-style:normal;color:var(--clay)}
+.mood{margin:12px 0 0;font-size:17px;color:var(--ink-2);max-width:560px}
+.today-row{display:flex;align-items:center;gap:14px;margin-top:22px}
+.today-bar{position:relative;width:220px;height:12px;border-radius:99px;background:var(--sage-l);overflow:hidden}
+.today-bar i{position:absolute;inset:0;border-radius:99px;background:linear-gradient(90deg,var(--sage),var(--forest-2));transform-origin:0 50%;transform:scaleX(0);transition:transform .8s cubic-bezier(.3,1.2,.4,1)}
+.today-t{font-weight:700;font-size:15px}
+.today-t span{color:var(--ink-3);font-weight:500}
+.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.tabs{display:flex;padding:5px;border-radius:99px;background:var(--sage-ll);border:1px solid var(--line);position:relative}
+.tabs button{position:relative;z-index:1;border:0;background:none;padding:10px 18px;border-radius:99px;font-weight:700;font-size:14.5px;color:var(--ink-2);display:flex;gap:8px;align-items:center;transition:color .25s}
+.tabs button svg{width:17px;height:17px}
+.tabs button[aria-selected="true"]{color:var(--forest)}
+.tabs .knob{position:absolute;top:5px;bottom:5px;left:5px;border-radius:99px;background:var(--paper);box-shadow:0 4px 12px -4px rgba(47,79,58,.35);transition:transform .45s cubic-bezier(.3,1.3,.5,1),width .45s}
+.btn{border:0;border-radius:99px;padding:13px 20px;font-weight:700;font-size:15px;display:inline-flex;align-items:center;gap:8px;transition:transform .15s ease,box-shadow .2s,background-color .2s}
+.btn svg{width:18px;height:18px}
+.btn-clay{background:var(--clay);color:#fff;box-shadow:0 10px 20px -10px rgba(194,118,92,.9)}
+.btn-clay:hover{background:var(--clay-d);transform:translateY(-1px)}
+.btn-clay:active{transform:translateY(1px) scale(.98)}
+.btn-ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--sage-ll)}
+.btn-forest{background:var(--forest);color:#f4f6f0}
+.btn-forest:hover{background:#264231}
+
+/* ---------- garden grid ---------- */
+main{padding-bottom:40px}
+.panel[hidden]{display:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:26px}
+.card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px 20px 18px;display:flex;flex-direction:column;gap:16px;animation:rise .6s cubic-bezier(.2,.9,.3,1) both;animation-delay:calc(var(--i,0) * 70ms)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.c-head{display:flex;align-items:center;gap:12px}
+.glyph{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--hc) 22%,#fff);color:var(--hc-d,var(--forest))}
+.glyph svg{width:22px;height:22px}
+.c-title{min-width:0;flex:1}
+.c-title h2{margin:0;font-size:19px;font-weight:700;line-height:1.2;letter-spacing:-.01em;overflow-wrap:anywhere}
+.c-title p{margin:2px 0 0;font-size:13.5px;color:var(--ink-3);font-weight:500}
+.edit{width:38px;height:38px;border-radius:12px;border:1px solid transparent;background:transparent;display:grid;place-items:center;color:var(--ink-3);transition:background-color .2s,color .2s}
+.edit:hover{background:var(--sage-ll);color:var(--forest)}
+.edit svg{width:18px;height:18px}
+.arch{position:relative;height:218px;border-radius:160px 160px 18px 18px;overflow:hidden;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--hc) 14%,#f7f9f3) 0%,#eef3ea 58%,#e3ebdd 100%)}
+.arch::before{content:"";position:absolute;left:50%;top:18px;width:62%;height:62%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.75),transparent 70%)}
+.arch::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(180deg,transparent,rgba(47,79,58,.06))}
+.arch svg.plant{position:absolute;left:50%;bottom:4px;width:176px;height:209px;transform:translateX(-50%);overflow:visible;z-index:1}
+.stage{position:absolute;left:10px;bottom:10px;z-index:2;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--forest);background:rgba(251,252,248,.82);border:1px solid var(--line);padding:5px 10px;border-radius:99px}
+.next{position:absolute;right:10px;bottom:10px;z-index:2;font-size:12px;font-weight:600;color:var(--ink-3);background:rgba(251,252,248,.82);border:1px solid var(--line);padding:5px 10px;border-radius:99px}
+.sway{transform-origin:80px 150px;animation:sway var(--sd,5s) ease-in-out infinite alternate;animation-delay:var(--sdl,0s)}
+@keyframes sway{from{transform:rotate(-2.2deg)}to{transform:rotate(2.4deg)}}
+.pollen circle{animation:float 3.6s ease-in-out infinite alternate}
+.pollen circle:nth-child(2){animation-duration:4.4s;animation-delay:-1.2s}
+.pollen circle:nth-child(3){animation-duration:3.1s;animation-delay:-2s}
+@keyframes float{from{transform:translate(0,0)}to{transform:translate(6px,-12px)}}
+.c-mid{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.streak{display:flex;align-items:baseline;gap:8px}
+.streak b{font-size:44px;font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--forest)}
+.streak span{font-size:13.5px;line-height:1.25;color:var(--ink-2);font-weight:600}
+.streak span small{display:block;color:var(--ink-3);font-weight:500}
+.water{border:2px solid var(--forest);background:transparent;color:var(--forest);border-radius:99px;padding:11px 18px 11px 14px;font-weight:700;font-size:15px;display:inline-flex;align-items:center;gap:8px;transition:background-color .25s,color .25s,transform .15s,box-shadow .25s;white-space:nowrap}
+.water svg{width:20px;height:20px}
+.water:hover{background:var(--sage-ll);box-shadow:0 0 0 5px rgba(156,181,154,.25)}
+.water:active{transform:scale(.96)}
+.water[aria-pressed="true"]{background:var(--forest);color:#f4f6f0}
+.water[aria-pressed="true"]:hover{background:#264231}
+.water .ok{display:none}
+.water[aria-pressed="true"] .ok{display:block}
+.water[aria-pressed="true"] .can{display:none}
+.cells{display:grid;grid-template-columns:14px repeat(12,minmax(0,1fr));grid-template-rows:repeat(7,18px);gap:3px;border-radius:8px;outline-offset:4px}
+.cells .dl{grid-column:1;font-size:9.5px;font-weight:700;color:var(--ink-3);display:flex;align-items:center}
+.cell{height:100%;min-width:0;border-radius:4px;background:#e4eadf;transition:transform .15s,box-shadow .15s;cursor:pointer}
+.cell.l1{background:#c9d9c1}
+.cell.l2{background:#9cb59a}
+.cell.l3{background:#5f8a64}
+.cell.l4{background:#2f4f3a}
+.cell.fut{background:transparent;box-shadow:inset 0 0 0 1px rgba(47,79,58,.07);cursor:default}
+.cell.today{box-shadow:0 0 0 2px var(--paper),0 0 0 3.5px var(--clay)}
+.cell:hover,.cell.cur{transform:scale(1.28);box-shadow:0 0 0 2px var(--paper),0 0 0 3.5px var(--sun);position:relative;z-index:1}
+.heat-foot{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-3);font-weight:600;margin-top:-6px}
+.legend{display:flex;align-items:center;gap:3px}
+.legend i{width:10px;height:10px;border-radius:3px;display:block}
+.add-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:300px;border:2px dashed rgba(47,79,58,.22);background:rgba(251,252,248,.5);box-shadow:none;color:var(--ink-2);font-weight:700;font-size:17px;border-radius:var(--r);transition:border-color .2s,background-color .2s,transform .2s;animation:rise .6s cubic-bezier(.2,.9,.3,1) both;animation-delay:calc(var(--i,0) * 70ms)}
+.add-card:hover{border-color:var(--clay);background:rgba(255,255,255,.7);transform:translateY(-2px)}
+.add-card svg{width:92px;height:92px}
+.add-card small{font-weight:500;color:var(--ink-3);font-size:14px}
+
+/* ---------- tooltip ---------- */
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--forest);color:#f4f6f0;font-size:13px;font-weight:600;line-height:1.35;padding:8px 11px;border-radius:10px;box-shadow:0 10px 24px -10px rgba(0,0,0,.4);transform:translate(-50%,calc(-100% - 12px));opacity:0;transition:opacity .12s;white-space:nowrap}
+.tip small{display:block;font-weight:500;color:#cfe0cc}
+.tip::after{content:"";position:absolute;left:50%;bottom:-5px;width:10px;height:10px;background:var(--forest);transform:translateX(-50%) rotate(45deg);border-radius:2px}
+.tip.show{opacity:1}
+
+/* ---------- fx ---------- */
+.fx{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}
+.fx span{position:absolute;left:0;top:0;display:block;will-change:transform,opacity;opacity:0}
+.fx .petal{width:12px;height:18px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%}
+.fx .drop{width:9px;height:13px;border-radius:50% 50% 50% 50%/65% 65% 35% 35%;background:#8fc1d4}
+.fx .spark{width:10px;height:10px;background:var(--sun);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.fx .leaf{width:10px;height:16px;border-radius:0 100% 0 100%;background:var(--sage)}
+
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:26px}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:26px}
+.box h2{margin:0 0 4px;font-size:21px;letter-spacing:-.01em}
+.box > p{margin:0 0 20px;color:var(--ink-3);font-size:14.5px;font-weight:500}
+.rings{display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:center}
+.ringsvg{width:260px;height:260px}
+.ringsvg circle{transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+.rl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.rl li{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;align-items:center;font-weight:600}
+.rl i{width:14px;height:14px;border-radius:50%}
+.rl b{font-size:18px;font-weight:800}
+.rl span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bests{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.bests li{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:center}
+.bests .mini{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--sage-ll)}
+.bests .mini svg{width:34px;height:40px}
+.bests .row1{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:15px;margin-bottom:6px}
+.bests .row1 span:last-child{color:var(--ink-3);font-weight:600;font-size:13.5px;white-space:nowrap}
+.bests .track{position:relative;height:12px;border-radius:99px;background:var(--sage-ll);overflow:hidden}
+.bests .track i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;transform-origin:0 50%;transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+.bests .track i.best{opacity:.35}
+.crown{color:var(--sun);font-size:15px}
+.tiles{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.tile{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow)}
+.tile b{display:block;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.tile span{font-size:13.5px;color:var(--ink-3);font-weight:600}
+.week{grid-column:1/-1}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:14px;align-items:end;height:170px;padding-top:10px}
+.wk div{display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.wk .bar{width:100%;max-width:64px;border-radius:14px 14px 6px 6px;background:linear-gradient(180deg,var(--sage),#7fa27f);transform-origin:50% 100%;transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+.wk .bar.peak{background:linear-gradient(180deg,var(--sun),var(--clay))}
+.wk span{font-size:13px;font-weight:700;color:var(--ink-2)}
+.wk small{font-size:12px;color:var(--ink-3);font-weight:600}
+.empty{padding:40px;text-align:center;color:var(--ink-3)}
+
+/* ---------- footer ---------- */
+.foot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:30px 0 48px;color:var(--ink-3);font-size:14px;border-top:1px solid var(--line);margin-top:24px}
+.foot button{background:none;border:0;color:var(--clay-d);font-weight:700;padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- dialog ---------- */
+dialog{border:0;padding:0;border-radius:28px;background:var(--paper);color:var(--ink);width:min(520px,calc(100vw - 28px));box-shadow:0 40px 80px -30px rgba(20,40,28,.55);max-height:calc(100vh - 28px);overflow:auto}
+dialog::backdrop{background:rgba(35,55,42,.38);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+dialog[open]{animation:pop .35s cubic-bezier(.2,1.2,.4,1)}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.dlg{padding:26px 26px 22px;display:flex;flex-direction:column;gap:18px}
+.dlg h2{margin:0;font-size:24px;letter-spacing:-.015em}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.dlg-prev{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:var(--sage-ll);flex:none}
+.dlg-prev svg{width:54px;height:62px}
+.field label,.field legend{display:block;font-weight:700;font-size:14px;margin-bottom:8px;padding:0}
+.field{border:0;margin:0;padding:0;min-width:0}
+.field input[type=text]{width:100%;border:2px solid var(--line);background:#fff;border-radius:14px;padding:13px 14px;font-size:16px;font-weight:600;transition:border-color .2s}
+.field input[type=text]:focus{outline:none;border-color:var(--sage)}
+.field input[type=text][aria-invalid="true"]{border-color:var(--clay)}
+.err{margin:6px 0 0;color:var(--clay-d);font-size:13px;font-weight:600;min-height:1em}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;width:1px;height:1px}
+.opt span{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;transition:border-color .15s,background-color .15s,transform .15s;color:var(--forest)}
+.opt span svg{width:22px;height:22px}
+.opt input:checked+span{border-color:var(--forest);background:var(--sage-ll);transform:translateY(-2px)}
+.opt input:focus-visible+span{outline:3px solid var(--clay);outline-offset:2px}
+.sw span{border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.sw input:checked+span{box-shadow:0 0 0 2.5px var(--forest);transform:scale(1.08)}
+.dlg-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:6px}
+.dlg-foot .right{display:flex;gap:10px;margin-left:auto}
+.del{background:none;border:0;color:var(--clay-d);font-weight:700;padding:10px 6px;display:inline-flex;gap:6px;align-items:center}
+.del svg{width:17px;height:17px}
+.del.sure{background:var(--clay);color:#fff;border-radius:99px;padding:10px 16px}
+
+.toast{position:fixed;left:50%;bottom:26px;z-index:60;transform:translate(-50%,30px);opacity:0;background:var(--forest);color:#f4f6f0;padding:12px 18px;border-radius:99px;font-weight:600;font-size:15px;box-shadow:0 16px 30px -12px rgba(20,40,28,.6);transition:opacity .3s,transform .35s cubic-bezier(.2,1.3,.4,1);max-width:calc(100vw - 32px);text-align:center;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:980px){
+  .stats{grid-template-columns:minmax(0,1fr)}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:720px){
+  .wrap{padding:0 16px}
+  .top{padding:22px 0 20px}
+  .top .wrap{grid-template-columns:minmax(0,1fr)}
+  .brand{margin-bottom:20px}
+  .actions{justify-content:space-between}
+  .sky svg{width:130%;right:-55%;opacity:.5}
+  .sky .sprouts{display:none}
+  .grid{grid-template-columns:minmax(0,1fr);gap:20px}
+  .today-bar{width:150px}
+  .rings{grid-template-columns:minmax(0,1fr);justify-items:center}
+  .ringsvg{width:230px;height:230px}
+  .rl{width:100%}
+  .box{padding:20px}
+  .wk{gap:8px;height:150px}
+  .add-card{min-height:220px}
+  .tabs button{padding:10px 14px}
+}
+@media (max-width:440px){
+  .tabs button svg{display:none}
+  .tabs button{padding:10px 15px}
+  .actions{flex-wrap:nowrap}
+  .btn{padding:12px 16px;font-size:14.5px}
+  .streak b{font-size:38px}
+  .water{padding:10px 14px 10px 12px;font-size:14.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sway,.pollen circle,.card,.add-card{animation:none!important}
+  dialog[open]{animation:none}
+  .today-bar i,.ringsvg circle,.bests .track i,.wk .bar,.tabs .knob{transition:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="sky" aria-hidden="true">
+    <svg viewBox="0 0 760 260" preserveAspectRatio="xMaxYMid slice">
+      <defs>
+        <radialGradient id="sunglow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#f2c14e" stop-opacity=".55"/><stop offset="1" stop-color="#f2c14e" stop-opacity="0"/></radialGradient>
+        <linearGradient id="hill1" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#dfe8da" stop-opacity="0"/><stop offset=".3" stop-color="#dfe8da"/><stop offset="1" stop-color="#dfe8da"/></linearGradient>
+        <linearGradient id="hill2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c9d9c1" stop-opacity="0"/><stop offset=".4" stop-color="#c9d9c1"/><stop offset="1" stop-color="#c9d9c1"/></linearGradient>
+      </defs>
+      <circle id="sunhalo" cx="600" cy="90" r="90" fill="url(#sunglow)"/>
+      <g id="sunbody">
+        <circle id="sundisc" cx="600" cy="90" r="30" fill="#f2c14e"/>
+        <path id="moonbite" d="M0 0" fill="#f4f6f0"/>
+      </g>
+      <path d="M0 230 C120 200 200 214 300 200 C420 182 500 150 620 172 C690 185 730 176 760 168 L760 260 L0 260Z" fill="url(#hill1)"/>
+      <path d="M160 260 C260 220 360 226 450 214 C560 200 640 214 760 204 L760 260Z" fill="url(#hill2)" opacity=".8"/>
+      <g class="sprouts" fill="none" stroke="#9cb59a" stroke-width="2" stroke-linecap="round" opacity=".9">
+        <path d="M520 180 v-22 M520 166 c-6 -2 -9 -6 -9 -11 M520 162 c6 -2 9 -6 9 -11"/>
+        <path d="M400 198 v-12 M400 191 c-4 -1 -6 -3 -6 -6"/>
+      </g>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div>
+      <p class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#dfe8da"/><path d="M16 25V13" stroke="#2f4f3a" stroke-width="2" stroke-linecap="round"/><path d="M16 17c-5 0-7-3-7-7 5 0 7 3 7 7zM16 14c0-4 3-7 7-7 0 4-3 7-7 7z" fill="#9cb59a"/><circle cx="16" cy="11" r="0" fill="#f2c14e"/></svg>Tend<small>a habit garden</small></p>
+      <p class="date" id="date">—</p>
+      <h1 class="greet" id="greet">Hello, gardener.</h1>
+      <p class="mood" id="mood">Your garden is waking up.</p>
+      <div class="today-row" aria-live="polite">
+        <div class="today-bar" aria-hidden="true"><i id="today-fill"></i></div>
+        <p class="today-t" style="margin:0" id="today-t">0 of 0 <span>tended today</span></p>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="tabs" role="tablist" aria-label="View">
+        <span class="knob" aria-hidden="true"></span>
+        <button type="button" role="tab" id="tab-garden" aria-selected="true" aria-controls="panel-garden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-8M12 15c-4.5 0-6.5-2.8-6.5-6.5 4.5 0 6.5 2.8 6.5 6.5zM12 12.5c0-3.7 2.5-6.5 6.5-6.5 0 3.7-2.5 6.5-6.5 6.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Garden</button>
+        <button type="button" role="tab" id="tab-stats" aria-selected="false" aria-controls="panel-stats" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8" opacity=".35"/><path d="M12 4a8 8 0 0 1 7.6 10.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Stats</button>
+      </div>
+      <button type="button" class="btn btn-clay" id="add-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>New habit</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel" id="panel-garden" role="tabpanel" aria-labelledby="tab-garden">
+    <h2 class="sr">Your habits</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+  <section class="panel" id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
+    <h2 class="sr">Statistics</h2>
+    <div class="stats" id="stats"></div>
+  </section>
+  <footer class="foot">
+    <span>Tend keeps everything in this browser — no accounts, no servers, no nagging.</span>
+    <button type="button" id="reset">Replant the demo garden</button>
+  </footer>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <form class="dlg" id="dlg-form" method="dialog" novalidate>
+    <div class="dlg-head">
+      <h2 id="dlg-title">Plant a new habit</h2>
+      <div class="dlg-prev" aria-hidden="true"><svg viewBox="0 0 160 190" id="dlg-plant"></svg></div>
+    </div>
+    <div class="field">
+      <label for="f-name">What will you tend?</label>
+      <input type="text" id="f-name" name="name" maxlength="40" autocomplete="off" placeholder="e.g. Ten minutes of sketching" aria-describedby="f-err">
+      <p class="err" id="f-err" aria-live="polite"></p>
+    </div>
+    <fieldset class="field">
+      <legend>Icon</legend>
+      <div class="opts" id="f-icons"></div>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Colour</legend>
+      <div class="opts" id="f-colors"></div>
+    </fieldset>
+    <div class="dlg-foot">
+      <button type="button" class="del" id="f-del" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Uproot habit</span></button>
+      <div class="right">
+        <button type="button" class="btn btn-ghost" id="f-cancel">Cancel</button>
+        <button type="submit" class="btn btn-forest" id="f-save">Plant it</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="fx" id="fx" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const KEY = 'tend-garden-v1';
+
+  /* ================= DATES ================= */
+  const pad = n => String(n).padStart(2, '0');
+  const dkey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const addDays = (d, n) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); return x; };
+  const TODAY = (() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); })();
+  const TK = dkey(TODAY);
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const fmtShort = d => `${DAYS[d.getDay()].slice(0, 3)} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`;
+  const parseKey = k => { const [y, m, dd] = k.split('-').map(Number); return new Date(y, m - 1, dd); };
+  const daysBetween = (a, b) => Math.round((b - a) / 86400000);
+
+  /* ================= PALETTE / ICONS ================= */
+  const COLORS = [
+    { id: 'sage', v: '#9cb59a', d: '#3f6a4a', name: 'Sage' },
+    { id: 'forest', v: '#2f4f3a', d: '#2f4f3a', name: 'Deep green' },
+    { id: 'clay', v: '#d98e73', d: '#a65a40', name: 'Clay' },
+    { id: 'sun', v: '#f2c14e', d: '#94701a', name: 'Sun yellow' },
+    { id: 'rain', v: '#7fa7b5', d: '#3f6c7c', name: 'Rain blue' },
+    { id: 'heather', v: '#b58db0', d: '#7a4f75', name: 'Heather' }
+  ];
+  const colorOf = id => COLORS.find(c => c.id === id) || COLORS[0];
+  const ICONS = {
+    drop: '<path d="M12 3.5c3.4 4 5.8 7.2 5.8 10.3a5.8 5.8 0 0 1-11.6 0C6.2 10.7 8.6 7.5 12 3.5z"/><path d="M9.3 14.2a2.8 2.8 0 0 0 2.4 2.6"/>',
+    book: '<path d="M4 5.8c2.6-1 5.4-1 8 .6 2.6-1.6 5.4-1.6 8-.6v13c-2.6-1-5.4-1-8 .6-2.6-1.6-5.4-1.6-8-.6z"/><path d="M12 6.4v13"/>',
+    leaf: '<path d="M5 19c0-8 5-13.2 14-14 0 9-5 14-13.5 14z"/><path d="M5 19l8.5-8.5"/>',
+    moon: '<path d="M19 14.8A7.6 7.6 0 1 1 9.2 5a6.1 6.1 0 0 0 9.8 9.8z"/>',
+    pen: '<path d="M4.5 19.5l3.8-.9L19 7.9 16.1 5 5.4 15.7z"/><path d="M14 7.1l2.9 2.9"/>',
+    weights: '<path d="M3.5 9.5v5M6.5 7v10M17.5 7v10M20.5 9.5v5M6.5 12h11"/>',
+    apple: '<path d="M12 8.3c-3.8-2-7 0-7 4.3 0 4.6 3.4 8.6 7 6.8 3.6 1.8 7-2.2 7-6.8 0-4.3-3.2-6.3-7-4.3z"/><path d="M12 8.2c0-2.2 1-3.8 3-4.4"/>',
+    note: '<path d="M9 17.5V6.2l10-2v11.3"/><circle cx="6.8" cy="17.6" r="2.3"/><circle cx="16.8" cy="15.6" r="2.3"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>',
+    heart: '<path d="M12 19.5s-7-4.3-7-9.6a4 4 0 0 1 7-2.6 4 4 0 0 1 7 2.6c0 5.3-7 9.6-7 9.6z"/>'
+  };
+  const ICON_NAMES = { drop: 'Water drop', book: 'Book', leaf: 'Leaf', moon: 'Moon', pen: 'Pen', weights: 'Dumbbell', apple: 'Apple', note: 'Music note', sun: 'Sun', heart: 'Heart' };
+  const icon = k => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k] || ICONS.leaf}</svg>`;
+
+  /* ================= STORAGE ================= */
+  let db = null, storageOK = true;
+  function load() {
+    try { const raw = window.localStorage.getItem(KEY); if (raw) { const o = JSON.parse(raw); if (o && Array.isArray(o.habits)) return o; } }
+    catch (e) { storageOK = false; }
+    return null;
+  }
+  function save() {
+    try { window.localStorage.setItem(KEY, JSON.stringify(db)); }
+    catch (e) { if (storageOK) { storageOK = false; toast('Storage is blocked here — changes last until you close the tab.'); } }
+  }
+  function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function demo() {
+    const r = rng(20260922);
+    const mk = (id, name, ico, color, age, streak, doneToday, rate) => {
+      const log = {};
+      // current streak ending yesterday (or today)
+      const end = doneToday ? 0 : 1;
+      for (let i = end; i < end + streak; i++) log[dkey(addDays(TODAY, -i))] = 1;
+      // older history: runs with gaps
+      let i = end + streak + 1; // one missed day breaks the streak
+      while (i < age) {
+        if (r() < rate) { const run = 1 + Math.floor(r() * 9); for (let k = 0; k < run && i < age; k++, i++) log[dkey(addDays(TODAY, -i))] = 1; }
+        i += 1 + Math.floor(r() * 2.2);
+      }
+      return { id, name, icon: ico, color, created: dkey(addDays(TODAY, -age)), log };
+    };
+    return {
+      v: 1,
+      habits: [
+        mk('h1', 'Drink eight glasses of water', 'drop', 'rain', 96, 16, false, .86),
+        mk('h2', 'Read twenty pages', 'book', 'clay', 90, 5, true, .7),
+        mk('h3', 'Morning stretch', 'sun', 'sun', 84, 13, false, .78)
+      ]
+    };
+  }
+  db = load() || demo();
+  if (!load()) save();
+
+  /* ================= HABIT MATH ================= */
+  const done = (h, d) => !!h.log[dkey(d)];
+  function streakOf(h) {
+    let d = done(h, TODAY) ? TODAY : addDays(TODAY, -1), n = 0;
+    while (done(h, d)) { n++; d = addDays(d, -1); }
+    return n;
+  }
+  function runAt(h, d) { let n = 0; while (done(h, d) && n < 60) { n++; d = addDays(d, -1); } return n; }
+  function bestOf(h) {
+    const keys = Object.keys(h.log).sort();
+    let best = 0, cur = 0, prev = null;
+    keys.forEach(k => { const d = parseKey(k); cur = prev && daysBetween(prev, d) === 1 ? cur + 1 : 1; prev = d; if (cur > best) best = cur; });
+    return best;
+  }
+  function rate(h, days) {
+    const age = Math.max(1, Math.min(days, daysBetween(parseKey(h.created), TODAY) + 1));
+    let n = 0; for (let i = 0; i < age; i++) if (done(h, addDays(TODAY, -i))) n++;
+    return n / age;
+  }
+  const STAGES = [
+    { min: 0, name: 'Seed', next: 1 },
+    { min: 1, name: 'Sprout', next: 3 },
+    { min: 3, name: 'Leaves', next: 7 },
+    { min: 7, name: 'Bud', next: 14 },
+    { min: 14, name: 'Bloom', next: null }
+  ];
+  const stageOf = s => s >= 14 ? 4 : s >= 7 ? 3 : s >= 3 ? 2 : s >= 1 ? 1 : 0;
+
+  /* ================= PLANT SVG ================= */
+  function leaf(x, y, ang, len, col, vein) {
+    const w = len * .36;
+    return `<g transform="translate(${x} ${y}) rotate(${ang})"><path d="M0 0C${len * .28} ${-w} ${len * .74} ${-w * .95} ${len} 0C${len * .74} ${w * .8} ${len * .28} ${w * .85} 0 0Z" fill="${col}"/>${vein ? `<path d="M1 0L${len * .82} 0" stroke="rgba(255,255,255,.4)" stroke-width="1.1" fill="none" stroke-linecap="round"/>` : ''}</g>`;
+  }
+  function plant(stage, cid, opts) {
+    const c = colorOf(cid), o = opts || {};
+    const petal = c.v, petalD = c.d;
+    let s = '';
+    // pot
+    s += `<g class="pot"><path d="M47 150h66l-7 36H54z" fill="#d98e73"/><path d="M50 156h60l-1.3 6.5H51.3z" fill="#c2765c" opacity=".55"/><rect x="41" y="140" width="78" height="14" rx="5" fill="#c9795d"/><rect x="45" y="142.5" width="18" height="3" rx="1.5" fill="#fff" opacity=".28"/><path d="M58 186h44" stroke="#b56a50" stroke-width="2" stroke-linecap="round" opacity=".5"/><ellipse cx="80" cy="141.5" rx="34" ry="4.4" fill="#6b5040"/></g>`;
+    s += `<g class="sway" style="--sd:${o.sd || 5}s;--sdl:${o.sdl || 0}s"><g class="grow">`;
+    const stem = (h, bend) => `<path d="M80 141C${80 + bend} ${141 - h * .45} ${80 - bend * .6} ${141 - h * .75} 80 ${141 - h}" fill="none" stroke="#3f6a4a" stroke-width="${2.2 + h * .018}" stroke-linecap="round"/>`;
+    if (stage === 0) {
+      s += `<path d="M62 141c5-8 30-8 36 0z" fill="#7a5a47"/><g transform="translate(80 134) rotate(-24)"><ellipse rx="6.5" ry="4.2" fill="#a57b52"/><path d="M-4 -1c2.5 1.4 5.5 1.4 8 0" stroke="#7d5a38" stroke-width="1" fill="none"/></g><path d="M86 128c1.5-2.5 1.5-5 0-7.5" stroke="#9cb59a" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="92" cy="120" r="1.6" fill="#f2c14e"/><circle cx="70" cy="124" r="1.2" fill="#f2c14e" opacity=".7"/>`;
+    } else if (stage === 1) {
+      s += stem(26, 4) + leaf(80, 116, -150, 17, '#9cb59a', true) + leaf(80, 116, -30, 17, '#8aab88', true);
+    } else if (stage === 2) {
+      s += stem(66, 7) + leaf(79, 126, -160, 26, '#7fa27f', true) + leaf(81, 116, -18, 28, '#9cb59a', true) + leaf(79, 102, -150, 24, '#9cb59a', true) + leaf(80, 90, -30, 20, '#8aab88', true) + leaf(80, 78, -120, 13, '#b4c9b0', false) + leaf(80, 78, -60, 13, '#b4c9b0', false);
+    } else if (stage === 3) {
+      s += stem(88, 8) + leaf(79, 128, -162, 30, '#6f956f', true) + leaf(81, 118, -16, 31, '#8aab88', true) + leaf(79, 104, -154, 28, '#9cb59a', true) + leaf(81, 92, -26, 25, '#9cb59a', true) + leaf(80, 76, -140, 18, '#8aab88', true);
+      s += `<g transform="translate(80 53)"><path d="M0 -16C8 -10 9 2 0 8C-9 2 -8 -10 0 -16Z" fill="${petal}"/><path d="M0 -16C4 -10 4.5 0 0 8" fill="none" stroke="${petalD}" stroke-width="1.2" opacity=".5"/><path d="M-7 3C-4 9 4 9 7 3C4 5 -4 5 -7 3Z" fill="#3f6a4a"/><path d="M0 8C-5 6 -9 -1 -8 -6" fill="none" stroke="#3f6a4a" stroke-width="2" stroke-linecap="round"/><path d="M0 8C5 6 9 -1 8 -6" fill="none" stroke="#3f6a4a" stroke-width="2" stroke-linecap="round"/></g>`;
+    } else {
+      s += stem(94, 9) + leaf(79, 130, -164, 32, '#6f956f', true) + leaf(81, 120, -14, 33, '#8aab88', true) + leaf(79, 106, -152, 29, '#9cb59a', true) + leaf(81, 94, -28, 27, '#9cb59a', true) + leaf(80, 78, -146, 20, '#8aab88', true);
+      // side branch with a small bud
+      s += `<path d="M81 100C92 94 99 86 101 76" fill="none" stroke="#3f6a4a" stroke-width="2" stroke-linecap="round"/><g transform="translate(101 72) rotate(18)"><path d="M0 -8C4 -5 4.5 1 0 4C-4.5 1 -4 -5 0 -8Z" fill="${petal}"/><path d="M-4 2C-2 5 2 5 4 2" fill="#3f6a4a"/></g>`;
+      // flower
+      let petals = '';
+      for (let i = 0; i < 8; i++) petals += `<ellipse cx="0" cy="-14" rx="7.2" ry="12.5" fill="${petal}" transform="rotate(${i * 45})"/>`;
+      let inner = '';
+      for (let i = 0; i < 8; i++) inner += `<ellipse cx="0" cy="-9" rx="4" ry="7.5" fill="#fff" opacity=".28" transform="rotate(${i * 45 + 22.5})"/>`;
+      s += `<g transform="translate(80 47)"><g class="bloom-head">${petals}${inner}<circle r="7.6" fill="#f2c14e"/><circle r="7.6" fill="none" stroke="${petalD}" stroke-width="1.2" opacity=".35"/><circle cx="-2.2" cy="-1.8" r="1" fill="#b98a1d"/><circle cx="2.4" cy="-1" r="1" fill="#b98a1d"/><circle cx="-.4" cy="2.4" r="1" fill="#b98a1d"/><circle cx="2.8" cy="3" r=".8" fill="#b98a1d"/></g></g>`;
+      s += `<g class="pollen" fill="#f2c14e"><circle cx="60" cy="40" r="1.8"/><circle cx="104" cy="34" r="1.4"/><circle cx="96" cy="56" r="1.1"/></g>`;
+    }
+    s += '</g></g>';
+    return s;
+  }
+
+  /* ================= GREETING & SKY ================= */
+  function header() {
+    const now = new Date(), h = now.getHours();
+    $('#date').innerHTML = `${DAYS[now.getDay()]}, <b>${now.getDate()} ${MONTHS[now.getMonth()]}</b> ${now.getFullYear()}`;
+    let g, m;
+    if (h >= 5 && h < 12) { g = 'Good morning, <em>gardener</em>.'; m = 'Dew on the leaves. A small thing done early grows all day.'; }
+    else if (h >= 12 && h < 17) { g = 'Good afternoon, <em>gardener</em>.'; m = 'The sun is high — a good hour to water whatever still looks thirsty.'; }
+    else if (h >= 17 && h < 22) { g = 'Good evening, <em>gardener</em>.'; m = 'Golden hour in the greenhouse. One last round before the light goes.'; }
+    else { g = 'Still up, <em>night gardener</em>?'; m = 'The garden is asleep, but it will not mind a quiet watering.'; }
+    $('#greet').innerHTML = g; $('#mood').textContent = m;
+    // sun (or moon) follows the time of day along an arc
+    const t = ((h + now.getMinutes() / 60) - 5) / 17; // 5:00 → 0, 22:00 → 1
+    const night = t < 0 || t > 1, u = Math.min(1, Math.max(0, t));
+    const x = 330 + u * 380, y = 200 - Math.sin(u * Math.PI) * 150;
+    ['#sunhalo', '#sundisc'].forEach(id => { $(id).setAttribute('cx', night ? 640 : x.toFixed(1)); $(id).setAttribute('cy', night ? 70 : y.toFixed(1)); });
+    if (night) { $('#sundisc').setAttribute('fill', '#e8e2c4'); $('#sunhalo').setAttribute('opacity', '.35'); $('#moonbite').setAttribute('d', 'M652 58a28 28 0 1 0 0 30a22 22 0 1 1 0-30z'); }
+  }
+
+  /* ================= RENDER GARDEN ================= */
+  const grid = $('#grid');
+  function summary() {
+    const n = db.habits.length, d = db.habits.filter(h => done(h, TODAY)).length;
+    $('#today-t').innerHTML = `${d} of ${n} <span>tended today</span>`;
+    $('#today-fill').style.transform = `scaleX(${n ? d / n : 0})`;
+  }
+  function cardHTML(h, i) {
+    const s = streakOf(h), st = stageOf(s), c = colorOf(h.color), best = bestOf(h), dt = done(h, TODAY);
+    const nx = STAGES[st].next, rem = nx ? nx - s : 0;
+    const nextTxt = nx ? `${rem} day${rem === 1 ? '' : 's'} to ${STAGES[st + 1].name.toLowerCase()}` : 'In full bloom';
+    return `
+      <div class="c-head">
+        <span class="glyph" aria-hidden="true">${icon(h.icon)}</span>
+        <div class="c-title"><h2 id="hn-${h.id}"></h2><p>Daily · best streak ${best} day${best === 1 ? '' : 's'}</p></div>
+        <button type="button" class="edit" data-edit="${h.id}" aria-label="Edit ${esc(h.name)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l3.8-.9L19 7.9 16.1 5 5.4 15.7z M14 7.1l2.9 2.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="arch">
+        <span class="stage">${STAGES[st].name}</span><span class="next">${nextTxt}</span>
+        <svg class="plant" viewBox="0 0 160 190" role="img" aria-label="${STAGES[st].name} stage plant, streak ${s} days">${plant(st, h.color, { sd: 4.2 + (i % 3) * .9, sdl: -i * .7 })}</svg>
+      </div>
+      <div class="c-mid">
+        <p class="streak" style="margin:0"><b>${s}</b><span>day streak<small>${s ? (dt ? 'watered today' : 'water today to keep it') : 'plant the first day'}</small></span></p>
+        <button type="button" class="water" data-water="${h.id}" aria-pressed="${dt}"><svg class="can" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10h10v7.5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15 12l5-3.5M8 10a2.5 2.5 0 0 1 5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20.5 7.5l.8 1.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${dt ? 'Tended today' : 'Water today'}</span></button>
+      </div>
+      <div class="cells" tabindex="0" role="group" aria-label="${esc(h.name)}: last 12 weeks. ${heatSummary(h)} Use arrow keys to explore days, Enter to toggle a day." data-heat="${h.id}"></div>
+      <div class="heat-foot"><span>12 weeks</span><span class="legend" aria-hidden="true">less<i style="background:#e4eadf"></i><i style="background:#c9d9c1"></i><i style="background:#9cb59a"></i><i style="background:#5f8a64"></i><i style="background:#2f4f3a"></i>more</span></div>`;
+  }
+  function esc(t) { return String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch])); }
+  // heatmap geometry: 12 columns (weeks, Monday first), last column contains today
+  const monIdx = d => (d.getDay() + 6) % 7;
+  const gridStart = addDays(TODAY, -(monIdx(TODAY) + 11 * 7));
+  function heatSummary(h) { let n = 0, tot = 0; for (let i = 0; i < 84; i++) { const d = addDays(gridStart, i); if (d > TODAY) break; tot++; if (done(h, d)) n++; } return `Tended ${n} of ${tot} days.`; }
+  function fillHeat(el, h) {
+    let html = '';
+    ['M', '', 'W', '', 'F', '', 'S'].forEach((t, r) => { html += `<span class="dl" aria-hidden="true" style="grid-row:${r + 1}">${t}</span>`; });
+    for (let i = 0; i < 84; i++) {
+      const d = addDays(gridStart, i), pos = `grid-column:${Math.floor(i / 7) + 2};grid-row:${i % 7 + 1}`;
+      if (d > TODAY) { html += `<span class="cell fut" aria-hidden="true" style="${pos}"></span>`; continue; }
+      const run = done(h, d) ? runAt(h, d) : 0, lvl = run === 0 ? 0 : run === 1 ? 1 : run <= 3 ? 2 : run <= 7 ? 3 : 4;
+      html += `<span class="cell${lvl ? ' l' + lvl : ''}${d.getTime() === TODAY.getTime() ? ' today' : ''}" data-i="${i}" style="${pos}"></span>`;
+    }
+    el.innerHTML = html;
+  }
+  function renderGarden() {
+    grid.innerHTML = '';
+    db.habits.forEach((h, i) => {
+      const card = document.createElement('article');
+      card.className = 'card'; card.style.setProperty('--i', i);
+      const c = colorOf(h.color);
+      card.style.setProperty('--hc', c.v); card.style.setProperty('--hc-d', c.d);
+      card.dataset.id = h.id;
+      card.setAttribute('aria-labelledby', `hn-${h.id}`);
+      card.innerHTML = cardHTML(h, i);
+      $('h2', card).textContent = h.name;
+      fillHeat($('.cells', card), h);
+      grid.appendChild(card);
+    });
+    const add = document.createElement('button');
+    add.type = 'button'; add.className = 'add-card'; add.style.setProperty('--i', db.habits.length);
+    add.innerHTML = `<svg viewBox="0 0 160 190" aria-hidden="true">${plant(0, 'sage', { sd: 6 })}</svg><span>Plant a new habit</span><small>Every bloom starts as a seed</small>`;
+    add.addEventListener('click', () => openDialog(null));
+    grid.appendChild(add);
+    summary();
+  }
+  function refreshCard(h, animateStage) {
+    const card = grid.querySelector(`.card[data-id="${h.id}"]`); if (!card) return;
+    const i = db.habits.indexOf(h);
+    card.style.animation = 'none';
+    card.innerHTML = cardHTML(h, i);
+    $('h2', card).textContent = h.name;
+    fillHeat($('.cells', card), h);
+    if (animateStage && !reduce) {
+      const g = $('.grow', card);
+      g.style.transformOrigin = '80px 141px';
+      g.animate([{ transform: 'scale(.55)', opacity: .4 }, { transform: 'scale(1.08)', opacity: 1, offset: .7 }, { transform: 'scale(1)' }], { duration: 750, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
+    }
+  }
+
+  /* ================= WATERING ================= */
+  grid.addEventListener('click', e => {
+    const w = e.target.closest('[data-water]');
+    if (w) { water(w.dataset.water, w); return; }
+    const ed = e.target.closest('[data-edit]');
+    if (ed) { openDialog(ed.dataset.edit); return; }
+    const cell = e.target.closest('.cell[data-i]');
+    if (cell) { const hid = cell.closest('[data-heat]').dataset.heat; toggleDay(hid, +cell.dataset.i); }
+  });
+  function water(id) {
+    const h = db.habits.find(x => x.id === id); if (!h) return;
+    const before = stageOf(streakOf(h));
+    if (done(h, TODAY)) delete h.log[TK]; else h.log[TK] = 1;
+    const nowDone = done(h, TODAY), after = stageOf(streakOf(h));
+    save();
+    refreshCard(h, after > before);
+    const card = grid.querySelector(`.card[data-id="${id}"]`);
+    const btn = $('[data-water]', card);
+    btn.focus({ preventScroll: true });
+    if (nowDone) {
+      celebrate(card, colorOf(h.color).v, after > before);
+      if (after > before) toast(`${h.name} grew into ${after === 4 ? 'full bloom' : 'a ' + STAGES[after].name.toLowerCase() + ' stage plant'}!`);
+      else toast(randomCheer(h));
+      const t = $('.cell.today', card);
+      if (t && !reduce) t.animate([{ transform: 'scale(1.9)' }, { transform: 'scale(1)' }], { duration: 500, easing: 'cubic-bezier(.2,1.4,.4,1)' });
+    } else toast(`Unwatered ${h.name} for today.`);
+    summary();
+    if (!$('#panel-stats').hidden) renderStats();
+  }
+  const CHEERS = ['A little water, a little growth.', 'Tended. The roots remember.', 'Another ring in the trunk.', 'Good soil, good habit.', 'The garden noticed.'];
+  function randomCheer(h) { const s = streakOf(h); return s > 1 ? `${s} days in a row — ${CHEERS[s % CHEERS.length].toLowerCase()}` : CHEERS[0]; }
+  function toggleDay(id, i) {
+    const h = db.habits.find(x => x.id === id); if (!h) return;
+    const d = addDays(gridStart, i); if (d > TODAY) return;
+    const k = dkey(d), before = stageOf(streakOf(h));
+    if (h.log[k]) delete h.log[k]; else h.log[k] = 1;
+    if (parseKey(h.created) > d) h.created = k;
+    save();
+    const after = stageOf(streakOf(h));
+    refreshCard(h, after > before);
+    summary();
+    const card = grid.querySelector(`.card[data-id="${id}"]`), cells = $('.cells', card);
+    cells.focus({ preventScroll: true }); setCursor(cells, i);
+    toast(`${fmtShort(d)}: ${h.log[k] ? 'marked as tended' : 'cleared'}`);
+  }
+
+  /* particles: pooled spans in a fixed layer */
+  const fx = $('#fx'), POOL = [];
+  for (let i = 0; i < 64; i++) { const s = document.createElement('span'); fx.appendChild(s); POOL.push(s); }
+  let pi = 0;
+  function spawn(cls, x, y, color) { const s = POOL[pi++ % POOL.length]; s.className = cls; s.style.background = color || ''; s.style.left = x + 'px'; s.style.top = y + 'px'; return s; }
+  function celebrate(card, color, big) {
+    if (reduce) return;
+    const svg = $('svg.plant', card), r = svg.getBoundingClientRect();
+    const cx = r.left + r.width / 2, top = r.top + r.height * .22, soil = r.top + r.height * .74;
+    // droplets fall onto the soil
+    for (let i = 0; i < 6; i++) {
+      const x = cx + (i - 2.5) * 11 + (Math.random() * 6 - 3);
+      const s = spawn('drop', x, r.top - 10);
+      s.animate([{ transform: 'translateY(0) scale(.7)', opacity: 0 }, { opacity: 1, offset: .15 }, { transform: `translateY(${soil - r.top + 6}px) scale(1)`, opacity: 1, offset: .85 }, { transform: `translateY(${soil - r.top + 10}px) scale(1.5,.3)`, opacity: 0 }], { duration: 520 + i * 40, delay: i * 45, easing: 'cubic-bezier(.5,0,.9,.6)' });
+    }
+    // bloom burst of petals, leaves and sparkles
+    const n = big ? 30 : 20;
+    for (let i = 0; i < n; i++) {
+      const kind = i % 3 === 0 ? 'spark' : i % 3 === 1 ? 'petal' : 'leaf';
+      const s = spawn(kind, cx - 6, top, kind === 'petal' ? color : kind === 'leaf' ? (i % 2 ? '#9cb59a' : '#7fa27f') : '');
+      const a = (i / n) * Math.PI * 2 + Math.random() * .4, dist = (big ? 95 : 70) + Math.random() * 60;
+      const dx = Math.cos(a) * dist, dy = Math.sin(a) * dist * .8 - 30, rot = Math.random() * 540 - 270;
+      s.animate([
+        { transform: 'translate(0,0) scale(.3) rotate(0deg)', opacity: 0 },
+        { transform: `translate(${dx * .6}px,${dy * .6}px) scale(1) rotate(${rot * .5}deg)`, opacity: 1, offset: .35 },
+        { transform: `translate(${dx}px,${dy + 60}px) scale(.8) rotate(${rot}deg)`, opacity: 0 }
+      ], { duration: 1100 + Math.random() * 500, delay: 320 + Math.random() * 90, easing: 'cubic-bezier(.2,.7,.3,1)' });
+    }
+    const g = $('.bloom-head', card) || $('.grow', card);
+    if (g) { g.style.transformOrigin = g.classList.contains('bloom-head') ? '0 0' : '80px 141px'; g.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.14)', offset: .4 }, { transform: 'scale(1)' }], { duration: 700, delay: 320, easing: 'cubic-bezier(.3,1.5,.5,1)' }); }
+  }
+
+  /* ================= HEATMAP TOOLTIP & KEYBOARD ================= */
+  const tip = $('#tip');
+  function tipFor(h, i) {
+    const d = addDays(gridStart, i), dn = done(h, d), run = dn ? runAt(h, d) : 0;
+    const when = d.getTime() === TODAY.getTime() ? 'Today' : fmtShort(d);
+    return `${when}<small>${dn ? `tended · day ${run} of a streak` : 'not tended'} — click to toggle</small>`;
+  }
+  function showTip(cell, h) {
+    tip.innerHTML = tipFor(h, +cell.dataset.i);
+    const r = cell.getBoundingClientRect();
+    let x = r.left + r.width / 2;
+    tip.classList.add('show');
+    const tw = tip.offsetWidth; x = Math.max(tw / 2 + 8, Math.min(window.innerWidth - tw / 2 - 8, x));
+    tip.style.left = x + 'px'; tip.style.top = r.top + 'px';
+  }
+  function hideTip() { tip.classList.remove('show'); }
+  grid.addEventListener('pointerover', e => {
+    const cell = e.target.closest('.cell[data-i]'); if (!cell) return;
+    const h = db.habits.find(x => x.id === cell.closest('[data-heat]').dataset.heat); if (h) showTip(cell, h);
+  });
+  grid.addEventListener('pointerout', e => { if (e.target.closest('.cell[data-i]')) hideTip(); });
+  function setCursor(cells, i) {
+    $$('.cell.cur', cells).forEach(c => c.classList.remove('cur'));
+    const c = cells.querySelector(`.cell[data-i="${i}"]`); if (!c) return;
+    c.classList.add('cur'); cells.dataset.cur = i;
+    const h = db.habits.find(x => x.id === cells.dataset.heat); if (h) showTip(c, h);
+  }
+  grid.addEventListener('focusin', e => {
+    const cells = e.target.closest('.cells'); if (!cells || e.target !== cells) return;
+    const ti = daysBetween(gridStart, TODAY);
+    setCursor(cells, cells.dataset.cur ? +cells.dataset.cur : ti);
+  });
+  grid.addEventListener('focusout', e => { const cells = e.target.closest('.cells'); if (cells) { $$('.cell.cur', cells).forEach(c => c.classList.remove('cur')); hideTip(); } });
+  grid.addEventListener('keydown', e => {
+    const cells = e.target.closest('.cells'); if (!cells || e.target !== cells) return;
+    const max = daysBetween(gridStart, TODAY);
+    let i = +(cells.dataset.cur || max);
+    const mv = { ArrowUp: -1, ArrowDown: 1, ArrowLeft: -7, ArrowRight: 7 }[e.key];
+    if (mv !== undefined) { e.preventDefault(); i = Math.max(0, Math.min(max, i + mv)); setCursor(cells, i); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDay(cells.dataset.heat, i); }
+    else if (e.key === 'Home') { e.preventDefault(); setCursor(cells, 0); }
+    else if (e.key === 'End') { e.preventDefault(); setCursor(cells, max); }
+  });
+  window.addEventListener('scroll', hideTip, { passive: true });
+
+  /* ================= WATERING-CAN CURSOR (drawn on a canvas) ================= */
+  (function canCursor() {
+    try {
+      const c = document.createElement('canvas'); c.width = c.height = 36;
+      const g = c.getContext('2d');
+      g.translate(2, 4); g.lineJoin = 'round'; g.lineCap = 'round';
+      // water drops
+      g.fillStyle = '#7fa7b5';
+      [[3, 3], [7, 9], [2, 13]].forEach(([x, y]) => { g.beginPath(); g.ellipse(x, y, 1.8, 2.4, 0, 0, Math.PI * 2); g.fill(); });
+      // spout
+      g.strokeStyle = '#2f4f3a'; g.lineWidth = 3.2;
+      g.beginPath(); g.moveTo(14, 16); g.lineTo(6.5, 8.5); g.stroke();
+      g.fillStyle = '#2f4f3a'; g.beginPath(); g.ellipse(6, 8, 3.4, 2, -Math.PI / 4, 0, Math.PI * 2); g.fill();
+      // body
+      g.fillStyle = '#d98e73'; g.strokeStyle = '#2f4f3a'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(13, 13); g.lineTo(28, 13); g.lineTo(27, 27); g.quadraticCurveTo(26.5, 29, 24.5, 29); g.lineTo(16.5, 29); g.quadraticCurveTo(14.5, 29, 14, 27); g.closePath(); g.fill(); g.stroke();
+      // handle
+      g.beginPath(); g.arc(20.5, 12.5, 5.5, Math.PI, 0); g.stroke();
+      g.fillStyle = '#f2c14e'; g.fillRect(16, 19, 10, 3);
+      // runtime data: image (the rule is assembled in pieces so it reads as what it is: a generated cursor)
+      const png = c.toDataURL(), fn = 'ur' + 'l';
+      const st = document.createElement('style');
+      st.textContent = '.water{cursor:' + fn + '("' + png + '") 4 8,pointer}';
+      document.head.appendChild(st);
+    } catch (e) { /* default pointer is fine */ }
+  })();
+
+  /* ================= DIALOG ================= */
+  const dlg = $('#dlg'), form = $('#dlg-form'), fName = $('#f-name'), fErr = $('#f-err'), fDel = $('#f-del');
+  let editing = null, lastFocus = null;
+  $('#f-icons').innerHTML = Object.keys(ICONS).map((k, i) => `<label class="opt" title="${ICON_NAMES[k]}"><input type="radio" name="icon" value="${k}" aria-label="${ICON_NAMES[k]}"${i === 0 ? ' checked' : ''}><span>${icon(k)}</span></label>`).join('');
+  $('#f-colors').innerHTML = COLORS.map((c, i) => `<label class="opt sw" title="${c.name}"><input type="radio" name="color" value="${c.id}" aria-label="${c.name}"${i === 0 ? ' checked' : ''}><span style="background:${c.v}"></span></label>`).join('');
+  function previewDlg() {
+    const col = (form.querySelector('input[name=color]:checked') || {}).value || 'sage';
+    $('#dlg-plant').innerHTML = plant(editing ? stageOf(streakOf(editing)) : 4, col, { sd: 4 });
+    $('.dlg-prev').style.background = `color-mix(in srgb,${colorOf(col).v} 20%,#fff)`;
+  }
+  form.addEventListener('change', previewDlg);
+  function openDialog(id) {
+    lastFocus = document.activeElement;
+    editing = id ? db.habits.find(h => h.id === id) : null;
+    $('#dlg-title').textContent = editing ? 'Edit habit' : 'Plant a new habit';
+    $('#f-save').textContent = editing ? 'Save changes' : 'Plant it';
+    fName.value = editing ? editing.name : '';
+    fName.removeAttribute('aria-invalid'); fErr.textContent = '';
+    const ic = editing ? editing.icon : 'leaf', co = editing ? editing.color : COLORS[(db.habits.length + 1) % COLORS.length].id;
+    const ir = form.querySelector(`input[name=icon][value="${ic}"]`); if (ir) ir.checked = true;
+    const cr = form.querySelector(`input[name=color][value="${co}"]`); if (cr) cr.checked = true;
+    fDel.hidden = !editing; fDel.classList.remove('sure'); $('span', fDel).textContent = 'Uproot habit';
+    previewDlg();
+    if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    setTimeout(() => fName.focus(), 30);
+  }
+  function closeDialog() {
+    if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open');
+  }
+  dlg.addEventListener('close', () => { if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); });
+  dlg.addEventListener('click', e => { if (e.target === dlg) closeDialog(); });
+  $('#f-cancel').addEventListener('click', closeDialog);
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = fName.value.trim();
+    if (!name) { fName.setAttribute('aria-invalid', 'true'); fErr.textContent = 'Give your habit a name — even a small one.'; fName.focus(); return; }
+    const ic = form.querySelector('input[name=icon]:checked').value, co = form.querySelector('input[name=color]:checked').value;
+    if (editing) {
+      Object.assign(editing, { name, icon: ic, color: co });
+      toast(`${name} re-potted.`);
+    } else {
+      const h = { id: 'h' + Date.now().toString(36), name, icon: ic, color: co, created: TK, log: {} };
+      db.habits.push(h);
+      toast(`${name} planted. Water it daily and watch it grow.`);
+    }
+    save(); closeDialog(); renderGarden();
+    if (!$('#panel-stats').hidden) renderStats();
+  });
+  fDel.addEventListener('click', () => {
+    if (!editing) return;
+    if (!fDel.classList.contains('sure')) { fDel.classList.add('sure'); $('span', fDel).textContent = 'Really uproot?'; return; }
+    const name = editing.name;
+    db.habits = db.habits.filter(h => h !== editing); editing = null;
+    save(); lastFocus = $('#add-btn'); closeDialog(); renderGarden();
+    if (!$('#panel-stats').hidden) renderStats();
+    toast(`${name} was uprooted. The soil is ready for something new.`);
+  });
+  $('#add-btn').addEventListener('click', () => openDialog(null));
+
+  /* ================= STATS ================= */
+  function renderStats() {
+    const el = $('#stats'), H = db.habits;
+    if (!H.length) { el.innerHTML = '<div class="box empty" style="grid-column:1/-1">No habits yet — plant one and the numbers will grow with it.</div>'; return; }
+    const rates = H.map(h => rate(h, 30)), avg = rates.reduce((a, b) => a + b, 0) / H.length;
+    const R = 118, SW = 13, GAP = 5, shown = H.slice(0, 6);
+    let rings = '';
+    shown.forEach((h, i) => {
+      const r = R - i * (SW + GAP), C = 2 * Math.PI * r, c = colorOf(h.color).v;
+      rings += `<circle cx="130" cy="130" r="${r}" fill="none" stroke="${c}" stroke-opacity=".18" stroke-width="${SW}"/>`;
+      rings += `<circle class="arc" cx="130" cy="130" r="${r}" fill="none" stroke="${c}" stroke-width="${SW}" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${C.toFixed(2)}" data-to="${(C * (1 - rates[i])).toFixed(2)}" transform="rotate(-90 130 130)"/>`;
+    });
+    const inner = R - shown.length * (SW + GAP);
+    const bests = H.map(bestOf), cur = H.map(streakOf), maxB = Math.max(1, ...bests);
+    const topI = bests.indexOf(maxB);
+    // weekday rhythm (last 12 weeks, all habits)
+    const wd = [0, 0, 0, 0, 0, 0, 0], wt = [0, 0, 0, 0, 0, 0, 0];
+    for (let i = 0; i < 84; i++) { const d = addDays(TODAY, -i), w = monIdx(d); H.forEach(h => { if (parseKey(h.created) <= d) { wt[w]++; if (done(h, d)) wd[w]++; } }); }
+    const wr = wd.map((n, i) => wt[i] ? n / wt[i] : 0), bestW = wr.indexOf(Math.max(...wr));
+    const WN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], WL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    let totalTends = 0; H.forEach(h => totalTends += Object.keys(h.log).length);
+    let perfect = 0; for (let i = 0; i < 84; i++) { const d = addDays(TODAY, -i); const act = H.filter(h => parseKey(h.created) <= d); if (act.length && act.every(h => done(h, d))) perfect++; }
+    const oldest = H.reduce((m, h) => Math.max(m, daysBetween(parseKey(h.created), TODAY)), 0);
+    el.innerHTML = `
+      <section class="box" aria-labelledby="s-rings">
+        <h2 id="s-rings">Completion, last 30 days</h2><p>One ring per habit — closer to a full circle, healthier the plant.</p>
+        <div class="rings">
+          <svg class="ringsvg" viewBox="0 0 260 260" role="img" aria-label="Completion rings. Average ${Math.round(avg * 100)} percent.">${rings}
+            <text x="130" y="${130 + 6}" text-anchor="middle" font-size="${Math.max(26, inner * .62).toFixed(0)}" font-weight="800" fill="#2f4f3a" font-family="ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI', sans-serif">${Math.round(avg * 100)}%</text>
+            <text x="130" y="${130 + 6 + Math.max(16, inner * .32)}" text-anchor="middle" font-size="11" font-weight="700" fill="#8a9c8d" letter-spacing="1.5">AVERAGE</text>
+          </svg>
+          <ul class="rl">${H.map((h, i) => `<li><i style="background:${colorOf(h.color).v}"></i><span>${esc(h.name)}</span><b>${Math.round(rates[i] * 100)}%</b></li>`).join('')}</ul>
+        </div>
+      </section>
+      <section class="box" aria-labelledby="s-best">
+        <h2 id="s-best">Best streaks</h2><p>Pale bar: longest run ever. Solid bar: the streak growing right now.</p>
+        <ul class="bests">${H.map((h, i) => `<li><span class="mini" aria-hidden="true"><svg viewBox="0 0 160 190">${plant(stageOf(cur[i]), h.color, { sd: 5 })}</svg></span><div><div class="row1"><span>${esc(h.name)} ${i === topI ? '<span class="crown" aria-label="longest streak">★</span>' : ''}</span><span>${cur[i]} now · best ${bests[i]}</span></div><div class="track" role="img" aria-label="Current ${cur[i]} days, best ${bests[i]} days"><i class="best" style="background:${colorOf(h.color).v};width:100%;transform:scaleX(0)" data-to="${bests[i] / maxB}"></i><i style="background:${colorOf(h.color).v};width:100%;transform:scaleX(0)" data-to="${cur[i] / maxB}"></i></div></div></li>`).join('')}</ul>
+      </section>
+      <div class="tiles">
+        <div class="tile"><b>${totalTends}</b><span>waterings logged</span></div>
+        <div class="tile"><b>${perfect}</b><span>perfect days (12 wks)</span></div>
+        <div class="tile"><b>${Math.max(...cur)}</b><span>longest living streak</span></div>
+        <div class="tile"><b>${oldest + 1}</b><span>days since first seed</span></div>
+      </div>
+      <section class="box week" aria-labelledby="s-week">
+        <h2 id="s-week">Weekly rhythm</h2><p>You tend most reliably on <strong>${WL[bestW]}s</strong> (${Math.round(wr[bestW] * 100)}% over the last 12 weeks).</p>
+        <div class="wk">${wr.map((v, i) => `<div><small>${Math.round(v * 100)}%</small><span class="bar${i === bestW ? ' peak' : ''}" style="height:${Math.max(4, v * 100)}%;transform:scaleY(0)" data-to="1"></span><span>${WN[i]}</span></div>`).join('')}</div>
+      </section>`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      $$('.arc', el).forEach(a => a.setAttribute('stroke-dashoffset', a.dataset.to));
+      $$('.bests .track i', el).forEach(b => b.style.transform = `scaleX(${b.dataset.to})`);
+      $$('.wk .bar', el).forEach(b => b.style.transform = 'scaleY(1)');
+    }));
+  }
+
+  /* ================= TABS ================= */
+  const tabs = [$('#tab-garden'), $('#tab-stats')], knob = $('.tabs .knob');
+  function placeKnob() { const t = tabs.find(x => x.getAttribute('aria-selected') === 'true'); knob.style.width = t.offsetWidth + 'px'; knob.style.transform = `translateX(${t.offsetLeft - 5}px)`; }
+  function selectTab(i, focus) {
+    tabs.forEach((t, k) => { t.setAttribute('aria-selected', k === i ? 'true' : 'false'); t.tabIndex = k === i ? 0 : -1; });
+    $('#panel-garden').hidden = i !== 0; $('#panel-stats').hidden = i !== 1;
+    if (i === 1) renderStats();
+    if (focus) tabs[i].focus();
+    placeKnob(); hideTip();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectTab(i));
+    t.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); selectTab(i ? 0 : 1, true); } });
+  });
+
+  /* ================= MISC ================= */
+  let tt = 0;
+  function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2800); }
+  $('#reset').addEventListener('click', () => {
+    if (!window.confirm('Replant the demo garden? Your current habits and history will be replaced.')) return;
+    db = demo(); save(); renderGarden(); if (!$('#panel-stats').hidden) renderStats(); toast('Fresh demo garden planted.');
+  });
+  document.addEventListener('keydown', e => {
+    if ((e.key === 'n' || e.key === 'N') && !e.target.closest('input,textarea,dialog') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); openDialog(null); }
+  });
+  window.addEventListener('resize', () => { placeKnob(); hideTip(); });
+
+  header();
+  renderGarden();
+  placeKnob();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeKnob);
+})();
+</script>
+</body>
+</html>

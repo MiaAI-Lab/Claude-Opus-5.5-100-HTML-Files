@@ -1,0 +1,37 @@
+TITLE: Skyward — A Brief History of Flight
+FILE: 063-history-of-flight.html
+
+=== PROMPT (exact prompt used) ===
+Design "Skyward — A Brief History of Flight", an interactive horizontal timeline. Sky palette: dawn blue #bde0fe, cerulean #3a86ff, cloud white, sunset accent #ff8fab, ink #1d3557. A long drag-scrollable (and wheel/keyboard) timeline from 1783 to 1969 with well-established milestones: 1783 first crewed hot-air balloon flight (Montgolfier brothers' balloon); 1853 Cayley's crewed glider; 1891 Lilienthal's gliders; 1903 the Wright Flyer at Kitty Hawk (12 seconds, 120 feet); 1909 Blériot crosses the English Channel; 1919 Alcock and Brown make the first non-stop transatlantic flight; 1927 Lindbergh's solo transatlantic flight; 1932 Amelia Earhart's solo transatlantic flight; 1939 first jet-powered flight (Heinkel He 178); 1947 Chuck Yeager breaks the sound barrier in the Bell X-1; 1957 Sputnik 1; 1961 Yuri Gagarin orbits Earth; 1969 Apollo 11 lands on the Moon. Each milestone has an elegant SVG line illustration of the craft, its date and a short caption. Parallax clouds at several depths; a small paper plane travels along the timeline. Clicking a milestone expands its card. A progress altimeter shows the year. Typography: an aviation-inspired sans with serif captions.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+Skyward is a horizontal, drag-scrollable timeline of flight from 1783 to 1969, told as a climb. The sky is painted live on a canvas and changes with the year at the centre of the screen. It starts as a pink dawn over the Montgolfier balloon, turns cerulean for the age of the Wrights, Blériot and the Atlantic crossings, deepens through 1947, and becomes star-filled space with the Earth's limb glowing below for Sputnik, Gagarin and Apollo 11. Thirteen well-established milestones stand on white "flight strip" cards: 1783 Montgolfier balloon, 1853 Cayley's glider, 1891 Lilienthal, 1903 Wright Flyer, 1909 Blériot, 1919 Alcock and Brown, 1927 Lindbergh, 1932 Earhart, 1939 He 178, 1947 Bell X-1, 1957 Sputnik 1, 1961 Gagarin and 1969 Apollo 11. The cards rise higher above the time axis as the years go on. Each card has an original SVG line illustration of the craft, its date and place, and a short serif caption. Opening a card gives the full story and key figures. A paper plane flies below the axis trailing a dashed contrail, and an instrument-style altimeter reads out the year. Type pairs a condensed aviation sans (DIN, Bahnschrift, Nimbus Sans Narrow) for numerals and labels with an old-style serif for captions.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- The sky gradient is keyed to the year through six colour keyframes (dawn #bde0fe with a sunset #ff8fab glow, cerulean #3a86ff, high-altitude blue, ink #1d3557 night) with smoothstep blending. In the space age, twinkling stars and a radial-gradient "Earth limb" fade in.
+- Four parallax cloud layers use pre-rendered soft cloud sprites (stacked radial-gradient puffs with a shaded underside). They move at 0.06×, 0.18×, 0.42× and 1.25× of the scroll and drift slowly with time. The fastest layer passes in front of the cards on a separate canvas, and the clouds thin out as the page leaves the atmosphere.
+- Thirteen hand-drawn SVG illustrations use ink strokes with white, dawn and sunset fills. Each draws itself on the first time it flies into view (pathLength = 1 with an animated stroke-dashoffset, then the fills fade in). The cards visible at load are shown already drawn.
+- A piecewise-linear year↔position map spaces the milestones evenly while the decade ticks show time compressing. Italic gap labels ("+70 yrs", "+4 yrs") sit between stops.
+- A canvas paper plane pitches with scroll velocity, turns to face the direction of travel, bobs gently, and leaves a dashed contrail stored in world coordinates.
+- The altimeter is an SVG gauge with a bezel gradient, a 50-tick dial, a tens needle and a units needle driven by the fractional year, and a pink counter window.
+- A top route bar shows progress from 1783 to 1969 with a small plane glyph. The nearest card lifts, its gradient top rule extends, and its axis dot pings.
+- The detail card opens with a FLIP animation from the clicked card's rectangle and holds an enlarged illustration, the full text and a stats grid.
+
+=== INTERACTION MODEL ===
+- Drag the sky with mouse or touch, with inertia on release. The mouse wheel or trackpad in either direction also moves the timeline. ←/→ and PageUp/PageDown jump between milestones, Home/End go to either end, and round prev/next buttons do the same with a "05 / 13" counter.
+- Click, or press Enter on a focused card, to open the expanded card. Inside it, Earlier/Later and ←/→ step through milestones, and Esc, the × button or the scrim closes it. Focus is trapped while it is open and returned to the card on close.
+- Tabbing to a card scrolls it into view, and a drag never triggers a click.
+- On resize the current year is kept and the view snaps to the nearest milestone, so the phone layout lands cleanly.
+- Reduced motion stops cloud drift, plane bobbing and the draw-on and ping animations. Colour changes toward night flip the page chrome to light text.

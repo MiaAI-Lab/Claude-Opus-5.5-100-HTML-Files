@@ -1,0 +1,38 @@
+TITLE: Crystalline — No Two Alike
+FILE: 084-snowflake-generator.html
+
+=== PROMPT (exact prompt used) ===
+Create "Crystalline — No Two Alike", a procedural snowflake generator. Each snowflake grows with 6-fold (dihedral) symmetry using a branching algorithm — main arms with side dendrites, plates and needles that vary with "temperature" and "humidity" parameters, loosely echoing the Nakaya diagram. Rendered in SVG/canvas as translucent ice with inner facets, edge highlights and a faint glow on a deep winter-blue background (#0c1b33 → #1c3a5e). The hero shows one large flake slowly rotating; below it, a gallery of smaller generated flakes. Background: gentle snowfall of micro-flakes with depth blur. Interaction: "Grow a snowflake" animates growth outward from a hexagonal seed; temperature and humidity sliders show how the form changes (plates at some settings, dendrites at others — keep the explanation light and approximate); clicking a gallery flake enlarges it; each flake gets a catalogue number and date; download as SVG. Typography: a thin, wide-tracked sans with a delicate serif italic.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+"Crystalline — No Two Alike" is a quiet laboratory of ice on a deep winter-blue field (#0c1b33 → #1c3a5e), where soft snow falls through three depths of focus. On the left, a slim panel in thin, wide-tracked sans with delicate serif italics holds the conditions in the cloud: temperature and humidity sliders and a small, simplified Nakaya diagram whose glowing cursor can be dragged directly. A one-line, deliberately approximate explanation of the resulting habit sits below. On the right, one large, slowly rotating snowflake glows like translucent ice, with a catalogue plaque beneath it (number, date and time, habit name). "Grow a snowflake" grows a new crystal outward from a tiny hexagonal seed, numbers and dates it, and files it in the catalogue below. The catalogue is a grid of smaller flakes. Each card opens an enlarged view with its conditions and seed, a "grow alike" action and an SVG download.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Procedural crystal generator with true six-fold dihedral symmetry. Primitives are built for one arm plus one half-arm, then rendered as 6 rotations plus a mirrored half, so every flake is exactly D6-symmetric
+- Morphology is driven by continuous scores loosely after Nakaya: dendrites peak near −15 °C in moist air, sectors at moderate vapour, plates near 0 °C and in dry air around −10 to −20 °C, needles near −5 °C, and columns near −7 °C or below −22 °C. The scores feed core-plate size, arm length and width, branch count, secondary-branch density, tip plates, ribbed sector wedges and needle spikes
+- Arms and branches are drawn as tapered hexagonal-profile strips with pointed tips, split into lit and unlit facet halves with a central ridge and small transverse ribs. Plates carry vertex ridges and inner rings, and end-on columns get hollow concentric hexes. Fern-tree envelopes, a seeded PRNG and outward secondary dendrites make no two alike
+- The translucent ice look comes from a radial ice gradient body with non-scaling bright edge strokes, facet overlays and ridge lines, plus a double CSS drop-shadow glow. Sparkle points mark the arm tips. The rotation is a composited CSS transform inside a circular clip
+- Growth is animated by clipping every primitive against an expanding radius. Strips lengthen with a live pointed tip and hexes swell from their centres, eased so growth is fast and then settles, all starting from a visible hex seed
+- The SVG export is a hand-assembled standalone document with background, gradients, a glow filter, a title and description, and the catalogue label. It downloads via a data: link
+- Snowfall is a canvas of pre-rendered soft sprites in four depth classes. Farther flakes are smaller, dimmer and slower. The nearest are large, blurred bokeh
+- The mini Nakaya chart is SVG, with blurred region blobs, rotated and small-caps labels, axes and a glowing draggable cursor
+
+=== INTERACTION MODEL ===
+- The temperature (−30 to −1 °C) and humidity (0 to 100%) sliders, or dragging on the Nakaya chart, set the conditions. The explanation text updates, and the current flake is re-shaped live as a "preview" with the same seed
+- "Grow a snowflake" grows a new seeded crystal from its hexagonal seed over about 3.6 s. It is given the next catalogue number and the current date and time, and it arrives at the head of the catalogue grid with an entrance animation
+- The "SVG" button downloads whatever flake is shown. Catalogue cards rotate slightly on hover and open a modal dialog (with native Esc, a close button and click-outside) offering "Download SVG" and "Grow alike", which copies the conditions back to the grower and grows a sibling
+- The catalogue (up to 36 entries) and the numbering counter persist in localStorage, guarded by try/catch. The header shows the running catalogue count
+- Responsive: on phones the flake leads, with the Grow and SVG buttons directly beneath it and the catalogue in two columns. prefers-reduced-motion stops the rotation and the snowfall and makes growth instant

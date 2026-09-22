@@ -1,0 +1,40 @@
+TITLE: The Glass Alibi
+FILE: 077-noir-story.html
+
+=== PROMPT (exact prompt used) ===
+Build "The Glass Alibi", a short interactive film-noir detective story (original, about six scenes with branching choices and two or three endings). Black-and-white visuals with dramatic chiaroscuro: venetian-blind shadow bands sweeping across the scene, rain streaking the window (canvas), a flickering desk lamp, a steaming coffee cup, film grain and vignette overlays, and occasional old-film frame jitter. Scenes are illustrated with SVG silhouettes (office, rainy alley, jazz club, pier) in greys, with a single accent colour reserved for the key clue (a red lipstick mark #b3001b). Narration and dialogue appear with a typewriter effect in a period serif; choices are presented as typed index cards. Include an ambient sound toggle (synthesized rain and a low, jazzy bass line). Features: a case-file notebook that collects clues, iris-wipe scene transitions, and restart. Typography: a Courier-like monospace for notes and a condensed serif for titles.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+=== DESCRIPTION ===
+The Glass Alibi is a short, original film-noir mystery played in black and white on a letterboxed silver screen. Port Calloway, 1947: private eye E. Crane takes a late-night visit from torch singer Nora Vale, whose alibi for the killing under Pier 9 is a lipstick-stained glass at the Blue Lantern. Five scenes (office, rain-soaked alley, jazz club, dressing room, fog-bound pier) branch into three endings (Red on the Glass, The Last Ferry, Wrong Song), and whether you solve it depends on noticing one thing. Everything is rendered in greys, with chiaroscuro light cones, rain, grain, vignette and projector flicker, except the single key clue: a crimson lipstick mark in #b3001b that appears on the tube in the gutter, the rim of the glass on table six, the cold-cream rag, and the clue entries in the case file. Narration types out in a period serif, choices arrive as typed index cards, and each scene opens and closes with an iris wipe and a silent-film intertitle.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Five hand-built SVG scenes (1600×900, preserveAspectRatio slice) made of silhouettes and grey gradients, sharing one defs sheet: a reusable woman silhouette and hat, light-cone and halo gradients, a brick pattern, and blur filters for frosted glass and fog
+- Chiaroscuro details: a desk lamp that flickers at random, a coffee cup with CSS-animated steam, a bulb swinging on its wire over the stage door, a spotlit microphone, mirror bulbs that stutter, drifting fog banks, lamp halos over black water
+- Venetian-blind shadows cast across the office, plus periodic headlight sweeps of blind-shaped light bands (masked repeating gradients in screen blend) through the office, club and dressing room
+- Canvas weather: slanted rain streaks from a pooled particle set with splashes on the wet ground, rain confined to the office window with beads that slide down the glass, and slow cigarette-smoke haze in the club
+- Film treatment: pre-baked noise tiles jumped around at half frame rate for grain, occasional vertical scratches, a random projector flicker layer, a heavy vignette, and brief frame jitter every few seconds
+- Iris-wipe transitions (clip-path circle via the Web Animations API) with a bordered intertitle card between scenes, and a rubber-stamp verdict (Case Closed / Off the Record / Case Cold) on the endings
+- Title lettering drawn in SVG with textLength and lengthAdjust to condense a serif face into tall film-poster capitals
+- Index-card choices: ruled paper from layered gradients, a typed Courier face, random tilt, staggered drop-in, and locked cards that are struck through with a hint when you lack the proof
+- A manila-grey case-file drawer that clips inside a fixed viewport wrapper, numbering clues with typed entries and red kiss marks only on the key evidence
+
+=== INTERACTION MODEL ===
+- Play cards with a click or the 1–4 keys; investigative cards can be played one after another within a scene before you move on, and a Continue card follows each reply
+- The typewriter reveals narration with punctuation pauses; click the text or press Space/Enter to finish it at once; a screen-reader live region receives each full line
+- Clues are filed automatically (a toast and a stamp animation on the Case file button); open the file with the button or C, close it with Esc
+- Branching: pocketing the lipstick unlocks new readings of the glass and a confession backstage; the accusation on the pier is only playable with the crimson tube plus either the glass or Vera's confession, which then offers the final choice between the two good endings
+- Sound toggle (or S), off by default: synthesized rain (filtered noise and a low rumble), distant thunder, a swung walking upright-bass line with brushes, soft typewriter key clicks, and a carriage bell at the end of each line
+- Restart from the top bar, the case file, or the ending cards
+- prefers-reduced-motion shows text instantly, stops grain, jitter, sweeps and scene animations, and replaces the iris wipe with a cut; rendering pauses while the tab is hidden

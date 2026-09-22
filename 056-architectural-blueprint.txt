@@ -1,0 +1,38 @@
+TITLE: Casa Lumen — Architectural Blueprint
+FILE: 056-architectural-blueprint.html
+
+=== PROMPT (exact prompt used) ===
+Design "Casa Lumen — Architectural Blueprint", an animated technical drawing of a fictional modernist house. Blueprint blue (#0b3d91 to #134a9e with a fine grid of lighter lines) with white/cyan line work (#e8f1ff, #9fd3ff). The plan draws itself on load: walls first (thick lines with hatched cuts), then doors with swing arcs, windows, stairs, furniture outlines, dimension lines with arrowheads and measurements, room labels, a north arrow, and a title block in the corner (project name, scale 1:100, sheet A-101, drawn by). Use staggered SVG stroke-dashoffset animations, like a hand drafting. Interaction: hovering a room fills it with translucent cyan and shows its area (m²) in a floating label; switch between "Floor plan", "Elevation" (south façade) and "Section" views with a cross-drawing transition; a "Pencil mode" switch re-renders the drawing as graphite on paper (#f5f3ee paper, #333 pencil). Typography: technical lettering (monospace/architectural sans stack, uppercase).
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+Casa Lumen is a drawing sheet for a fictional modernist house on blueprint blue (#0b3d91 to #134a9e), with a fine and a coarse grid, film grain, a double sheet border and zone letters and numbers in the margin. Its left side is the live drawing, in white (#e8f1ff) and cyan (#9fd3ff) line work. Its right side is a drafting column: a room schedule, general notes, a 1:100 scale bar and a full title block (project, drawing name, scale 1:100, sheet A-101, drawn by, checked, date, revision history). The house is designed to be internally consistent across three views. It is an 18 × 11 m single-storey pavilion wrapped around a glass patio open to the sky, with a 16-riser stair up to an upper studio and a roof slab that cantilevers 1.20 m over a south terrace. The South Elevation shows the same openings, and Section A–A (cut through the stair and patio) shows the noon sun at 75° and 28° for latitude 38.5° N passing under the overhang. Every view draws itself like a hand drafting. A Pencil mode re-draws the sheet in graphite on warm paper.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- All geometry is authored in metres and turned into SVG at 1 m = 40 units by small drawing helpers (lines, rectangles, rounded rectangles, arcs, dimensions, arrowheads, scalloped tree canopies)
+- Staggered stroke-dashoffset drafting (pathLength = 1) in a real drafting order: walls and cuts, hatched poché, doors with swing arcs and windows, stair treads with a break line, furniture, dimension chains with arrowheads, lettering, then symbols; a progress rule in the toolbar names the layer being drawn
+- Plan conventions: 45° hatched wall cuts, window symbols in the wall thickness, sliding glazing on two tracks, dashed treads above the cut plane, a dashed roof overhang, a section line with A tags and view arrows, a north arrow, room numbers and areas with paper-coloured halos, and a gravel-stippled patio
+- Elevation: timber cladding strokes, glass reflection hatching, roof-terrace guard rails, the patio tree rising above the roof, a scale figure, level markers (±0.00, +3.60, +6.60) and dimension chains
+- Section: solid poché for cut concrete (slabs, walls, footings, parapets, a sawtooth stair), earth hatching, glass cut detail, dashed sun rays with arrowheads for the solstice noon angles, and the tree seen through the open patio
+- "Cross-drawing" view change: the old view erases (dashoffset to −1, reverse-staggered) while the new view starts drafting over it
+- Pencil mode swaps CSS custom properties to graphite (#333) on paper (#f5f3ee), crossfades the background layers, turns on faint construction lines, and runs the ink through an SVG feTurbulence + feDisplacementMap filter for a hand-drawn wobble
+- Technical lettering: condensed DIN/ISO-style sans stack in wide-tracked uppercase, with monospace for dimensions and title-block data
+
+=== INTERACTION MODEL ===
+- Floor plan / Elevation / Section tabs (arrow-key navigable) switch views with the erase-and-redraw transition; the title block's drawing name and sheet number follow the view
+- Hover, focus or tap a room (plan), a space (section) or a glazing element (elevation): it fills with translucent cyan and a floating label gives its name, area in m² and dimensions; the matching row in the room schedule lights up, and hovering a schedule row highlights its room
+- The Pencil mode switch (role="switch") erases the drawing and re-drafts it in graphite on paper; Redraw replays the drafting animation
+- On narrow screens the sheet stacks: the drawing sits in a horizontally swipeable frame (scrolled to the centre) above the schedule, notes and title block
+- Reduced motion shows every view complete, without the drawing or erasing animations

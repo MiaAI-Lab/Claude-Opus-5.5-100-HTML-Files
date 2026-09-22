@@ -1,0 +1,38 @@
+TITLE: GROOVY — Lava Lamp
+FILE: 062-lava-lamp.html
+
+=== PROMPT (exact prompt used) ===
+Build "GROOVY — Lava Lamp", a 1970s lava lamp rendered with real metaball physics. A classic lamp silhouette (chrome/gold base and cap drawn in SVG with metallic gradients) centred on warm retro wallpaper (repeating SVG pattern of orange/brown circles, #f4a259, #bc4b51, #5b8e7d on #f4e1c1). Inside the glass, wax blobs heated at the bottom rise, cool and sink, merging and splitting (metaball field computed on a low-resolution grid with smooth thresholded edges, glossy highlights and inner glow). Colour combinations: "Classic" (red wax in yellow liquid), "Purple Haze" (magenta in blue), "Lime" (green in violet) and "Ocean". Interaction: click the lamp's switch to turn it on/off (the light fades, the wax slows and settles); a temperature knob; a colour-combo switch; the pointer heats the glass locally. The whole room's glow is tinted by the lamp colour. Typography: a groovy rounded bold display with an outline shadow.
+
+SHARED REQUIREMENTS (apply to every page in this 100-page collection):
+1. One standalone HTML5 file. All CSS inline in <style>, all JavaScript inline in <script>. No external resources of any kind: no CDN, no libraries, no web fonts, no external images/SVG/audio files, no network requests. All visuals come from CSS, inline SVG, Canvas and procedural code.
+2. Valid HTML5: <!DOCTYPE html>, <html lang="en">, <meta charset="utf-8">, a viewport meta tag, a meaningful <title> and meta description, well-nested semantic markup, unique ids, labels/aria attributes for controls, <button type="button"> for actions.
+3. Typography from local system font stacks only, always ending in a generic family; display lettering may be drawn with SVG or Canvas.
+4. Responsive from 360px phones to large desktops with no horizontal page scroll; canvases match their container and devicePixelRatio (capped at 2) and re-layout on resize.
+5. Works offline by opening the file directly (file://); no console errors; storage access guarded with try/catch.
+6. Smooth motion via requestAnimationFrame and transform/opacity; animation pauses when the tab is hidden where it matters; honours prefers-reduced-motion with a calmer fallback.
+7. Pointer events so mouse and touch both work; visible :focus-visible styles; keyboard support where it makes sense.
+8. Any sound is synthesized with the Web Audio API, starts only after a user gesture, and has a visible mute/toggle.
+9. Premium finish: a deliberate palette and spacing, polished micro-interactions, a beautiful first frame before any interaction, and original copy (no lorem ipsum). Factual content must be accurate; fictional brands, people and data are clearly fictional.
+10. Quality bar: visually impressive, bookmark-worthy, showcase-grade, premium, full of delightful details, and clearly distinct from the other 99 pages in concept, layout, palette, typography and motion.
+
+
+=== DESCRIPTION ===
+A warm 1970s evening scene: a brass-capped "Model 71" lava lamp (a fictional model) stands on a walnut sideboard in front of concentric-circle wallpaper in #f4a259, #bc4b51 and #5b8e7d on #f4e1c1. Inside the tapered glass, wax blobs driven by a small heat simulation warm over the bulb, bud off the molten pool, stretch as they rise, cool under the cap, drift back down, merge and split. They are rendered as glossy, backlit metaballs with an inner glow and a halo of scattered light in the liquid. The lamp colours the room: a screen-blended glow on the wall and a pool of light on the tabletop follow the chosen combination, and the whole room dims when the lamp is switched off. "GROOVY" is hand-built from fat, round-capped SVG strokes with a chocolate outline, an offset rust shadow and a cream inline, and each letter wobbles slowly like warm wax. Chunky cream cards with offset shadows hold the story copy and a retro control panel.
+
+=== MAJOR VISUAL TECHNIQUES ===
+- Metaball field (compact (1 − d²/R²)² kernel, velocity-dependent vertical stretch, flattened pool blobs at the heater) evaluated on a 3 px grid, bilinearly upsampled per device pixel for crisp, smooth thresholded edges and written straight to an ImageData buffer
+- Per-pixel wax shading from the interpolated field gradient: a pseudo-3D dome normal, diffuse and specular highlight, a bright translucent core ("inner glow"), a backlit rim on each blob's lower edge, and a halo tinting the nearby liquid
+- Liquid lit by a column-by-row bulb glow near the base, darkened by lamp brightness; the pointer adds a warm hotspot
+- Physics: per-blob temperature with heating near the bulb, cooling toward the cap, ambient loss, buoyancy, viscous drag, tapered-glass wall collisions, soft separation, probabilistic merging (area-conserving) and splitting or budding from the pool; 40 simulated seconds run before the first frame
+- SVG lamp: brass cone base, collar and cap drawn with multi-stop metallic gradients, engraved bands, glowing vent holes, a cord and a glass overlay (edge shading, streak highlights, a bulb glow) above a clip-path-shaped canvas
+- Room lighting with CSS variables: --lf (bulb level) and --glow (combo colour) drive a screen-blended radial glow, a darkening vignette, the tabletop light pool and the vents
+- A repeating SVG pattern wallpaper, "GROOVY" built from rounded stroke skeletons (<use> layers for shadow, outline, gradient fill and inline highlight) with per-letter CSS wobble, and a CSS knob with conic tick marks and a gradient arc
+- Smooth 1.2 s colour cross-fades between combinations; automatic 30 fps fallback if the per-pixel pass runs slow
+
+=== INTERACTION MODEL ===
+- Click the rocker switch on the lamp base (or press Space) to switch it on or off: the bulb fades up or down, the room darkens, and the wax slows, cools and settles into a pool, then reheats and rises again when switched back on
+- Turn the Heat knob by dragging around it, scrolling over it, or with arrow, Page and Home/End keys (it is an ARIA slider); more heat means faster, livelier convection and the named heat level updates
+- Choose Classic (red in yellow), Purple Haze (magenta in blue), Lime (green in violet) or Ocean (sea-foam in deep blue) from a radio group (arrow keys supported, or C to cycle); the wax, liquid, room glow and table light all cross-fade
+- Move the pointer or a finger over the glass to heat the wax locally: nearby blobs warm up and lift, and a warm glow follows the pointer
+- Live readouts show the average wax temperature, the number of blobs afloat and the bulb wattage; the loop pauses while the tab is hidden, and reduced motion slows the simulation and stops the lettering wobble
